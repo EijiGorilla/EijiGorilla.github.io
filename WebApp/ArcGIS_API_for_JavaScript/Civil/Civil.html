@@ -33,11 +33,14 @@
       require([
         "esri/views/MapView",
         "esri/views/SceneView",
+        "esri/layers/SceneLayer",
         "esri/WebMap",
         "esri/WebScene",
         "esri/portal/PortalItem",
-        "esri/portal/Portal"
-      ], function(MapView, SceneView, WebMap, WebScene, PortalItem, Portal) {
+        "esri/portal/Portal",
+        "esri/widgets/TimeSlider",
+        "esri/widgets/Legend"
+      ], function(MapView, SceneView, SceneLayer, WebMap, WebScene, PortalItem, Portal, TimeSlider, Legend) {
       
         var appConfig = {
           mapView: null,
@@ -71,7 +74,73 @@
             container: "viewDiv",
             map: scene
         });
+
+        var legend = new Legend({
+          view: view
+        });
+        view.ui.add(legend, "top-right");
+
+
         // End of Import and Display Web Scene
+
+        // Scene Layer
+        var scenelayer = new SceneLayer({
+          portalItem: {
+            // autocasts as new PortalItem()
+            id: "21684666d2bc4db3a2384355bab55392",
+          portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+          }
+          }
+        });
+
+        // Add the renderer to sceneLayer
+        sceneLayer.renderer = {
+          type: "simple", // autocasts as new SimpleRenderer()
+          symbol: symbol
+        };
+
+        // Create a time slider to update layerView filter
+        // Create a TimeSlider
+        var timeSlider = new TimeSlider({
+          container: "timeSliderDiv",
+          mode: "cumulative-from-start",
+          view: view,
+          // Show data within a given time range
+          mode: "time-window",
+          fullTimeExtent: { // enteire extent of the timeSlider
+            start: new Date(2020, 0, 1),
+            end: new Date(2021, 0, 1) 
+          },
+          values: [ // location of timeSlider thumbs
+            new Date(2020, 0, 1),
+            new Date(2021, 0, 1)
+
+          ]
+        });
+        view.ui.add(timeSlider, "manual");
+          
+          // wait until the layer view is loaded
+          let timeLayerView;
+          SceneView.whenLayerView(scenelayer).then(function(layerView) {
+            timeLayerView = layerView;
+            const fullTimeExtent = layer.timeInfo.fullTimeExtent;
+            const start = fullTimeExtent.start;
+            
+            // set up time slider properties based on layer timeInfo
+            timeSlider.fullTimeExtent = fullTimeExtent;
+            timeSlider.values = [start];
+            timeSlider.stops = {
+              interval: layer.timeInfo.interval
+              };
+});
+
+timeSlider.watch("timeExtent", function(value){
+  // update layer view filter to reflect current timeExtent
+  timeLayerView.filter = {
+    timeExtent: value
+  };
+});
 
         
 
