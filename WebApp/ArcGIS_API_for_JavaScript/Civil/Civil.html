@@ -31,6 +31,8 @@
 
     <script>
       require([
+        "esri/Ground",
+        "esri/Map",
         "esri/views/MapView",
         "esri/views/SceneView",
         "esri/layers/SceneLayer",
@@ -40,109 +42,92 @@
         "esri/portal/Portal",
         "esri/widgets/TimeSlider",
         "esri/widgets/Legend"
-      ], function(MapView, SceneView, SceneLayer, WebMap, WebScene, PortalItem, Portal, TimeSlider, Legend) {
-      
-        var appConfig = {
-          mapView: null,
-          sceneView: null,
-          activeView: null,
-          container: "viewDiv" // use same container for views
-        };
-
-        var initialViewParams = {
-          zoom: 20,
-          center: [121.0175, 14.6991],
-          container: appConfig.container
-        };
-
-        //
-        portal = new Portal();
-        portal.authoMode = "immediate";
-
-        // Import and Display Web Scene
-        var scene = new WebScene({
-          portalItem: {
-            // autocasts as new PortalItem()
-            id: "f49f712ce677497aa38feb639708977c",
-          portal: {
-              url: "https://mmspgc-gis.mmspgc.local/portal"
-          }
-          }
-        });
-
-        var view = new SceneView({
-            container: "viewDiv",
-            map: scene
-        });
-
-        var legend = new Legend({
-          view: view
-        });
-        view.ui.add(legend, "top-right");
-
+      ], function(Ground, Map, MapView, SceneView, SceneLayer, WebMap, WebScene, PortalItem, Portal, TimeSlider, Legend) {
 
         // End of Import and Display Web Scene
+        //*****************************************//  
+        // wait until the layer view is loaded
+          let layerView;
 
-        // Scene Layer
-        var scenelayer = new SceneLayer({
+          // Scene Layer
+        const scenelayer = new SceneLayer({
           portalItem: {
             // autocasts as new PortalItem()
             id: "21684666d2bc4db3a2384355bab55392",
           portal: {
               url: "https://mmspgc-gis.mmspgc.local/portal"
           }
+          },
+          timeInfo: {
+            startField: "EndDate",
+            interval: {
+              unit: "days",
+              value: 1
+            }
           }
         });
 
-        // Add the renderer to sceneLayer
-        sceneLayer.renderer = {
-          type: "simple", // autocasts as new SimpleRenderer()
-          symbol: symbol
-        };
+        const map = new Map({
+          basemap: null,
+          ground: "world-elevation"
+        });
 
-        // Create a time slider to update layerView filter
-        // Create a TimeSlider
-        var timeSlider = new TimeSlider({
-          container: "timeSliderDiv",
-          mode: "cumulative-from-start",
-          view: view,
-          // Show data within a given time range
-          mode: "time-window",
-          fullTimeExtent: { // enteire extent of the timeSlider
-            start: new Date(2020, 0, 1),
-            end: new Date(2021, 0, 1) 
-          },
-          values: [ // location of timeSlider thumbs
-            new Date(2020, 0, 1),
-            new Date(2021, 0, 1)
+        //map.ground.opacity = 1.0;
 
-          ]
+        const view = new SceneView({
+          container: "viewDiv",
+          map: map,
+          zoom: 15,
+          center: [121.0175, 14.6991],
+        });
+
+          // the webscene has no basemap, so set a surfaceColor on the ground
+          map.ground.surfaceColor = "#fff";
+          // to see through the ground, set the ground opacity to 0.4
+          map.ground.opacity = 0.4;       
+
+
+        // Create a new time slider widget
+        const timeSlider = new TimeSlider({
+          container: "timeSlider",
+          playRate: 50,
+          stops: {
+            interval: {
+              value: 1,
+              unit: "days"
+            }
+          }
         });
         view.ui.add(timeSlider, "manual");
-          
-          // wait until the layer view is loaded
-          let timeLayerView;
-          SceneView.whenLayerView(scenelayer).then(function(layerView) {
-            timeLayerView = layerView;
-            const fullTimeExtent = layer.timeInfo.fullTimeExtent;
-            const start = fullTimeExtent.start;
-            
-            // set up time slider properties based on layer timeInfo
-            timeSlider.fullTimeExtent = fullTimeExtent;
-            timeSlider.values = [start];
-            timeSlider.stops = {
-              interval: layer.timeInfo.interval
-              };
-});
 
-timeSlider.watch("timeExtent", function(value){
-  // update layer view filter to reflect current timeExtent
-  timeLayerView.filter = {
-    timeExtent: value
-  };
-});
+        // wait till the layer view is loaded
+        SceneView.whenLayerView(scenelayer).then(function(lv) {
+          layerView = lv;
 
-        
+          // start time of the time slider - 6/1/2020
+          const start = new Date(2019, 5, 1);
+          // set time slider's full extent to
+          timeSlider.fullTimeExtent = {
+            start: start,
+            end: scenelayer.timeInfo.fullTimeExtent.end
+          };
+
+          const end = new Date(start);
+          end.setDate(end.getDate + 1);
+          timeSlider.values = [start, end];
+        });
+
+        // watch for time slider timeExtent change
+        timeSlider.watch("timeExtent", function() {
+          layerView.effect = {
+            filter: {
+              timeExtent: timeSlider.timeExtent,
+              geometry: view.extent
+            },
+            excludedEffect: "grayscale(20%) opacity(12%)"
+          };          
+        });
+  
 
 
       });
