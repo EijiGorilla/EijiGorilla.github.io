@@ -1,0 +1,127 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
+  -->
+<title>D-Wall and Excavation/RC Monitoring</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      #optionsDiv {
+        width: 250px;
+        padding: 0 12px 0 12px;
+        background-color: white;
+        padding: 10px;
+      }
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.14/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.14/"></script>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/views/SceneView",
+        "esri/layers/FeatureLayer",
+        "esri/views/layers/support/FeatureFilter",
+        "esri/layers/SceneLayer",
+        "esri/WebMap",
+        "esri/WebScene",
+        "esri/portal/PortalItem",
+        "esri/portal/Portal",
+        "esri/widgets/TimeSlider",
+        "esri/widgets/Legend",
+        "esri/widgets/LayerList"
+      ], function(Map, MapView, SceneView, FeatureLayer, FeatureFilter, SceneLayer, WebMap, WebScene, PortalItem, Portal, TimeSlider, Legend, LayerList) {
+
+          // Load web scene from the Portal
+          portal = new Portal();
+          portal.authoMode = "immediate";
+
+          var webScene = new WebScene({
+              portalItem: {
+                  // autocasts as new PortalItem()
+                  id: "f49f712ce677497aa38feb639708977c",
+                  portal: {
+                      url: "https://mmspgc-gis.mmspgc.local/portal"
+                      }
+                }
+            });
+
+          // create the scene view
+          var view = new SceneView({
+              container: "viewDiv",
+              map: webScene,
+          });
+
+          //
+          webScene.when(function() {
+               
+                var mainLayer = webScene.layer.find(function(l) {
+                  return l.title === "Structure";
+                });
+                
+                function showStructures(event) {
+                  var structureQuery = event.target.value;
+                  mainLayer.definitionExpression = structureQuery;
+                }
+
+          document
+            .getElementById("Structure")
+            .addEventListener("change",showStructures);
+
+            var layerList = new LayerList({
+              view: view
+            });
+
+            view.ui.add(layerList, {
+              position: "top-right"
+            });
+
+          });
+
+      
+          view.ui.add(document.getElementById("optionsDiv"), {
+              position: "top-left",
+              index:0
+          });  
+              
+ 
+
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+    <div id="optionsDiv" class="esri-widget">
+      <div>
+        <b>Filter structures:</b>
+        <select id="Structure">
+          <option value="1=1">All</option>
+          <option value="Type = '1'">1</option>
+          <option value="Type = '2'">2</option>
+        </select>
+      </div>
+    </div>
+  </body>
+</html>
