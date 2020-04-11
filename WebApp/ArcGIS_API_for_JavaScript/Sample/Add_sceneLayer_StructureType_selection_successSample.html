@@ -1,0 +1,179 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
+  -->
+<title>D-Wall and Excavation/RC Monitoring</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      #optionsDiv {
+        width: 250px;
+        padding: 0 12px 0 12px;
+        background-color: white;
+        padding: 10px;
+      }
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.14/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.14/"></script>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/views/SceneView",
+        "esri/layers/FeatureLayer",
+        "esri/views/layers/support/FeatureFilter",
+        "esri/layers/SceneLayer",
+        "esri/layers/Layer",
+        "esri/WebMap",
+        "esri/WebScene",
+        "esri/portal/PortalItem",
+        "esri/portal/Portal",
+        "esri/widgets/TimeSlider",
+        "esri/widgets/Legend",
+        "esri/widgets/LayerList",
+        "esri/tasks/GeometryService",
+        "esri/tasks/support/Query"
+      ], function(Map, MapView, SceneView, 
+                  FeatureLayer, FeatureFilter,
+                  SceneLayer, Layer, WebMap,
+                  WebScene, PortalItem, Portal,
+                  TimeSlider, Legend, LayerList,
+                  GeometryService, Query) {
+        
+            //portal = new Portal();
+         // portal.authoMode = "immediate";
+
+        var stationLayer = new FeatureLayer({
+            portalItem: {
+                id: "d6867104da2849a78f913d8f77af5147",
+                portal: {
+                    url: "https://mmspgc-gis.mmspgc.local/portal"
+                }
+            }
+        });
+
+        var map = new Map({
+              basemap: "strees",
+              ground: "world-elevation",
+        });
+        //map.ground.surfaceColor = "#FFFF";
+        map.ground.opacity = 0.1;
+       map.layers.add(stationLayer);
+
+
+          
+        var view = new SceneView({
+            map: map,
+            container: "viewDiv",
+            camera: {
+                position: {
+                    x: 121.0322874,
+                    y: 14.6750462,
+                    z: 0
+                    },
+                    tilt: 65
+                    },
+            environment: {
+                background: {
+                    type: "color", // autocasts as new ColorBackground()
+                    color: [0, 0, 0, 1]
+                    },
+                    // disable stars
+                    starsEnabled: false,
+                    //disable atmosphere
+                    atmosphereEnabled: false
+                    }
+        });
+
+        // It looks like if we add the following codes, SceneLayer cannot be added to scene view, but
+        // when needed for opening web scene.
+            // portal = new Portal();
+           //portal.authoMode = "immediate";
+
+           var sceneLayer = new SceneLayer({
+          portalItem: {
+            id: "21684666d2bc4db3a2384355bab55392",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          },
+          popupEnabled: true
+        });
+       
+        //sceneLayer.definitionExpression = "Type = 1";
+        map.add(sceneLayer, 1);
+
+        // function that will filter by the selected structure type
+        function showType(event) {
+          //retrieve the query stored in the selected value
+          var typeQuery = event.target.value;
+          sceneLayer.definitionExpression = typeQuery;
+        }
+
+        document.getElementById("structureType").addEventListener("change", showType);  
+ 
+        // Legend
+        var legend = new Legend({
+          view: view,
+          layerInfos: [{
+            layer: sceneLayer,
+            title: "Legend"
+            }]
+        });
+        view.ui.add(legend, "bottom-right");
+
+        // On-off feature layer tab
+        var layerList = new LayerList({
+            view: view
+          });
+
+          view.ui.add(layerList, {
+            position: "top-right"
+          });
+
+        // Document (add) selecter tab for structure types
+        view.ui.add(document.getElementById("optionsDiv"), {
+          position: "top-left",
+          index: 0
+        });
+ 
+
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+    <div id="optionsDiv" class="esri-widget">
+      <div>
+        <b>Filter Structure Type:</b>
+        <select id="structureType">
+          <option value="1=1">All</option>
+          <option value="Types = 'D-Wall'">D-Wall</option>
+          <option value="Types = 'Structure'">Structure</option>    
+        </select>
+      </div>
+    </div>
+  </body>
+</html>
