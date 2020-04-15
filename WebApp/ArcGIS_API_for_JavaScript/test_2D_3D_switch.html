@@ -1,0 +1,323 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the views-synchronize sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/views-synchronize/index.html
+  -->
+<title>Synchronize MapView and SceneView - 4.15</title>
+
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+      }
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.15/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.15/"></script>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/views/SceneView",
+        "esri/core/watchUtils",
+        "esri/layers/SceneLayer"
+      ], function(Map, MapView, SceneView, watchUtils, SceneLayer) {
+        var map = new Map({
+          basemap: "streets",
+          ground: "world-elevation"
+        });
+        map.ground.opacity = 0.3;
+
+        var view1 = new SceneView({
+          id: "view1",
+          container: "view1Div",
+          map: map
+        });
+
+        var stationLayer = new SceneLayer({
+            portalItem: {
+                id: "0b188bbb17b340b9ba4a72c7b2921dd1",
+                portal: {
+                    url: "https://mmspgc-gis.mmspgc.local/portal"
+                }
+            }            
+        });
+        // .listMode = "hide". A layer is hidden in Legend of LayerList
+        stationLayer.listMode = "hide";
+        map.add(stationLayer, 0);
+
+        var dwallLayer = new SceneLayer({
+            portalItem: {
+                id: "6f703aeabebb44ec9eed1392e5075c1e",
+                portal: {
+                    url: "https://mmspgc-gis.mmspgc.local/portal"
+                }
+            },
+            title: "D-Wall"
+        });
+        map.add(dwallLayer, 1);
+
+        var structureLayer = new SceneLayer({
+            portalItem: {
+                id: "88c5c8c13f614093b7ffc1d643e96d3f",
+                portal: {
+                    url: "https://mmspgc-gis.mmspgc.local/portal"
+                }
+            },
+            title: "Structure"
+        });
+        map.add(structureLayer, 2);
+
+        var view2 = new MapView({
+          id: "view2",
+          container: "view2Div",
+          map: map,
+          constraints: {
+            // Disable zoom snapping to get the best synchronization
+            snapToZoom: false
+          }
+        });
+
+        // Setup UI
+     
+        var applicationDiv = document.getElementById("applicationDiv");
+        var titleDiv = document.getElementById("titleDiv");
+
+        /**
+         * utility method that synchronizes the viewpoint of a view to other views
+         */
+        var synchronizeView = function(view, others) {
+          others = Array.isArray(others) ? others : [others];
+
+          var viewpointWatchHandle;
+          var viewStationaryHandle;
+          var otherInteractHandlers;
+          var scheduleId;
+
+          var clear = function() {
+            if (otherInteractHandlers) {
+              otherInteractHandlers.forEach(function(handle) {
+                handle.remove();
+              });
+            }
+            viewpointWatchHandle && viewpointWatchHandle.remove();
+            viewStationaryHandle && viewStationaryHandle.remove();
+            scheduleId && clearTimeout(scheduleId);
+            otherInteractHandlers = viewpointWatchHandle = viewStationaryHandle = scheduleId = null;
+          };
+
+          var interactWatcher = view.watch("interacting,animation", function(
+            newValue
+          ) {
+            if (!newValue) {
+              return;
+            }
+            if (viewpointWatchHandle || scheduleId) {
+              return;
+            }
+
+            // start updating the other views at the next frame
+            scheduleId = setTimeout(function() {
+              scheduleId = null;
+              viewpointWatchHandle = view.watch("viewpoint", function(
+                newValue
+              ) {
+                others.forEach(function(otherView) {
+                  otherView.viewpoint = newValue;
+                });
+              });
+            }, 0);
+
+            // stop as soon as another view starts interacting, like if the user starts panning
+            otherInteractHandlers = others.map(function(otherView) {
+              return watchUtils.watch(
+                otherView,
+                "interacting,animation",
+                function(value) {
+                  if (value) {
+                    clear();
+                  }
+                }
+              );
+            });
+
+            // or stop when the view is stationary again
+            viewStationaryHandle = watchUtils.whenTrue(
+              view,
+              "stationary",
+              clear
+            );
+          });
+
+          return {
+            remove: function() {
+              this.remove = function() {};
+              clear();
+              interactWatcher.remove();
+            }
+          };
+        };
+
+        /**
+         * utility method that synchronizes the viewpoints of multiple views
+         */
+        var synchronizeViews = function(views) {
+          var handles = views.map(function(view, idx, views) {
+            var others = views.concat();
+            others.splice(idx, 1);
+            return synchronizeView(view, others);
+          });
+
+          return {
+            remove: function() {
+              this.remove = function() {};
+              handles.forEach(function(h) {
+                h.remove();
+              });
+              handles = null;
+            }
+          };
+        };
+
+        // bind the views
+        synchronizeViews([view1, view2]);
+
+
+
+
+
+               //*** Highlight and Zoom to Stations*** //
+        // This variable will store highlight handle that is used to remove the highlight
+        var highlight = null;
+
+        view.when(function() {
+        
+          // define the attributes which are used in the query
+          stationLayer.outFields = "Name";
+
+          // Get DOM (Document Object Model) eement where list items will be placed
+          var container = document.getElementById("stationList");
+
+          // Highlight is set on the layerView, so we need to detect when the layerView is ready
+          view.whenLayerView(stationLayer).then(function(stationLayerView) {
+            //wait for the layer view to finish updating
+            stationLayerView.watch("updating", function(val) {
+              if (!val) {
+                // Query the features available for drawing and get all the attributes
+                var query = new Query();
+                stationLayerView.queryFeatures(query).then(function(result) {
+                  // Empty the list DOM element
+                  container.innerHTML = "";
+                  // For each returned feature that is of station create a list item and append it to the container
+                  result.features.forEach(function(feature) {
+                    var attributes = feature.attributes;
+                    // we only want to add features of station to the list
+                    var li = document.createElement("li");
+                    li.setAttribute("class", "panel-result");
+                    li.innerHTML = attributes.Name;
+                    li.addEventListener("click", function(event) {
+                      var target = event.target;
+                      var objectId = feature.attributes.OBJECTID;
+                      // Create an extent query on the layer view that will return to 3D extent of the feature
+                      var queryExtent = new Query({
+                        objectIds: [objectId]
+                      });
+                      stationLayerView
+                        .queryExtent(queryExtent)
+                        .then(function(result) {
+                          // Zoom to the extent of the feature
+                          // Use the expand method to prevent zooming in too close to the feature
+                          if (result.extent) {
+                            view
+                              .goTo(result.extent.expand(10), {
+                                speedFactor: 2
+                              })
+                              .catch(function(error) {
+                                if (error.name != "AbortError") {
+                                  console.error(error);
+                                }
+                              });
+                          }
+                        });
+                        // Remove the previous highlights
+                        if (highlight) {
+                          highlight.remove();
+                        }
+                        // Highlight the feature passing the objectId to the method
+                        highlight = stationLayerView.highlight([objectId]);
+                    });
+                    container.appendChild(li);
+                  });
+                });
+              }
+            });
+          });
+        });
+        //*** End of Highlight & Zoom to Stations*** //
+        view.ui.empty("top-left");
+        view.ui.add(titleDiv, "top-left");
+        //view.ui.add(legend, "bottom-left");
+
+        // On-off feature layer tab
+        var layerList = new LayerList({
+            view: view,
+            listItemCreatedFunction: function(event) {
+              const item = event.item;
+              if (item.layer.type != "group") {
+                item.panel = {
+                  content: "legend",
+                  open: false
+                };
+              }
+            }
+          });
+
+          view.ui.add(layerList, {
+            position: "bottom-left"
+          });
+
+        // Document (add) selecter tab for structure types
+        view.ui.add(document.getElementById("optionsDiv"), {
+          position: "top-left",
+          index: 0
+        });
+        view.ui.add(
+            new Fullscreen({
+                view: view,
+                element: applicationDiv
+            }),
+            "bottom-right"
+        );
+
+      });
+    </script>
+  </head>
+  <body>
+    <div id="applicationDiv">
+       <div id="view1Div">
+            <div id="titleDiv" class="esri-widget">Civil Construction</div>
+       </div>
+       <div class="panel-side esri-widget">
+          <h2>Stations List</h2>
+          <ul id="stationList">
+            <li>Loading&hellip;</li>
+          </ul>
+        </div>
+        <div id="optionsDiv" class="esri-widget">
+        </div>
+    </div>   
+   </body>
+</html>

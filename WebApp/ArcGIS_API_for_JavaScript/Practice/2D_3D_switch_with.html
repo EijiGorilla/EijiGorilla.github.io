@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>D-Wall and Excavation/RC Monitoring</title>
+<title>Switch view from 2D to 3D - 4.14</title>
 
     <style>
       html,
@@ -22,24 +22,40 @@
         width: 100%;
       }
 
-      .panel-side {
-        width: 200px;
+      #infoDiv {
         position: absolute;
-        top: 14px;
-        right: 14px;
-        bottom: 28px;
-        color: white;
-        background-color: black;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-        overflow: auto;
-        z-index: 60;
-        font-size: 12px;
-        text-align: center;
+        top: 15px;
+        left: 60px;
       }
 
-      .panel-side h2 {
-        padding: 0 20px;
-        margin: 20px 0;
+      #infoDiv input {
+        border: none;
+        box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 2px;
+      }
+
+      .panel-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
+      }
+
+      .panel-side {
+      padding: 0px;
+      box-sizing: border-box;
+      width: 150px;
+      height: auto;
+      position: absolute;
+      top: 0;
+      right: 0;
+      color: #fff;
+      background-color: black;
+      overflow: auto;
+      z-index: 60;
+    }
+
+    .panel-side h2 {
+        padding: 5 5px;
+        margin: 0;
         font-size: 14px;
         font-weight: 600;
         color: white;
@@ -62,7 +78,7 @@
 
       .panel-result {
         cursor: pointer;
-        margin: 2px 0;
+        margin: 0px 0;
       }
 
       .panel-result:hover,
@@ -71,13 +87,6 @@
         background-color: rgba(200, 200, 200, 0.6);
       }      
 
-      #optionsDiv {
-        width: 250px;
-        padding: 0 12px 0 12px;
-        background-color: black;
-        color: white;
-        padding: 10px;
-      }
     </style>
 
     <link
@@ -88,7 +97,7 @@
 
     <script>
       require([
-        "esri/Map",
+      "esri/Map",
         "esri/views/MapView",
         "esri/views/SceneView",
         "esri/layers/FeatureLayer",
@@ -102,62 +111,55 @@
         "esri/widgets/TimeSlider",
         "esri/widgets/Legend",
         "esri/widgets/LayerList",
+        "esri/widgets/Fullscreen",
         "esri/tasks/GeometryService",
-        "esri/tasks/support/Query"
-      ], function(Map, MapView, SceneView, 
+        "esri/tasks/support/Query",
+        "esri/renderers/smartMapping/statistics/summaryStatistics"
+        ], function(Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, WebMap,
                   WebScene, PortalItem, Portal,
-                  TimeSlider, Legend, LayerList,
-                  GeometryService, Query) {
-        
-            //portal = new Portal();
-         // portal.authoMode = "immediate";
-        var map = new Map({
-              basemap: "strees",
-              ground: "world-elevation",
-        });
-        //map.ground.surfaceColor = "#FFFF";
-        map.ground.opacity = 0.1;
-         
-        var view = new SceneView({
-            map: map,
-            container: "viewDiv",
-            viewingMode: "local",
-            camera: {
-                position: {
-                    x: 121.0322874,
-                    y: 14.6750462,
-                    z: 0
-                    },
-                    tilt: 65
-                    },
-            environment: {
-                background: {
-                    type: "color", // autocasts as new ColorBackground()
-                    color: [0, 0, 0, 1]
-                    },
-                    // disable stars
-                    starsEnabled: false,
-                    //disable atmosphere
-                    atmosphereEnabled: false
-                    }
+                  TimeSlider, Legend, LayerList, Fullscreen,
+                  GeometryService, Query, summaryStatistics) {
+
+
+        var switchButton = document.getElementById("switch-btn");
+     
+        var appConfig = {
+          mapView: null,
+          sceneView: null,
+          activeView: null,
+          container: "viewDiv" // use same container for views
+        };
+
+        var initialViewParams = {
+          zoom: 20,
+          center: [121.0175, 14.6991],
+          container: appConfig.container
+        };
+
+
+        //
+        var webmap = new WebMap({
+          portalItem: {
+            // autocasts as new PortalItem()
+            id: "3b872599d8f64f2d89fa21493161aaf9",
+          portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+          }
+          }
         });
 
+        var scene = new WebScene({
+          portalItem: {
+            // autocasts as new PortalItem()
+            id: "d50838c65305479e8b65489670bda04f",
+          portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+          }
+          }
+        });
 
-        // Use Feature Layer (not scene Layer): uncertain why scene layer of stations did not work
-        // var stationLayer = new FeatureLayer({
-        //    portalItem: {
-        //        id: "f137a1c1c2f64445a124a69c2bc58d38",
-        //        portal: {
-        //            url: "https://mmspgc-gis.mmspgc.local/portal"
-        //        }
-        //    }
-        //});
-        //map.layers.add(stationLayer,1);
-
-        // When a scene layer is published using 'Copy All' view.goTo did not work
-        // It worked when the scene layer is published in 'Reference Registered Data' 
         var stationLayer = new SceneLayer({
             portalItem: {
                 id: "0b188bbb17b340b9ba4a72c7b2921dd1",
@@ -166,12 +168,25 @@
                 }
             }            
         });
-        map.add(stationLayer, 1);
+        // .listMode = "hide". A layer is hidden in Legend of LayerList
+       // stationLayer.listMode = "hide";
+       // map.add(stationLayer, 0);
 
 
+        var dwallLayer = webscene.allLayers.filter(function(elem) {
+            return elem.title === "D_Wall";
+        }).items[0];
+
+        var structureLayer = webscene.allLayers.filter(function(elem) {
+            return elem.title === "Structures";
+        }).items[0];
 
 
-        //*** Highlight and Zoom to Stations*** //
+        // Setup UI
+        var titleDiv = document.getElementById("titleDiv");
+
+
+       //*** Highlight and Zoom to Stations*** //
         // This variable will store highlight handle that is used to remove the highlight
         var highlight = null;
 
@@ -240,85 +255,104 @@
         });
         //*** End of Highlight & Zoom to Stations*** //
 
-        //*** Add Scene Layer***//
-           var sceneLayer = new SceneLayer({
-          portalItem: {
-            id: "21684666d2bc4db3a2384355bab55392",
-            portal: {
-              url: "https://mmspgc-gis.mmspgc.local/portal"
-            }
-          },
-          popupEnabled: true
-        });
-       
-        //sceneLayer.definitionExpression = "Type = 1";
-        map.add(sceneLayer,0);
-
-        //*** Function that will filter by the selected structure type
-        function showType(event) {
-          //retrieve the query stored in the selected value
-          var typeQuery = event.target.value;
-          sceneLayer.definitionExpression = typeQuery;
-        }
-        document.getElementById("structureType").addEventListener("change", showType);  
- 
-         //*** Add Legend ***//
-        var legend = new Legend({
-          view: view,
-          layerInfos: [{
-            layer: sceneLayer,
-            title: "Legend"
-            }],
-        });
-        view.ui.empty("top-left");
-        view.ui.add(legend, "bottom-left");
-
+        //view.ui.empty("top-left");
+        view.ui.add(titleDiv, "top-left");
+   
         // On-off feature layer tab
-        var layerList = new LayerList({
-            view: view,
-         //   listItemCreatedFunction: function(event) {
-         //     const item = event.item;
-         //     if (item.layer.type != "group") {
-         //       item.panel = {
-         //         content: "legend",
-         //         open: true
-         //       };
-         //     }
-         //   }
-          });
 
+        
           view.ui.add(layerList, {
-            position: "top-left"
+            position: "top-right"
           });
 
-        // Document (add) selecter tab for structure types
-        view.ui.add(document.getElementById("optionsDiv"), {
-          position: "top-left",
-          index: 0
+          view.when(function() {
+          var layerList = new LayerList({
+            view: view
+          });
+
+          // Add widget to the top right corner of the view
+          view.ui.add(layerList, "top-right");
         });
+        // create 2D view and and set active
+        appConfig.mapView = createView(initialViewParams, "2d");
+        appConfig.mapView.map = webmap;
+        appConfig.activeView = appConfig.mapView;
+
+        // create 3D view, won't initialize until container is set
+        initialViewParams.container = null;
+        initialViewParams.map = scene;
+        appConfig.sceneView = createView(initialViewParams, "3d");
+
+        // switch the view between 2D and 3D each time the button is clicked
+        switchButton.addEventListener("click", function() {
+          switchView();
+        });
+
+        // Switches the view from 2D to 3D and vice versa
+        function switchView() {
+          var is3D = appConfig.activeView.type === "3d";
+          var activeViewpoint = appConfig.activeView.viewpoint.clone();
+
+          // remove the reference to the container for the previous view
+          appConfig.activeView.container = null;
+
+          if (is3D) {
+            // if the input view is a SceneView, set the viewpoint on the
+            // mapView instance. Set the container on the mapView and flag
+            // it as the active view
+            appConfig.mapView.viewpoint = activeViewpoint;
+            appConfig.mapView.container = appConfig.container;
+            appConfig.activeView = appConfig.mapView;
+            switchButton.value = "3D";
+          } else {
+            appConfig.sceneView.viewpoint = activeViewpoint;
+            appConfig.sceneView.container = appConfig.container;
+            appConfig.activeView = appConfig.sceneView;
+            switchButton.value = "2D";
+          }
+        }
+
+        // convenience function for creating a 2D or 3D view
+        function createView(params, type) {
+          var view;
+          var is2D = type === "2d";
+          if (is2D) {
+            view = new MapView(params);
+            return view;
+          } else {
+            view = new SceneView(params);
+          }
+          return view;
+        }
+
+        //
+        //var stationLayer = webscene.allLayers.filter(function(elem) {
+        //    return elem.title === "Stations1";
+        //}).items[0];
+
  
 
       });
     </script>
   </head>
 
-  <body>
-    <div id="viewDiv"></div>
-    <div class="panel-side esri-widget">
-      <h2>Stations List</h2>
-      <ul id="stationList">
-        <li>Loading&hellip;</li>
-      </ul>
+  <body class="Calcite">
+    <div id="viewDiv">
+        <div class="panel-side esri-widget">
+            <h2>Stations List</h2>
+            <ul id="stationList">
+              <li>Loading&hellip;</li>
+            </ul>
+          </div>
     </div>
-    <div id="optionsDiv" class="esri-widget">
-      <div>
-        <b>Filter Structure Type:</b>
-        <select id="structureType">
-          <option value="1=1">All</option>
-          <option value="Types = 'D-Wall'">D-Wall</option>
-          <option value="Types = 'Structure'">Structure</option>    
-        </select>
-      </div>
+    <div id="infoDiv">
+        <div id="titleDiv" class="esri-widget">Civil Construction</div>
+      <input
+        class="esri-component esri-widget--button esri-widget esri-interactive"
+        type="button"
+        id="switch-btn"
+        value="3D"
+      />
     </div>
   </body>
 </html>

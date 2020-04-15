@@ -14,32 +14,71 @@
 
     <style>
       html,
-      body,
+      body {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        background-color: black;       
+      }
+
+      #stationList {
+        background-color: black;
+      }
+
+
+      #applicationDiv {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;         
+      }
+
       #viewDiv {
         padding: 0;
         margin: 0;
         height: 100%;
         width: 100%;
+        background-color: black;
+        flex: 1 1 auto;
+        order: 1;
+        overflow: hidden;
+      }
+
+      #titleDiv {
+        font-weight: 400;
+        font-style: normal;
+        font-size: 1.2019rem;
+        color: white;
+        padding: 10px;
+        background-color: black;
+      }
+
+      .panel-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
       }
 
       .panel-side {
-        width: 200px;
-        position: absolute;
-        top: 14px;
-        right: 14px;
-        bottom: 28px;
-        color: white;
-        background-color: black;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-        overflow: auto;
-        z-index: 60;
-        font-size: 12px;
-        text-align: center;
-      }
+      padding: 0px;
+      box-sizing: border-box;
+      width: 150px;
+      height: auto;
+      position: absolute;
+      top: 0;
+      right: 0;
+      color: #fff;
+      background-color: black;
+      overflow: auto;
+      z-index: 60;
+    }
 
-      .panel-side h2 {
-        padding: 0 20px;
-        margin: 20px 0;
+    .panel-side h2 {
+        padding: 5 5px;
+        margin: 0;
         font-size: 14px;
         font-weight: 600;
         color: white;
@@ -62,7 +101,7 @@
 
       .panel-result {
         cursor: pointer;
-        margin: 2px 0;
+        margin: 0px 0;
       }
 
       .panel-result:hover,
@@ -73,21 +112,36 @@
 
       #optionsDiv {
         width: 250px;
+        height: auto;
         padding: 0 12px 0 12px;
         background-color: black;
         color: white;
         padding: 10px;
       }
+
+      #percentComp {
+        color: rgb(233, 16, 222);
+        font-size: 16px;
+      }
+
+      #menu {
+        padding: 3px 3px 3px 3px;
+        background-color: black;
+        color: white;
+      }
+
+      
     </style>
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.14/esri/themes/light/main.css"
+      href="https://js.arcgis.com/4.15/esri/themes/light/main.css"
     />
-    <script src="https://js.arcgis.com/4.14/"></script>
+    <script src="https://js.arcgis.com/4.15/"></script>
 
     <script>
       require([
+        "esri/Basemap",
         "esri/Map",
         "esri/views/MapView",
         "esri/views/SceneView",
@@ -95,6 +149,8 @@
         "esri/views/layers/support/FeatureFilter",
         "esri/layers/SceneLayer",
         "esri/layers/Layer",
+        "esri/layers/TileLayer",
+        "esri/layers/VectorTileLayer",
         "esri/WebMap",
         "esri/WebScene",
         "esri/portal/PortalItem",
@@ -102,23 +158,28 @@
         "esri/widgets/TimeSlider",
         "esri/widgets/Legend",
         "esri/widgets/LayerList",
+        "esri/widgets/Fullscreen",
         "esri/tasks/GeometryService",
-        "esri/tasks/support/Query"
-      ], function(Map, MapView, SceneView, 
+        "esri/tasks/support/Query",
+        "esri/tasks/QueryTask",
+        "esri/renderers/smartMapping/statistics/summaryStatistics",
+        "esri/tasks/support/StatisticDefinition",
+      ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
-                  SceneLayer, Layer, WebMap,
+                  SceneLayer, Layer, TileLayer, VectorTileLayer, WebMap,
                   WebScene, PortalItem, Portal,
-                  TimeSlider, Legend, LayerList,
-                  GeometryService, Query) {
+                  TimeSlider, Legend, LayerList, Fullscreen,
+                  GeometryService, Query, QueryTask, summaryStatistics, StatisticDefinition) {
         
             //portal = new Portal();
          // portal.authoMode = "immediate";
+
         var map = new Map({
-              basemap: "strees",
-              ground: "world-elevation",
+              basemap: "streets-night-vector",
+              ground: "world-elevation"
         });
         //map.ground.surfaceColor = "#FFFF";
-        map.ground.opacity = 0.1;
+        //map.ground.opacity = 0.1;
          
         var view = new SceneView({
             map: map,
@@ -144,20 +205,17 @@
                     }
         });
 
+        // Setup UI
+     
+        var applicationDiv = document.getElementById("applicationDiv");
+        var titleDiv = document.getElementById("titleDiv");
 
-        // Use Feature Layer (not scene Layer): uncertain why scene layer of stations did not work
-        // var stationLayer = new FeatureLayer({
-        //    portalItem: {
-        //        id: "f137a1c1c2f64445a124a69c2bc58d38",
-        //        portal: {
-        //            url: "https://mmspgc-gis.mmspgc.local/portal"
-        //        }
-        //    }
-        //});
-        //map.layers.add(stationLayer,1);
+
+        //********** Import Layers**********
 
         // When a scene layer is published using 'Copy All' view.goTo did not work
         // It worked when the scene layer is published in 'Reference Registered Data' 
+       
         var stationLayer = new SceneLayer({
             portalItem: {
                 id: "0b188bbb17b340b9ba4a72c7b2921dd1",
@@ -166,10 +224,31 @@
                 }
             }            
         });
-        map.add(stationLayer, 1);
+        // .listMode = "hide". A layer is hidden in Legend of LayerList
+        stationLayer.listMode = "hide";
+        map.add(stationLayer, 0);
 
+        var dwallLayer = new SceneLayer({
+            portalItem: {
+                id: "6f703aeabebb44ec9eed1392e5075c1e",
+                portal: {
+                    url: "https://mmspgc-gis.mmspgc.local/portal"
+                }
+            },
+            title: "D-Wall"
+        });
+        map.add(dwallLayer, 1);
 
-
+        var structureLayer = new SceneLayer({
+            portalItem: {
+                id: "88c5c8c13f614093b7ffc1d643e96d3f",
+                portal: {
+                    url: "https://mmspgc-gis.mmspgc.local/portal"
+                }
+            },
+            title: "Structure"
+        });
+        map.add(structureLayer, 2);
 
         //*** Highlight and Zoom to Stations*** //
         // This variable will store highlight handle that is used to remove the highlight
@@ -240,70 +319,107 @@
         });
         //*** End of Highlight & Zoom to Stations*** //
 
-        //*** Add Scene Layer***//
-           var sceneLayer = new SceneLayer({
-          portalItem: {
-            id: "21684666d2bc4db3a2384355bab55392",
-            portal: {
-              url: "https://mmspgc-gis.mmspgc.local/portal"
-            }
-          },
-          popupEnabled: true
-        });
-       
-        //sceneLayer.definitionExpression = "Type = 1";
-        map.add(sceneLayer,0);
 
-        //*** Function that will filter by the selected structure type
-        function showType(event) {
-          //retrieve the query stored in the selected value
-          var typeQuery = event.target.value;
-          sceneLayer.definitionExpression = typeQuery;
-        }
-        document.getElementById("structureType").addEventListener("change", showType);  
- 
-         //*** Add Legend ***//
-        var legend = new Legend({
-          view: view,
-          layerInfos: [{
-            layer: sceneLayer,
-            title: "Legend"
-            }],
-        });
-        view.ui.empty("top-left");
-        view.ui.add(legend, "bottom-left");
-
+        // LayerList and Add legend to the LayerList
         // On-off feature layer tab
         var layerList = new LayerList({
             view: view,
-         //   listItemCreatedFunction: function(event) {
-         //     const item = event.item;
-         //     if (item.layer.type != "group") {
-         //       item.panel = {
-         //         content: "legend",
-         //         open: true
-         //       };
-         //     }
-         //   }
+            listItemCreatedFunction: function(event) {
+              const item = event.item;
+              if (item.layer.type != "group") {
+                item.panel = {
+                  content: "legend",
+                  open: false
+                };
+              }
+            }
           });
 
           view.ui.add(layerList, {
-            position: "top-left"
+            position: "bottom-left"
           });
 
-        // Document (add) selecter tab for structure types
+        // Create DOM ID and use this for showing summary statistics
         view.ui.add(document.getElementById("optionsDiv"), {
-          position: "top-left",
+          position: "bottom-right",
           index: 0
         });
- 
+        // End of LayerList
+
+        // Summary statistics
+        // query for the sum of the population in all features
+        var totalPanel = {
+          onStatisticField: "FinalStatus",  // service field for 2015 population
+          outStatisticFieldName: "FinalStatus_count",
+          statisticType: "count"
+          };
+
+          var finishPanel = {
+          onStatisticField: "FinalStatus",  // service field for 2015 population
+          outStatisticFieldName: "FinalStatus_pcount",
+          statisticType: "sum"
+          };
+
+          //var demos = document.getElementById("demo");
+
+        var query = dwallLayer.createQuery();
+        query.where = "Stations = 'Tandang Sora'"; // Selected Stations
+        query.outStatistics = [totalPanel, finishPanel];
+        dwallLayer.queryFeatures(query)
+          .then(function(response){
+            var stats = response.features[0].attributes;
+            document.getElementById("percentComp").innerHTML = "Percent Completion (%): " + (stats.FinalStatus_count/stats.FinalStatus_pcount).toFixed(1);
+            document.getElementById("countPanel").innerHTML = "Total No. of walls: " + stats.FinalStatus_count;
+          });
+
+        view.ui.empty("top-left");
+        view.ui.add(titleDiv, "top-left");
+        
+          view.when(function() {
+          // allow navigation above and below the ground
+          map.ground.navigationConstraint = {
+            type: "none"
+          };
+          // the webscene has no basemap, so set a surfaceColor on the ground
+          map.ground.surfaceColor = "#fff";
+          // to see through the ground, set the ground opacity to 0.4
+          map.ground.opacity = 0.1;
+        });
+
+
+        document
+          .getElementById("opacityInput")
+          .addEventListener("change", function(event) {
+            map.ground.opacity = event.target.checked ? 0.1 : 1;
+          });
+
+        view.ui.add("menu", "bottom-right");
+
+        
+          
+        // Full screen logo
+        view.ui.add(
+            new Fullscreen({
+                view: view,
+                element: applicationDiv
+            }),
+            "top-left"
+        );
+
 
       });
     </script>
   </head>
 
   <body>
-    <div id="viewDiv"></div>
+    <div id="applicationDiv">
+    <div id="viewDiv">
+      <div id="titleDiv" class="esri-widget">Monitoring of Civil Construction (D-Wall & Structures)</div>
+    </div>
+        <div id="menu" class="esri-widget">
+      <input type="checkbox" id="opacityInput" checked />
+      <label for="opacityInput">See through ground</label>
+    </div>
     <div class="panel-side esri-widget">
       <h2>Stations List</h2>
       <ul id="stationList">
@@ -311,14 +427,10 @@
       </ul>
     </div>
     <div id="optionsDiv" class="esri-widget">
-      <div>
-        <b>Filter Structure Type:</b>
-        <select id="structureType">
-          <option value="1=1">All</option>
-          <option value="Types = 'D-Wall'">D-Wall</option>
-          <option value="Types = 'Structure'">Structure</option>    
-        </select>
-      </div>
+      <div><b>D-Wall:</b></div>
+        <span id="percentComp"></span>
+        <div id="countPanel"></div>
+    </div>
     </div>
   </body>
 </html>
