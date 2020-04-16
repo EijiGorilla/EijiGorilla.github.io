@@ -54,6 +54,7 @@
         color: white;
         padding: 10px;
         background-color: black;
+        opacity: 0.9;
       }
 
       .panel-container {
@@ -129,6 +130,10 @@
         background-color: black;
         color: white;
       }
+      
+      p {
+        color: white;
+      }
 
       
     </style>
@@ -138,6 +143,8 @@
       href="https://js.arcgis.com/4.15/esri/themes/light/main.css"
     />
     <script src="https://js.arcgis.com/4.15/"></script>
+    <link rel="stylesheet" href="./src/widgets/Header.css">
+    <link rel="stylesheet" href="./src/widgets/IconButton.css">
 
     <script>
       require([
@@ -151,6 +158,8 @@
         "esri/layers/Layer",
         "esri/layers/TileLayer",
         "esri/layers/VectorTileLayer",
+        "esri/layers/support/LabelClass",
+        "esri/symbols/LabelSymbol3D",
         "esri/WebMap",
         "esri/WebScene",
         "esri/portal/PortalItem",
@@ -166,7 +175,8 @@
         "esri/tasks/support/StatisticDefinition",
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
-                  SceneLayer, Layer, TileLayer, VectorTileLayer, WebMap,
+                  SceneLayer, Layer, TileLayer, VectorTileLayer,
+                  LabelClass, LabelSymbol3D, WebMap,
                   WebScene, PortalItem, Portal,
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics, StatisticDefinition) {
@@ -214,17 +224,49 @@
         //********** Import Layers**********
 
         // When a scene layer is published using 'Copy All' view.goTo did not work
-        // It worked when the scene layer is published in 'Reference Registered Data' 
-       
+        // It worked when the scene layer is published in 'Reference Registered Data'
+
+        // Define station labels on the map
+        var labelClass = new LabelClass({
+          symbol: {
+            type: "label-3d",// autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: {
+                  color: "white"
+                },
+                size: 10,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 40,
+              maxWorldLength: 100,
+              minWorldLength: 20
+            },
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: 'DefaultValue($feature.Name, "no data")'
+          }
+        });
+
         var stationLayer = new SceneLayer({
             portalItem: {
                 id: "0b188bbb17b340b9ba4a72c7b2921dd1",
                 portal: {
                     url: "https://mmspgc-gis.mmspgc.local/portal"
                 }
-            }            
+            },
+            labelingInfo: [labelClass]
         });
-        // .listMode = "hide". A layer is hidden in Legend of LayerList
         stationLayer.listMode = "hide";
         map.add(stationLayer, 0);
 
@@ -259,7 +301,7 @@
           // define the attributes which are used in the query
           stationLayer.outFields = "Name";
 
-          // Get DOM (Document Object Model) element where list items will be placed
+          // Get DOM (Document Object Model) eement where list items will be placed
           var container = document.getElementById("stationList");
 
           // Highlight is set on the layerView, so we need to detect when the layerView is ready
@@ -281,11 +323,36 @@
                     li.innerHTML = attributes.Name;
                     li.addEventListener("click", function(event) {
                       var target = event.target;
-                                            
-                      // Get Station names
-                      var testID = document.getElementById("selected");
-                      testID.innerHTML = feature.attributes.Name;
-                      //
+                      
+                    // Calculate Statistics for D-wall 
+                    var testID = document.getElementById("selected");
+                     testID.innerHTML = feature.attributes.Name;
+                           var totalPanel = {
+                               onStatisticField: "FinalStatus",  // service field for 2015 population
+                               outStatisticFieldName: "FinalStatus_count",
+                               statisticType: "count"
+                               };
+                               
+                               var finishPanel = {
+                                   onStatisticField: "FinalStatus",  // service field for 2015 population
+                                   outStatisticFieldName: "FinalStatus_pcount",
+                                   statisticType: "sum"
+                                };
+                                
+
+                                var query = dwallLayer.createQuery();
+                                query.where = "Stations = '" +  testID.innerHTML + "'"; // Selected Stations
+                                query.outStatistics = [totalPanel, finishPanel];
+                                dwallLayer.queryFeatures(query)
+                                  .then(function(response){
+                                var stats = response.features[0].attributes;
+                                document.getElementById("percentComp").innerHTML = "Percent Completion (%): " + (stats.FinalStatus_count/stats.FinalStatus_pcount).toFixed(1);
+                                document.getElementById("countPanel").innerHTML = "Total No. of walls: " + stats.FinalStatus_count;
+                              });
+
+                      // End of Calculate Statistics for D-wall 
+    
+                      
                       var objectId = feature.attributes.OBJECTID;
                       // Create an extent query on the layer view that will return to 3D extent of the feature
                       var queryExtent = new Query({
@@ -298,7 +365,7 @@
                           // Use the expand method to prevent zooming in too close to the feature
                           if (result.extent) {
                             view
-                              .goTo(result.extent.expand(10), {
+                              .goTo(result.extent.expand(100), {
                                 speedFactor: 2
                               })
                               .catch(function(error) {
@@ -350,33 +417,7 @@
           index: 0
         });
         // End of LayerList
-
-        // Summary statistics
-        // query for the sum of the population in all features
-        var totalPanel = {
-          onStatisticField: "FinalStatus",  // service field for 2015 population
-          outStatisticFieldName: "FinalStatus_count",
-          statisticType: "count"
-          };
-
-          var finishPanel = {
-          onStatisticField: "FinalStatus",  // service field for 2015 population
-          outStatisticFieldName: "FinalStatus_pcount",
-          statisticType: "sum"
-          };
-
-          //var demos = document.getElementById("demo");
-
-        var query = dwallLayer.createQuery();
-        query.where = "Stations = 'Tandang Sora'"; // Selected Stations
-        query.outStatistics = [totalPanel, finishPanel];
-        dwallLayer.queryFeatures(query)
-          .then(function(response){
-            var stats = response.features[0].attributes;
-            document.getElementById("percentComp").innerHTML = "Percent Completion (%): " + (stats.FinalStatus_count/stats.FinalStatus_pcount).toFixed(1);
-            document.getElementById("countPanel").innerHTML = "Total No. of walls: " + stats.FinalStatus_count;
-          });
-
+  
         view.ui.empty("top-left");
         view.ui.add(titleDiv, "top-left");
         
@@ -399,8 +440,6 @@
           });
 
         view.ui.add("menu", "bottom-right");
-
-        
           
         // Full screen logo
         view.ui.add(
@@ -417,6 +456,7 @@
   </head>
 
   <body>
+
     <div id="applicationDiv">
     <div id="viewDiv">
       <div id="titleDiv" class="esri-widget">Status of Civil Construction (D-Wall & Structures)</div>
