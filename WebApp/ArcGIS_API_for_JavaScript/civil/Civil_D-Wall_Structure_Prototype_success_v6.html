@@ -23,7 +23,7 @@
       }
 
       #stationList {
-        background-color: black;
+        background-color: rgb(0, 0, 0);
       }
 
 
@@ -53,7 +53,7 @@
         font-size: 1.2019rem;
         color: white;
         padding: 10px;
-        background-color: black;
+        background-color: rgb(0, 0, 0, 0.5);
         opacity: 0.9;
       }
 
@@ -61,6 +61,7 @@
           position: relative;
           width: 100%;
           height: 100%;
+          background-color: rgb(0, 0, 0, 0.5);
       }
 
       .panel-side {
@@ -72,7 +73,7 @@
       top: 0;
       right: 0;
       color: #fff;
-      background-color: black;
+      background-color: rgb(0, 0, 0, 0.5);
       overflow: auto;
       z-index: 60;
     }
@@ -92,37 +93,48 @@
         padding: 0;
         font-weight: 100;
         color: white;
-        background-color: black;
+        background-color: rgb(0, 0, 0, 0.5);
       }
 
       .panel-side li {
         list-style: none;
         padding: 3px 10px;
+        background-color: rgb(0, 0, 0, 0.5);
       }
 
       .panel-result {
         cursor: pointer;
         margin: 0px 0;
+        background-color: rgb(0, 0, 0, 0.5);
       }
 
       .panel-result:hover,
       .panel-result:focus,
       .panel-result.selected {
-        background-color: rgba(200, 200, 200, 0.6);
+        background-color: rgb(0, 0, 0, 0.5);
       }      
 
       #optionsDiv {
         width: 250px;
-        height: auto;
-        padding: 0 12px 0 12px;
-        background-color: black;
+        height: 120px;
+        padding: 0 15px 0 15px;
+        font-size: 16px;
+        font-weight: normal;
+        text-align: center;
+        vertical-align: middle;
+        background-color: rgb(71, 150, 7);
         color: white;
         padding: 10px;
+        line-height: 0.3;
       }
 
       #percentComp {
-        color: rgb(233, 16, 222);
-        font-size: 16px;
+        color: white;
+        font-size: 35px;
+        text-align: center;
+        vertical-align: middle;
+        text-align: center;
+        line-height: 0.3;
       }
 
       #menu {
@@ -139,11 +151,9 @@
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.15/esri/themes/light/main.css"
+      href="https://js.arcgis.com/4.15/esri/themes/dark/main.css"
     />
     <script src="https://js.arcgis.com/4.15/"></script>
-    <link rel="stylesheet" href="./src/widgets/Header.css">
-    <link rel="stylesheet" href="./src/widgets/IconButton.css">
 
     <script>
       require([
@@ -172,18 +182,22 @@
         "esri/tasks/QueryTask",
         "esri/renderers/smartMapping/statistics/summaryStatistics",
         "esri/tasks/support/StatisticDefinition",
+        "esri/symbols/WebStyleSymbol"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
                   LabelClass, LabelSymbol3D, WebMap,
                   WebScene, PortalItem, Portal,
                   TimeSlider, Legend, LayerList, Fullscreen,
-                  GeometryService, Query, QueryTask, summaryStatistics, StatisticDefinition) {
+                  GeometryService, Query, QueryTask, summaryStatistics,
+                  StatisticDefinition, WebStyleSymbol) {
         
-            //portal = new Portal();
-         // portal.authoMode = "immediate";
-
         var map = new Map({
+            //"streets" , "satellite" , "hybrid", "topo", "gray",
+            //"dark-gray", "oceans", "national-geographic", "terrain",
+            //"osm", "dark-gray-vector", gray-vector",
+            //"streets-vector", "streets-night-vector", "streets-relief-vector",
+            //"streets-navigation-vector" and "topo-vector"
               basemap: "streets-night-vector",
               ground: "world-elevation"
         });
@@ -225,7 +239,8 @@
         // When a scene layer is published using 'Copy All' view.goTo did not work
         // It worked when the scene layer is published in 'Reference Registered Data'
 
-        // Define station labels on the map
+        //********* Define LabelingInfo *************//
+        // Station labels
         var labelClass = new LabelClass({
           symbol: {
             type: "label-3d",// autocasts as new LabelSymbol3D()
@@ -250,6 +265,7 @@
               maxWorldLength: 100,
               minWorldLength: 20
             },
+
           },
           labelPlacement: "above-center",
           labelExpressionInfo: {
@@ -257,6 +273,87 @@
           }
         });
 
+        // Excavation SPot Label
+        var excaspotlabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d",// autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: {
+                  color: "orange"
+                },
+                size: 10,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 100,
+              maxWorldLength: 200,
+              minWorldLength: 30
+            },
+            callout: {
+              type: "line",
+              size: 0.5,
+              color: [0, 0, 0],
+              border: {
+                color: [255, 255, 255, 0.7]
+              }
+            }
+
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            value: "Excavation"
+          }
+        });        
+
+        // convenience function to retrieve the WebStyleSymbols based on their name
+        function stationsSymbol(name) {
+          return {
+            type: "web-style", // autocasts as new WebStyleSymbol()
+            name: name,
+            styleName: "EsriIconsStyle",//EsriRealisticTransportationStyle, EsriIconsStyle
+          };
+        }
+
+        function excaspotSymbol(name) { // Excavation Spot 
+          return {
+            type: "web-style",
+            name: name,
+            styleName: "EsriRealisticTransportationStyle"
+          };
+        }
+
+        //********* Set Renderer
+        var stationsRenderer = {
+          type: "unique-value", // autocasts as new UniqueValueRenderer()
+          field: "Name",
+          defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
+        };
+
+        var excaspotRenderer = {
+          type: "unique-value",
+          field: "OBJECTID",
+          defaultSymbol: excaspotSymbol("Backhoe"),
+          visualVariables: [
+            {
+              type: "size",
+              minDateValue: 0,
+              maxDataValue: 10,
+              minSize: 8,
+              maxSize: 8
+            }
+          ]
+        };
+
+      //********** Read Feature and Scene Layers
         var stationLayer = new SceneLayer({
             portalItem: {
                 id: "0b188bbb17b340b9ba4a72c7b2921dd1",
@@ -264,11 +361,37 @@
                     url: "https://mmspgc-gis.mmspgc.local/portal"
                 }
             },
-            labelingInfo: [labelClass]
+             labelingInfo: [labelClass],
+             renderer: stationsRenderer,
+             elevationInfo: {
+                 // this elevation mode will place points on top of
+                 // buildings or other SceneLayer 3D objects
+                 mode: "relative-to-ground"
+                 },
+              //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
         });
         stationLayer.listMode = "hide";
         map.add(stationLayer, 0);
 
+
+        // Excavation machine
+        var excaSpot = new SceneLayer({
+          portalItem: {
+            id: "418e04e2d067404c8dabaf46b0356a25",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          },
+          labelingInfo: [excaspotlabelClass],
+          renderer: excaspotRenderer,
+          screenSizePerspectiveEnabled: false,
+          title: "Excavation Spot"
+        });
+        excaSpot.listMode = "hide";
+        view.map.add(excaSpot);
+
+
+        // D-wall
         var dwallLayer = new SceneLayer({
             portalItem: {
                 id: "6f703aeabebb44ec9eed1392e5075c1e",
@@ -280,6 +403,7 @@
         });
         map.add(dwallLayer, 1);
 
+        // Structure
         var structureLayer = new SceneLayer({
             portalItem: {
                 id: "88c5c8c13f614093b7ffc1d643e96d3f",
@@ -287,8 +411,10 @@
                     url: "https://mmspgc-gis.mmspgc.local/portal"
                 }
             },
+            definitionExpression: "Status <> 7",
             title: "Structure"
         });
+
         map.add(structureLayer, 2);
 
         //*** Highlight and Zoom to Stations*** //
@@ -345,7 +471,7 @@
                                 dwallLayer.queryFeatures(query)
                                   .then(function(response){
                                 var stats = response.features[0].attributes;
-                                document.getElementById("percentComp").innerHTML = "Percent Completion (%): " + (stats.FinalStatus_count/stats.FinalStatus_pcount).toFixed(1);
+                                document.getElementById("percentComp").innerHTML = (stats.FinalStatus_count/stats.FinalStatus_pcount).toFixed(1) + " %";
                                 document.getElementById("countPanel").innerHTML = "Total No. of walls: " + stats.FinalStatus_count;
                               });
 
@@ -430,15 +556,6 @@
           // to see through the ground, set the ground opacity to 0.4
           map.ground.opacity = 0.1;
         });
-
-
-        document
-          .getElementById("opacityInput")
-          .addEventListener("change", function(event) {
-            map.ground.opacity = event.target.checked ? 0.1 : 1;
-          });
-
-        view.ui.add("menu", "bottom-right");
           
         // Full screen logo
         view.ui.add(
@@ -446,8 +563,17 @@
                 view: view,
                 element: applicationDiv
             }),
-            "top-left"
+            "bottom-left"
         );
+        
+        // See through Gound
+        document
+          .getElementById("opacityInput")
+          .addEventListener("change", function(event) {
+            map.ground.opacity = event.target.checked ? 0.1 : 1;
+          });
+
+        view.ui.add("menu", "bottom-left");
 
 
       });
@@ -471,9 +597,9 @@
       </ul>
     </div>
     <div id="optionsDiv" class="esri-widget">
-      <div><b>D-Wall: <span id="selected"> station</span></b></div>
-        <span id="percentComp"></span>
-        <div id="countPanel"></div>
+      <div><b>D-Wall Construction Progress</b></div>
+        <p id="percentComp"></p>
+        <p id="selected"> station</p>
     </div>
     </div>
   </body>
