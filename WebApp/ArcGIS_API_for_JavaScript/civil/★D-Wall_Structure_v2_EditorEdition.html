@@ -207,7 +207,8 @@
         "esri/tasks/support/StatisticDefinition",
         "esri/symbols/WebStyleSymbol",
         "esri/TimeExtent",
-        "esri/widgets/Expand"
+        "esri/widgets/Expand",
+        "esri/widgets/Editor"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -215,7 +216,7 @@
                   WebScene, PortalItem, Portal,
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
-                  StatisticDefinition, WebStyleSymbol, TimeExtent, Expand) {
+                  StatisticDefinition, WebStyleSymbol, TimeExtent, Expand, Editor) {
         let floodLayerView;
 
          var map = new Map({
@@ -399,11 +400,31 @@
         stationLayer.listMode = "hide";
         map.add(stationLayer, 0);
 
+        var stationfeatureLayer = new FeatureLayer({
+            portalItem: {
+                id: "25aa5e5eb1894b5a8e87d33e24d65221",
+                portal: {
+                    url: "https://mmspgc-gis.mmspgc.local/portal"
+                }
+            },
+             labelingInfo: [labelClass],
+             renderer: stationsRenderer,
+             elevationInfo: {
+                 // this elevation mode will place points on top of
+                 // buildings or other SceneLayer 3D objects
+                 mode: "relative-to-ground"
+                 },
+              //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
+        });
+        stationLayer.listMode = "hide";
+        map.add(stationLayer, 0);
+
+
 
         // Excavation machine
-        var excaSpot = new SceneLayer({
+        var excaSpot = new FeatureLayer({
           portalItem: {
-            id: "418e04e2d067404c8dabaf46b0356a25",
+            id: "1bc7404021644b3ba6e28b815e4e200a",
             portal: {
               url: "https://mmspgc-gis.mmspgc.local/portal"
             }
@@ -415,6 +436,15 @@
         });
         excaSpot.listMode = "hide";
         view.map.add(excaSpot);
+
+        view.when(function() {
+            view.popup.autoOpenEnabled = false;
+            var editor = new Editor({
+                view: view
+            });
+
+            view.ui.add(editor, "top-left");
+        });
 
 
         // D-wall
@@ -647,7 +677,6 @@ view.whenLayerView(dwallLayer).then(function(layerView) {
   </head>
 
   <body>
-
     <div id="applicationDiv">
     <div id="viewDiv">
       <div id="titleDiv" class="esri-widget">Status of Civil Construction (D-Wall & Structures)</div>

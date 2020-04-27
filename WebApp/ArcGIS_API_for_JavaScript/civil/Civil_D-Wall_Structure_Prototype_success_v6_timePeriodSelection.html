@@ -26,29 +26,6 @@
         background-color: rgb(0, 0, 0);
       }
 
-      #seasons-filter {
-        height: 100px;
-        width: 200px;
-        visibility: hidden;
-      }
-
-      .season-item {
-        width: 100%;
-        padding: 10px;
-        text-align: center;
-        vertical-align: baseline;
-        cursor: pointer;
-        height: 30px;
-      }
-
-      .season-item:focus {
-        background-color: dimgrey;
-      }
-
-      .season-item:hover {
-        background-color: dimgrey;
-      }
-
 
       #applicationDiv {
         position: absolute;
@@ -205,9 +182,7 @@
         "esri/tasks/QueryTask",
         "esri/renderers/smartMapping/statistics/summaryStatistics",
         "esri/tasks/support/StatisticDefinition",
-        "esri/symbols/WebStyleSymbol",
-        "esri/TimeExtent",
-        "esri/widgets/Expand"
+        "esri/symbols/WebStyleSymbol"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -215,9 +190,8 @@
                   WebScene, PortalItem, Portal,
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
-                  StatisticDefinition, WebStyleSymbol, TimeExtent, Expand) {
-        let floodLayerView;
-
+                  StatisticDefinition, WebStyleSymbol) {
+        
          var map = new Map({
             //"streets" , "satellite" , "hybrid", "topo", "gray",
             //"dark-gray", "oceans", "national-geographic", "terrain",
@@ -601,45 +575,19 @@
 
         view.ui.add("menu", "bottom-left");
 
+        //*** Function that will filter by the selected structure type
+        function showType(event) {
+          //retrieve the query stored in the selected value
+          var typeQuery = event.target.value;
+          dwallLayer.definitionExpression = typeQuery;
+        }
+        document.getElementById("structureType").addEventListener("change", showType);  
 
-        // Filter by Period
-        const seasonsNodes = document.querySelectorAll(`.season-item`);
-          const seasonsElement = document.getElementById("seasons-filter");
-
-// click event handler for seasons choices
-seasonsElement.addEventListener("click", filterBySeason);
-
-// User clicked on Winter, Spring, Summer or Fall
-// set an attribute filter on flood warnings layer view
-// to display the warnings issued in that season
-function filterBySeason(event) {
-  const selectedSeason = event.target.getAttribute("data-season");
-  floodLayerView.filter = {
-    where: "Period = '" + selectedSeason + "'"
-  };
-}
-
-view.whenLayerView(dwallLayer).then(function(layerView) {
-  // flash flood warnings layer loaded
-  // get a reference to the flood warnings layerview
-  floodLayerView = layerView;
-
-  // set up UI items
-  seasonsElement.style.visibility = "visible";
-  const seasonsExpand = new Expand({
-    view: view,
-    content: seasonsElement,
-    expandIconClass: "esri-icon-filter",
-    group: "top-left"
-  });
-  //clear the filters when user closes the expand widget
-  seasonsExpand.watch("expanded", function() {
-    if (!seasonsExpand.expanded) {
-      floodLayerView.filter = null;
-    }
-  });
-  view.ui.add(seasonsExpand, "top-left");
-});
+          // Document (add) selecter tab for structure types
+          view.ui.add(document.getElementById("StatusDiv"), {
+          position: "top-left",
+          index: 0
+        });
 
 
       });
@@ -667,9 +615,15 @@ view.whenLayerView(dwallLayer).then(function(layerView) {
         <p id="percentComp"></p>
         <p id="selected"> station</p>
     </div>
-    <div id="seasons-filter" class="esri-widget">
-      <div class="season-item visible-season" data-season="6/1/2020 - 6/7/2020">6/1/2020 - 6/7/2020</div>
-      <div class="season-item visible-season" data-season="6/8/2020 - 6/14/2020">6/8/2020 - 6/14/2020</div>
+    <div id="StatusDiv" class="esri-widget">
+      <div>
+        <b>Construction Status:</b>
+        <select id="structureType">
+          <option value="1=1">All</option>
+          <option value="Period = '6/1/2020 - 6/7/2020'">6/1/2020 - 6/7/2020</option>
+          <option value="Period = '6/8/2020 - 6/14/2020'">6/8/2020 - 6/14/2020</option>    
+        </select>
+      </div>
     </div>
     </div>
   </body>
