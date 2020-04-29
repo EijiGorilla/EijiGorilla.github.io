@@ -208,7 +208,8 @@
         "esri/symbols/WebStyleSymbol",
         "esri/TimeExtent",
         "esri/widgets/Expand",
-        "esri/widgets/Editor"
+        "esri/widgets/Editor",
+        "esri/renderers/UniqueValueRenderer"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -216,8 +217,9 @@
                   WebScene, PortalItem, Portal,
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
-                  StatisticDefinition, WebStyleSymbol, TimeExtent, Expand, Editor) {
-        let floodLayerView;
+                  StatisticDefinition, WebStyleSymbol,
+                  TimeExtent, Expand, Editor, UniqueValueRenderer) {
+        let floodLayerView; // for making a list of time periods
 
          var map = new Map({
             //"streets" , "satellite" , "hybrid", "topo", "gray",
@@ -400,26 +402,6 @@
         stationLayer.listMode = "hide";
         map.add(stationLayer, 0);
 
-        var stationfeatureLayer = new FeatureLayer({
-            portalItem: {
-                id: "25aa5e5eb1894b5a8e87d33e24d65221",
-                portal: {
-                    url: "https://mmspgc-gis.mmspgc.local/portal"
-                }
-            },
-             labelingInfo: [labelClass],
-             renderer: stationsRenderer,
-             elevationInfo: {
-                 // this elevation mode will place points on top of
-                 // buildings or other SceneLayer 3D objects
-                 mode: "relative-to-ground"
-                 },
-              //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
-        });
-        stationLayer.listMode = "hide";
-        map.add(stationLayer, 0);
-
-
 
         // Excavation machine
         var excaSpot = new FeatureLayer({
@@ -446,6 +428,89 @@
 
             view.ui.add(editor, "top-left");
         });
+
+        // TBM Alignment
+        const options = {
+          profile: "circle",
+          cap: "round",
+          join: "miter",
+          width: 5,
+          height: 5,
+          color: [200, 200, 200],
+          profileRotation: "all"
+        };
+
+        /* The colors used for the each transit line */
+        const colors = {
+          TBM1: [255, 0, 16, 0.5],
+          TBM2: [0, 170, 227, 0.5],
+          TBM3: [248, 150, 29, 0.5],
+          //D: [0, 166, 63, 0.5],
+         // F1: [189, 239, 133, 0.5],
+         // F2: [189, 239, 133, 0.5]
+        };
+
+      var transitLayer = new FeatureLayer({
+        portalItem: {
+          id: "8dd51dc0ced4477dbf5ba840629dd250",
+          portal: {
+            url: "https://mmspgc-gis.mmspgc.local/portal"
+          }
+        },
+        elevationInfo: {
+          mode: "relative-to-ground",//"on-the-ground"
+          offset: -20
+        },
+         //renderer: roundTubeSymbol,
+         title: "TBM Alignment",
+         //definitionExpression: "sens='Aller'",
+         outFields: ["*"]
+        });
+        map.add(transitLayer);
+
+        function renderTransitLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "Line"
+          });
+
+          for (let property in colors) {
+            if (colors.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "line-3d",
+                  symbolLayers: [
+                    {
+                      type: "path",
+                      profile: options.profile,
+                      material: {
+                        color: colors[property]
+                      },
+                      width: options.width,
+                      height: options.height,
+                      join: options.join,
+                      cap: options.cap,
+                      anchor: "bottom",
+                      profileRotation: options.profileRotation
+                    }
+                  ]
+                }
+              });
+            }
+          }
+
+          transitLayer.renderer = renderer;
+        }
+
+        renderTransitLayer();
+
+
+
+
+
+
+
+
 
 
         // D-wall

@@ -208,7 +208,8 @@
         "esri/symbols/WebStyleSymbol",
         "esri/TimeExtent",
         "esri/widgets/Expand",
-        "esri/widgets/Editor"
+        "esri/widgets/Editor",
+        "esri/renderers/UniqueValueRenderer"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -216,83 +217,88 @@
                   WebScene, PortalItem, Portal,
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
-                  StatisticDefinition, WebStyleSymbol, TimeExtent, Expand, Editor) {
-
+                  StatisticDefinition, WebStyleSymbol,
+                  TimeExtent, Expand, Editor, UniqueValueRenderer) {
+        
         var webscene = new WebScene({
-            portalItem: {
-                id: "40b3fbdedbab486e834ab25fc2a6eae2",
-                portal: {
-                    url: "https://mmspgc-gis.mmspgc.local/portal"
-                }
+          portalItem: {
+            id: "b1051d7ffcbe49b595d6ddc77e29b732",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
             }
+          }
         });
 
         var view = new SceneView({
             map: webscene,
             container: "viewDiv",
+            viewingMode: "local",
             camera: {
                 position: {
                     x: 121.0322874,
                     y: 14.6750462,
-                    z: 0
+                    z: 20
                     },
                     tilt: 65
+                    },
+            environment: {
+                background: {
+                    type: "color", // autocasts as new ColorBackground()
+                    color: [0, 0, 0, 1]
+                    },
+                    // disable stars
+                    starsEnabled: false,
+                    //disable atmosphere
+                    atmosphereEnabled: false
                     }
         });
 
 
+                /* Create layer with the transit lines */
+          const transitLayer = new FeatureLayer({
+          url:
+            "http://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/subway_tcl_stations_lines_wgs84/FeatureServer/0",
+          copyright:
+            "Data from <a href='https://data.beta.grandlyon.com/en/datasets/lignes-metro-funiculaire-reseau-transports-commun-lyonnais/info'>Data Grand Lyon - Sytral</a>",
+          elevationInfo: {
+            mode: "relative-to-ground",
+            offset: 10
+          },
+          title: "Transit lines in Lyon",
+          definitionExpression: "sens='Aller'",
+          outFields: ["*"]
+        });
+        webscene.add(transitLayer);
 
-        function excaspotSymbol(name) { // Excavation Spot 
-          return {
-            type: "web-style",
-            name: name,
-            styleName: "EsriRealisticTransportationStyle"
-          };
-        }
-
-        var excaspotRenderer = {
-          type: "unique-value",
-          field: "OBJECTID",
-          defaultSymbol: excaspotSymbol("Backhoe"),
-          visualVariables: [
-            {
-              type: "size",
-              minDateValue: 0,
-              maxDataValue: 10,
-              minSize: 8,
-              maxSize: 8
+        var portal = new Portal({
+          portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
             }
-          ]
-        };
+});
 
 
-        var excaSpot = new FeatureLayer({
+        webscene.load().then(function() {
+  portal.load().then(function() {
+    webscene.portalItem.title = "Modified WebScene";
+    webscene.portalItem.portal = portal;
+    webscene.save();
+  });
+});
+
+        const testLayer = new FeatureLayer({
           portalItem: {
-            id: "1bc7404021644b3ba6e28b815e4e200a",
+            id: "ae16e52c5f264adca8746f4a918d8d3d",
             portal: {
               url: "https://mmspgc-gis.mmspgc.local/portal"
             }
           },
-          //renderer: excaspotRenderer,
-             elevationInfo: {
-                 // this elevation mode will place points on top of
-                 // buildings or other SceneLayer 3D objects
-                 mode: "absolute-height",
-                 },
-            renderer: excaspotRenderer,
-          screenSizePerspectiveEnabled: false,
-          title: "Excavation Spot"
+          elevationInfo: {
+            mode: "on-the-ground",
+            offset: 10
+          }
         });
-        webscene.add(excaSpot);
-
-        view.when(function() {
-            view.popup.autoOpenEnabled = false;
-            var editor = new Editor({
-                view: view
-            });
-
-            view.ui.add(editor, "top-right");
-        });
+        webscene.add(testLayer);
+       
 
 
 
@@ -302,8 +308,6 @@
   </head>
 
   <body>
-      <div id="viewDiv"></div>
-      <div id="editorDiv"></div>
-
+    <div id="viewDiv"></div>
   </body>
 </html>
