@@ -317,7 +317,7 @@
               {
                 type: "text", // autocasts as new TextSymbol3DLayer()
                 material: {
-                  color: "orange"
+                  color: "brown"
                 },
                 size: 10,
                 color: "black",
@@ -348,7 +348,51 @@
           labelExpressionInfo: {
             value: "Excavation"
           }
-        });        
+        });
+
+        // TBM spot label class
+
+        var tbmspotlabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d",// autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: {
+                  color: "orange"
+                },
+                size: 10,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 100,
+              maxWorldLength: 200,
+              minWorldLength: 30
+            },
+            callout: {
+              type: "line",
+              size: 0.5,
+              color: [0, 0, 0],
+              border: {
+                color: [255, 255, 255, 0.7]
+              }
+            }
+
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: "$feature.Type"
+            //value: "TBM"
+          }
+        });
+       
 
         // convenience function to retrieve the WebStyleSymbols based on their name
         function stationsSymbol(name) {
@@ -360,6 +404,14 @@
         }
 
         function excaspotSymbol(name) { // Excavation Spot 
+          return {
+            type: "web-style",
+            name: name,
+            styleName: "EsriRealisticTransportationStyle"
+          };
+        }
+
+        function tbmspotSymbol(name) { // Excavation Spot 
           return {
             type: "web-style",
             name: name,
@@ -389,6 +441,24 @@
           ]
         };
 
+        var tbmspotRenderer = {
+          type: "unique-value", //"unique-value", "simple"
+          Field: "OBJECTID",
+          defaultSymbol: excaspotSymbol("Tram"),
+          visualVariables: [
+            {
+              type: "size",
+              axis: "height",
+              field: "SIZE",
+              valueUnit: "meters"
+            },
+            {
+              type: "rotation",
+              field: "ROTATION"
+            }
+          ]
+        };
+
       //********** Read Feature and Scene Layers
       // Elevation contoures
       var contourLayer = new FeatureLayer({
@@ -400,9 +470,10 @@
         },
         elevationInfo: {
           mode: "on-the-ground"
-        }
+        },
+        title: "Elevation"
       });
-      contourLayer.listMode = "hide";
+      //contourLayer.listMode = "hide";
       map.add(contourLayer);
 
       // Hospitals
@@ -420,8 +491,6 @@
       });
       hospitalLayer.listMode = "hide";
       map.add(hospitalLayer);
-
-
 
       // Station point feature
         var stationLayer = new SceneLayer({
@@ -459,6 +528,28 @@
         });
         excaSpot.listMode = "hide";
         view.map.add(excaSpot);
+
+        var tbmSpot = new FeatureLayer({
+          portalItem: {
+            id: "9068ec49a80d46a18a667450e12cc870",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          },
+          labelingInfo: [tbmspotlabelClass],
+          renderer: tbmspotRenderer,
+          screenSizePerspectiveEnabled: false,
+          title: "TBM Spot"
+        });
+        tbmSpot.listMode = "hide";
+        view.map.add(tbmSpot);
+
+
+
+
+
+
+
 
         // Editable widget for changing the location of excavation sport or add excavation spot
         view.when(function() {
