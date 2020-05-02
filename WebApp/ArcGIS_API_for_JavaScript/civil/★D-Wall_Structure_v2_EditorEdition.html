@@ -209,7 +209,9 @@
         "esri/TimeExtent",
         "esri/widgets/Expand",
         "esri/widgets/Editor",
-        "esri/renderers/UniqueValueRenderer"
+        "esri/renderers/UniqueValueRenderer",
+        "esri/widgets/support/DatePicker",
+        "esri/widgets/FeatureTable"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -218,8 +220,8 @@
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol,
-                  TimeExtent, Expand, Editor, UniqueValueRenderer) {
-        let floodLayerView; // for making a list of time periods
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable) {
+        let timeLayerView; // for making a list of time periods
 
         var basemap = new Basemap({
         baseLayers: [
@@ -400,6 +402,7 @@
           mode: "on-the-ground"
         }
       });
+      contourLayer.listMode = "hide";
       map.add(contourLayer);
 
       // Hospitals
@@ -734,12 +737,11 @@
 // click event handler for seasons choices
 seasonsElement.addEventListener("click", filterBySeason);
 
-// User clicked on Winter, Spring, Summer or Fall
-// set an attribute filter on flood warnings layer view
-// to display the warnings issued in that season
+// User clicked on time periods defined
+// set an attribute filter on dwall
 function filterBySeason(event) {
-  const selectedSeason = event.target.getAttribute("data-season");
-  floodLayerView.filter = {
+  const selectedSeason = event.target.getAttribute("time-period");
+  timeLayerView.filter = {
     where: "Period = '" + selectedSeason + "'"
   };
 }
@@ -747,7 +749,7 @@ function filterBySeason(event) {
 view.whenLayerView(dwallLayer).then(function(layerView) {
   // flash flood warnings layer loaded
   // get a reference to the flood warnings layerview
-  floodLayerView = layerView;
+  timeLayerView = layerView;
 
   // set up UI items
   seasonsElement.style.visibility = "visible";
@@ -760,11 +762,12 @@ view.whenLayerView(dwallLayer).then(function(layerView) {
   //clear the filters when user closes the expand widget
   seasonsExpand.watch("expanded", function() {
     if (!seasonsExpand.expanded) {
-      floodLayerView.filter = null;
+      timeLayerView.filter = null;
     }
   });
   view.ui.add(seasonsExpand, "top-left");
 });
+
 
 
       });
@@ -792,9 +795,10 @@ view.whenLayerView(dwallLayer).then(function(layerView) {
         <p id="selected"> station</p>
     </div>
     <div id="seasons-filter" class="esri-widget">
-      <div class="season-item visible-season" data-season="6/1/2020 - 6/7/2020">6/1/2020 - 6/7/2020</div>
-      <div class="season-item visible-season" data-season="6/8/2020 - 6/14/2020">6/8/2020 - 6/14/2020</div>
+      <div class="season-item visible-season" time-period="6/1/2020 - 6/7/2020">6/1/2020 - 6/7/2020</div>
+      <div class="season-item visible-season" time-period="6/8/2020 - 6/14/2020">6/8/2020 - 6/14/2020</div>
     </div>
+    <div id="tableDiv"></div>
     </div>
   </body>
 </html>
