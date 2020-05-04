@@ -449,8 +449,8 @@
 
         var tbmspotRenderer = {
           type: "unique-value", //"unique-value", "simple"
-          Field: "OBJECTID",
-          defaultSymbol: excaspotSymbol("Tram"),
+          Field: "Type",
+          defaultSymbol: tbmspotSymbol("Tram"),
           visualVariables: [
             {
               type: "size",
@@ -633,22 +633,6 @@
         tbmSpot.listMode = "hide";
         view.map.add(tbmSpot);
 
-
-
-
-
-
-
-
-        // Editable widget for changing the location of excavation sport or add excavation spot
-        //view.when(function() {
-         //   view.popup.autoOpenEnabled = true;
-          //  var editor = new Editor({
-           //     view: view
-            //});
-//
-          //  view.ui.add(editor, "top-left");
-        //});
 
         // TBM Alignment
         const options = {
@@ -869,13 +853,21 @@
           view.ui.add(layerList, {
             position: "bottom-left"
           });
+        // End of LayerList
 
         // Create DOM ID and use this for showing summary statistics
-        view.ui.add(document.getElementById("optionsDiv"), {
+        var summaryStats = document.getElementById("optionsDiv")
+        const dwallsummaryExpand = new Expand({
+          view: view,
+          content: summaryStats,
+          expandIconClass: "esri-icon-filter",
+          group: "bottom-right"
+          });
+        view.ui.add(dwallsummaryExpand, {
           position: "bottom-right",
           index: 0
         });
-        // End of LayerList
+
   
         view.ui.empty("top-left");
         view.ui.add(titleDiv, "top-left");
@@ -911,42 +903,42 @@
 
 
         // Filter by Period
-        const seasonsNodes = document.querySelectorAll(`.season-item`);
-          const seasonsElement = document.getElementById("seasons-filter");
+        const periodNodes = document.querySelectorAll(`.season-item`);
+          const periodElement = document.getElementById("seasons-filter");
+          
+          // click event handler for seasons choices
+          periodElement.addEventListener("click", filterBySeason);
+          
+          // User clicked on time periods define
+          // set an attribute filter on dwall
+          function filterBySeason(event) {
+            const selectedSeason = event.target.getAttribute("time-period");
+            timeLayerView.filter = {
+              where: "Period = '" + selectedSeason + "'"
+            };
+          }
 
-// click event handler for seasons choices
-seasonsElement.addEventListener("click", filterBySeason);
+          view.whenLayerView(dwallLayer).then(function(layerView) {
+            // flash flood warnings layer loaded
+            // get a reference to the flood warnings layerview
+            timeLayerView = layerView;
 
-// User clicked on time periods defined
-// set an attribute filter on dwall
-function filterBySeason(event) {
-  const selectedSeason = event.target.getAttribute("time-period");
-  timeLayerView.filter = {
-    where: "Period = '" + selectedSeason + "'"
-  };
-}
-
-view.whenLayerView(dwallLayer).then(function(layerView) {
-  // flash flood warnings layer loaded
-  // get a reference to the flood warnings layerview
-  timeLayerView = layerView;
-
-  // set up UI items
-  seasonsElement.style.visibility = "visible";
-  const seasonsExpand = new Expand({
-    view: view,
-    content: seasonsElement,
-    expandIconClass: "esri-icon-filter",
-    group: "top-left"
-  });
-  //clear the filters when user closes the expand widget
-  seasonsExpand.watch("expanded", function() {
-    if (!seasonsExpand.expanded) {
-      timeLayerView.filter = null;
-    }
-  });
-  view.ui.add(seasonsExpand, "top-left");
-});
+            // set up UI items
+            periodElement.style.visibility = "visible";
+            const seasonsExpand = new Expand({
+              view: view,
+              content: periodElement,
+              expandIconClass: "esri-icon-filter",
+              group: "top-left"
+            });
+            //clear the filters when user closes the expand widget
+            seasonsExpand.watch("expanded", function() {
+              if (!seasonsExpand.expanded) {
+                timeLayerView.filter = null;
+              }
+            });
+            view.ui.add(seasonsExpand, "top-left");
+          });
 
 
 
