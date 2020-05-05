@@ -211,8 +211,7 @@
         "esri/widgets/Editor",
         "esri/renderers/UniqueValueRenderer",
         "esri/widgets/support/DatePicker",
-        "esri/widgets/FeatureTable",
-        "esri/widgets/Compass"
+        "esri/widgets/FeatureTable"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -221,7 +220,7 @@
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol,
-                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable, Compass) {
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable) {
         let timeLayerView; // for making a list of time periods
 
         var basemap = new Basemap({
@@ -233,8 +232,6 @@
           })
         ]
       });
-
-      
 
          var map = new Map({
               basemap: basemap, // "streets-night-vector", 
@@ -251,7 +248,7 @@
                 position: {
                     x: 121.0322874,
                     y: 14.6750462,
-                    z: 1000
+                    z: 0
                     },
                     tilt: 65
                     },
@@ -266,7 +263,6 @@
                     atmosphereEnabled: false
                     }
         });
-
 
         // Setup UI
      
@@ -290,13 +286,13 @@
                 material: {
                   color: "white"
                 },
-                size: 10,
+                size: 12,
                 color: "black",
                 haloColor: "black",
                 haloSize: 1,
                 font: {
                   family: "Ubuntu Mono",
-                  weight: "normal"
+                  weight: "bold"
                 },
               }
             ],
@@ -638,6 +634,22 @@
         view.map.add(tbmSpot);
 
 
+
+
+
+
+
+
+        // Editable widget for changing the location of excavation sport or add excavation spot
+        view.when(function() {
+            view.popup.autoOpenEnabled = true;
+            var editor = new Editor({
+                view: view
+            });
+
+            view.ui.add(editor, "top-left");
+        });
+
         // TBM Alignment
         const options = {
           profile: "circle",
@@ -660,12 +672,15 @@
         };
 
       var transitLayer = new FeatureLayer({
-        portalItem: {
-          id: "fa7aad7fd11d401a9911c8b261784980",
-          portal: {
-            url: "https://mmspgc-gis.mmspgc.local/portal"
-          }
-        },
+        url: "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/TBM_Centerline_Zvalue_GeoJSON.geojson",
+          timeInfo: {
+            startField: "startDate", // name of the date field
+            interval: {
+              // set time interval to one day
+              unit: "days",
+              value: 1
+            }
+                  },
         elevationInfo: {
           mode: "relative-to-ground",//"on-the-ground"
           offset: -60
@@ -797,6 +812,7 @@
                                 document.getElementById("countPanel").innerHTML = "Total No. of walls: " + stats.FinalStatus_count;
                               });
 
+
                       // End of Calculate Statistics for D-wall 
     
                       
@@ -850,10 +866,6 @@
                   content: "legend",
                   open: false
                 };
-                if (item.title === "D-Wall" || item.title === "Structure") {
-                  item.visible = false
-                }
-
               }
             }
           });
@@ -861,32 +873,24 @@
           view.ui.add(layerList, {
             position: "bottom-left"
           });
-        // End of LayerList
 
         // Create DOM ID and use this for showing summary statistics
         var summaryStats = document.getElementById("optionsDiv")
-        const dwallsummaryExpand = new Expand({
-          view: view,
-          content: summaryStats,
-          expandIconClass: "esri-icon-filter",
-          group: "bottom-right"
-          });
+                                      
+                                const dwallsummaryExpand = new Expand({
+                                  view: view,
+                                  content: summaryStats,
+                                  expandIconClass: "esri-icon-filter",
+                                  group: "bottom-right"
+                                });
         view.ui.add(dwallsummaryExpand, {
           position: "bottom-right",
           index: 0
         });
-
+        // End of LayerList
   
         view.ui.empty("top-left");
         view.ui.add(titleDiv, "top-left");
-
-        // Compass
-        var compass = new Compass({
-          view: view});
-          // adds the compass to the top left corner of the MapView
-        view.ui.add(compass, "bottom-left");
-
-        // See-through-Ground
         
           view.when(function() {
           // allow navigation above and below the ground
@@ -919,42 +923,99 @@
 
 
         // Filter by Period
-        const periodNodes = document.querySelectorAll(`.season-item`);
-          const periodElement = document.getElementById("seasons-filter");
-          
-          // click event handler for seasons choices
-          periodElement.addEventListener("click", filterBySeason);
-          
-          // User clicked on time periods define
-          // set an attribute filter on dwall
-          function filterBySeason(event) {
-            const selectedSeason = event.target.getAttribute("time-period");
-            timeLayerView.filter = {
-              where: "Period = '" + selectedSeason + "'"
-            };
+        const seasonsNodes = document.querySelectorAll(`.season-item`);
+          const seasonsElement = document.getElementById("seasons-filter");
+
+// click event handler for seasons choices
+seasonsElement.addEventListener("click", filterBySeason);
+
+// User clicked on time periods defined
+// set an attribute filter on dwall
+function filterBySeason(event) {
+  const selectedSeason = event.target.getAttribute("time-period");
+  timeLayerView.filter = {
+    where: "Period = '" + selectedSeason + "'"
+  };
+}
+
+view.whenLayerView(dwallLayer).then(function(layerView) {
+  // flash flood warnings layer loaded
+  // get a reference to the flood warnings layerview
+  timeLayerView = layerView;
+
+  // set up UI items
+  seasonsElement.style.visibility = "visible";
+  const seasonsExpand = new Expand({
+    view: view,
+    content: seasonsElement,
+    expandIconClass: "esri-icon-filter",
+    group: "top-left"
+  });
+  //clear the filters when user closes the expand widget
+  seasonsExpand.watch("expanded", function() {
+    if (!seasonsExpand.expanded) {
+      timeLayerView.filter = null;
+    }
+  });
+  view.ui.add(seasonsExpand, "top-left");
+});
+
+// Time SLider
+        const timeSlider = new TimeSlider({
+          container: "timeSlider",
+          playRate: 50,
+          stops: {
+            interval: {
+              value: 1,
+              unit: "hours"
+            }
           }
+        });
+        view.ui.add(timeSlider, "manual");
 
-          view.whenLayerView(dwallLayer).then(function(layerView) {
-            // flash flood warnings layer loaded
-            // get a reference to the flood warnings layerview
-            timeLayerView = layerView;
+        // wait till the layer view is loaded
+        view.whenLayerView(transitLayer).then(function(lv) {
+          layerView = lv;
 
-            // set up UI items
-            periodElement.style.visibility = "visible";
-            const seasonsExpand = new Expand({
-              view: view,
-              content: periodElement,
-              expandIconClass: "esri-icon-filter",
-              group: "top-left"
-            });
-            //clear the filters when user closes the expand widget
-            seasonsExpand.watch("expanded", function() {
-              if (!seasonsExpand.expanded) {
-                timeLayerView.filter = null;
-              }
-            });
-            view.ui.add(seasonsExpand, "top-left");
-          });
+          // start time of the time slider - 5/25/2019
+          const start = new Date(2020, 5, 1);
+          // set time slider's full extent to
+          // 5/25/5019 - until end date of layer's fullTimeExtent
+          timeSlider.fullTimeExtent = {
+            start: start,
+            end: transitLayer.timeInfo.fullTimeExtent.end
+          };
+
+          // We will be showing earthquakes with one day interval
+          // when the app is loaded we will show earthquakes that
+          // happened between 5/25 - 5/26.
+          const end = new Date(start);
+          // end of current time extent for time slider
+          // showing earthquakes with one day interval
+          end.setDate(end.getDate() + 1);
+
+          // Values property is set so that timeslider
+          // widget show the first day. We are setting
+          // the thumbs positions.
+          timeSlider.values = [start, end];
+        });
+
+        // watch for time slider timeExtent change
+        timeSlider.watch("timeExtent", function() {
+          // only show earthquakes happened up until the end of
+          // timeSlider's current time extent.
+          transitLayer.definitionExpression =
+            "startDate <= " + timeSlider.timeExtent.end.getTime();
+
+          // now gray out earthquakes that happened before the time slider's current
+          // timeExtent... leaving footprint of earthquakes that already happened
+          layerView.effect = {
+            filter: {
+              timeExtent: timeSlider.timeExtent,
+              geometry: view.extent
+            },
+            excludedEffect: "grayscale(20%) opacity(12%)"
+          };
 
 
 
@@ -986,7 +1047,7 @@
       <div class="season-item visible-season" time-period="6/1/2020 - 6/7/2020">6/1/2020 - 6/7/2020</div>
       <div class="season-item visible-season" time-period="6/8/2020 - 6/14/2020">6/8/2020 - 6/14/2020</div>
     </div>
-    <div id="tableDiv"></div>
+    <div id="timeSlider"></div>
     </div>
   </body>
 </html>
