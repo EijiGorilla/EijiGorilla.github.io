@@ -27,14 +27,15 @@
       }
 
       #seasons-filter {
-        height: 100px;
-        width: 200px;
+        height: 10px;
+        width: 100px;
         visibility: hidden;
       }
 
       .season-item {
         width: 100%;
         padding: 10px;
+        size: 8px;
         text-align: center;
         vertical-align: baseline;
         cursor: pointer;
@@ -48,6 +49,31 @@
       .season-item:hover {
         background-color: dimgrey;
       }
+
+      #date-filter {
+        height: 100px;
+        width: 100px;
+        visibility: hidden;
+      }
+
+      .date-item {
+        width: 100%;
+        padding: 10px;
+        text-align: center;
+        size: 8px;
+        vertical-align: baseline;
+        cursor: pointer;
+        height: 30px;
+      }
+
+      .date-item:focus {
+        background-color: dimgrey;
+      }
+
+      .date-item:hover {
+        background-color: dimgrey;
+      }
+
 
 
       #applicationDiv {
@@ -209,7 +235,11 @@
         "esri/TimeExtent",
         "esri/widgets/Expand",
         "esri/widgets/Editor",
-        "esri/renderers/UniqueValueRenderer"
+        "esri/renderers/UniqueValueRenderer",
+        "esri/widgets/support/DatePicker",
+        "esri/widgets/FeatureTable",
+        "esri/widgets/Compass",
+        "esri/TimeExtent"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -217,19 +247,24 @@
                   WebScene, PortalItem, Portal,
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
-                  StatisticDefinition, WebStyleSymbol, TimeExtent, Expand, Editor, UniqueValueRenderer) {
-        let floodLayerView;
+                  StatisticDefinition, WebStyleSymbol,
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable, Compass, TimeExtent) {
+        let timeLayerView; // for making a list of time periods
+
+        var basemap = new Basemap({
+        baseLayers: [
+          new VectorTileLayer({
+            portalItem: {
+              id: "3a62040541b84f528da3ac7b80cf4a63" 
+            }
+          })
+        ]
+      });
 
          var map = new Map({
-            //"streets" , "satellite" , "hybrid", "topo", "gray",
-            //"dark-gray", "oceans", "national-geographic", "terrain",
-            //"osm", "dark-gray-vector", gray-vector",
-            //"streets-vector", "streets-night-vector", "streets-relief-vector",
-            //"streets-navigation-vector" and "topo-vector"
-              basemap: "streets-night-vector",
+              basemap: basemap, // "streets-night-vector", 
               ground: "world-elevation"
-        });
-        //map.ground.surfaceColor = "#FFFF";
+        });        //map.ground.surfaceColor = "#FFFF";
         //map.ground.opacity = 0.1;
          
         var view = new SceneView({
@@ -240,7 +275,7 @@
                 position: {
                     x: 121.0322874,
                     y: 14.6750462,
-                    z: 0
+                    z: 1000
                     },
                     tilt: 65
                     },
@@ -309,12 +344,13 @@
               {
                 type: "text", // autocasts as new TextSymbol3DLayer()
                 material: {
-                  color: "orange"
+                  color: "#98E600"
                 },
                 size: 10,
-                color: "black",
-                haloColor: "black",
-                haloSize: 1,
+                halo: {
+                      size: 0.8,
+                      color: "black"
+                    },
                 font: {
                   family: "Ubuntu Mono",
                   weight: "bold"
@@ -340,7 +376,11 @@
           labelExpressionInfo: {
             value: "Excavation"
           }
-        });        
+        });
+
+
+        // Label hospital
+    
 
         // convenience function to retrieve the WebStyleSymbols based on their name
         function stationsSymbol(name) {
@@ -381,95 +421,9 @@
           ]
         };
 
+ 
       //********** Read Feature and Scene Layers
-
-      const options = {
-          profile: "circle",
-          cap: "round",
-          join: "miter",
-          width: 5,
-          height: 5,
-          color: [200, 200, 200],
-          profileRotation: "all"
-        };
-
-        /* The colors used for the each transit line */
-        const colors = {
-          TBM1: [255, 0, 16, 0.5],
-          TBM2: [0, 170, 227, 0.5],
-          TBM3: [248, 150, 29, 0.5],
-          //D: [0, 166, 63, 0.5],
-         // F1: [189, 239, 133, 0.5],
-         // F2: [189, 239, 133, 0.5]
-        };
-
-      var transitLayer = new FeatureLayer({
-        portalItem: {
-          id: "8dd51dc0ced4477dbf5ba840629dd250",
-          portal: {
-            url: "https://mmspgc-gis.mmspgc.local/portal"
-          }
-        },
-        elevationInfo: {
-          mode: "relative-to-ground",//"on-the-ground"
-          offset: -20
-        },
-         //renderer: roundTubeSymbol,
-         title: "Transit lines in Lyon",
-         //definitionExpression: "sens='Aller'",
-         outFields: ["*"]
-        });
-        map.add(transitLayer);
-
-        function renderTransitLayer() {
-          const renderer = new UniqueValueRenderer({
-            field: "Line"
-          });
-
-          for (let property in colors) {
-            if (colors.hasOwnProperty(property)) {
-              renderer.addUniqueValueInfo({
-                value: property,
-                symbol: {
-                  type: "line-3d",
-                  symbolLayers: [
-                    {
-                      type: "path",
-                      profile: options.profile,
-                      material: {
-                        color: colors[property]
-                      },
-                      width: options.width,
-                      height: options.height,
-                      join: options.join,
-                      cap: options.cap,
-                      anchor: "bottom",
-                      profileRotation: options.profileRotation
-                    }
-                  ]
-                }
-              });
-            }
-          }
-
-          transitLayer.renderer = renderer;
-        }
-
-        renderTransitLayer();
-
-
-
-
-
-
-
-
-
-
-
-
-
-      //
+         // Station point feature
         var stationLayer = new SceneLayer({
             portalItem: {
                 id: "0b188bbb17b340b9ba4a72c7b2921dd1",
@@ -487,12 +441,13 @@
               //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
         });
         stationLayer.listMode = "hide";
-        map.add(stationLayer, 0);
+        map.add(stationLayer,3);
+
 
         // Excavation machine
-        var excaSpot = new SceneLayer({
+        var excaSpot = new FeatureLayer({
           portalItem: {
-            id: "418e04e2d067404c8dabaf46b0356a25",
+            id: "1bc7404021644b3ba6e28b815e4e200a",
             portal: {
               url: "https://mmspgc-gis.mmspgc.local/portal"
             }
@@ -506,27 +461,30 @@
         view.map.add(excaSpot);
 
 
-        // D-wall
+         // D-wall
         var dwallLayer = new SceneLayer({
             portalItem: {
-                id: "46636a61980f4a9da32047a84ef9137d",
+                id: "9172aafd568141c680e2542dd7c58bd7",
                 portal: {
                     url: "https://mmspgc-gis.mmspgc.local/portal"
                 }
             },
-            title: "D-Wall"
+            title: "D-Wall",
+            definitionExpression: "Types = 'D-Wall'"
+            // when filter using date, example below. use this format
+            //definitionExpression: "EndDate = date'2020-6-3'"
         });
         map.add(dwallLayer, 1);
 
         // Structure
         var structureLayer = new SceneLayer({
             portalItem: {
-                id: "88c5c8c13f614093b7ffc1d643e96d3f",
+                id: "9172aafd568141c680e2542dd7c58bd7",
                 portal: {
                     url: "https://mmspgc-gis.mmspgc.local/portal"
                 }
             },
-            definitionExpression: "Status <> 7",
+            definitionExpression: "Types = 'Structure'", //"Status <> 7",
             title: "Structure"
         });
 
@@ -650,17 +608,32 @@
           view.ui.add(layerList, {
             position: "bottom-left"
           });
+        // End of LayerList
 
         // Create DOM ID and use this for showing summary statistics
-        view.ui.add(document.getElementById("optionsDiv"), {
+        var summaryStats = document.getElementById("optionsDiv")
+        const dwallsummaryExpand = new Expand({
+          view: view,
+          content: summaryStats,
+          expandIconClass: "esri-icon-filter",
+          group: "bottom-right"
+          });
+        view.ui.add(dwallsummaryExpand, {
           position: "bottom-right",
           index: 0
         });
-        // End of LayerList
+
   
         view.ui.empty("top-left");
         view.ui.add(titleDiv, "top-left");
-        
+
+        // Compass
+        var compass = new Compass({
+          view: view});
+          // adds the compass to the top left corner of the MapView
+        view.ui.add(compass, "bottom-left");
+
+        // See-through-Ground        
           view.when(function() {
           // allow navigation above and below the ground
           map.ground.navigationConstraint = {
@@ -692,49 +665,98 @@
 
 
         // Filter by Period
-        const seasonsNodes = document.querySelectorAll(`.season-item`);
-          const seasonsElement = document.getElementById("seasons-filter");
+	   // create array of layerviews 
+	   let arrLviews = [];
+	   
+	   
+	   // Filter for D-Wall Layer
+		const dateTitle = document.getElementById("seasons-title");
+        const periodNodes = document.querySelectorAll(`.season-item`);
+        const periodElement = document.getElementById("seasons-filter");
+          
+          // click event handler choices
+          periodElement.addEventListener("click", filterBySeason);
+          
+          // User clicked on time periods define
+          // set an attribute filter on dwall
+          function filterBySeason(event) {
+            const selectedSeason = event.target.getAttribute("time-period");
+            timeLayerView.filter = {
+              where: "EndDate <= date'" + selectedSeason + "'" //"Period = '" + selectedSeason + "'"
+            };
+          }
 
-// click event handler for seasons choices
-seasonsElement.addEventListener("click", filterBySeason);
+          view.whenLayerView(dwallLayer).then(function(layerView) {
+            //timeLayerView = layerView;
+			// geodata - 05.13.2020
+			// push layerView to arrLviews
+			arrLviews.push(layerView);
+			
+            // set up UI items
+            periodElement.style.visibility = "visible";
+            const seasonsExpand = new Expand({
+              view: view,
+              content: periodElement,
+              expandIconClass: "esri-icon-filter",
+              group: "top-left"
+            });
+            //clear the filters when user closes the expand widget
+            seasonsExpand.watch("expanded", function() {
+              if (!seasonsExpand.expanded) {
+                layerView.filter = null;
+              }
+            });
+            view.ui.add(seasonsExpand, "top-left");
+          });
 
-// User clicked on Winter, Spring, Summer or Fall
-// set an attribute filter on flood warnings layer view
-// to display the warnings issued in that season
-function filterBySeason(event) {
-  const selectedSeason = event.target.getAttribute("data-season");
-  floodLayerView.filter = {
-    where: "Period = '" + selectedSeason + "'"
-  };
-}
 
-view.whenLayerView(dwallLayer).then(function(layerView) {
-  // flash flood warnings layer loaded
-  // get a reference to the flood warnings layerview
-  floodLayerView = layerView;
+        // Filter by TransitLayer
+        const titleDate = document.getElementById("date-title");
+        const dateNodes = document.querySelectorAll(`.date-item`);
+          const dateElement = document.getElementById("date-filter");
+          
+          // click event handler
+          dateElement.addEventListener("click", filterByDate);
+          
+          // User clicked on time periods define
+          // set an attribute filter on dwall
+          function filterByDate(event) {
+            const selectedDate = event.target.getAttribute("date-period");
+			// geodata 05.13.2020
+			// iterate the layer views in arrLviews
+			for(var i = 0; i < arrLviews.length; i++){
+					arrLviews[i].filter = {
+						where: "endDate <= date'" + selectedDate + "'" //"Period = '" + selectedSeason + "'"
+					}
+			}
+			
+            /*timeLayerView.filter = {
+              where: "endDate >= date'" + selectedDate + "'" //"Period = '" + selectedSeason + "'"
+            };*/
+          }
 
-  // set up UI items
-  seasonsElement.style.visibility = "visible";
-  const seasonsExpand = new Expand({
-    view: view,
-    content: seasonsElement,
-    expandIconClass: "esri-icon-filter",
-    group: "top-left"
-  });
-  //clear the filters when user closes the expand widget
-  seasonsExpand.watch("expanded", function() {
-    if (!seasonsExpand.expanded) {
-      floodLayerView.filter = null;
-    }
-  });
-  view.ui.add(seasonsExpand, "top-left");
-});
-
-let editor = new Editor({
-  view: view
-  // Pass in any other additional property as needed
-});
-view.ui.add(editor, "top-left");
+          view.whenLayerView(structureLayer).then(function(layerView) {
+            //timeLayerView = layerView;
+			// geodata - 05.13.2020
+			// push layerView to arrLviews
+			arrLviews.push(layerView);
+			
+            // set up UI items
+            dateElement.style.visibility = "visible";
+            const dateExpand = new Expand({
+              view: view,
+              content: dateElement,
+              expandIconClass: "esri-icon-filter",
+              group: "top-left"
+            });
+            //clear the filters when user closes the expand widget
+            dateExpand.watch("expanded", function() {
+              if (!dateExpand.expanded) {
+                layerView.filter = null;
+              }
+            });
+            view.ui.add(dateExpand, "top-left");
+          });
 
 
 
@@ -743,10 +765,9 @@ view.ui.add(editor, "top-left");
   </head>
 
   <body>
-
     <div id="applicationDiv">
     <div id="viewDiv">
-      <div id="titleDiv" class="esri-widget">Status of Civil Construction (D-Wall & Structures)</div>
+      <div id="titleDiv" class="esri-widget">D-Wall & Station-Box Structures</div>
     </div>
         <div id="menu" class="esri-widget">
       <input type="checkbox" id="opacityInput" checked />
@@ -764,9 +785,14 @@ view.ui.add(editor, "top-left");
         <p id="selected"> station</p>
     </div>
     <div id="seasons-filter" class="esri-widget">
-      <div class="season-item visible-season" data-season="6/1/2020 - 6/7/2020">6/1/2020 - 6/7/2020</div>
-      <div class="season-item visible-season" data-season="6/8/2020 - 6/14/2020">6/8/2020 - 6/14/2020</div>
+      <div id="seasons-title" class="esri-widget">Reset D-Wall</div>
     </div>
+    <div id="date-filter" class="esri-widget">
+      <div id="date-title" class="esri-widget">Schudule</div>
+      <div class="date-item visible-season" date-period="2020-6-3">6/3/2020</div>
+      <div class="date-item visible-season" date-period="2020-6-10">6/10/2020</div>
+    </div>
+    <div id="tableDiv"></div>
     </div>
   </body>
 </html>

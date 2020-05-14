@@ -26,6 +26,29 @@
         background-color: rgb(0, 0, 0);
       }
 
+      #seasons-filter {
+        height: 100px;
+        width: 100px;
+        visibility: hidden;
+      }
+
+      .season-item {
+        width: 100%;
+        padding: 10px;
+        size: 8px;
+        text-align: left;
+        vertical-align: baseline;
+        cursor: pointer;
+        height: 30px;
+      }
+
+      .season-item:focus {
+        background-color: dimgrey;
+      }
+
+      .season-item:hover {
+        background-color: dimgrey;
+      }
 
       #applicationDiv {
         position: absolute;
@@ -182,7 +205,15 @@
         "esri/tasks/QueryTask",
         "esri/renderers/smartMapping/statistics/summaryStatistics",
         "esri/tasks/support/StatisticDefinition",
-        "esri/symbols/WebStyleSymbol"
+        "esri/symbols/WebStyleSymbol",
+        "esri/TimeExtent",
+        "esri/widgets/Expand",
+        "esri/widgets/Editor",
+        "esri/renderers/UniqueValueRenderer",
+        "esri/widgets/support/DatePicker",
+        "esri/widgets/FeatureTable",
+        "esri/widgets/Compass",
+        "esri/TimeExtent"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -190,15 +221,22 @@
                   WebScene, PortalItem, Portal,
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
-                  StatisticDefinition, WebStyleSymbol) {
-        
+                  StatisticDefinition, WebStyleSymbol,
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable, Compass, TimeExtent) {
+        let timeLayerView; // for making a list of time periods
+
+        var basemap = new Basemap({
+        baseLayers: [
+          new VectorTileLayer({
+            portalItem: {
+              id: "3a62040541b84f528da3ac7b80cf4a63" 
+            }
+          })
+        ]
+      });
+
          var map = new Map({
-            //"streets" , "satellite" , "hybrid", "topo", "gray",
-            //"dark-gray", "oceans", "national-geographic", "terrain",
-            //"osm", "dark-gray-vector", gray-vector",
-            //"streets-vector", "streets-night-vector", "streets-relief-vector",
-            //"streets-navigation-vector" and "topo-vector"
-              basemap: "streets-night-vector",
+              basemap: basemap, // "streets-night-vector", 
               ground: "world-elevation"
         });
         //map.ground.surfaceColor = "#FFFF";
@@ -212,7 +250,7 @@
                 position: {
                     x: 121.0322874,
                     y: 14.6750462,
-                    z: 0
+                    z: 1000
                     },
                     tilt: 65
                     },
@@ -272,21 +310,22 @@
             expression: 'DefaultValue($feature.Name, "no data")'
           }
         });
+        // TBM spot label class
 
-        // Excavation SPot Label
-        var excaspotlabelClass = new LabelClass({
+        var tbmspotlabelClass = new LabelClass({
           symbol: {
             type: "label-3d",// autocasts as new LabelSymbol3D()
             symbolLayers: [
               {
                 type: "text", // autocasts as new TextSymbol3DLayer()
                 material: {
-                  color: "orange"
+                  color: [0, 197, 255]
                 },
-                size: 10,
-                color: "black",
-                haloColor: "black",
-                haloSize: 1,
+                //halo: {
+                //      size: 0.8,
+                //      color: "black"
+                //    },
+                //size: 10,
                 font: {
                   family: "Ubuntu Mono",
                   weight: "bold"
@@ -310,9 +349,13 @@
           },
           labelPlacement: "above-center",
           labelExpressionInfo: {
-            value: "Excavation"
+            expression: "$feature.Type"
+            //value: "TBM"
           }
-        });        
+        });
+
+        // Label hospital
+    
 
         // convenience function to retrieve the WebStyleSymbols based on their name
         function stationsSymbol(name) {
@@ -323,7 +366,7 @@
           };
         }
 
-        function excaspotSymbol(name) { // Excavation Spot 
+        function tbmspotSymbol(name) { // TBM Spot 
           return {
             type: "web-style",
             name: name,
@@ -338,22 +381,141 @@
           defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
         };
 
-        var excaspotRenderer = {
-          type: "unique-value",
-          field: "OBJECTID",
-          defaultSymbol: excaspotSymbol("Backhoe"),
+        var tbmspotRenderer = {
+          type: "unique-value", //"unique-value", "simple"
+          Field: "Type",
+          defaultSymbol: tbmspotSymbol("Tram"),
           visualVariables: [
             {
               type: "size",
-              minDateValue: 0,
-              maxDataValue: 10,
-              minSize: 8,
-              maxSize: 8
+              axis: "height",
+              field: "SIZE",
+              valueUnit: "meters"
+            },
+            {
+              type: "rotation",
+              field: "ROTATION"
             }
           ]
         };
 
+        // Renderer for monitor buildings
+               // verticalOffset shifts the symbol vertically
+        var verticalOffset = {
+          screenLength: 40,
+          maxWorldLength: 200,
+          minWorldLength: 35
+        };
+
+          // Function that automatically creates the symbol for the points of interest
+          function getUniqueValueSymbol(name, color) {
+          // The point symbol is visualized with an icon symbol. To clearly see the location of the point
+          // we displace the icon vertically and add a callout line. The line connects the offseted symbol with the location
+          // of the point feature.
+          return {
+            type: "point-3d", // autocasts as new PointSymbol3D()
+            symbolLayers: [
+              {
+                type: "icon", // autocasts as new IconSymbol3DLayer()
+                resource: {
+                  href: name
+                },
+                size: 20,
+                outline: {
+                  color: "white",
+                  size: 2
+                }
+              }
+            ],
+
+            verticalOffset: verticalOffset,
+
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: "white",
+              size: 2,
+              border: {
+                color: color
+              }
+            }
+          };
+        }
+
+        var monitorBuildingPointsRenderer = {
+          type: "unique-value", // autocasts as new UniqueValueRenderer()
+          field: "Type",
+          uniqueValueInfos: [
+            {
+              value: "Hospital",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/hospital_icon.png",
+                "#D13470"
+              )
+            },
+            {
+              value: "Factory",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/factory.png",
+                "#D13470"
+              )
+            }
+          ]
+        };
+
+
+
       //********** Read Feature and Scene Layers
+      // Elevation contoures
+      var contourLayer = new FeatureLayer({
+        portalItem: {
+          id: "986213ac70c543618ff93c39c43935fe",
+          portal: {
+            url: "https://mmspgc-gis.mmspgc.local/portal"
+          }
+        },
+        elevationInfo: {
+          mode: "on-the-ground"
+        },
+        title: "Elevation"
+      });
+      //contourLayer.listMode = "hide";
+      map.add(contourLayer);
+
+      // Hospitals
+      var monitorbuildingLayer = new SceneLayer({
+        portalItem: {
+          id: "e2f8e71682c6422b9a34840c72aa8ac3",
+          portal: {
+            url: "https://mmspgc-gis.mmspgc.local/portal"
+          }
+        },
+        elevationInfo: {
+          mode: "absolute-height",
+          offset: 40
+        },
+      });
+      monitorbuildingLayer.listMode = "hide";
+      map.add(monitorbuildingLayer);
+
+      var monitorbuildingpointLayer = new FeatureLayer({
+        portalItem: {
+          id: "f390ff14dba74058b9922c85e793043b",
+          portal: {
+            url: "https://mmspgc-gis.mmspgc.local/portal"
+          }
+        },
+        elevationInfo: {
+          mode: "relative-to-ground",
+          offset: 40
+        },
+        title: "Monitoring Building",
+        renderer: monitorBuildingPointsRenderer,
+        outFields: ["*"],
+      });
+      monitorbuildingpointLayer.listMode = "hide";
+      map.add(monitorbuildingpointLayer);
+
+      // Station point feature
         var stationLayer = new SceneLayer({
             portalItem: {
                 id: "0b188bbb17b340b9ba4a72c7b2921dd1",
@@ -374,50 +536,98 @@
         map.add(stationLayer, 0);
 
 
-        // Excavation machine
-        var excaSpot = new SceneLayer({
+        var tbmSpot = new FeatureLayer({
           portalItem: {
-            id: "418e04e2d067404c8dabaf46b0356a25",
+            id: "9068ec49a80d46a18a667450e12cc870",
             portal: {
               url: "https://mmspgc-gis.mmspgc.local/portal"
             }
           },
-          labelingInfo: [excaspotlabelClass],
-          renderer: excaspotRenderer,
+          labelingInfo: [tbmspotlabelClass],
+          renderer: tbmspotRenderer,
           screenSizePerspectiveEnabled: false,
-          title: "Excavation Spot"
+          title: "TBM Spot"
         });
-        excaSpot.listMode = "hide";
-        view.map.add(excaSpot);
+        tbmSpot.listMode = "hide";
+        view.map.add(tbmSpot);
 
 
-        // D-wall
-        var dwallLayer = new SceneLayer({
-            portalItem: {
-                id: "46636a61980f4a9da32047a84ef9137d",
-                portal: {
-                    url: "https://mmspgc-gis.mmspgc.local/portal"
+        // TBM Alignment
+        const options = {
+          profile: "circle",
+          cap: "none",
+          join: "miter",
+          width: 5,
+          height: 5,
+          color: [200, 200, 200],
+          profileRotation: "all"
+        };
+
+        /* The colors used for the each transit line */
+        const colors = {
+          TBM1: [0, 197, 255, 0.5],
+          TBM2: [0, 197, 255, 0.5],
+          TBM3: [0, 197, 255, 0.5],
+          TBM4: [0, 197, 255, 0.5],
+          TBM5: [0, 197, 255, 0.5],
+          TBM6: [0, 197, 255, 0.5]
+        };
+
+      var transitLayer = new FeatureLayer({
+        portalItem: {
+          id: "fa7aad7fd11d401a9911c8b261784980",
+          portal: {
+            url: "https://mmspgc-gis.mmspgc.local/portal"
+          }
+        },
+        elevationInfo: {
+          mode: "relative-to-ground",//"on-the-ground"
+          offset: -60
+        },
+         //renderer: roundTubeSymbol,
+         title: "TBM Alignment",
+         //definitionExpression: "sens='Aller'",
+         outFields: ["*"]
+        });
+        map.add(transitLayer);
+
+        function renderTransitLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "Line"
+          });
+
+          for (let property in colors) {
+            if (colors.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "line-3d",
+                  symbolLayers: [
+                    {
+                      type: "path",
+                      profile: options.profile,
+                      material: {
+                        color: colors[property]
+                      },
+                      width: options.width,
+                      height: options.height,
+                      join: options.join,
+                      cap: options.cap,
+                      anchor: "bottom",
+                      profileRotation: options.profileRotation
+                    }
+                  ]
                 }
-            },
-            title: "D-Wall"
-        });
-        map.add(dwallLayer, 1);
+              });
+            }
+          }
 
-        // Structure
-        var structureLayer = new SceneLayer({
-            portalItem: {
-                id: "88c5c8c13f614093b7ffc1d643e96d3f",
-                portal: {
-                    url: "https://mmspgc-gis.mmspgc.local/portal"
-                }
-            },
-            definitionExpression: "Status <> 7",
-            title: "Structure"
-        });
+          transitLayer.renderer = renderer;
+        }
 
-        map.add(structureLayer, 2);
+        renderTransitLayer();
 
-        //*** Highlight and Zoom to Stations*** //
+         //*** Highlight and Zoom to Stations*** //
         // This variable will store highlight handle that is used to remove the highlight
         var highlight = null;
 
@@ -449,34 +659,7 @@
                     li.addEventListener("click", function(event) {
                       var target = event.target;
                       
-                    // Calculate Statistics for D-wall 
-                    var testID = document.getElementById("selected");
-                     testID.innerHTML = feature.attributes.Name;
-                           var totalPanel = {
-                               onStatisticField: "FinalStatus",  // service field for 2015 population
-                               outStatisticFieldName: "FinalStatus_count",
-                               statisticType: "count"
-                               };
-                               
-                               var finishPanel = {
-                                   onStatisticField: "FinalStatus",  // service field for 2015 population
-                                   outStatisticFieldName: "FinalStatus_pcount",
-                                   statisticType: "sum"
-                                };
-                                
-
-                                var query = dwallLayer.createQuery();
-                                query.where = "Stations = '" +  testID.innerHTML + "'"; // Selected Stations
-                                query.outStatistics = [totalPanel, finishPanel];
-                                dwallLayer.queryFeatures(query)
-                                  .then(function(response){
-                                var stats = response.features[0].attributes;
-                                document.getElementById("percentComp").innerHTML = (stats.FinalStatus_count/stats.FinalStatus_pcount).toFixed(1) + " %";
-                                document.getElementById("countPanel").innerHTML = "Total No. of walls: " + stats.FinalStatus_count;
-                              });
-
-                      // End of Calculate Statistics for D-wall 
-    
+ 
                       
                       var objectId = feature.attributes.OBJECTID;
                       // Create an extent query on the layer view that will return to 3D extent of the feature
@@ -535,17 +718,18 @@
           view.ui.add(layerList, {
             position: "bottom-left"
           });
-
-        // Create DOM ID and use this for showing summary statistics
-        view.ui.add(document.getElementById("optionsDiv"), {
-          position: "bottom-right",
-          index: 0
-        });
         // End of LayerList
   
         view.ui.empty("top-left");
         view.ui.add(titleDiv, "top-left");
-        
+
+        // Compass
+        var compass = new Compass({
+          view: view});
+          // adds the compass to the top left corner of the MapView
+        view.ui.add(compass, "bottom-left");
+
+        // See-through-Ground        
           view.when(function() {
           // allow navigation above and below the ground
           map.ground.navigationConstraint = {
@@ -575,19 +759,48 @@
 
         view.ui.add("menu", "bottom-left");
 
-        //*** Function that will filter by the selected structure type
-        function showType(event) {
-          //retrieve the query stored in the selected value
-          var typeQuery = event.target.value;
-          dwallLayer.definitionExpression = typeQuery;
-        }
-        document.getElementById("structureType").addEventListener("change", showType);  
 
-          // Document (add) selecter tab for structure types
-          view.ui.add(document.getElementById("StatusDiv"), {
-          position: "top-left",
-          index: 0
-        });
+        // Filter by Period
+	   // create array of layerviews 
+	   // Filter for D-Wall Layer
+		const dateTitle = document.getElementById("seasons-title");
+        const periodNodes = document.querySelectorAll(`.season-item`);
+        const periodElement = document.getElementById("seasons-filter");
+          
+          // click event handler choices
+          periodElement.addEventListener("click", filterBySeason);
+          
+          // User clicked on time periods define
+          // set an attribute filter on dwall
+          function filterBySeason(event) {
+            const selectedSeason = event.target.getAttribute("time-period");
+            timeLayerView.filter = {
+              where: "endDate <= date'" + selectedSeason + "'" //"Period = '" + selectedSeason + "'"
+            };
+          }
+
+          view.whenLayerView(transitLayer).then(function(layerView) {
+            //timeLayerView = layerView;
+			// geodata - 05.13.2020
+			// push layerView to arrLviews
+			timeLayerView = layerView;
+			
+            // set up UI items
+            periodElement.style.visibility = "visible";
+            const seasonsExpand = new Expand({
+              view: view,
+              content: periodElement,
+              expandIconClass: "esri-icon-filter",
+              group: "top-left"
+            });
+            //clear the filters when user closes the expand widget
+            seasonsExpand.watch("expanded", function() {
+              if (!seasonsExpand.expanded) {
+                timeLayerView.filter = null;
+              }
+            });
+            view.ui.add(seasonsExpand, "top-left");
+          });
 
 
       });
@@ -595,10 +808,9 @@
   </head>
 
   <body>
-
     <div id="applicationDiv">
     <div id="viewDiv">
-      <div id="titleDiv" class="esri-widget">Status of Civil Construction (D-Wall & Structures)</div>
+      <div id="titleDiv" class="esri-widget">TBM Tunneling</div>
     </div>
         <div id="menu" class="esri-widget">
       <input type="checkbox" id="opacityInput" checked />
@@ -610,21 +822,12 @@
         <li>Loading&hellip;</li>
       </ul>
     </div>
-    <div id="optionsDiv" class="esri-widget">
-      <div><b>D-Wall Construction Progress</b></div>
-        <p id="percentComp"></p>
-        <p id="selected"> station</p>
+    <div id="seasons-filter" class="esri-widget">
+      <div id="seasons-title" class="esri-widget">TBM Schudule</div>
+      <div class="season-item visible-season" time-period="2020-6-3">6/3/2020</div>
+      <div class="season-item visible-season" time-period="2020-6-10">6/10/2020</div>
     </div>
-    <div id="StatusDiv" class="esri-widget">
-      <div>
-        <b>Construction Status:</b>
-        <select id="structureType">
-          <option value="1=1">All</option>
-          <option value="Period = '6/1/2020 - 6/7/2020'">6/1/2020 - 6/7/2020</option>
-          <option value="Period = '6/8/2020 - 6/14/2020'">6/8/2020 - 6/14/2020</option>    
-        </select>
-      </div>
-    </div>
+    <div id="tableDiv"></div>
     </div>
   </body>
 </html>
