@@ -53,22 +53,23 @@
         "esri/views/MapView",
         "esri/views/SceneView",
         "esri/layers/SceneLayer",
+        "esri/layers/FeatureLayer",
         "esri/layers/GeoJSONLayer",
         "esri/widgets/TimeSlider",
         "esri/widgets/Expand",
         "esri/widgets/Legend"
-      ], function(Map, MapView, SceneView, SceneLayer, GeoJSONLayer, TimeSlider, Expand, Legend) {
+      ], function(Map, MapView, SceneView, SceneLayer, FeatureLayer, GeoJSONLayer, TimeSlider, Expand, Legend) {
         let layerView;
 
-        var layer = new SceneLayer({
+        const layer = new FeatureLayer({
           portalItem: {
-            id: "5bcf3fef03bf4a32849c2d7d1f9daca8",
+            id: "fa7aad7fd11d401a9911c8b261784980",
             portal: {
               url: "https://mmspgc-gis.mmspgc.local/portal"
             }
           },
           timeInfo: {
-            startField: "time", // name of the date field
+            startField: "endDate", // name of the date field
             interval: {
               // set time interval to one day
               unit: "days",
@@ -83,12 +84,14 @@
           layers: [layer]
         });
 
-        var view = new SceneView({
+        var view = new MapView({
           map: map,
           container: "viewDiv",
-          zoom: 14,
-          center: [-117.50268, 34.04713]
+          zoom: 10,
+          center: [121.0322874, 14.6750462]
         });
+        map.ground.surfaceColor = "#FFFF";
+        map.ground.opacity = 0.1;
 
         // create a new time slider widget
         // set other properties when the layer view is loaded
@@ -96,11 +99,12 @@
         // data falls within time range
         const timeSlider = new TimeSlider({
           container: "timeSlider",
-          playRate: 50,
+          mode: "time-window",
+         // playRate: 50,
           stops: {
             interval: {
               value: 1,
-              unit: "hours"
+              unit: "days"
             }
           }
         });
@@ -138,7 +142,7 @@
           // only show earthquakes happened up until the end of
           // timeSlider's current time extent.
           layer.definitionExpression =
-            "time <= " + timeSlider.timeExtent.end.getTime();
+            "endDate <= " + timeSlider.timeExtent.end.getTime();
 
           // now gray out earthquakes that happened before the time slider's current
           // timeExtent... leaving footprint of earthquakes that already happened
