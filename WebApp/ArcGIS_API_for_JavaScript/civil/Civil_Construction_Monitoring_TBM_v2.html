@@ -34,56 +34,7 @@
         visibility: hidden;
       }
 
-      #seasons-filter {
-        height: 100px;
-        width: 100px;
-        visibility: hidden;
-      }
-
-      .season-item {
-        width: 100%;
-        padding: 10px;
-        text-align: left;
-        size: 8px;
-        vertical-align: baseline;
-        cursor: pointer;
-        height: 30px;
-      }
-
-      .season-item:focus {
-        background-color: dimgrey;
-      }
-
-      .season-item:hover {
-        background-color: dimgrey;
-      }
-
-      #date-filter {
-        height: 100px;
-        width: 150px;
-        visibility: hidden;
-      }
-
-      .date-item {
-        width: 100%;
-        padding: 10px;
-        size: 8px;
-        text-align: left;
-        vertical-align: baseline;
-        cursor: pointer;
-        height: 30px;
-      }
-
-      .date-item:focus {
-        background-color: dimgrey;
-      }
-
-      .date-item:hover {
-        background-color: dimgrey;
-      }
-
-
-      #applicationDiv {
+       #applicationDiv {
         position: absolute;
         width: 100%;
         height: 100%;
@@ -343,49 +294,6 @@
             expression: 'DefaultValue($feature.Name, "no data")'
           }
         });
-
-        // Excavation SPot Label
-        var excaspotlabelClass = new LabelClass({
-          symbol: {
-            type: "label-3d",// autocasts as new LabelSymbol3D()
-            symbolLayers: [
-              {
-                type: "text", // autocasts as new TextSymbol3DLayer()
-                material: {
-                  color: "#98E600"
-                },
-                size: 10,
-                halo: {
-                      size: 0.8,
-                      color: "black"
-                    },
-                font: {
-                  family: "Ubuntu Mono",
-                  weight: "bold"
-                },
-              }
-            ],
-            verticalOffset: {
-              screenLength: 100,
-              maxWorldLength: 200,
-              minWorldLength: 30
-            },
-            callout: {
-              type: "line",
-              size: 0.5,
-              color: [0, 0, 0],
-              border: {
-                color: [255, 255, 255, 0.7]
-              }
-            }
-
-          },
-          labelPlacement: "above-center",
-          labelExpressionInfo: {
-            value: "Excavation"
-          }
-        });
-
         // TBM spot label class
 
         var tbmspotlabelClass = new LabelClass({
@@ -431,9 +339,7 @@
         });
 
         // Label hospital
-
-
-       
+    
 
         // convenience function to retrieve the WebStyleSymbols based on their name
         function stationsSymbol(name) {
@@ -444,15 +350,7 @@
           };
         }
 
-        function excaspotSymbol(name) { // Excavation Spot 
-          return {
-            type: "web-style",
-            name: name,
-            styleName: "EsriRealisticTransportationStyle"
-          };
-        }
-
-        function tbmspotSymbol(name) { // Excavation Spot 
+        function tbmspotSymbol(name) { // TBM Spot 
           return {
             type: "web-style",
             name: name,
@@ -465,24 +363,6 @@
           type: "unique-value", // autocasts as new UniqueValueRenderer()
           field: "Name",
           defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
-        };
-
-        var excaspotRenderer = {
-          type: "unique-value",
-          field: "OBJECTID",
-          defaultSymbol: excaspotSymbol("Backhoe"),
-          visualVariables: [
-            {
-              type: "size",
-              axis: "height",
-              field: "SIZE",
-              valueUnit: "meters"
-            },
-            {
-              type: "rotation",
-              field: "ROTATION"
-            }
-          ]
         };
 
         var tbmspotRenderer = {
@@ -640,22 +520,6 @@
         map.add(stationLayer, 0);
 
 
-        // Excavation machine
-        var excaSpot = new FeatureLayer({
-          portalItem: {
-            id: "1bc7404021644b3ba6e28b815e4e200a",
-            portal: {
-              url: "https://mmspgc-gis.mmspgc.local/portal"
-            }
-          },
-          labelingInfo: [excaspotlabelClass],
-          renderer: excaspotRenderer,
-          screenSizePerspectiveEnabled: false,
-          title: "Excavation Spot"
-        });
-        excaSpot.listMode = "hide";
-        view.map.add(excaSpot);
-
         var tbmSpot = new FeatureLayer({
           portalItem: {
             id: "9068ec49a80d46a18a667450e12cc870",
@@ -671,16 +535,6 @@
         tbmSpot.listMode = "hide";
         view.map.add(tbmSpot);
 
-
-        // Editable widget for changing the location of excavation sport or add excavation spot
-        view.when(function() {
-            view.popup.autoOpenEnabled = true;
-            var editor = new Editor({
-                view: view
-            });
-
-            view.ui.add(editor, "top-left");
-        });
 
         // TBM Alignment
         const options = {
@@ -757,36 +611,7 @@
 
         renderTransitLayer();
 
-        // D-wall
-        var dwallLayer = new SceneLayer({
-            portalItem: {
-                id: "9172aafd568141c680e2542dd7c58bd7",
-                portal: {
-                    url: "https://mmspgc-gis.mmspgc.local/portal"
-                }
-            },
-            title: "D-Wall",
-            definitionExpression: "Types = 'D-Wall'"
-            // when filter using date, example below. use this format
-            //definitionExpression: "EndDate = date'2020-6-3'"
-        });
-        map.add(dwallLayer, 1);
-
-        // Structure
-        var structureLayer = new SceneLayer({
-            portalItem: {
-                id: "9172aafd568141c680e2542dd7c58bd7",
-                portal: {
-                    url: "https://mmspgc-gis.mmspgc.local/portal"
-                }
-            },
-            definitionExpression: "Types = 'Structure'", //"Status <> 7",
-            title: "Structure"
-        });
-
-        map.add(structureLayer, 2);
-
-        //*** Highlight and Zoom to Stations*** //
+         //*** Highlight and Zoom to Stations*** //
         // This variable will store highlight handle that is used to remove the highlight
         var highlight = null;
 
@@ -818,34 +643,7 @@
                     li.addEventListener("click", function(event) {
                       var target = event.target;
                       
-                    // Calculate Statistics for D-wall 
-                    var testID = document.getElementById("selected");
-                     testID.innerHTML = feature.attributes.Name;
-                           var totalPanel = {
-                               onStatisticField: "FinalStatus",  // service field for 2015 population
-                               outStatisticFieldName: "FinalStatus_count",
-                               statisticType: "count"
-                               };
-                               
-                               var finishPanel = {
-                                   onStatisticField: "FinalStatus",  // service field for 2015 population
-                                   outStatisticFieldName: "FinalStatus_pcount",
-                                   statisticType: "sum"
-                                };
-                                
-
-                                var query = dwallLayer.createQuery();
-                                query.where = "Stations = '" +  testID.innerHTML + "'"; // Selected Stations
-                                query.outStatistics = [totalPanel, finishPanel];
-                                dwallLayer.queryFeatures(query)
-                                  .then(function(response){
-                                var stats = response.features[0].attributes;
-                                document.getElementById("percentComp").innerHTML = (stats.FinalStatus_count/stats.FinalStatus_pcount).toFixed(1) + " %";
-                                document.getElementById("countPanel").innerHTML = "Total No. of walls: " + stats.FinalStatus_count;
-                              });
-
-                      // End of Calculate Statistics for D-wall 
-    
+ 
                       
                       var objectId = feature.attributes.OBJECTID;
                       // Create an extent query on the layer view that will return to 3D extent of the feature
@@ -905,20 +703,6 @@
             position: "bottom-left"
           });
         // End of LayerList
-
-        // Create DOM ID and use this for showing summary statistics
-        var summaryStats = document.getElementById("optionsDiv")
-        const dwallsummaryExpand = new Expand({
-          view: view,
-          content: summaryStats,
-          expandIconClass: "esri-icon-filter",
-          group: "bottom-right"
-          });
-        view.ui.add(dwallsummaryExpand, {
-          position: "bottom-right",
-          index: 0
-        });
-
   
         view.ui.empty("top-left");
         view.ui.add(titleDiv, "top-left");
@@ -959,102 +743,47 @@
 
         view.ui.add("menu", "bottom-left");
 
-
-        // Filter by Period
-	   // create array of layerviews 
-	   let arrLviews = [];
-	   
-	   
-	   // Filter for D-Wall Layer
-		const dateTitle = document.getElementById("seasons-title");
-        const periodNodes = document.querySelectorAll(`.season-item`);
-        const periodElement = document.getElementById("seasons-filter");
           
-          // click event handler choices
-          periodElement.addEventListener("click", filterBySeason);
-          
-          // User clicked on time periods define
-          // set an attribute filter on dwall
-          function filterBySeason(event) {
-            const selectedSeason = event.target.getAttribute("time-period");
-            timeLayerView.filter = {
-              where: "EndDate <= date'" + selectedSeason + "'" //"Period = '" + selectedSeason + "'"
-            };
-          }
+        // Time slider for TBM
+        const timeSlider = new TimeSlider({
+          container: "timeSlider",
+          mode: "time-window",
+          //destroyed: false,
+          view: view
+       });
+       // view.ui.add(timeSlider, "manual");
 
-          view.whenLayerView(dwallLayer).then(function(layerView) {
-            //timeLayerView = layerView;
-			// geodata - 05.13.2020
-			// push layerView to arrLviews
-			arrLviews.push(layerView);
-			
-            // set up UI items
-            periodElement.style.visibility = "visible";
-            const seasonsExpand = new Expand({
+
+        // wait till the layer view is loaded
+        //let timeLayerView;
+        view.whenLayerView(transitLayer).then(function(lv) {
+          timeLayerView = lv;
+          const fullTimeExtent = transitLayer.timeInfo.fullTimeExtent;
+
+          timeSlider.fullTimeExtent = fullTimeExtent;
+          timeSlider.stops = {
+            interval: transitLayer.timeInfo.interval
+          };
+
+          const timesliderExpand = new Expand({
               view: view,
-              content: periodElement,
+              content: timeSlider,
               expandIconClass: "esri-icon-filter",
-              group: "top-left"
+              group: "bottom-right"
             });
+
             //clear the filters when user closes the expand widget
-            seasonsExpand.watch("expanded", function() {
-              if (!seasonsExpand.expanded) {
-                layerView.filter = null;
+            timesliderExpand.watch("expanded", function() {
+              if (!timesliderExpand.expanded) {
+                //timeLayerView.filter = null;
+                timeSlider.destroyed = true;
               }
+
             });
-            view.ui.add(seasonsExpand, "top-left");
-          });
+            view.ui.add(timesliderExpand, "bottom-right");
+      });     
 
 
-        // Filter by TransitLayer
-        const titleDate = document.getElementById("date-title");
-        const dateNodes = document.querySelectorAll(`.date-item`);
-          const dateElement = document.getElementById("date-filter");
-          
-          // click event handler
-          dateElement.addEventListener("click", filterByDate);
-          
-          // User clicked on time periods define
-          // set an attribute filter on dwall
-          function filterByDate(event) {
-            const selectedDate = event.target.getAttribute("date-period");
-			// geodata 05.13.2020
-			// iterate the layer views in arrLviews
-			for(var i = 0; i < arrLviews.length; i++){
-					arrLviews[i].filter = {
-						where: "endDate <= date'" + selectedDate + "'" //"Period = '" + selectedSeason + "'"
-					}
-			}
-			
-            /*timeLayerView.filter = {
-              where: "endDate >= date'" + selectedDate + "'" //"Period = '" + selectedSeason + "'"
-            };*/
-          }
-
-          view.whenLayerView(structureLayer).then(function(layerView) {
-            //timeLayerView = layerView;
-			// geodata - 05.13.2020
-			// push layerView to arrLviews
-			arrLviews.push(layerView);
-			
-            // set up UI items
-            dateElement.style.visibility = "visible";
-            const dateExpand = new Expand({
-              view: view,
-              content: dateElement,
-              expandIconClass: "esri-icon-filter",
-              group: "top-left"
-            });
-            //clear the filters when user closes the expand widget
-            dateExpand.watch("expanded", function() {
-              if (!dateExpand.expanded) {
-                layerView.filter = null;
-              }
-            });
-            view.ui.add(dateExpand, "top-left");
-          });
-
- 
       });
     </script>
   </head>
@@ -1062,7 +791,7 @@
   <body>
     <div id="applicationDiv">
     <div id="viewDiv">
-      <div id="titleDiv" class="esri-widget">Status of Civil Construction</div>
+      <div id="titleDiv" class="esri-widget">TBM Tunneling</div>
     </div>
         <div id="menu" class="esri-widget">
       <input type="checkbox" id="opacityInput" checked />
@@ -1074,19 +803,7 @@
         <li>Loading&hellip;</li>
       </ul>
     </div>
-    <div id="optionsDiv" class="esri-widget">
-      <div><b>D-Wall Construction Progress</b></div>
-        <p id="percentComp"></p>
-        <p id="selected"> station</p>
-    </div>
-    <div id="seasons-filter" class="esri-widget">
-      <div id="seasons-title" class="esri-widget">Reset</div>
-    </div>
-    <div id="date-filter" class="esri-widget">
-      <div id="date-title" class="esri-widget">Schudule: D-Wall & Structure</div>
-      <div class="date-item visible-season" date-period="2020-6-3">6/3/2020</div>
-      <div class="date-item visible-season" date-period="2020-6-10">6/10/2020</div>
-    </div>
+    <div id="timeSlider"></div>
     </div>
   </body>
 </html>

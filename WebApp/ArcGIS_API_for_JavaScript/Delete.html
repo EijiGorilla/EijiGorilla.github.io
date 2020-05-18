@@ -26,6 +26,10 @@
         background-color: rgb(0, 0, 0);
       }
 
+      #select-date {
+        color: white;
+      }
+
       #seasons-filter {
         height: 10px;
         width: 100px;
@@ -72,6 +76,14 @@
 
       .date-item:hover {
         background-color: dimgrey;
+      }
+
+      #datePicker-date {
+        color: white;
+      }
+
+      #formatted-date {
+        color: white;
       }
 
 
@@ -255,7 +267,7 @@
         baseLayers: [
           new VectorTileLayer({
             portalItem: {
-              id: "aa4062273d8a41aea8da712e5e49b375" 
+              id: "3a62040541b84f528da3ac7b80cf4a63" 
             }
           })
         ]
@@ -264,8 +276,7 @@
          var map = new Map({
               basemap: basemap, // "streets-night-vector", 
               ground: "world-elevation"
-        });
-        //map.ground.surfaceColor = "#FFFF";
+        });        //map.ground.surfaceColor = "#FFFF";
         //map.ground.opacity = 0.1;
          
         var view = new SceneView({
@@ -422,123 +433,9 @@
           ]
         };
 
-        // Renderer for monitor buildings
-               // verticalOffset shifts the symbol vertically
-               var verticalOffset = {
-          screenLength: 40,
-          maxWorldLength: 200,
-          minWorldLength: 35
-        };
-
-          // Function that automatically creates the symbol for the points of interest
-          function getUniqueValueSymbol(name, color) {
-          // The point symbol is visualized with an icon symbol. To clearly see the location of the point
-          // we displace the icon vertically and add a callout line. The line connects the offseted symbol with the location
-          // of the point feature.
-          return {
-            type: "point-3d", // autocasts as new PointSymbol3D()
-            symbolLayers: [
-              {
-                type: "icon", // autocasts as new IconSymbol3DLayer()
-                resource: {
-                  href: name
-                },
-                size: 20,
-                outline: {
-                  color: "white",
-                  size: 2
-                }
-              }
-            ],
-
-            verticalOffset: verticalOffset,
-
-            callout: {
-              type: "line", // autocasts as new LineCallout3D()
-              color: "white",
-              size: 2,
-              border: {
-                color: color
-              }
-            }
-          };
-        }
-
-        var monitorBuildingPointsRenderer = {
-          type: "unique-value", // autocasts as new UniqueValueRenderer()
-          field: "Type",
-          uniqueValueInfos: [
-            {
-              value: "Hospital",
-              symbol: getUniqueValueSymbol(
-                "https://EijiGorilla.github.io/Symbols/hospital_icon.png",
-                "#D13470"
-              )
-            },
-            {
-              value: "Factory",
-              symbol: getUniqueValueSymbol(
-                "https://EijiGorilla.github.io/Symbols/factory.png",
-                "#D13470"
-              )
-            }
-          ]
-        };
-
-
-
+ 
       //********** Read Feature and Scene Layers
-      // Elevation contoures
-      var contourLayer = new FeatureLayer({
-        portalItem: {
-          id: "986213ac70c543618ff93c39c43935fe",
-          portal: {
-            url: "https://mmspgc-gis.mmspgc.local/portal"
-          }
-        },
-        elevationInfo: {
-          mode: "on-the-ground"
-        },
-        title: "Elevation"
-      });
-      //contourLayer.listMode = "hide";
-      map.add(contourLayer);
-
-      // Hospitals
-      var monitorbuildingLayer = new SceneLayer({
-        portalItem: {
-          id: "e2f8e71682c6422b9a34840c72aa8ac3",
-          portal: {
-            url: "https://mmspgc-gis.mmspgc.local/portal"
-          }
-        },
-        elevationInfo: {
-          mode: "absolute-height",
-          offset: 40
-        },
-      });
-      monitorbuildingLayer.listMode = "hide";
-      map.add(monitorbuildingLayer);
-
-      var monitorbuildingpointLayer = new FeatureLayer({
-        portalItem: {
-          id: "f390ff14dba74058b9922c85e793043b",
-          portal: {
-            url: "https://mmspgc-gis.mmspgc.local/portal"
-          }
-        },
-        elevationInfo: {
-          mode: "relative-to-ground",
-          offset: 40
-        },
-        title: "Monitoring Building",
-        renderer: monitorBuildingPointsRenderer,
-        outFields: ["*"],
-      });
-      monitorbuildingpointLayer.listMode = "hide";
-      map.add(monitorbuildingpointLayer);
-
-      // Station point feature
+         // Station point feature
         var stationLayer = new SceneLayer({
             portalItem: {
                 id: "0b188bbb17b340b9ba4a72c7b2921dd1",
@@ -556,7 +453,7 @@
               //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
         });
         stationLayer.listMode = "hide";
-        map.add(stationLayer, 0);
+        map.add(stationLayer,3);
 
 
         // Excavation machine
@@ -575,16 +472,6 @@
         excaSpot.listMode = "hide";
         view.map.add(excaSpot);
 
-
-        // Editable widget for changing the location of excavation sport or add excavation spot
-        view.when(function() {
-            view.popup.autoOpenEnabled = true;
-            var editor = new Editor({
-                view: view
-            });
-
-            view.ui.add(editor, "top-left");
-        });
 
          // D-wall
         var dwallLayer = new SceneLayer({
@@ -792,44 +679,30 @@
         // Filter by Period
 	   // create array of layerviews 
 
-            // Date Picker
+      // Date Picker
         const startDate = new DatePicker({
-          container: "start-date-picker"
+          container: "start-date-picker",
+          value: "2020-06-10"
         });
-       view.ui.add(startDate, "bottom-right");
+        view.ui.add(startDate, "bottom-right");
 
-          
-          // click event handler for seasons choices
-          startDate.addEventListener("click", filterByDate);
-          
-          // User clicks date
-          // Filter layer by the selected date
-          function filterByDate(event) {
-            const selectedDate = event.target.value;
-            const filterDateFormat = selectedDate.getFullYear() + "-" + (selectedDate.getMonth() + 1) + "-" + selectedDate.getDate();
-            timeLayerView.filter = {
-              where: "EndDate <= DATE'" + filterDateFormat + "'" // time field is "EndDate"
-            };
-          }
+        var datePickID = document.getElementById("datePicker-date");
+        var formattedID = document.getElementById("formatted-date");
 
-          view.whenLayerView(dwallLayer).then(function(layerView) {
+        var datePickerDate = startDate.value;
+
+        datePickID.innerHTML = datePickerDate;
+        formattedID.innerHTML = datePickerDate.getFullYear() + "-" + (datePickerDate.getMonth() + 1) + "-" + datePickerDate.getDate();
+
+           view.whenLayerView(dwallLayer).then(function(layerView) {
             timeLayerView = layerView;
-                        // set up UI items
-            startDate.style.visibility = "visible";
-            const dateExpand = new Expand({
-              view: view,
-              content: startDate,
-              expandIconClass: "esri-icon-filter",
-              group: "bottom-right"
-            });
-            //clear the filters when user closes the expand widget
-            dateExpand.watch("expanded", function() {
-              if (!dateExpand.expanded) {
-                layerView.filter = null;
-              }
-            });
-            view.ui.add(dateExpand, "bottom-right");
+            timeLayerView.filter = {
+
+             // where: "endDate <= date'" + "2020-6-10" + "'" // time field is "EndDate"
+             where: "endDate <= DATE'" + fromattedID.innerHTML + "'" // time field is "EndDate"
+            }
           });
+
 
 
       });
@@ -838,8 +711,12 @@
 
   <body>
     <div id="applicationDiv">
+      <p>Output:
+        <p>DatePicker raw value: <div id="datePicker-date"></div></p>
+        <p>Formmated value: <div id="formatted-date"></div></p>
+      </p>
     <div id="viewDiv">
-      <div id="titleDiv" class="esri-widget">Status of Civil Construction</div>
+      <div id="titleDiv" class="esri-widget">D-Wall & Station-Box Structures</div>
     </div>
         <div id="menu" class="esri-widget">
       <input type="checkbox" id="opacityInput" checked />
@@ -855,7 +732,6 @@
       <div><b>D-Wall Construction Progress</b></div>
         <p id="percentComp"></p>
         <p id="selected"> station</p>
-    </div>
     <div id="start-date-picker"></div>
     </div>
   </body>

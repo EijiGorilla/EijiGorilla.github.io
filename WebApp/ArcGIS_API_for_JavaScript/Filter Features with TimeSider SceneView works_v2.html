@@ -23,9 +23,9 @@
       }
 
       #timeSlider {
-        position: absolute;
-        left: 100px;
-        right: 100px;
+        position:absolute;
+        left: 500px;
+        right: 500px;
         bottom: 30px;
       }
 
@@ -57,19 +57,18 @@
         "esri/layers/GeoJSONLayer",
         "esri/widgets/TimeSlider",
         "esri/widgets/Expand",
-        "esri/widgets/Legend"
-      ], function(Map, MapView, SceneView, SceneLayer, FeatureLayer, GeoJSONLayer, TimeSlider, Expand, Legend) {
-        
-        const layer = new GeoJSONLayer({
-          url: "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/TBM_Centerline_GeoJason.geojson",
-          timeInfo: {
-            startField: "endDate", // name of the date field
-            interval: {
-              // set time interval to one day
-              unit: "days",
-              value: 1
-          }
-          }
+        "esri/widgets/Legend",
+        "esri/widgets/support/DatePicker"
+      ], function(Map, MapView, SceneView, SceneLayer, FeatureLayer, GeoJSONLayer, TimeSlider, Expand, Legend, DatePicker) {
+ 
+        const layer = new FeatureLayer({
+          portalItem: {
+            id: "cb000f30654741648faa6d9d71fc5f82",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          },
+
         });
 
  
@@ -78,10 +77,10 @@
           layers: [layer]
         });
 
-        var view = new MapView({
+        var view = new SceneView({
           map: map,
           container: "viewDiv",
-          zoom: 10,
+          zoom: 14,
           center: [121.0322874, 14.6750462]
         });
 
@@ -94,14 +93,9 @@
         //////////////
         const timeSlider = new TimeSlider({
           container: "timeSlider",
-          playRate: 50,
-          stops: {
-            interval: {
-              value: 1,
-              unit: "hours"
-            }
-          }
-        });
+          mode: "time-window",
+          view: view
+       });
         view.ui.add(timeSlider, "manual");
 
 
@@ -109,36 +103,12 @@
         let timeLayerView;
         view.whenLayerView(layer).then(function(lv) {
           timeLayerView = lv;
+          const fullTimeExtent = layer.timeInfo.fullTimeExtent;
 
-          // start time of the time slider - 5/25/2019
-          const start = new Date(2020, 5, 1);
-          // set time slider's full extent to
-          // 5/25/5019 - until end date of layer's fullTimeExtent
-          timeSlider.fullTimeExtent = {
-            start: start,
-            end: layer.timeInfo.fullTimeExtent.end
+          timeSlider.fullTimeExtent = fullTimeExtent;
+          timeSlider.stops = {
+            interval: layer.timeInfo.interval
           };
-
-          // We will be showing earthquakes with one day interval
-          // when the app is loaded we will show earthquakes that
-          // happened between 5/25 - 5/26.
-          const end = new Date(start);
-          // end of current time extent for time slider
-          // showing earthquakes with one day interval
-          end.setDate(end.getDate() + 1);
-
-          // Values property is set so that timeslider
-          // widget show the first day. We are setting
-          // the thumbs positions.
-          timeSlider.values = [start, end];
-        });
-
-        // watch for time slider timeExtent change
-        timeSlider.watch("timeExtent", function() {
-          // only show earthquakes happened up until the end of
-          // timeSlider's current time extent.
-          layer.definitionExpression =
-            "endDate <= date" + timeSlider.timeExtent.end.getTime();
 
       });
 
