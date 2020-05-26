@@ -1,0 +1,166 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the timeslider-filter sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/timeslider-filter/index.html
+  -->
+<title>Filter features with TimeSlider - 4.15</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      #timeSlider {
+        position:absolute;
+        left: 300px;
+        right: 300px;
+        bottom: 30px;
+      }
+
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.15/esri/themes/dark/main.css"
+    />
+    <script src="https://js.arcgis.com/4.15/"></script>
+    <script>
+      require([
+        "esri/Map",
+        "esri/Basemap",
+        "esri/views/MapView",
+        "esri/views/SceneView",
+        "esri/layers/SceneLayer",
+        "esri/layers/FeatureLayer",
+        "esri/layers/GeoJSONLayer",
+        "esri/widgets/TimeSlider",
+        "esri/widgets/Expand",
+        "esri/widgets/Legend",
+        "esri/widgets/support/DatePicker",
+        "esri/layers/VectorTileLayer"
+      ], function(Map, Basemap, MapView, SceneView, SceneLayer, FeatureLayer, GeoJSONLayer, TimeSlider, Expand, Legend, DatePicker, VectorTileLayer) {
+ 
+         var basemap = new Basemap({
+        baseLayers: [
+          new VectorTileLayer({
+            portalItem: {
+              id: "3a62040541b84f528da3ac7b80cf4a63" 
+            }
+          })
+        ]
+      });
+ 
+        var map = new Map({
+          basemap: basemap,
+          ground: "world-elevation"
+        });
+
+        var view = new MapView({
+          map: map,
+          container: "viewDiv",
+          zoom: 14,
+          center: [121.0322874, 14.6750462]
+        });
+
+
+        var otbLayer = new FeatureLayer({
+          portalItem: {
+            id: "60458de7c8344100a16cd3465bd34497",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          },
+          timeInfo: {
+            startField: "timeSlider",
+            interval: {
+              unit: "days",
+              value: 1
+            }
+          }
+        });
+        map.add(otbLayer);
+
+        var lotBoundary = new FeatureLayer({
+          portalItem: {
+            id: "4e143cd55e0940d5b52e6d358f45db98",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          }
+        });
+        map.add(lotBoundary);
+
+        var depotBuilding = new FeatureLayer({
+          portalItem: {
+            id: "606be86a446045cea14d96b921c7cbcb",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          },
+
+        });
+        map.add(depotBuilding);
+
+        
+
+        // create a new time slider widget
+        // set other properties when the layer view is loaded
+        // by default timeSlider.mode is "time-window" - shows
+        // data falls within time range
+
+        ////////////
+        //////////////
+        const timeSlider = new TimeSlider({
+          container: "timeSlider",
+          playRate: 50,
+          stops: {
+            interval: {
+              value: 1,
+              unit: "hours"
+            }
+          },
+          mode: "time-window",
+          view: view
+       });
+        view.ui.add(timeSlider, "manual");
+
+
+        // wait till the layer view is loaded
+        let timeLayerView;
+        view.whenLayerView(otbLayer).then(function(lv) {
+          timeLayerView = lv;
+          const start = new Date(2020, 6, 1);
+          timeSlider.fullTimeExtent = {
+              start: start,
+              end: otbLayer.timeInfo.fullTimeExtent.end
+          };
+
+          const end = new Date(start);
+          end.setDate(end.getDate() + 1);
+
+          timeSlider.values = [start, end];
+      });
+
+ 
+
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+    <div id="timeSlider"></div>
+  </body>
+</html>
