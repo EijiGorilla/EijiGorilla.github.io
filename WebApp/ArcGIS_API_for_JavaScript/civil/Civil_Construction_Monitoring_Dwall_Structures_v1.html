@@ -421,7 +421,7 @@
           ]
         };
 
- 
+
       //********** Read Feature and Scene Layers
          // Station point feature
         var stationLayer = new SceneLayer({
@@ -631,7 +631,7 @@
         var compass = new Compass({
           view: view});
           // adds the compass to the top left corner of the MapView
-        view.ui.add(compass, "bottom-left");
+        view.ui.add(compass, "top-left");
 
         // See-through-Ground        
           view.when(function() {
@@ -651,7 +651,7 @@
                 view: view,
                 element: applicationDiv
             }),
-            "bottom-left"
+            "top-left"
         );
         
         // See through Gound
@@ -662,101 +662,6 @@
           });
 
         view.ui.add("menu", "bottom-left");
-
-
-        // Filter by Period
-	   // create array of layerviews 
-	   let arrLviews = [];
-	   
-	   
-	   // Filter for D-Wall Layer
-		const dateTitle = document.getElementById("seasons-title");
-        const periodNodes = document.querySelectorAll(`.season-item`);
-        const periodElement = document.getElementById("seasons-filter");
-          
-          // click event handler choices
-          periodElement.addEventListener("click", filterBySeason);
-          
-          // User clicked on time periods define
-          // set an attribute filter on dwall
-          function filterBySeason(event) {
-            const selectedSeason = event.target.getAttribute("time-period");
-            timeLayerView.filter = {
-              where: "EndDate <= date'" + selectedSeason + "'" //"Period = '" + selectedSeason + "'"
-            };
-          }
-
-          view.whenLayerView(dwallLayer).then(function(layerView) {
-            //timeLayerView = layerView;
-			// geodata - 05.13.2020
-			// push layerView to arrLviews
-			arrLviews.push(layerView);
-			
-            // set up UI items
-            periodElement.style.visibility = "visible";
-            const seasonsExpand = new Expand({
-              view: view,
-              content: periodElement,
-              expandIconClass: "esri-icon-filter",
-              group: "top-left"
-            });
-            //clear the filters when user closes the expand widget
-            seasonsExpand.watch("expanded", function() {
-              if (!seasonsExpand.expanded) {
-                layerView.filter = null;
-              }
-            });
-            view.ui.add(seasonsExpand, "top-left");
-          });
-
-
-        // Filter by TransitLayer
-        const titleDate = document.getElementById("date-title");
-        const dateNodes = document.querySelectorAll(`.date-item`);
-          const dateElement = document.getElementById("date-filter");
-          
-          // click event handler
-          dateElement.addEventListener("click", filterByDate);
-          
-          // User clicked on time periods define
-          // set an attribute filter on dwall
-          function filterByDate(event) {
-            const selectedDate = event.target.getAttribute("date-period");
-			// geodata 05.13.2020
-			// iterate the layer views in arrLviews
-			for(var i = 0; i < arrLviews.length; i++){
-					arrLviews[i].filter = {
-						where: "endDate <= date'" + selectedDate + "'" //"Period = '" + selectedSeason + "'"
-					}
-			}
-			
-            /*timeLayerView.filter = {
-              where: "endDate >= date'" + selectedDate + "'" //"Period = '" + selectedSeason + "'"
-            };*/
-          }
-
-          view.whenLayerView(structureLayer).then(function(layerView) {
-            //timeLayerView = layerView;
-			// geodata - 05.13.2020
-			// push layerView to arrLviews
-			arrLviews.push(layerView);
-			
-            // set up UI items
-            dateElement.style.visibility = "visible";
-            const dateExpand = new Expand({
-              view: view,
-              content: dateElement,
-              expandIconClass: "esri-icon-filter",
-              group: "top-left"
-            });
-            //clear the filters when user closes the expand widget
-            dateExpand.watch("expanded", function() {
-              if (!dateExpand.expanded) {
-                layerView.filter = null;
-              }
-            });
-            view.ui.add(dateExpand, "top-left");
-          });
 
 
 
@@ -787,12 +692,6 @@
     <div id="seasons-filter" class="esri-widget">
       <div id="seasons-title" class="esri-widget">Reset D-Wall</div>
     </div>
-    <div id="date-filter" class="esri-widget">
-      <div id="date-title" class="esri-widget">Schudule</div>
-      <div class="date-item visible-season" date-period="2020-6-3">6/3/2020</div>
-      <div class="date-item visible-season" date-period="2020-6-10">6/10/2020</div>
-    </div>
-    <div id="tableDiv"></div>
     </div>
   </body>
 </html>

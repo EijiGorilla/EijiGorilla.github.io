@@ -1,0 +1,144 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1, maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the widgets-featuretable-map sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/widgets-featuretable-map/index.html
+  -->
+<title>FeatureTable widget with a map - 4.15</title>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.15/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.15/"></script>
+
+    <style>
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      #viewDiv {
+        height: 100%;
+        width: 100%;
+      }
+
+      #zoom {
+        margin-bottom: 5px;
+      }
+
+      #actions {
+        padding: 5px;
+      }
+
+     
+    </style>
+    <script>
+      require([
+        "esri/WebMap",
+        "esri/views/MapView",
+        "esri/layers/FeatureLayer",
+        "esri/widgets/FeatureTable",
+        "esri/geometry/Point",
+        "esri/geometry/Multipoint",
+        "esri/widgets/support/DatePicker",
+        "esri/layers/VectorTileLayer",
+        "esri/Basemap",
+        "esri/Map"
+      ], function(
+        WebMap,
+        MapView,
+        FeatureLayer,
+        FeatureTable,
+        Point,
+        Multipoint,
+        DatePicker,
+        VectorTileLayer,
+        Basemap,
+        Map
+      ) {
+       // const highlights = [];
+        ///
+        var basemap = new Basemap({
+        baseLayers: [
+          new VectorTileLayer({
+            portalItem: {
+              id: "3a62040541b84f528da3ac7b80cf4a63" 
+            }
+          })
+        ]
+      });
+      
+      var map = new Map({
+          basemap: basemap
+          //ground: "world-elevation"
+        });
+        
+        var view = new MapView({
+          map: map,
+          container: "viewDiv",
+          zoom: 14,
+          center: [121.0322874, 14.6750462]
+        });
+
+
+        var layer = new FeatureLayer({
+          portalItem: {
+            id: "f7f95137d95c40798f523f283a79fe3f",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          },
+          timeInfo: {
+            startField: "timeSlider",
+            interval: {
+              unit: "days",
+              value: 1
+            }
+          }
+        });
+        layer.listMode = "hide";
+        map.add(layer);
+
+        // Date picker
+        const startDate = new DatePicker({
+              container: document.getElementById("datePicker-date"),
+              value: "2020-9-10"
+            });
+
+        ///
+        view.whenLayerView(layer).then(function(lv) {
+          layerView = lv;
+          startDate.watch("value", function() {
+          layerView.filter = {
+            //where: "timeSlider <= date'" + "2020-9-10" + "'" //
+            where: "timeSlider <= date'"+ startDate.value.years()+"-"+ (startDate.value.month()+1)+"-"+ startDate.value.date() +"'"
+          };
+          });
+        });
+
+        // Add buttons to the mapView
+        view.ui.add(document.getElementById("actions"), "top-right");
+        document.getElementById("descriptionText").innerHTML = "Demolition Plan Date"
+     
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+    <div id="actions" class="esri-widget">
+      <div id="descriptionText"></div>
+      <div id="datePicker-date" class="esri-widget"></div>
+    </div>
+  </body>
+</html>

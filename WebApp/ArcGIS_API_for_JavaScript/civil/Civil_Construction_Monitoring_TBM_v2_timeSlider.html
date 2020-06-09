@@ -28,10 +28,9 @@
 
       #timeSlider {
         position:absolute;
-        left: 400px;
-        right: 400px;
-        bottom: 30px;
-        visibility: hidden;
+        left: 500px;
+        right: 500px;
+        bottom: 0px;
       }
 
        #applicationDiv {
@@ -318,7 +317,7 @@
             ],
             verticalOffset: {
               screenLength: 100,
-              maxWorldLength: 300, //200
+              maxWorldLength: 200,
               minWorldLength: 30
             },
             callout: {
@@ -549,9 +548,12 @@
 
         /* The colors used for the each transit line */
         const colors = {
-          0: [225, 225, 225, 0.1], // To be Constructed
-          1: [0, 197, 255, 0.5], // Completed
-          2: [255, 0, 0, 0.3], // Delayed
+          TBM1: [0, 197, 255, 0.5],
+          TBM2: [0, 197, 255, 0.5],
+          TBM3: [0, 197, 255, 0.5],
+          TBM4: [0, 197, 255, 0.5],
+          TBM5: [0, 197, 255, 0.5],
+          TBM6: [0, 197, 255, 0.5]
         };
 
       var transitLayer = new FeatureLayer({
@@ -574,7 +576,7 @@
 
         function renderTransitLayer() {
           const renderer = new UniqueValueRenderer({
-            field: "Status"
+            field: "Line"
           });
 
           for (let property in colors) {
@@ -708,7 +710,7 @@
         var compass = new Compass({
           view: view});
           // adds the compass to the top left corner of the MapView
-        view.ui.add(compass, "bottom-left");
+        view.ui.add(compass, "top-left");
 
         // See-through-Ground        
           view.when(function() {
@@ -728,7 +730,7 @@
                 view: view,
                 element: applicationDiv
             }),
-            "bottom-left"
+            "top-left"
         );
         
         // See through Gound
@@ -738,9 +740,33 @@
             map.ground.opacity = event.target.checked ? 0.1 : 1;
           });
 
-        view.ui.add("menu", "bottom-left");
+        view.ui.add("menu", "bottom-right");
 
           
+        // Time slider for TBM
+        const timeSlider = new TimeSlider({
+          container: "timeSlider",
+          mode: "time-window",
+          //destroyed: false,
+          view: view
+       });
+       view.ui.add(timeSlider, "manual");
+
+
+        // wait till the layer view is loaded
+        //let timeLayerView;
+        view.whenLayerView(transitLayer).then(function(lv) {
+          timeLayerView = lv;
+          const fullTimeExtent = transitLayer.timeInfo.fullTimeExtent;
+
+          timeSlider.fullTimeExtent = fullTimeExtent;
+          timeSlider.stops = {
+            interval: transitLayer.timeInfo.interval
+          };
+
+      });     
+
+
       });
     </script>
   </head>
@@ -760,6 +786,7 @@
         <li>Loading&hellip;</li>
       </ul>
     </div>
+    <div id="timeSlider"></div>
     </div>
   </body>
 </html>
