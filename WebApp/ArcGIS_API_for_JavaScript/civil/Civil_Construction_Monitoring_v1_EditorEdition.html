@@ -755,24 +755,75 @@
         renderTransitLayer();
 
         // D-wall
+        const colorsDwall = {
+          'To be Constructed': [225, 225, 225, 0], // To be Constructed (white)
+          'Excavation': [115, 76, 0, 0.5], // Excavation (Dark brown)
+          'Rebar': [245, 245, 122, 0.3], // Rebar (Yellow)
+          'Concrete': [0, 112, 255, 0.5], // Concrete (Blue: complete)
+          'Delayed': [255, 0, 0, 0.5] // Delayed (Red)
+        };
+
         var dwallLayer = new SceneLayer({
             portalItem: {
-                id: "9172aafd568141c680e2542dd7c58bd7",
+                id: "2d51b33e1a7e4138827e71e33afa20dd", // 9172aafd568141c680e2542dd7c58bd7
                 portal: {
                     url: "https://mmspgc-gis.mmspgc.local/portal"
                 }
             },
             title: "D-Wall",
-            definitionExpression: "Types = 'D-Wall'"
+            definitionExpression: "Types = 'D-Wall'",
+            outFields: ["*"]
             // when filter using date, example below. use this format
             //definitionExpression: "EndDate = date'2020-6-3'"
         });
         map.add(dwallLayer, 1);
 
+        function renderDwallLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "StatusName"
+          });
+
+          for (let property in colorsDwall) {
+            if (colorsDwall.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "mesh-3d",
+                  symbolLayers: [
+                    {
+                      type: "fill",
+                      material: {
+                        color: colorsDwall[property],
+                        colorMixMode: "replace"
+                      },
+                      edges: {
+                        type: "solid", // autocasts as new SolidEdges3D()
+                        color: [225, 225, 225, 0.3]
+                        }
+                    }
+                  ]
+                 }
+              });
+            }
+          }
+
+          dwallLayer.renderer = renderer;
+        }
+
+        renderDwallLayer();
+        
+
         // Structure
+        const colorStruc = {
+          'To be Constructed': [225, 225, 225, 0], // To be Constructed (white)
+          "King's Post": [245, 245, 122, 0.5], // King's Post (Yellow)
+          'Slab': [0, 112, 255, 0.5], // Slab (Blue)
+          'Delayed': [255, 0, 0, 0.5] // Delayed (Red)
+        };
+
         var structureLayer = new SceneLayer({
             portalItem: {
-                id: "9172aafd568141c680e2542dd7c58bd7",
+                id: "2d51b33e1a7e4138827e71e33afa20dd",
                 portal: {
                     url: "https://mmspgc-gis.mmspgc.local/portal"
                 }
@@ -780,9 +831,41 @@
             definitionExpression: "Types = 'Structure'", //"Status <> 7",
             title: "Structure"
         });
-
         map.add(structureLayer, 2);
 
+        function rendersStructureLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "StatusName"
+          });
+
+          for (let property in colorStruc) {
+            if (colorStruc.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "mesh-3d",
+                  symbolLayers: [
+                    {
+                      type: "fill",
+                      material: {
+                        color: colorStruc[property],
+                        colorMixMode: "replace"
+                      },
+                      edges: {
+                        type: "solid", // autocasts as new SolidEdges3D()
+                        color: [225, 225, 225, 0.3]
+                        }
+                    }
+                  ]
+                 }
+              });
+            }
+          }
+
+          structureLayer.renderer = renderer;
+        }
+
+        rendersStructureLayer();
         //*** Highlight and Zoom to Stations*** //
         // This variable will store highlight handle that is used to remove the highlight
         var highlight = null;
