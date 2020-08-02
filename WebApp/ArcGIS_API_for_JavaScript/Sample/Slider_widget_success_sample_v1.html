@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+
+    <title>
+      Point clustering - advanced configuration | Sample | ArcGIS API for
+      JavaScript 4.16
+    </title>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.16/esri/themes/dark/main.css"
+    />
+    <script src="https://js.arcgis.com/4.16/"></script>
+
+    <style>
+      html,
+      body,
+      #applicationDiv {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      #viewDiv {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #sliderContainer {
+        flex: 0 0 80px;
+        order: 2;
+        display: flex;
+        flex-flow: row;
+        padding: 0 12px;
+      }
+      #sliderValue {
+        flex: 0 0 100px;
+        order: 1;
+
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+
+        font-size: 300%;
+      }
+
+      #sliderInnerContainer {
+        flex: 1 1 auto;
+        order: 2;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0 20px;
+      }
+
+      #slider {
+        width: 100%;
+      }
+    </style>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/FeatureLayer",
+        "esri/widgets/Legend",
+        "esri/widgets/Slider",
+        "esri/widgets/Expand",
+        "esri/views/SceneView",
+        "esri/views/layers/support/FeatureFilter",
+        "esri/layers/SceneLayer",
+        "esri/Basemap",
+        "esri/layers/VectorTileLayer",
+        "esri/intl",
+        "esri/widgets/TimeSlider",
+        "esri/widgets/Fullscreen",
+        "esri/widgets/Home"
+      ], function (Map, MapView, FeatureLayer, Legend, Slider, Expand, SceneView, FeatureFilter,
+                  SceneLayer, Basemap, VectorTileLayer, intl, TimeSlider, Fullscreen, Home) {
+        // Configure clustering on the layer with a
+        // popupTemplate displaying the predominant
+        // fuel type of the power plants in the cluster
+        var basemap = new Basemap({
+        baseLayers: [
+          new VectorTileLayer({
+            portalItem: {
+              id: "3a62040541b84f528da3ac7b80cf4a63" 
+            }
+          })
+        ]
+      });
+
+         var map = new Map({
+              basemap: basemap, // "streets-night-vector", 
+              ground: "world-elevation"
+        });
+
+
+        const view = new SceneView({
+          container: "viewDiv",
+          map: map,
+          viewingMode: "local",
+          camera: {
+                position: {
+                    x: 121.0322874,
+                    y: 14.6750462,
+                    z: 1000
+                    },
+                    tilt: 65
+                    },
+            environment: {
+                background: {
+                    type: "color", // autocasts as new ColorBackground()
+                    color: [0, 0, 0, 1]
+                    },
+                    // disable stars
+                    starsEnabled: false,
+                    //disable atmosphere
+                    atmosphereEnabled: false
+                    }
+
+        });
+        
+        const layer = new SceneLayer({
+          portalItem: {
+            id: "c66ddf0908bc47adb7f9d0d1676d0660",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          },
+          outFields: ["*"]
+        });
+        map.add(layer);
+
+        var applicationDiv = document.getElementById("applicationDiv");
+        var sliderValue = document.getElementById("sliderValue");
+
+
+         view.whenLayerView(layer).then(function(layerView) {
+           const field = "DateValue";
+
+           var slider = new Slider ({
+          container: "slider",
+          min: 1901,
+          max: 2020,
+          values: [1901],
+          step: 1,
+          visibleElements: {
+            rangeLabels: true
+          }
+        });
+
+
+//        function inputHandler(event){
+//          setYear(event.value);
+//        }
+        setYear(1901);
+
+function setYear(value) {
+  sliderValue.innerHTML = Math.floor(value);
+//  slider.viewModel.setValue(0, value);  
+}
+
+
+//const now = Date.now(); // 1560375191812
+        slider.on(["thumb-change", "thumb-drag"], function(event){
+          sliderValue.innerText = Math.floor(event.value);
+          layerView.filter = {
+            where: field + " >= " + event.value
+          }
+          
+        });
+
+
+
+
+
+         });
+
+
+
+
+
+
+
+        view.ui.empty("top-left");
+        view.ui.add(
+          new Home({
+            view: view
+          }),
+          "bottom-left"
+        );
+        view.ui.add(
+          new Fullscreen({
+            view: view,
+            element: applicationDiv
+          }),
+          "top-right"
+        );
+
+      
+
+
+
+
+
+
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="applicationDiv">
+      <div id="viewDiv"></div>
+      <div id="sliderContainer" class="esri-widget">
+        <span id="sliderValue"></span>
+        <div id="sliderInnerContainer">
+          <div id="slider"></div>
+        </div>
+      </div>
+      </div>
+    </div>
+  </body>
+</html>
