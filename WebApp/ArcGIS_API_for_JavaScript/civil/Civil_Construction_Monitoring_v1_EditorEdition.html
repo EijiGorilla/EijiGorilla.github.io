@@ -321,7 +321,7 @@
                 material: {
                   color: "white"
                 },
-                size: 12,
+                size: 10,
                 color: "black",
                 haloColor: "black",
                 haloSize: 1,
@@ -343,6 +343,48 @@
             expression: 'DefaultValue($feature.Name, "no data")'
           }
         });
+
+        // GeoSpot Label Class
+         var geoSpotlabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d", // autocast as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text",
+                material: {
+                  color: "yellow"
+                },
+                size: 11,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 80,
+              maxWorldLength: 500,
+              minWorldLength: 30
+            },
+            callout: {
+              type: "line",
+              size: 0.5,
+              color: [0, 0, 0],
+              border: {
+                color: [255, 255, 255, 0.7]
+              }
+            }
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            //expression: 'DefaultValue($feature.GeoTechName, "no data")'
+            value: "{GeoTechName}"
+          }
+        });
+
 
         // Excavation SPot Label
         var excaspotlabelClass = new LabelClass({
@@ -444,6 +486,14 @@
           };
         }
 
+        function geoSpotSymbol(name) {
+          return {
+            type: "web-style",
+            name: name,
+            styleName: "EsriIconsStyle"
+          };
+        }
+
         function excaspotSymbol(name) { // Excavation Spot 
           return {
             type: "web-style",
@@ -465,6 +515,21 @@
           type: "unique-value", // autocasts as new UniqueValueRenderer()
           field: "Name",
           defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
+        };
+
+        var geoSpotRenderer = {
+          type: "unique-value", // autocasts as new UniqueValueRenderer()
+          field: "GeoTechName",
+          defaultSymbol: geoSpotSymbol("Standing Diamond"),
+          visualVariables: [
+            {
+              type: "size",
+              minDateValue: 0,
+              maxDataValue: 10,
+              minSize: 8,
+              maxSize: 8
+            }
+          ]
         };
 
         var excaspotRenderer = {
@@ -639,6 +704,24 @@
         stationLayer.listMode = "hide";
         map.add(stationLayer, 0);
 
+        // Geotechnical Information Spot
+        var geoSpot = new FeatureLayer({
+          portalItem: {
+            id: "aae2ce08a9724807babd5e811b80f0dc",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          },
+          labelingInfo: [geoSpotlabelClass],
+          renderer: geoSpotRenderer,
+          screenSizePerspectiveEnabled: false,
+          elevationInfo: {
+            mode: "relative-to-ground",
+            offset: -80
+          },
+        });
+        geoSpot.listMode = "hide";
+        view.map.add(geoSpot);
 
         // Excavation machine
         var excaSpot = new FeatureLayer({
@@ -1170,3 +1253,4 @@
     </div>
   </body>
 </html>
+

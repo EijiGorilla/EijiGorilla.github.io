@@ -272,13 +272,13 @@
                 material: {
                   color: "white"
                 },
-                size: 12,
+                size: 10,
                 color: "black",
                 haloColor: "black",
                 haloSize: 1,
                 font: {
                   family: "Ubuntu Mono",
-                  weight: "bold"
+                  //weight: "bold"
                 },
               }
             ],
@@ -294,8 +294,50 @@
             expression: 'DefaultValue($feature.Name, "no data")'
           }
         });
-        // TBM spot label class
 
+        // GeoSpot Label Class
+        var geoSpotlabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d", // autocast as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text",
+                material: {
+                  color: "yellow"
+                },
+                size: 11,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 80,
+              maxWorldLength: 500,
+              minWorldLength: 30
+            },
+            callout: {
+              type: "line",
+              size: 0.5,
+              color: [0, 0, 0],
+              border: {
+                color: [255, 255, 255, 0.7]
+              }
+            }
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            //expression: 'DefaultValue($feature.GeoTechName, "no data")'
+            value: "{GeoTechName}"
+          }
+        });
+
+
+        // TBM spot label class
         var tbmspotlabelClass = new LabelClass({
           symbol: {
             type: "label-3d",// autocasts as new LabelSymbol3D()
@@ -329,7 +371,6 @@
                 color: [255, 255, 255, 0.7]
               }
             }
-
           },
           labelPlacement: "above-center",
           labelExpressionInfo: {
@@ -346,7 +387,15 @@
           return {
             type: "web-style", // autocasts as new WebStyleSymbol()
             name: name,
-            styleName: "EsriIconsStyle",//EsriRealisticTransportationStyle, EsriIconsStyle
+            styleName: "EsriIconsStyle"//EsriRealisticTransportationStyle, EsriIconsStyle
+          };
+        }
+
+        function geoSpotSymbol(name) {
+          return {
+            type: "web-style",
+            name: name,
+            styleName: "EsriIconsStyle"
           };
         }
 
@@ -358,7 +407,7 @@
           };
         }
 
-        //********* Set Renderer
+        //********* Set Renderer *****************//
         var stationsRenderer = {
           type: "unique-value", // autocasts as new UniqueValueRenderer()
           field: "Name",
@@ -379,6 +428,21 @@
             {
               type: "rotation",
               field: "ROTATION"
+            }
+          ]
+        };
+
+        var geoSpotRenderer = {
+          type: "unique-value", // autocasts as new UniqueValueRenderer()
+          field: "GeoTechName",
+          defaultSymbol: geoSpotSymbol("Standing Diamond"),
+          visualVariables: [
+            {
+              type: "size",
+              minDateValue: 0,
+              maxDataValue: 10,
+              minSize: 8,
+              maxSize: 8
             }
           ]
         };
@@ -519,7 +583,26 @@
         stationLayer.listMode = "hide";
         map.add(stationLayer, 0);
 
+        // Geotechnical Information Spot
+        var geoSpot = new FeatureLayer({
+          portalItem: {
+            id: "aae2ce08a9724807babd5e811b80f0dc",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          },
+          labelingInfo: [geoSpotlabelClass],
+          renderer: geoSpotRenderer,
+          elevationInfo: {
+            mode: "relative-to-ground",
+            offset: -80
+          },
+          outFields: ["*"]
+        });
+        geoSpot.listMode = "hide";
+        map.add(geoSpot, 0);
 
+        // TBM Machine Spot
         var tbmSpot = new FeatureLayer({
           portalItem: {
             id: "9068ec49a80d46a18a667450e12cc870",
@@ -534,7 +617,6 @@
         });
         tbmSpot.listMode = "hide";
         view.map.add(tbmSpot);
-
 
         // TBM Alignment
         const options = {
@@ -556,7 +638,7 @@
 
       var transitLayer = new FeatureLayer({
         portalItem: {
-          id: "fa7aad7fd11d401a9911c8b261784980",
+          id: "fa7aad7fd11d401a9911c8b261784980", //fa7aad7fd11d401a9911c8b261784980
           portal: {
             url: "https://mmspgc-gis.mmspgc.local/portal"
           }
