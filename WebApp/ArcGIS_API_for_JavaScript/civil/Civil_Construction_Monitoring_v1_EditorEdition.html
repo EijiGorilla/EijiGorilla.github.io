@@ -429,7 +429,6 @@
         });
 
         // TBM spot label class
-
         var tbmspotlabelClass = new LabelClass({
           symbol: {
             type: "label-3d",// autocasts as new LabelSymbol3D()
@@ -472,7 +471,46 @@
           }
         });
 
-        // Label hospital
+        // Label monitor buildings
+        var monitorBuillabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d", // autocast as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text",
+                material: {
+                  color: "red"
+                },
+                size: 11,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 80,
+              maxWorldLength: 500,
+              minWorldLength: 30
+            },
+            callout: {
+              type: "line",
+              size: 0.5,
+              color: [0, 0, 0],
+              border: {
+                color: [255, 255, 255, 0.7]
+              }
+            }
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            //expression: 'DefaultValue($feature.GeoTechName, "no data")'
+            value: "{Type}"
+          }
+        });
 
 
        
@@ -507,6 +545,14 @@
             type: "web-style",
             name: name,
             styleName: "EsriRealisticTransportationStyle"
+          };
+        }
+
+        function monitorBuilSymbol(name) {
+          return {
+            type: "web-style",
+            name: name,
+            styleName: "EsriIconsStyle"
           };
         }
 
@@ -568,6 +614,24 @@
           ]
         };
 
+        var monitorBuilRenderer = {
+          type: "unique-value",
+          Field: "Type",
+          defaultSymbol: monitorBuilSymbol("School"),
+          visualVariables: [
+            {
+              type: "size",
+              axis: "height",
+              field: "SIZE",
+              valueUnit: "meters"
+            },
+            {
+              type: "rotation",
+              field: "ROTATION"
+            }
+          ]
+        };
+
         // Renderer for monitor buildings
                // verticalOffset shifts the symbol vertically
         var verticalOffset = {
@@ -610,28 +674,6 @@
           };
         }
 
-        var monitorBuildingPointsRenderer = {
-          type: "unique-value", // autocasts as new UniqueValueRenderer()
-          field: "Type",
-          uniqueValueInfos: [
-            {
-              value: "Hospital",
-              symbol: getUniqueValueSymbol(
-                "https://EijiGorilla.github.io/Symbols/hospital_icon.png",
-                "#D13470"
-              )
-            },
-            {
-              value: "Factory",
-              symbol: getUniqueValueSymbol(
-                "https://EijiGorilla.github.io/Symbols/factory.png",
-                "#D13470"
-              )
-            }
-          ]
-        };
-
-
 
       //********** Read Feature and Scene Layers
       // Elevation contoures
@@ -650,22 +692,7 @@
       //contourLayer.listMode = "hide";
       map.add(contourLayer);
 
-      // Hospitals
-      var monitorbuildingLayer = new SceneLayer({
-        portalItem: {
-          id: "e2f8e71682c6422b9a34840c72aa8ac3",
-          portal: {
-            url: "https://mmspgc-gis.mmspgc.local/portal"
-          }
-        },
-        elevationInfo: {
-          mode: "absolute-height",
-          offset: 40
-        },
-      });
-      monitorbuildingLayer.listMode = "hide";
-      map.add(monitorbuildingLayer);
-
+       // Monitor Buildings
       var monitorbuildingpointLayer = new FeatureLayer({
         portalItem: {
           id: "f390ff14dba74058b9922c85e793043b",
@@ -673,12 +700,13 @@
             url: "https://mmspgc-gis.mmspgc.local/portal"
           }
         },
+        labelingInfo: [monitorBuillabelClass],
         elevationInfo: {
           mode: "relative-to-ground",
-          offset: 40
+          //offset: 40
         },
         title: "Monitoring Building",
-        renderer: monitorBuildingPointsRenderer,
+        renderer: monitorBuilRenderer,
         outFields: ["*"],
       });
       monitorbuildingpointLayer.listMode = "hide";

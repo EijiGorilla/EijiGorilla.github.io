@@ -28,9 +28,10 @@
 
       #timeSlider {
         position:absolute;
-        left: 500px;
-        right: 500px;
-        bottom: 0px;
+        left: 400px;
+        right: 400px;
+        bottom: 30px;
+        visibility: hidden;
       }
 
        #applicationDiv {
@@ -271,13 +272,13 @@
                 material: {
                   color: "white"
                 },
-                size: 12,
+                size: 10,
                 color: "black",
                 haloColor: "black",
                 haloSize: 1,
                 font: {
                   family: "Ubuntu Mono",
-                  weight: "bold"
+                  //weight: "bold"
                 },
               }
             ],
@@ -293,8 +294,50 @@
             expression: 'DefaultValue($feature.Name, "no data")'
           }
         });
-        // TBM spot label class
 
+        // GeoSpot Label Class
+        var geoSpotlabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d", // autocast as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text",
+                material: {
+                  color: "yellow"
+                },
+                size: 11,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 80,
+              maxWorldLength: 500,
+              minWorldLength: 30
+            },
+            callout: {
+              type: "line",
+              size: 0.5,
+              color: [0, 0, 0],
+              border: {
+                color: [255, 255, 255, 0.7]
+              }
+            }
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            //expression: 'DefaultValue($feature.GeoTechName, "no data")'
+            value: "{GeoTechName}"
+          }
+        });
+
+
+        // TBM spot label class
         var tbmspotlabelClass = new LabelClass({
           symbol: {
             type: "label-3d",// autocasts as new LabelSymbol3D()
@@ -317,7 +360,7 @@
             ],
             verticalOffset: {
               screenLength: 100,
-              maxWorldLength: 200,
+              maxWorldLength: 300, //200
               minWorldLength: 30
             },
             callout: {
@@ -328,7 +371,6 @@
                 color: [255, 255, 255, 0.7]
               }
             }
-
           },
           labelPlacement: "above-center",
           labelExpressionInfo: {
@@ -337,15 +379,61 @@
           }
         });
 
-        // Label hospital
-    
+        // Label monitor buildings
+        var monitorBuillabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d", // autocast as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text",
+                material: {
+                  color: "red"
+                },
+                size: 11,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 80,
+              maxWorldLength: 500,
+              minWorldLength: 30
+            },
+            callout: {
+              type: "line",
+              size: 0.5,
+              color: [0, 0, 0],
+              border: {
+                color: [255, 255, 255, 0.7]
+              }
+            }
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            //expression: 'DefaultValue($feature.GeoTechName, "no data")'
+            value: "{Type}"
+          }
+        });
 
         // convenience function to retrieve the WebStyleSymbols based on their name
         function stationsSymbol(name) {
           return {
             type: "web-style", // autocasts as new WebStyleSymbol()
             name: name,
-            styleName: "EsriIconsStyle",//EsriRealisticTransportationStyle, EsriIconsStyle
+            styleName: "EsriIconsStyle"//EsriRealisticTransportationStyle, EsriIconsStyle
+          };
+        }
+
+        function geoSpotSymbol(name) {
+          return {
+            type: "web-style",
+            name: name,
+            styleName: "EsriIconsStyle"
           };
         }
 
@@ -357,7 +445,15 @@
           };
         }
 
-        //********* Set Renderer
+        function monitorBuilSymbol(name) {
+          return {
+            type: "web-style",
+            name: name,
+            styleName: "EsriIconsStyle"
+          };
+        }
+
+        //********* Set Renderer *****************//
         var stationsRenderer = {
           type: "unique-value", // autocasts as new UniqueValueRenderer()
           field: "Name",
@@ -368,6 +464,39 @@
           type: "unique-value", //"unique-value", "simple"
           Field: "Type",
           defaultSymbol: tbmspotSymbol("Tram"),
+          visualVariables: [
+            {
+              type: "size",
+              axis: "height",
+              field: "SIZE",
+              valueUnit: "meters"
+            },
+            {
+              type: "rotation",
+              field: "ROTATION"
+            }
+          ]
+        };
+
+        var geoSpotRenderer = {
+          type: "unique-value", // autocasts as new UniqueValueRenderer()
+          field: "GeoTechName",
+          defaultSymbol: geoSpotSymbol("Standing Diamond"),
+          visualVariables: [
+            {
+              type: "size",
+              minDateValue: 0,
+              maxDataValue: 10,
+              minSize: 8,
+              maxSize: 8
+            }
+          ]
+        };
+
+        var monitorBuilRenderer = {
+          type: "unique-value",
+          Field: "Type",
+          defaultSymbol: monitorBuilSymbol("School"),
           visualVariables: [
             {
               type: "size",
@@ -424,26 +553,6 @@
           };
         }
 
-        var monitorBuildingPointsRenderer = {
-          type: "unique-value", // autocasts as new UniqueValueRenderer()
-          field: "Type",
-          uniqueValueInfos: [
-            {
-              value: "Hospital",
-              symbol: getUniqueValueSymbol(
-                "https://EijiGorilla.github.io/Symbols/hospital_icon.png",
-                "#D13470"
-              )
-            },
-            {
-              value: "Factory",
-              symbol: getUniqueValueSymbol(
-                "https://EijiGorilla.github.io/Symbols/factory.png",
-                "#D13470"
-              )
-            }
-          ]
-        };
 
 
 
@@ -464,22 +573,7 @@
       //contourLayer.listMode = "hide";
       map.add(contourLayer);
 
-      // Hospitals
-      var monitorbuildingLayer = new SceneLayer({
-        portalItem: {
-          id: "e2f8e71682c6422b9a34840c72aa8ac3",
-          portal: {
-            url: "https://mmspgc-gis.mmspgc.local/portal"
-          }
-        },
-        elevationInfo: {
-          mode: "absolute-height",
-          offset: 40
-        },
-      });
-      monitorbuildingLayer.listMode = "hide";
-      map.add(monitorbuildingLayer);
-
+      // Monitor Buildings
       var monitorbuildingpointLayer = new FeatureLayer({
         portalItem: {
           id: "f390ff14dba74058b9922c85e793043b",
@@ -487,12 +581,13 @@
             url: "https://mmspgc-gis.mmspgc.local/portal"
           }
         },
+        labelingInfo: [monitorBuillabelClass],
         elevationInfo: {
           mode: "relative-to-ground",
-          offset: 40
+          //offset: 40
         },
         title: "Monitoring Building",
-        renderer: monitorBuildingPointsRenderer,
+        renderer: monitorBuilRenderer,
         outFields: ["*"],
       });
       monitorbuildingpointLayer.listMode = "hide";
@@ -518,7 +613,26 @@
         stationLayer.listMode = "hide";
         map.add(stationLayer, 0);
 
+        // Geotechnical Information Spot
+        var geoSpot = new FeatureLayer({
+          portalItem: {
+            id: "aae2ce08a9724807babd5e811b80f0dc",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          },
+          labelingInfo: [geoSpotlabelClass],
+          renderer: geoSpotRenderer,
+          elevationInfo: {
+            mode: "relative-to-ground",
+            offset: -80
+          },
+          outFields: ["*"]
+        });
+        geoSpot.listMode = "hide";
+        map.add(geoSpot, 0);
 
+        // TBM Machine Spot
         var tbmSpot = new FeatureLayer({
           portalItem: {
             id: "9068ec49a80d46a18a667450e12cc870",
@@ -534,7 +648,6 @@
         tbmSpot.listMode = "hide";
         view.map.add(tbmSpot);
 
-
         // TBM Alignment
         const options = {
           profile: "circle",
@@ -548,17 +661,14 @@
 
         /* The colors used for the each transit line */
         const colors = {
-          TBM1: [0, 197, 255, 0.5],
-          TBM2: [0, 197, 255, 0.5],
-          TBM3: [0, 197, 255, 0.5],
-          TBM4: [0, 197, 255, 0.5],
-          TBM5: [0, 197, 255, 0.5],
-          TBM6: [0, 197, 255, 0.5]
+          0: [225, 225, 225, 0.1], // To be Constructed
+          1: [0, 197, 255, 0.5], // Completed
+          2: [255, 0, 0, 0.3], // Delayed
         };
 
       var transitLayer = new FeatureLayer({
         portalItem: {
-          id: "fa7aad7fd11d401a9911c8b261784980",
+          id: "fa7aad7fd11d401a9911c8b261784980", //fa7aad7fd11d401a9911c8b261784980
           portal: {
             url: "https://mmspgc-gis.mmspgc.local/portal"
           }
@@ -568,7 +678,7 @@
           offset: -60
         },
          //renderer: roundTubeSymbol,
-         title: "TBM Alignment",
+         title: "TBM Segment",
          //definitionExpression: "sens='Aller'",
          outFields: ["*"]
         });
@@ -576,7 +686,7 @@
 
         function renderTransitLayer() {
           const renderer = new UniqueValueRenderer({
-            field: "Line"
+            field: "Status"
           });
 
           for (let property in colors) {
@@ -710,7 +820,7 @@
         var compass = new Compass({
           view: view});
           // adds the compass to the top left corner of the MapView
-        view.ui.add(compass, "top-left");
+        view.ui.add(compass, "bottom-left");
 
         // See-through-Ground        
           view.when(function() {
@@ -730,7 +840,7 @@
                 view: view,
                 element: applicationDiv
             }),
-            "top-left"
+            "bottom-left"
         );
         
         // See through Gound
@@ -740,33 +850,9 @@
             map.ground.opacity = event.target.checked ? 0.1 : 1;
           });
 
-        view.ui.add("menu", "bottom-right");
+        view.ui.add("menu", "bottom-left");
 
           
-        // Time slider for TBM
-        const timeSlider = new TimeSlider({
-          container: "timeSlider",
-          mode: "time-window",
-          //destroyed: false,
-          view: view
-       });
-       view.ui.add(timeSlider, "manual");
-
-
-        // wait till the layer view is loaded
-        //let timeLayerView;
-        view.whenLayerView(transitLayer).then(function(lv) {
-          timeLayerView = lv;
-          const fullTimeExtent = transitLayer.timeInfo.fullTimeExtent;
-
-          timeSlider.fullTimeExtent = fullTimeExtent;
-          timeSlider.stops = {
-            interval: transitLayer.timeInfo.interval
-          };
-
-      });    
-
-
       });
     </script>
   </head>
@@ -786,7 +872,6 @@
         <li>Loading&hellip;</li>
       </ul>
     </div>
-    <div id="timeSlider"></div>
     </div>
   </body>
 </html>

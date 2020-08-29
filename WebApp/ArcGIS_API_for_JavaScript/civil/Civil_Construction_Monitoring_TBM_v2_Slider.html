@@ -152,14 +152,22 @@
       p {
         color: white;
       }
+
+      #sliderValue {
+          font-weight: bolder;
+      }
+
+      #description {
+          padding: 10px 0 10px 0;
+      }
       
     </style>
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.15/esri/themes/dark/main.css"
+      href="https://js.arcgis.com/4.16/esri/themes/dark/main.css"
     />
-    <script src="https://js.arcgis.com/4.15/"></script>
+    <script src="https://js.arcgis.com/4.16/"></script>
 
     <script>
       require([
@@ -196,7 +204,8 @@
         "esri/widgets/support/DatePicker",
         "esri/widgets/FeatureTable",
         "esri/widgets/Compass",
-        "esri/TimeExtent"
+        "esri/TimeExtent",
+        "esri/widgets/Slider"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -205,7 +214,8 @@
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol,
-                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable, Compass, TimeExtent) {
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
+                  FeatureTable, Compass, TimeExtent, Slider) {
         let timeLayerView; // for making a list of time periods
 
         var basemap = new Basemap({
@@ -743,28 +753,33 @@
         view.ui.add("menu", "bottom-right");
 
           
-        // Time slider for TBM
-        const timeSlider = new TimeSlider({
-          container: "timeSlider",
-          mode: "time-window",
-          //destroyed: false,
-          view: view
-       });
-       view.ui.add(timeSlider, "manual");
-
 
         // wait till the layer view is loaded
         //let timeLayerView;
         view.whenLayerView(transitLayer).then(function(lv) {
           timeLayerView = lv;
-          const fullTimeExtent = transitLayer.timeInfo.fullTimeExtent;
+          const field = "endDate";
+          
+          const slider = new Slider({
+              min:0,
+              max: 40000,
+              values: [0],
+              container: document.getElementById("sliderDiv"),
+              visibleElements: {
+                  rangeLabels: true
+              },
+              precision: 0
+          });
 
-          timeSlider.fullTimeExtent = fullTimeExtent;
-          timeSlider.stops = {
-            interval: transitLayer.timeInfo.interval
-          };
+          const sliderValue = document.getElementById("sliderValue")
 
-      });    
+          slider.on(["thumb-change", "thumb-drag"], function(event) {
+              sliderValue.innerText = even.value;
+              timeLayerView.filter = {
+                  where: field + " >=" + event.value
+              };
+          });
+      });     
 
 
       });
@@ -773,6 +788,13 @@
 
   <body>
     <div id="applicationDiv">
+        <div id="description">
+            Show dates
+            <span id="sliderValue">0</span> Dates
+        </div>
+        <div id="sliderContainer">
+            <div id="sliderDiv"></div>
+        </div>
     <div id="viewDiv">
       <div id="titleDiv" class="esri-widget">TBM Tunneling</div>
     </div>
@@ -786,7 +808,6 @@
         <li>Loading&hellip;</li>
       </ul>
     </div>
-    <div id="timeSlider"></div>
     </div>
   </body>
 </html>
