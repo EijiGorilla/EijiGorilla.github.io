@@ -26,16 +26,25 @@
         background-color: rgb(0, 0, 0);
       }
 
+      #timeSlider {
+        position:absolute;
+        left: 500px;
+        right: 500px;
+        bottom: 30px;
+        visibility: hidden;
+      }
+
       #seasons-filter {
         height: 100px;
-        width: 200px;
+        width: 100px;
         visibility: hidden;
       }
 
       .season-item {
         width: 100%;
         padding: 10px;
-        text-align: center;
+        text-align: left;
+        size: 8px;
         vertical-align: baseline;
         cursor: pointer;
         height: 30px;
@@ -46,6 +55,30 @@
       }
 
       .season-item:hover {
+        background-color: dimgrey;
+      }
+
+      #date-filter {
+        height: 100px;
+        width: 150px;
+        visibility: hidden;
+      }
+
+      .date-item {
+        width: 100%;
+        padding: 10px;
+        size: 8px;
+        text-align: left;
+        vertical-align: baseline;
+        cursor: pointer;
+        height: 30px;
+      }
+
+      .date-item:focus {
+        background-color: dimgrey;
+      }
+
+      .date-item:hover {
         background-color: dimgrey;
       }
 
@@ -174,9 +207,9 @@
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.15/esri/themes/dark/main.css"
+      href="https://js.arcgis.com/4.17/esri/themes/dark/main.css"
     />
-    <script src="https://js.arcgis.com/4.15/"></script>
+    <script src="https://js.arcgis.com/4.17/"></script>
 
     <script>
       require([
@@ -212,7 +245,10 @@
         "esri/renderers/UniqueValueRenderer",
         "esri/widgets/support/DatePicker",
         "esri/widgets/FeatureTable",
-        "esri/widgets/Compass"
+        "esri/widgets/Compass",
+        "esri/TimeExtent",
+        "esri/layers/ElevationLayer",
+        "esri/Ground"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -221,24 +257,39 @@
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol,
-                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable, Compass) {
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
+                  FeatureTable, Compass, TimeExtent, ElevationLayer, Ground) {
         let timeLayerView; // for making a list of time periods
 
         var basemap = new Basemap({
         baseLayers: [
           new VectorTileLayer({
             portalItem: {
-              id: "3a62040541b84f528da3ac7b80cf4a63" // Forest and Parks Canvas
+              id: "3a62040541b84f528da3ac7b80cf4a63" 
             }
           })
         ]
       });
 
-      
+      // Add custom DEM to the default elevation layer of esri
+      const worldElevation = new ElevationLayer({
+        url: "//elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
+        });
+        
+      const dem = new ElevationLayer({
+          portalItem: {
+               id: "c6083f4fbfdb48198dc91f4d30ac835f",
+                portal: {
+                    url: "https://mmspgc-gis.mmspgc.local/portal"
+                }
+            }
+        });
 
-         var map = new Map({
-              basemap: basemap, // "streets-night-vector", 
-              ground: "world-elevation"
+        var map = new Map({
+              basemap: basemap, // "streets-night-vector", basemap, topo-vector
+              ground: new Ground({
+                layers: [worldElevation, dem]
+              })
         });
         //map.ground.surfaceColor = "#FFFF";
         //map.ground.opacity = 0.1;
@@ -267,7 +318,6 @@
                     }
         });
 
-
         // Setup UI
      
         var applicationDiv = document.getElementById("applicationDiv");
@@ -291,13 +341,12 @@
                   color: "white"
                 },
                 size: 10,
-                halo: {
-                      size: 0.8,
-                      color: "black"
-                    },
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
                 font: {
                   family: "Ubuntu Mono",
-                  weight: "normal"
+                  weight: "bold"
                 },
               }
             ],
@@ -314,7 +363,7 @@
           }
         });
 
-        // Excavation SPot Label
+         // Excavation SPot Label
         var excaspotlabelClass = new LabelClass({
           symbol: {
             type: "label-3d",// autocasts as new LabelSymbol3D()
@@ -357,7 +406,6 @@
         });
 
         // TBM spot label class
-
         var tbmspotlabelClass = new LabelClass({
           symbol: {
             type: "label-3d",// autocasts as new LabelSymbol3D()
@@ -365,13 +413,13 @@
               {
                 type: "text", // autocasts as new TextSymbol3DLayer()
                 material: {
-                  color: [0, 197, 255],
+                  color: [0, 197, 255]
                 },
                 //halo: {
                 //      size: 0.8,
                 //      color: "black"
                 //    },
-                size: 10,
+                //size: 10,
                 font: {
                   family: "Ubuntu Mono",
                   weight: "bold"
@@ -400,10 +448,47 @@
           }
         });
 
-        // Label hospital
-
-
-       
+         // Label monitor buildings
+         var monitorBuillabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d", // autocast as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text",
+                material: {
+                  color: "red"
+                },
+                size: 10,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  weight: "regular"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 80,
+              maxWorldLength: 500,
+              minWorldLength: 30
+            },
+            callout: {
+              type: "line",
+              size: 0.5,
+              color: [0, 0, 0],
+              border: {
+                color: [255, 255, 255, 0.7]
+              }
+            }
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: "IIF($feature.Score >= 13, '', '')"
+            //'DefaultValue($feature.GeoTechName, "no data")'
+            //value: "{Type}"
+          }
+        });     
 
         // convenience function to retrieve the WebStyleSymbols based on their name
         function stationsSymbol(name) {
@@ -437,17 +522,20 @@
           defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
         };
 
-        var excaspotRenderer = {
+         var excaspotRenderer = {
           type: "unique-value",
           field: "OBJECTID",
           defaultSymbol: excaspotSymbol("Backhoe"),
           visualVariables: [
             {
               type: "size",
-              minDateValue: 0,
-              maxDataValue: 10,
-              minSize: 8,
-              maxSize: 8
+              axis: "height",
+              field: "SIZE",
+              valueUnit: "meters"
+            },
+            {
+              type: "rotation",
+              field: "ROTATION"
             }
           ]
         };
@@ -470,13 +558,6 @@
           ]
         };
 
-        // Renderer for monitor buildings
-               // verticalOffset shifts the symbol vertically
-               var verticalOffset = {
-          screenLength: 40,
-          maxWorldLength: 200,
-          minWorldLength: 35
-        };
 
           // Function that automatically creates the symbol for the points of interest
           function getUniqueValueSymbol(name, color) {
@@ -512,80 +593,8 @@
           };
         }
 
-        var monitorBuildingPointsRenderer = {
-          type: "unique-value", // autocasts as new UniqueValueRenderer()
-          field: "Type",
-          uniqueValueInfos: [
-            {
-              value: "Hospital",
-              symbol: getUniqueValueSymbol(
-                "https://EijiGorilla.github.io/Symbols/hospital_icon.png",
-                "#D13470"
-              )
-            },
-            {
-              value: "Factory",
-              symbol: getUniqueValueSymbol(
-                "https://EijiGorilla.github.io/Symbols/factory.png",
-                "#D13470"
-              )
-            }
-          ]
-        };
-
-
 
       //********** Read Feature and Scene Layers
-      // Elevation contoures
-      var contourLayer = new FeatureLayer({
-        portalItem: {
-          id: "986213ac70c543618ff93c39c43935fe",
-          portal: {
-            url: "https://mmspgc-gis.mmspgc.local/portal"
-          }
-        },
-        elevationInfo: {
-          mode: "on-the-ground"
-        },
-        title: "Elevation"
-      });
-      //contourLayer.listMode = "hide";
-      map.add(contourLayer);
-
-      // Hospitals
-      var monitorbuildingLayer = new SceneLayer({
-        portalItem: {
-          id: "e2f8e71682c6422b9a34840c72aa8ac3",
-          portal: {
-            url: "https://mmspgc-gis.mmspgc.local/portal"
-          }
-        },
-        elevationInfo: {
-          mode: "absolute-height",
-          offset: 40
-        },
-      });
-      monitorbuildingLayer.listMode = "hide";
-      map.add(monitorbuildingLayer);
-
-      var monitorbuildingpointLayer = new FeatureLayer({
-        portalItem: {
-          id: "f390ff14dba74058b9922c85e793043b",
-          portal: {
-            url: "https://mmspgc-gis.mmspgc.local/portal"
-          }
-        },
-        elevationInfo: {
-          mode: "relative-to-ground",
-          offset: 40
-        },
-        title: "Monitoring Building",
-        renderer: monitorBuildingPointsRenderer,
-        outFields: ["*"],
-      });
-      monitorbuildingpointLayer.listMode = "hide";
-      map.add(monitorbuildingpointLayer);
-
       // Station point feature
         var stationLayer = new SceneLayer({
             portalItem: {
@@ -605,7 +614,6 @@
         });
         stationLayer.listMode = "hide";
         map.add(stationLayer, 0);
-
 
         // Excavation machine
         var excaSpot = new FeatureLayer({
@@ -638,6 +646,89 @@
         tbmSpot.listMode = "hide";
         view.map.add(tbmSpot);
 
+        // Geotechnical information:-------------------
+        ///-- Profile Options for rendering geotechnical informatino (polyline Z)
+        const options_g = {
+          profile: "circle",
+          cap: "none",
+          join: "miter",
+          width: 6,
+          height: 6,
+          color: [200, 200, 200],
+          profileRotation: "all"
+        };
+
+        ///-- Color
+        const colors_g = {
+          'Sandy Sand': [0, 112, 255, 1],
+          'Silty Sand': [230, 230, 0, 1],
+          'Rock Type': [197, 0, 255, 1]
+        };
+
+
+        var geotech = new FeatureLayer({
+          portalItem: {
+            id: "1251ba0364d44208846cf2da19210b23",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          },
+          elevationInfo: {
+          mode: "absolute-height",
+          offset: 0,
+        },
+         //renderer: roundTubeSymbol,
+         title: "Soil Profile",
+         //definitionExpression: "sens='Aller'",
+         outFields: ["*"]
+        });
+        map.add(geotech);
+
+        function renderGeotechLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "Class"
+          });
+
+          for (let property in colors_g) {
+            if (colors_g.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "line-3d",
+                  symbolLayers: [
+                    {
+                      type: "path",
+                      profile: options_g.profile,
+                      material: {
+                        color: colors_g[property]
+                      },
+                      width: options_g.width,
+                      height: options_g.height,
+                      join: options_g.join,
+                      cap: options_g.cap,
+                      anchor: "bottom",
+                      profileRotation: options_g.profileRotation
+                    }
+                  ]
+                }
+              });
+            }
+          }
+
+          geotech.renderer = renderer;
+        }
+        renderGeotechLayer();
+
+
+        // Editable widget for changing the location of excavation sport or add excavation spot
+        view.when(function() {
+            view.popup.autoOpenEnabled = true;
+            var editor = new Editor({
+                view: view
+            });
+
+            view.ui.add(editor, "top-left");
+        });
 
         // TBM Alignment
         const options = {
@@ -652,27 +743,24 @@
 
         /* The colors used for the each transit line */
         const colors = {
-          TBM1: [0, 197, 255, 0.5],
-          TBM2: [0, 197, 255, 0.5],
-          TBM3: [0, 197, 255, 0.5],
-          TBM4: [0, 197, 255, 0.5],
-          TBM5: [0, 197, 255, 0.5],
-          TBM6: [0, 197, 255, 0.5]
+          0: [225, 225, 225, 0.1], // To be Constructed
+          1: [0, 197, 255, 0.5], // Completed
+          2: [255, 0, 0, 0.3], // Delayed
         };
 
       var transitLayer = new FeatureLayer({
         portalItem: {
-          id: "fa7aad7fd11d401a9911c8b261784980",
+          id: "b8e561513f0345ea876509c461ebf0c0",
           portal: {
             url: "https://mmspgc-gis.mmspgc.local/portal"
           }
         },
         elevationInfo: {
-          mode: "relative-to-ground",//"on-the-ground"
-          offset: -60
+          mode: "absolute-height",//"on-the-ground"
+          offset: 0
         },
          //renderer: roundTubeSymbol,
-         title: "TBM Alignment",
+         title: "TBM Segment",
          //definitionExpression: "sens='Aller'",
          outFields: ["*"]
         });
@@ -680,7 +768,7 @@
 
         function renderTransitLayer() {
           const renderer = new UniqueValueRenderer({
-            field: "Line"
+            field: "Status"
           });
 
           for (let property in colors) {
@@ -714,32 +802,378 @@
 
         renderTransitLayer();
 
+        // Important Structures to be monitored during TBM Tunnel construction:------------------- 
+        // River
+        const riverLayer = new FeatureLayer({
+          portalItem: {
+          id: "066d16d9f6f84433ab20eaa154a166d7",  
+          portal: {
+            url: "https://mmspgc-gis.mmspgc.local/portal"
+          }
+        },
+        elevationInfo: {
+          mode: "on-the-ground",
+          offset: 0
+        },
+        renderer: {
+            type: "simple",
+            symbol: {
+                type: "polygon-3d",
+                symbolLayers: [
+                    {
+                        type: "water",
+                        waveDirection: 260,
+                        color: "#005B66", //#005B66, #25427c
+                        waveStrength: "moderate",
+                        waterbodySize: "medium"
+                    }
+                ]
+            }
+        }
+        });
+        riverLayer.listMode = "hide";
+        map.add(riverLayer, 0);
+
+        // Bridge
+        const colorsBridge = {
+          'Minor': [112, 168, 0, 0.4], // To be Constructed (white)
+          'Moderate': [230, 230, 0, 0.4], // Excavation (Dark brown)
+          'Severe': [230, 0, 0, 0.7], // Rebar (Yellow)
+        };
+
+        var bridgeLayer = new SceneLayer({
+          portalItem: {
+          id: "e01d0321d29f4239a383be1ba056d2aa",  
+          portal: {
+            url: "https://mmspgc-gis.mmspgc.local/portal"
+          }
+          },
+          elevationInfo: {
+            mode: "absolute-height",
+            offset: 0
+          },
+          title: "Monitoring Bridge",
+          outFields: ["*"],
+        });
+        map.add(bridgeLayer, 0);
+
+        function renderBridgeLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "Rating",
+            legendOptions: {
+            title: "Rating for Defects"
+            }
+          });
+
+          for (let property in colorsBridge) {
+            if (colorsBridge.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "mesh-3d",
+                  symbolLayers: [
+                    {
+                      type: "fill",
+                      material: {
+                        color: colorsBridge[property],
+                        colorMixMode: "replace"
+                      },
+                      edges: {
+                        type: "solid", // autocasts as new SolidEdges3D()
+                        color: [225, 225, 225, 0.3]
+                        }
+                    }
+                  ]
+                 }
+              });
+            }
+          }
+
+          bridgeLayer.renderer = renderer;
+        }
+
+        renderBridgeLayer();
+
+        // Structures
+                /*****************************************************************
+         * Define symbols for each unique type of building. One each for
+         * Government, Septic Tank, Ordinary House, Gas Station, Hospital, School, Pedestrian.
+         * Good, Fair, and Dilapidated
+         *****************************************************************/
+
+         var goodSym = {
+          type: "polygon-3d", // autocasts as new PolygonSymbol3D()
+          symbolLayers: [
+            {
+              type: "extrude", // autocasts as new ExtrudeSymbol3DLayer()
+              material: {
+                color: [112, 168, 0, 0.4]
+              },
+              edges: {
+                type: "solid",
+                color: "#4E4E4E",
+                size: 1.0
+              }
+            }
+          ]
+        };
+
+        var fairSym = {
+          type: "polygon-3d", // autocasts as new PolygonSymbol3D()
+          symbolLayers: [
+            {
+              type: "extrude", // autocasts as new ExtrudeSymbol3DLayer()
+              material: {
+                color: [230, 230, 0, 0.4]
+              },
+              edges: {
+                type: "solid",
+                color: "#4E4E4E",
+                size: 1.0
+              }
+            }
+          ]
+        };
+
+        var dilapSym = {
+          type: "polygon-3d", // autocasts as new PolygonSymbol3D()
+          symbolLayers: [
+            {
+              type: "extrude", // autocasts as new ExtrudeSymbol3DLayer()
+              material: {
+                color: [230, 0, 0, 0.7]
+              },
+              edges: {
+                type: "solid",
+                color: "#4E4E4E",
+                size: 1.0
+              }
+            }
+          ]
+        };
+
+        /*****************************************************************
+         * Set each unique value directly in the renderer's constructor.
+         * At least one field must be used (in this case the "DESCLU" field).
+         * The label property of each unique value will be used to indicate
+         * the field value and symbol in the legend.
+         *
+         * The size visual variable sets the height of each building as it
+         * exists in the real world according to the "ELEVATION" field.
+         *****************************************************************/
+
+        var renderer = {
+          type: "unique-value", // autocasts as new UniqueValueRenderer()
+          defaultSymbol: {
+            type: "polygon-3d", // autocasts as new PolygonSymbol3D()
+            symbolLayers: [
+              {
+                type: "extrude", // autocasts as new ExtrudeSymbol3DLayer()
+                material: {
+                  color: "#E1E1E1"
+                },
+                edges: {
+                  type: "solid",
+                  color: "#4E4E4E",
+                  size: 1.0
+                }
+              }
+            ]
+          },
+          defaultLabel: "Other",
+          field: "Rating",
+          legendOptions: {
+            title: "Rating for Defects"
+            },
+          uniqueValueInfos: [
+            {
+              value: "Good",
+              symbol: goodSym,
+              label: "Good"
+            },
+            {
+              value: "Fair",
+              symbol: fairSym,
+              label: "Fair"
+            },
+            {
+              value: "Dilapidated",
+              symbol: dilapSym,
+              label: "Dilapidated"
+            }          
+          ],
+          visualVariables: [
+            {
+              type: "size",
+              field: "Height",
+              valueUnit: "meter" // Converts and extrudes all data values in feet
+            }
+          ]
+        };
+
+        // Set the renderer on the layer
+        var obstructionLayer = new FeatureLayer({
+          portalItem: {
+          id: "412585c3de854f0eb137995711aaeae9",  
+          portal: {
+            url: "https://mmspgc-gis.mmspgc.local/portal"
+          }
+          },
+          elevationInfo: {
+            mode: "on-the-ground",
+            offset: 0
+          },
+          title: "Monitoring Structures",
+          labelingInfo: [monitorBuillabelClass],
+          renderer: renderer,
+          popupTemplate: {
+            // autocasts as new PopupTemplate()
+            title: "{Rating}",
+            content: [
+              {
+                type: "fields",
+                fieldInfos: [
+                  {
+                    fieldName: "Type",
+                    label: "Type of Building"
+                  },
+                  {
+                    fieldName: "Score",
+                    label: "Score"
+                  },
+                  {
+                    fieldName: "Rating",
+                    label: "Rating"
+                  }
+                ]
+              }
+            ]
+          },
+          outFields: ["Type", "Score", "Rating", "Remarks"],
+          definitionExpression: "Remarks IS NULL" // show only buildings with height, 
+        });
+        map.add(obstructionLayer, 0);           
+
         // D-wall
+        const colorsDwall = {
+          'To be Constructed': [225, 225, 225, 0], // To be Constructed (white)
+          'Excavation': [115, 76, 0, 0.5], // Excavation (Dark brown)
+          'Rebar': [245, 245, 122, 0.3], // Rebar (Yellow)
+          'Concrete': [0, 112, 255, 0.5], // Concrete (Blue: complete)
+          'Delayed': [255, 0, 0, 0.5] // Delayed (Red)
+        };
+
         var dwallLayer = new SceneLayer({
             portalItem: {
-                id: "46636a61980f4a9da32047a84ef9137d",
+                id: "2d51b33e1a7e4138827e71e33afa20dd", // 9172aafd568141c680e2542dd7c58bd7
                 portal: {
                     url: "https://mmspgc-gis.mmspgc.local/portal"
                 }
             },
-            title: "D-Wall"
+            elevationInfo: {
+                mode: "absolute-height",
+                offset: 30
+            },
+            title: "D-Wall",
+            definitionExpression: "Types = 'D-Wall'",
+            outFields: ["*"]
+            // when filter using date, example below. use this format
+            //definitionExpression: "EndDate = date'2020-6-3'"
         });
         map.add(dwallLayer, 1);
 
+        function renderDwallLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "StatusName"
+          });
+
+          for (let property in colorsDwall) {
+            if (colorsDwall.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "mesh-3d",
+                  symbolLayers: [
+                    {
+                      type: "fill",
+                      material: {
+                        color: colorsDwall[property],
+                        colorMixMode: "replace"
+                      },
+                      edges: {
+                        type: "solid", // autocasts as new SolidEdges3D()
+                        color: [225, 225, 225, 0.3]
+                        }
+                    }
+                  ]
+                 }
+              });
+            }
+          }
+
+          dwallLayer.renderer = renderer;
+        }
+
+        renderDwallLayer();
+        
+
         // Structure
+        const colorStruc = {
+          'To be Constructed': [225, 225, 225, 0], // To be Constructed (white)
+          "King's Post": [245, 245, 122, 0.5], // King's Post (Yellow)
+          'Slab': [0, 112, 255, 0.5], // Slab (Blue)
+          'Delayed': [255, 0, 0, 0.5] // Delayed (Red)
+        };
+
         var structureLayer = new SceneLayer({
             portalItem: {
-                id: "88c5c8c13f614093b7ffc1d643e96d3f",
+                id: "2d51b33e1a7e4138827e71e33afa20dd",
                 portal: {
                     url: "https://mmspgc-gis.mmspgc.local/portal"
                 }
             },
-            definitionExpression: "Status <> 7",
-            title: "Structure"
+            elevationInfo: {
+                mode: "absolute-height",
+                offset: 30
+            },
+            definitionExpression: "Types = 'Structure'", //"Status <> 7",
+            title: "Station Box"
         });
-
         map.add(structureLayer, 2);
 
+        function rendersStructureLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "StatusName"
+          });
+
+          for (let property in colorStruc) {
+            if (colorStruc.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "mesh-3d",
+                  symbolLayers: [
+                    {
+                      type: "fill",
+                      material: {
+                        color: colorStruc[property],
+                        colorMixMode: "replace"
+                      },
+                      edges: {
+                        type: "solid", // autocasts as new SolidEdges3D()
+                        color: [225, 225, 225, 0.3]
+                        }
+                    }
+                  ]
+                 }
+              });
+            }
+          }
+
+          structureLayer.renderer = renderer;
+        }
+
+        rendersStructureLayer();
         //*** Highlight and Zoom to Stations*** //
         // This variable will store highlight handle that is used to remove the highlight
         var highlight = null;
@@ -852,10 +1286,10 @@
                   open: false
                 };
               }
-              if (item.title === "D-Wall" || item.title === "Structure") {
+                if (item.title === "Monitoring Structures" || item.title === "Monitoring Bridge") {
                   item.visible = false
                 }
-            }
+              }
           });
 
           view.ui.add(layerList, {
@@ -886,8 +1320,7 @@
           // adds the compass to the top left corner of the MapView
         view.ui.add(compass, "bottom-left");
 
-        // See-through-Ground
-        
+        // See-through-Ground        
           view.when(function() {
           // allow navigation above and below the ground
           map.ground.navigationConstraint = {
@@ -919,10 +1352,16 @@
 
 
         // Filter by Period
+	   // create array of layerviews 
+	   let arrLviews = [];
+	   
+	   
+	   // Filter for D-Wall Layer
+		const dateTitle = document.getElementById("seasons-title");
         const periodNodes = document.querySelectorAll(`.season-item`);
-          const periodElement = document.getElementById("seasons-filter");
+        const periodElement = document.getElementById("seasons-filter");
           
-          // click event handler for seasons choices
+          // click event handler choices
           periodElement.addEventListener("click", filterBySeason);
           
           // User clicked on time periods define
@@ -930,15 +1369,16 @@
           function filterBySeason(event) {
             const selectedSeason = event.target.getAttribute("time-period");
             timeLayerView.filter = {
-              where: "Period = '" + selectedSeason + "'"
+              where: "EndDate <= date'" + selectedSeason + "'" //"Period = '" + selectedSeason + "'"
             };
           }
 
           view.whenLayerView(dwallLayer).then(function(layerView) {
-            // flash flood warnings layer loaded
-            // get a reference to the flood warnings layerview
-            timeLayerView = layerView;
-
+            //timeLayerView = layerView;
+			// geodata - 05.13.2020
+			// push layerView to arrLviews
+			arrLviews.push(layerView);
+			
             // set up UI items
             periodElement.style.visibility = "visible";
             const seasonsExpand = new Expand({
@@ -950,14 +1390,62 @@
             //clear the filters when user closes the expand widget
             seasonsExpand.watch("expanded", function() {
               if (!seasonsExpand.expanded) {
-                timeLayerView.filter = null;
+                layerView.filter = null;
               }
             });
             view.ui.add(seasonsExpand, "top-left");
           });
 
 
+        // Filter by TransitLayer
+        const titleDate = document.getElementById("date-title");
+        const dateNodes = document.querySelectorAll(`.date-item`);
+          const dateElement = document.getElementById("date-filter");
+          
+          // click event handler
+          dateElement.addEventListener("click", filterByDate);
+          
+          // User clicked on time periods define
+          // set an attribute filter on dwall
+          function filterByDate(event) {
+            const selectedDate = event.target.getAttribute("date-period");
+			// geodata 05.13.2020
+			// iterate the layer views in arrLviews
+			for(var i = 0; i < arrLviews.length; i++){
+					arrLviews[i].filter = {
+						where: "endDate <= date'" + selectedDate + "'" //"Period = '" + selectedSeason + "'"
+					}
+			}
+			
+            /*timeLayerView.filter = {
+              where: "endDate >= date'" + selectedDate + "'" //"Period = '" + selectedSeason + "'"
+            };*/
+          }
 
+          view.whenLayerView(structureLayer).then(function(layerView) {
+            //timeLayerView = layerView;
+			// geodata - 05.13.2020
+			// push layerView to arrLviews
+			arrLviews.push(layerView);
+			
+            // set up UI items
+            dateElement.style.visibility = "visible";
+            const dateExpand = new Expand({
+              view: view,
+              content: dateElement,
+              expandIconClass: "esri-icon-filter",
+              group: "top-left"
+            });
+            //clear the filters when user closes the expand widget
+            dateExpand.watch("expanded", function() {
+              if (!dateExpand.expanded) {
+                layerView.filter = null;
+              }
+            });
+            view.ui.add(dateExpand, "top-left");
+          });
+
+ 
       });
     </script>
   </head>
@@ -983,10 +1471,14 @@
         <p id="selected"> station</p>
     </div>
     <div id="seasons-filter" class="esri-widget">
-      <div class="season-item visible-season" time-period="6/1/2020 - 6/7/2020">6/1/2020 - 6/7/2020</div>
-      <div class="season-item visible-season" time-period="6/8/2020 - 6/14/2020">6/8/2020 - 6/14/2020</div>
+      <div id="seasons-title" class="esri-widget">Reset</div>
     </div>
-    <div id="tableDiv"></div>
+    <div id="date-filter" class="esri-widget">
+      <div id="date-title" class="esri-widget">Schudule: D-Wall & Structure</div>
+      <div class="date-item visible-season" date-period="2020-6-3">6/3/2020</div>
+      <div class="date-item visible-season" date-period="2020-6-10">6/10/2020</div>
+    </div>
     </div>
   </body>
 </html>
+
