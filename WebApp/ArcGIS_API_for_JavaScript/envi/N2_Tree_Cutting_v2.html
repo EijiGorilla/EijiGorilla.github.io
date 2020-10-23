@@ -153,6 +153,21 @@
       p {
         color: white;
       }
+
+      #chartPanel {
+        background: #fff;
+        font: "Avenir Next W00";
+        line-height: 1.5em;
+        overflow: auto;
+        padding: 10px;
+        width: 580px;
+        height: 300px;
+      }
+
+      .chart {
+        height: 280px;
+      }
+
       
     </style>
 
@@ -160,6 +175,19 @@
       rel="stylesheet"
       href="https://js.arcgis.com/4.17/esri/themes/dark/main.css"
     />
+    <!-- Load the Chart.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+    <!-- Load Cedar files from CDN -->
+<!-- load the amCharts base library -->
+<script src="https://www.amcharts.com/lib/3/serial.js"></script>
+<!-- for scatter and bubble charts -->
+<script src="https://www.amcharts.com/lib/3/xy.js"></script>
+<!-- load the arcgis-rest-js scripts -->
+<script src="https://unpkg.com/@esri/arcgis-rest-request"></script>
+<!-- optionally load an amcharts theme; cedar provides a calcite theme -->
+{{!-- <script src="https://unpkg.com/@esri/cedar/dist/umd/themes/amCharts/calcite.js"></script> --}}
+<!-- load cedar -->
+<script src="https://unpkg.com/@esri/cedar/dist/umd/cedar.js"></script>
     <script src="https://js.arcgis.com/4.17/"></script>
 
     <script>
@@ -199,7 +227,8 @@
         "esri/widgets/Compass",
         "esri/TimeExtent",
         "esri/layers/ElevationLayer",
-        "esri/Ground"
+        "esri/Ground",
+        "dojo/domReady"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -509,6 +538,17 @@
         });
         //*** End of Highlight & Zoom to Stations*** //
 
+        const chartExpand = new Expand({
+              expandIconClass: "esri-icon-chart",
+              //expandTooltip: "Population pyramid chart",
+              expanded: false,
+              view: view,
+              content: document.getElementById("chartPanel")
+            });
+            view.ui.add(chartExpand, {
+                position: "bottom-right",
+                index:0
+            });
 
         // LayerList and Add legend to the LayerList
         // On-off feature layer tab
@@ -576,6 +616,7 @@
 
   <body>
     <div id="applicationDiv">
+    <div id="chartPanel"><canvas id="chart" class="chart"></canvas></div>
     <div id="viewDiv">
       <div id="titleDiv" class="esri-widget">Status of Tree Cutting</div>
     </div>
@@ -589,6 +630,7 @@
         <li>Loading&hellip;</li>
       </ul>
     </div>
+
     </div>
   </body>
 </html>

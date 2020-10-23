@@ -121,7 +121,7 @@
         background-color: rgb(0, 0, 0, 0.5);
       }      
 
-      #optionsDiv {
+      #selected {
         width: 250px;
         height: 120px;
         padding: 0 15px 0 15px;
@@ -135,13 +135,12 @@
         line-height: 0.3;
       }
 
-      #percentComp {
-        color: white;
-        font-size: 35px;
-        text-align: center;
-        vertical-align: middle;
-        text-align: center;
-        line-height: 0.3;
+      #panel {
+        position: absolute;
+        right: 0;
+        height: 100%;
+        width: 40%;
+        overflow: scroll;
       }
 
       #menu {
@@ -149,10 +148,21 @@
         background-color: black;
         color: white;
       }
-      
-      p {
-        color: white;
+     
+      #chartPanel {
+        background: black;
+        font: "Avenir Next W00";
+        line-height: 1.5em;
+        overflow: auto;
+        padding: 10px;
+        width: 450px;
+        height: 300px;
       }
+
+      .chart {
+        height: 280px;
+      }
+
       
     </style>
 
@@ -160,6 +170,10 @@
       rel="stylesheet"
       href="https://js.arcgis.com/4.17/esri/themes/dark/main.css"
     />
+    <!-- Load the Chart.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.7.3/dist/Chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
     <script src="https://js.arcgis.com/4.17/"></script>
 
     <script>
@@ -199,7 +213,8 @@
         "esri/widgets/Compass",
         "esri/TimeExtent",
         "esri/layers/ElevationLayer",
-        "esri/Ground"
+        "esri/Ground",
+        "dojo/domReady"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -316,16 +331,18 @@
         };
 
         var treeSpot = new FeatureLayer({
-          portalItem: {
-            id: "5d43a22ecb0342aba1184dcc12c49fef",
-            portal: {
-              url: "https://mmspgc-gis.mmspgc.local/portal"
-            }
-          },
+          //portalItem: {
+          //  id: "5d43a22ecb0342aba1184dcc12c49fef",
+          //  portal: {
+          //    url: "https://mmspgc-gis.mmspgc.local/portal"
+          //  }
+          //},
+          url: "https://services7.arcgis.com/JhEuig8xQsFmWZKH/arcgis/rest/services/NSCR_NSCR_N2_Tree_Inventory/FeatureServer",
           elevationInfo: {
               mode: "on-the-ground",
               offset: 0
           },
+          outFields: ["State", "CP"],
           renderer: treeRenderer,
           screenSizePerspectiveEnabled: false,
           title: "Trees Inventoried",
@@ -436,12 +453,225 @@
         stationLayer.listMode = "hide";
         map.add(stationLayer, 0);
 
+        var testID = document.getElementById("selected");
+
+        // Number of Uncut Trees:
+        var total_uncutN01 = {
+          onStatisticField: "CASE WHEN (CP = 'N-01' and State = 'Uncut') THEN 1 ELSE 0 END",  // service field for 2015 population
+          outStatisticFieldName: "total_uncutN01",
+          statisticType: "sum"
+          };
+
+        var total_uncutN02 = {
+          onStatisticField: "CASE WHEN (CP = 'N-02' and State = 'Uncut') THEN 1 ELSE 0 END",  // service field for 2015 population
+          outStatisticFieldName: "total_uncutN02",
+          statisticType: "sum"
+        };
+
+        var total_uncutN03 = {
+          onStatisticField: "CASE WHEN (CP = 'N-03' and State = 'Uncut') THEN 1 ELSE 0 END",  // service field for 2015 population
+          outStatisticFieldName: "total_uncutN03",
+          statisticType: "sum"
+        };
+
+        var total_uncutN04 = {
+          onStatisticField: "CASE WHEN (CP = 'N-04' and State = 'Uncut') THEN 1 ELSE 0 END",  // service field for 2015 population
+          outStatisticFieldName: "total_uncutN04",
+          statisticType: "sum"
+        };
+
+        var total_uncutN05 = {
+          onStatisticField: "CASE WHEN (CP = 'N-05' and State = 'Uncut') THEN 1 ELSE 0 END",  // service field for 2015 population
+          outStatisticFieldName: "total_uncutN05",
+          statisticType: "sum"
+        };
+
+        // Number of Cut Trees:
+        var total_cutN01 = {
+          onStatisticField: "CASE WHEN (CP = 'N-01' and State = 'Harvested') THEN 1 ELSE 0 END",  // service field for 2015 population
+          outStatisticFieldName: "total_cutN01",
+          statisticType: "sum"
+          };
+
+        var total_cutN02 = {
+          onStatisticField: "CASE WHEN (CP = 'N-02' and State = 'Harvested') THEN 1 ELSE 0 END",  // service field for 2015 population
+          outStatisticFieldName: "total_cutN02",
+          statisticType: "sum"
+        };
+
+        var total_cutN03 = {
+          onStatisticField: "CASE WHEN (CP = 'N-03' and State = 'Harvested') THEN 1 ELSE 0 END",  // service field for 2015 population
+          outStatisticFieldName: "total_cutN03",
+          statisticType: "sum"
+        };
+
+        var total_cutN04 = {
+          onStatisticField: "CASE WHEN (CP = 'N-04' and State = 'Harvested') THEN 1 ELSE 0 END",  // service field for 2015 population
+          outStatisticFieldName: "total_cutN04",
+          statisticType: "sum"
+        };
+
+        var total_cutN05 = {
+          onStatisticField: "CASE WHEN (CP = 'N-05' and State = 'Harvested') THEN 1 ELSE 0 END",  // service field for 2015 population
+          outStatisticFieldName: "total_cutN05",
+          statisticType: "sum"
+        };
+
+        // Number of Earthballed Trees:
+        var total_earthbN01 = {
+          onStatisticField: "CASE WHEN (CP = 'N-01' and State = 'Earthballed') THEN 1 ELSE 0 END",  // service field for 2015 population
+          outStatisticFieldName: "total_earthbN01",
+          statisticType: "sum"
+          };
+
+        var total_earthbN02 = {
+          onStatisticField: "CASE WHEN (CP = 'N-02' and State = 'Earthballed') THEN 1 ELSE 0 END",  // service field for 2015 population
+          outStatisticFieldName: "total_earthbN02",
+          statisticType: "sum"
+        };
+
+        var total_earthbN03 = {
+          onStatisticField: "CASE WHEN (CP = 'N-03' and State = 'Earthballed') THEN 1 ELSE 0 END",  // service field for 2015 population
+          outStatisticFieldName: "total_earthbN03",
+          statisticType: "sum"
+        };
+
+        var total_earthbN04 = {
+          onStatisticField: "CASE WHEN (CP = 'N-04' and State = 'Earthballed') THEN 1 ELSE 0 END",  // service field for 2015 population
+          outStatisticFieldName: "total_earthbN04",
+          statisticType: "sum"
+        };
+
+        var total_earthbN05 = {
+          onStatisticField: "CASE WHEN (CP = 'N-05' and State = 'Earthballed') THEN 1 ELSE 0 END",  // service field for 2015 population
+          outStatisticFieldName: "total_earthbN05",
+          statisticType: "sum"
+        };
+        
+        
+        var query = treeSpot.createQuery();
+        //query.where = "Stations = '" +  testID.innerHTML + "'"; // Selected Stations
+        query.outStatistics = [total_uncutN01, total_uncutN02, total_uncutN03, total_uncutN04, total_uncutN05,
+                               total_cutN01, total_cutN02, total_cutN03, total_cutN04, total_cutN05,
+                               total_earthbN01, total_earthbN02, total_earthbN03, total_earthbN04, total_earthbN05];
+        treeSpot.queryFeatures(query)
+        .then(function(response){
+          var stats = response.features[0].attributes;
+          // Uncut
+          const uncutN01 = stats.total_uncutN01.toFixed(0);
+          const uncutN02 = stats.total_uncutN02.toFixed(0);
+          const uncutN03 = stats.total_uncutN03.toFixed(0);
+          const uncutN04 = stats.total_uncutN04.toFixed(0);
+          const uncutN05 = stats.total_uncutN05.toFixed(0);
+          
+          // Cut
+          const cutN01 = stats.total_cutN01.toFixed(0);
+          const cutN02 = stats.total_cutN02.toFixed(0);
+          const cutN03 = stats.total_cutN03.toFixed(0);
+          const cutN04 = stats.total_cutN04.toFixed(0);
+          const cutN05 = stats.total_cutN05.toFixed(0);
+
+          // Earthballed
+          const earthbN01 = stats.total_earthbN01.toFixed(0);
+          const earthbN02 = stats.total_earthbN02.toFixed(0);
+          const earthbN03 = stats.total_earthbN03.toFixed(0);
+          const earthbN04 = stats.total_earthbN04.toFixed(0);
+          const earthbN05 = stats.total_earthbN05.toFixed(0);
+          
+          // Chart
+          function createCharts() {
+          //totalNumber = document.getElementById("num-homicides");
+
+          const yearCanvas = document.getElementById("year-chart");
+          Chart.defaults.global.defaultFontColor = 'white';
+          yearChart = new Chart(yearCanvas.getContext("2d"), {
+            type: "bar", //"horizontalBar"
+            data: {
+              labels: [
+                "N-01",
+                "N-02",
+                "N-03",
+                "N-04",
+                "N-05"
+              ],
+              datasets: [
+                {
+                  label: "Uncut",
+                  backgroundColor: "#70a800",
+                  stack: "Stack 0",
+                  data: [uncutN01, uncutN02, uncutN03, uncutN04, uncutN05]
+                },
+                {
+                  label: "Cut",
+                  backgroundColor: "#c2c2c2",
+                  stack: "Stack 0",
+                  data: [cutN01, cutN02, cutN03, cutN04, cutN05]
+                },
+                {
+                  label: "Earthballed",
+                  backgroundColor: "#e64c00",
+                  stack: "stack 0",
+                  data: [earthbN01, earthbN02, earthbN03, earthbN04, earthbN05]
+                }   
+              ]
+            },
+            options: {
+              responsive: false,
+              plugins: {
+            // Change options for ALL labels of THIS CHART
+            datalabels: {
+                color: 'grey',
+                labels: {
+                    title: {
+                        font: {
+                            weight: 'regular'
+                        }
+                    },
+                }
+            }
+        },
+              //plugins: {
+              //    stacked100: { enable: true }
+              //  },
+              legend: {
+                position: "top",
+                labels: {
+                    fontColor: "white"
+                }
+              },
+              title: {
+                display: true,
+                text: "Number of Trees by CP & Status"
+              },
+              scales: {
+                xAxes: [
+                  {
+                    stacked: true,
+                  }
+                ],
+                yAxes: [
+                  {
+                    stacked: true,
+                    ticks: {
+                      beginAtZero: true
+                    }
+                  }
+                ]
+              }
+            }
+          });
+        }
+
+        createCharts();
+         });
+
 
          //*** Highlight and Zoom to Stations*** //
         // This variable will store highlight handle that is used to remove the highlight
         var highlight = null;
 
         view.when(function() {
+
         
           // define the attributes which are used in the query
           stationLayer.outFields = "Name";
@@ -468,9 +698,7 @@
                     li.innerHTML = attributes.Name;
                     li.addEventListener("click", function(event) {
                       var target = event.target;
-                      
- 
-                      
+                                           
                       var objectId = feature.attributes.OBJECTID;
                       // Create an extent query on the layer view that will return to 3D extent of the feature
                       var queryExtent = new Query({
@@ -508,7 +736,18 @@
           });
         });
         //*** End of Highlight & Zoom to Stations*** //
-
+ 
+        const chartExpand = new Expand({
+              expandIconClass: "esri-icon-chart",
+              //expandTooltip: "Population pyramid chart",
+              expanded: false,
+              view: view,
+              content: document.getElementById("chartPanel")
+            });
+            view.ui.add(chartExpand, {
+                position: "bottom-right",
+                index:0
+            });
 
         // LayerList and Add legend to the LayerList
         // On-off feature layer tab
@@ -576,6 +815,9 @@
 
   <body>
     <div id="applicationDiv">
+    <div id="chartPanel">
+    <canvas id="year-chart" height="250" width="350"></canvas>
+    </div>
     <div id="viewDiv">
       <div id="titleDiv" class="esri-widget">Status of Tree Cutting</div>
     </div>
