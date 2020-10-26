@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>Viaduct Monitoring Map</title>
+<title>Viaduct Monitoring Map for N-04</title>
 
     <style>
       html,
@@ -134,6 +134,43 @@
         background-color: black;
         color: white;
       }
+
+      #optionsDiv {
+        width: 250px;
+        height: 120px;
+        padding: 0 15px 0 15px;
+        font-size: 16px;
+        font-weight: normal;
+        text-align: center;
+        vertical-align: middle;
+        background-color: rgb(71, 150, 7);
+        color: white;
+        padding: 10px;
+        line-height: 0.3;
+      }
+
+      #percentComp {
+        color: white;
+        font-size: 35px;
+        text-align: center;
+        vertical-align: middle;
+        text-align: center;
+        line-height: 0.3;
+      }
+
+      #chartPanel {
+        background: black;
+        font: "Avenir Next W00";
+        overflow: auto;
+        padding: 10px;
+        width: 550px;
+        height: 250px;
+      }
+
+      #chartdiv {
+          width: 100%;
+          height: 100%;
+          }
       
       p {
         color: white;
@@ -143,9 +180,14 @@
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.16/esri/themes/dark/main.css"
+      href="https://js.arcgis.com/4.17/esri/themes/dark/main.css"
     />
-    <script src="https://js.arcgis.com/4.16/"></script>
+    <!-- Resources -->
+    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+    <script src="https://js.arcgis.com/4.17/"></script>
 
     <script>
       require([
@@ -331,6 +373,320 @@
           });
           map.add(viaductLayer);
 
+// Create a Bar chart to calculate % completion for each viaduct sample
+// Pile
+var total_pile_tobeC = {
+    onStatisticField: "CASE WHEN (Layer = 'PILE' and Status1 = 1) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pile_tobeC",
+    statisticType: "sum"
+    };
+var total_pile_underC = {
+    onStatisticField: "CASE WHEN (Layer = 'PILE' and Status1 = 2) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pile_underC",
+    statisticType: "sum"
+    };
+var total_pile_done = {
+    onStatisticField: "CASE WHEN (Layer = 'PILE' and Status1 = 4) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pile_done",
+    statisticType: "sum"
+    };
+var total_pile_delayed = {
+    onStatisticField: "CASE WHEN (Layer = 'PILE' and Status1 = 3) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pile_done",
+    statisticType: "sum"
+    };
+
+// Pile cap
+var total_pilecap_tobeC = {
+    onStatisticField: "CASE WHEN (Layer = 'PILECAP' and Status1 = 1) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pilecap_tobeC",
+    statisticType: "sum"
+    };
+var total_pilecap_underC = {
+    onStatisticField: "CASE WHEN (Layer = 'PILECAP' and Status1 = 2) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pilecap_underC",
+    statisticType: "sum"
+    };
+var total_pilecap_done = {
+    onStatisticField: "CASE WHEN (Layer = 'PILECAP' and Status1 = 5) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pilecap_done",
+    statisticType: "sum"
+    };
+var total_pilecap_delayed = {
+    onStatisticField: "CASE WHEN (Layer = 'PILECAP' and Status1 = 3) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pilecap_done",
+    statisticType: "sum"
+    };
+
+// Pier
+var total_pier_tobeC = {
+    onStatisticField: "CASE WHEN (Layer = 'PIER' and Status1 = 1) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pier_tobeC",
+    statisticType: "sum"
+    };
+var total_pier_underC = {
+    onStatisticField: "CASE WHEN (Layer = 'PIER' and Status1 = 2) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pier_underC",
+    statisticType: "sum"
+    };
+var total_pier_done = {
+    onStatisticField: "CASE WHEN (Layer = 'PIER' and Status1 = 6) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pier_done",
+    statisticType: "sum"
+    };
+var total_pier_delayed = {
+    onStatisticField: "CASE WHEN (Layer = 'PIER' and Status1 = 3) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pier_delayed",
+    statisticType: "sum"
+    };
+
+// Pier Head
+var total_pierhead_tobeC = {
+    onStatisticField: "CASE WHEN (Layer = 'PIER_head' and Status1 = 1) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pierhead_tobeC",
+    statisticType: "sum"
+    };
+var total_pierhead_underC = {
+    onStatisticField: "CASE WHEN (Layer = 'PIER_head' and Status1 = 2) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pierhead_underC",
+    statisticType: "sum"
+    };
+var total_pierhead_done = {
+    onStatisticField: "CASE WHEN (Layer = 'PIER_head' and Status1 = 7) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pierhead_done",
+    statisticType: "sum"
+    };
+var total_pierhead_delayed = {
+    onStatisticField: "CASE WHEN (Layer = 'PIER_head' and Status1 = 3) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_pierhead_delayed",
+    statisticType: "sum"
+    };
+
+// Pre-cast
+var total_precast_tobeC = {
+    onStatisticField: "CASE WHEN (Layer = 'PRECAST' and Status1 = 1) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_precast_tobeC",
+    statisticType: "sum"
+    };
+var total_precast_underC = {
+    onStatisticField: "CASE WHEN (Layer = 'PRECAST' and Status1 = 2) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_precast_underC",
+    statisticType: "sum"
+    };
+var total_precast_done = {
+    onStatisticField: "CASE WHEN (Layer = 'PRECAST' and Status1 = 8) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_precast_done",
+    statisticType: "sum"
+    };
+var total_precast_delayed = {
+    onStatisticField: "CASE WHEN (Layer = 'PRECAST' and Status1 = 3) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_precast_delayed",
+    statisticType: "sum"
+    };
+
+
+//
+var query = viaductLayer.createQuery();
+//query.where = "Stations = 'Tandang Sora'"; // Selected Stations
+query.outStatistics = [total_pile_tobeC, total_pile_underC, total_pile_done, total_pile_delayed,
+                       total_pilecap_tobeC, total_pilecap_underC, total_pilecap_done, total_pilecap_delayed,
+                       total_pier_tobeC, total_pier_underC, total_pier_done, total_pier_delayed,
+                       total_pierhead_tobeC, total_pierhead_underC, total_pierhead_done, total_pierhead_delayed,
+                       total_precast_tobeC, total_precast_underC, total_precast_done, total_precast_delayed];
+viaductLayer.queryFeatures(query)
+    .then(function(response){
+        var stats = response.features[0].attributes;
+
+        // Pile
+        const pile_tobeC = stats.total_pile_tobeC;
+        const pile_underC = stats.total_pile_underC;
+        const pile_done = stats.total_pile_done;
+        const pile_delayed = stats.total_pile_delayed;
+
+        // Pile cap
+        const pilecap_tobeC = stats.total_pilecap_tobeC;
+        const pilecap_underC = stats.total_pilecap_underC;
+        const pilecap_done = stats.total_pilecap_done;
+        const pilecap_delayed = stats.total_pilecap_delayed;
+
+        // Pier
+        const pier_tobeC = stats.total_pier_tobeC;
+        const pier_underC = stats.total_pier_underC;
+        const pier_done = stats.total_pier_done;
+        const pier_delayed = stats.total_pier_delayed;
+
+        // Pier Head
+        const pierhead_tobeC = stats.total_pierhead_tobeC;
+        const pierhead_underC = stats.total_pierhead_underC;
+        const pierhead_done = stats.total_pierhead_done;
+        const pierhead_delayed = stats.total_pierhead_delayed;
+
+        // Precast
+        const precast_tobeC = stats.total_precast_tobeC;
+        const precast_underC = stats.total_precast_underC;
+        const precast_done = stats.total_precast_done;
+        const precast_delayed = stats.total_precast_delayed;
+
+// Chart
+am4core.ready(function() {
+
+// Themes begin
+am4core.useTheme(am4themes_animated);
+// Themes end
+
+var chart = am4core.create("chartdiv", am4charts.XYChart);
+chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
+
+chart.data = [
+  {
+    category: "Pile",
+    value1: pile_tobeC,
+    value2: pile_underC,
+    value3: pile_done,
+    value4: pile_delayed
+  },
+  {
+    category: "Pilecap",
+    value1: pilecap_tobeC,
+    value2: pilecap_underC,
+    value3: pilecap_done,
+    value4: pilecap_delayed
+  },
+  {
+    category: "Pier",
+    value1: pier_tobeC,
+    value2: pier_underC,
+    value3: pier_done,
+    value4: pier_delayed
+  },
+  {
+    category: "Pier head",
+    value1: pierhead_tobeC,
+    value2: pierhead_underC,
+    value3: pierhead_done,
+    value4: pierhead_delayed
+  },
+  {
+    category: "Precast",
+    value1: precast_tobeC,
+    value2: precast_underC,
+    value3: precast_done,
+    value4: precast_delayed
+  }
+];
+
+
+
+chart.colors.step = 2;
+chart.padding(10, 10, 10, 10);
+chart.legend = new am4charts.Legend();
+chart.legend.labels.template.fontSize = 10;
+chart.legend.labels.template.fill = "#ffffff";
+
+
+var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+categoryAxis.dataFields.category = "category";
+categoryAxis.renderer.grid.template.location = 0;
+categoryAxis.renderer.labels.template.fontSize = 11;
+categoryAxis.renderer.labels.template.fill = "#ffffff";
+categoryAxis.renderer.minGridDistance = 5; //can change label
+
+var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+valueAxis.min = 0;
+valueAxis.max = 100;
+valueAxis.strictMinMax = true;
+valueAxis.calculateTotals = true;
+valueAxis.renderer.minWidth = 50;
+valueAxis.renderer.labels.template.fontSize = 11;
+valueAxis.renderer.labels.template.fill = "#ffffff";
+
+
+var series1 = chart.series.push(new am4charts.ColumnSeries());
+series1.fill = am4core.color("#707070");
+series1.columns.template.width = am4core.percent(60);
+series1.columns.template.tooltipText =
+  "{name}: {valueY.totalPercent.formatNumber('#.')}%";
+series1.name = "To be Constructed";
+series1.dataFields.categoryX = "category";
+series1.dataFields.valueY = "value1";
+series1.dataFields.valueYShow = "totalPercent";
+series1.dataItems.template.locations.categoryX = 0.5;
+series1.stacked = true;
+series1.tooltip.pointerOrientation = "vertical";
+//series1.columns.template.strokeWidth = 0;
+
+var bullet1 = series1.bullets.push(new am4charts.LabelBullet());
+bullet1.interactionsEnabled = false;
+bullet1.label.text = "{valueY.totalPercent.formatNumber('#.')}%";
+bullet1.label.fill = am4core.color("#ffffff");
+bullet1.label.fontSize = 10;
+bullet1.locationY = 0.5;
+
+var series2 = chart.series.push(new am4charts.ColumnSeries());
+series2.fill = am4core.color("#c2c2c2");
+series2.columns.template.width = am4core.percent(60);
+series2.columns.template.tooltipText =
+  "{name}: {valueY.totalPercent.formatNumber('#.')}%";
+series2.name = "Under Construction";
+series2.dataFields.categoryX = "category";
+series2.dataFields.valueY = "value2";
+series2.dataFields.valueYShow = "totalPercent";
+series2.dataItems.template.locations.categoryX = 0.5;
+series2.stacked = true;
+series2.tooltip.pointerOrientation = "vertical";
+
+var bullet2 = series2.bullets.push(new am4charts.LabelBullet());
+bullet2.interactionsEnabled = false;
+bullet2.label.text = "{valueY.totalPercent.formatNumber('#.')}%";
+bullet2.locationY = 0.5;
+bullet2.label.fill = am4core.color("#ffffff");
+bullet2.label.fontSize = 10;
+
+var series3 = chart.series.push(new am4charts.ColumnSeries());
+series3.fill = am4core.color("#0070ff");
+series3.columns.template.width = am4core.percent(60);
+series3.columns.template.tooltipText =
+  "{name}: {valueY.totalPercent.formatNumber('#.')}%";
+series3.name = "Completed";
+series3.dataFields.categoryX = "category";
+series3.dataFields.valueY = "value3";
+series3.dataFields.valueYShow = "totalPercent";
+series3.dataItems.template.locations.categoryX = 0.5;
+series3.stacked = true;
+series3.tooltip.pointerOrientation = "vertical";
+
+var bullet3 = series3.bullets.push(new am4charts.LabelBullet());
+bullet3.interactionsEnabled = false;
+bullet3.label.text = "{valueY.totalPercent.formatNumber('#.')}%";
+bullet3.locationY = 0.5;
+bullet3.label.fill = am4core.color("#0070ff");
+bullet3.label.fontSize = 10;
+
+var series4 = chart.series.push(new am4charts.ColumnSeries());
+series4.fill = am4core.color("#ff0000");
+series4.columns.template.width = am4core.percent(60);
+series4.columns.template.tooltipText =
+  "{name}: {valueY.totalPercent.formatNumber('#.')}%";
+series4.name = "Delayed";
+series4.dataFields.categoryX = "category";
+series4.dataFields.valueY = "value4";
+series4.dataFields.valueYShow = "totalPercent";
+series4.dataItems.template.locations.categoryX = 0.5;
+series4.stacked = true;
+series4.tooltip.pointerOrientation = "vertical";
+
+var bullet4 = series4.bullets.push(new am4charts.LabelBullet());
+bullet4.interactionsEnabled = false;
+bullet4.label.text = "{valueY.totalPercent.formatNumber('#.')}%";
+bullet4.locationY = 0.5;
+bullet4.label.fill = am4core.color("#ff0000");
+bullet4.label.fontSize = 10;
+
+//chart.scrollbarX = new am4core.Scrollbar();
+
+}); // end am4core.ready()
+});
+
           //*** Highlight and Zoom to Stations*** //
         // This variable will store highlight handle that is used to remove the highlight
         var highlight = null;
@@ -403,6 +759,18 @@
         });
         //*** End of Highlight & Zoom to Stations*** //
 
+        const chartExpand = new Expand({
+              expandIconClass: "esri-icon-chart",
+              //expandTooltip: "Population pyramid chart",
+              expanded: false,
+              view: view,
+              content: document.getElementById("chartPanel")
+            });
+            view.ui.add(chartExpand, {
+                position: "bottom-right",
+                index:0
+            });
+
         // LayerList and Add legend to the LayerList
         // On-off feature layer tab
         var layerList = new LayerList({
@@ -461,7 +829,7 @@
   <body>
     <div id="applicationDiv">
       <div id="viewDiv">
-        <div id="titleDiv" class="esri-widget">Viaduct</div>
+        <div id="titleDiv" class="esri-widget">Viaduct: N-04</div>
       </div>
           <div id="menu" class="esri-widget">
         <input type="checkbox" id="opacityInput" checked />
@@ -473,6 +841,9 @@
           <li>Loading&hellip;</li>
         </ul>
       </div>
+      <div id="chartPanel">
+        <div id="chartdiv"></div>
+    </div>
       </div>
   </body>
 </html>

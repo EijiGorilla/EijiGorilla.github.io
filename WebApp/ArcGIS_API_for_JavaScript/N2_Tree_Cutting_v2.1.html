@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>Viaduct Monitoring Map</title>
+<title>Civil Construction</title>
 
     <style>
       html,
@@ -22,7 +22,19 @@
         background-color: black;       
       }
 
-      #applicationDiv {
+      #stationList {
+        background-color: rgb(0, 0, 0);
+      }
+
+      #timeSlider {
+        position:absolute;
+        left: 400px;
+        right: 400px;
+        bottom: 30px;
+        visibility: hidden;
+      }
+
+       #applicationDiv {
         position: absolute;
         width: 100%;
         height: 100%;
@@ -50,26 +62,6 @@
         padding: 10px;
         background-color: rgb(0, 0, 0, 0.5);
         opacity: 0.9;
-      }
-
-      #stationList {
-        background-color: rgb(0, 0, 0);
-      }
-
-      .container {
-        height: 50%;
-        width: 100%;
-      }
-
-      #tableDiv {
-        padding: 0;
-        margin: 0;
-        height: 100%;
-        width: 100%;
-        background-color: black;
-        flex: 0.5 1 auto;
-        order: 1;
-        overflow: hidden;
       }
 
       .panel-container {
@@ -129,23 +121,71 @@
         background-color: rgb(0, 0, 0, 0.5);
       }      
 
+      #selected {
+        width: 250px;
+        height: 120px;
+        padding: 0 15px 0 15px;
+        font-size: 16px;
+        font-weight: normal;
+        text-align: center;
+        vertical-align: middle;
+        background-color: rgb(71, 150, 7);
+        color: white;
+        padding: 10px;
+        line-height: 0.3;
+      }
+
+      #percentComp {
+        color: white;
+        font-size: 15px;
+        text-align: center;
+        vertical-align: middle;
+        text-align: center;
+        line-height: 0.3;
+      }
+
+      #countPanel {
+        color: white;
+        font-size: 15px;
+        text-align: center;
+        vertical-align: middle;
+        text-align: center;
+        line-height: 0.3;
+      }
+
+
       #menu {
         padding: 3px 3px 3px 3px;
         background-color: black;
         color: white;
       }
       
-      p {
-        color: white;
+
+
+      #chartPanel {
+        background: #fff;
+        font: "Avenir Next W00";
+        line-height: 1.5em;
+        overflow: auto;
+        padding: 10px;
+        width: 580px;
+        height: 300px;
       }
 
+      .chart {
+        height: 280px;
+      }
+
+      
     </style>
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.16/esri/themes/dark/main.css"
+      href="https://js.arcgis.com/4.17/esri/themes/dark/main.css"
     />
-    <script src="https://js.arcgis.com/4.16/"></script>
+    <!-- Load the Chart.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+    <script src="https://js.arcgis.com/4.17/"></script>
 
     <script>
       require([
@@ -182,7 +222,10 @@
         "esri/widgets/support/DatePicker",
         "esri/widgets/FeatureTable",
         "esri/widgets/Compass",
-        "esri/TimeExtent"
+        "esri/TimeExtent",
+        "esri/layers/ElevationLayer",
+        "esri/Ground",
+        "dojo/domReady"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -191,9 +234,9 @@
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol,
-                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable, Compass, TimeExtent) {
-     let featureLayer;
-        const features = [];
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
+                  FeatureTable, Compass, TimeExtent, ElevationLayer, Ground) {
+        let timeLayerView; // for making a list of time periods
 
         var basemap = new Basemap({
         baseLayers: [
@@ -204,14 +247,14 @@
           })
         ]
       });
-
-
-         var map = new Map({
-              basemap: basemap, // "streets-night-vector", 
-              ground: "no"
-        }); 
+      
+      // Add custom DEM to the default elevation layer of esri
+        var map = new Map({
+              basemap: basemap, // "streets-night-vector", basemap, topo-vector
+              ground: "world-elevation"
+        });
         //map.ground.surfaceColor = "#FFFF";
-        //map.ground.opacity = 0.5;
+        //map.ground.opacity = 0.1;
          
         var view = new SceneView({
             map: map,
@@ -238,11 +281,118 @@
         });
 
         // Setup UI
+     
         var applicationDiv = document.getElementById("applicationDiv");
         var titleDiv = document.getElementById("titleDiv");
 
 
-        // Station point feature
+        //********** Import Layers**********
+
+        // When a scene layer is published using 'Copy All' view.goTo did not work
+        // It worked when the scene layer is published in 'Reference Registered Data'
+
+        //********* Define LabelingInfo *************//
+        function treeSymbol(name) {
+          return {
+            type: "web-style",
+            name: name,
+            styleName: "EsriRealisticTreesStyle"
+          };
+        }
+
+        var uncutSym = {
+            type: "web-style",
+            name: "Alnus",
+            styleName: "EsriRealisticTreesStyle" 
+        };
+
+        var cutSym = {
+            type: "web-style",
+            name: "Stump", //Stump
+            styleName: "EsriRealisticTreesStyle"   
+        };
+
+        var treeRenderer = {
+          type: "unique-value",
+          field: "State",
+          defaultSymbol: treeSymbol("Unknown"),
+          legendOptions: {
+            title: "Trees"
+            },
+          uniqueValueInfos: [
+            {
+              value: "Uncut",
+              symbol: uncutSym,
+              label: "Uncut",
+            },
+            {
+              value: "Harvested",
+              symbol: cutSym,
+              label: "Harvested"
+            }     
+          ],
+          visualVariables: [
+            {
+              type: "size",
+              axis: "height",
+              field: "StateTH",
+              valueUnit: "meters"
+            },
+            ]
+        };
+
+        var treeSpot = new FeatureLayer({
+          portalItem: {
+            id: "5d43a22ecb0342aba1184dcc12c49fef",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          },
+          elevationInfo: {
+              mode: "on-the-ground",
+              offset: 0
+          },
+          outFields: ["*"],
+          renderer: treeRenderer,
+          screenSizePerspectiveEnabled: false,
+          title: "Trees Inventoried",
+          popupTemplate: {
+              // autocasts as new PopupTemplate()
+              title: "{Municipality}",
+              content:
+              "<i>{ScientificName}</i><br>" +
+              "This tree is {State} and is {TH} meter in height."
+              }
+        });
+        view.map.add(treeSpot, 0);
+
+        // PROW
+        var prowRenderer = {
+            type: "simple-fill",
+            field: "Layer",
+            color: "Red"
+        };
+
+        var prowLayer = new FeatureLayer ({
+            portalItem: {
+                id: "0234f1882fe24dadb4d202f15be6baa5",
+                portal: {
+                    url: "https://mmspgc-gis.mmspgc.local/portal"
+                }
+            },
+            elevationInfo: {
+                mode: "on-the-ground",
+                offset: 0
+            },
+            renderer: prowRenderer,
+            title: "PROW",
+            definitionExpression: "Layer = '061_New ROW'"
+        });
+        prowLayer.listMode = "hide";
+        map.add(prowLayer, 0);
+
+ 
+       // Station point feature
         // Station labels
         var labelClass = new LabelClass({
           symbol: {
@@ -313,29 +463,13 @@
         stationLayer.listMode = "hide";
         map.add(stationLayer, 0);
 
-        // Viaduct 
-        var viaductLayer = new SceneLayer({
-            portalItem: {
-            id: "68da30606df344d09e8e7b7811debc07", //a418acc4fcef4840b3abbe22cfe79abd
-            portal: {
-              url: "https://mmspgc-gis.mmspgc.local/portal"
-              }
-          },
-          elevationInfo: {
-          mode: "absolute-height" //absolute-height, relative-to-ground
-        },
-            title: "Viaduct sample",
-            outFields: ["*"]
-            // when filter using date, example below. use this format
-            //definitionExpression: "EndDate = date'2020-6-3'"
-          });
-          map.add(viaductLayer);
 
-          //*** Highlight and Zoom to Stations*** //
+         //*** Highlight and Zoom to Stations*** //
         // This variable will store highlight handle that is used to remove the highlight
         var highlight = null;
 
         view.when(function() {
+
         
           // define the attributes which are used in the query
           stationLayer.outFields = "Name";
@@ -363,7 +497,26 @@
                     li.addEventListener("click", function(event) {
                       var target = event.target;
                       
- 
+                      var testID = document.getElementById("selected");
+                           var totalPanel = {
+                               onStatisticField: "volume",  // service field for 2015 population
+                               outStatisticFieldName: "volume_count",
+                               statisticType: "count"
+                               };        
+                               var finishPanel = {
+                                   onStatisticField: "dbh",  // service field for 2015 population
+                                   outStatisticFieldName: "dbh_pcount",
+                                   statisticType: "sum"
+                                };
+                                var query = treeSpot.createQuery();
+                                //query.where = "Stations = '" +  testID.innerHTML + "'"; // Selected Stations
+                                query.outStatistics = [totalPanel, finishPanel];
+                                treeSpot.queryFeatures(query)
+                                  .then(function(response){
+                                var stats = response.features[0].attributes;
+                                document.getElementById("percentComp").innerHTML = stats.volume_count.toFixed(3);
+                                document.getElementById("countPanel").innerHTML = stats.dbh_pcount.toFixed(0);
+                              });
                       
                       var objectId = feature.attributes.OBJECTID;
                       // Create an extent query on the layer view that will return to 3D extent of the feature
@@ -402,6 +555,18 @@
           });
         });
         //*** End of Highlight & Zoom to Stations*** //
+ 
+        const chartExpand = new Expand({
+              expandIconClass: "esri-icon-chart",
+              //expandTooltip: "Population pyramid chart",
+              expanded: false,
+              view: view,
+              content: document.getElementById("chartPanel")
+            });
+            view.ui.add(chartExpand, {
+                position: "bottom-right",
+                index:0
+            });
 
         // LayerList and Add legend to the LayerList
         // On-off feature layer tab
@@ -415,20 +580,22 @@
                   open: false
                 };
               }
-            }
+              }
           });
 
           view.ui.add(layerList, {
             position: "bottom-left"
           });
         // End of LayerList
-        // End of LayerList
   
         view.ui.empty("top-left");
         view.ui.add(titleDiv, "top-left");
 
         // Compass
-
+        var compass = new Compass({
+          view: view});
+          // adds the compass to the top left corner of the MapView
+        view.ui.add(compass, "bottom-left");
 
         // See-through-Ground        
           view.when(function() {
@@ -443,6 +610,13 @@
         });
           
         // Full screen logo
+        view.ui.add(
+            new Fullscreen({
+                view: view,
+                element: applicationDiv
+            }),
+            "bottom-left"
+        );
         
         // See through Gound
         document
@@ -453,26 +627,31 @@
 
         view.ui.add("menu", "bottom-left");
 
-
-
+          
       });
     </script>
   </head>
+
   <body>
     <div id="applicationDiv">
-      <div id="viewDiv">
-        <div id="titleDiv" class="esri-widget">Viaduct</div>
+      <div id="selected" class="esri-widget">test
+        <p id="percentComp"></p>
+        <p id="countPanel"></p>
       </div>
-          <div id="menu" class="esri-widget">
-        <input type="checkbox" id="opacityInput" checked />
-        <label for="opacityInput">See through ground</label>
-      </div>
-      <div class="panel-side esri-widget">
-        <h2>Stations List</h2>
-        <ul id="stationList">
-          <li>Loading&hellip;</li>
-        </ul>
-      </div>
-      </div>
+    <div id="viewDiv">
+      <div id="titleDiv" class="esri-widget">Status of Tree Cutting</div>
+    </div>
+        <div id="menu" class="esri-widget">
+      <input type="checkbox" id="opacityInput" checked />
+      <label for="opacityInput">See through ground</label>
+    </div>
+    <div class="panel-side esri-widget">
+      <h2>Stations List</h2>
+      <ul id="stationList">
+        <li>Loading&hellip;</li>
+      </ul>
+    </div>
+
+    </div>
   </body>
 </html>
