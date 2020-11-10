@@ -1,0 +1,520 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the timeslider-filter sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/timeslider-filter/index.html
+  -->
+<title>Filter features with TimeSlider - 4.15</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      #timeSlider {
+        position:absolute;
+        left: 500px;
+        right: 500px;
+        height: 3cm;
+        bottom: 10px;
+      }
+      
+
+      #infoDiv {
+        height: 300px;
+        padding: 10px;
+        width: 300px;
+        color: white;
+      }
+
+      #infoDiv span {
+        color: #f9c653;
+        font-size: 12pt;
+        font-weight: bolder;
+      }
+
+      #chartPanel {
+        background: rgb(0, 0, 0, 0);
+        font: "Avenir Next W00";
+        overflow: auto;
+        padding: 10px;
+        width: 550px;
+        height: 250px;
+      }
+
+      #chartdiv {
+          width: 100%;
+          height: 100%;
+          }
+
+      p {
+        color:gray;
+        text-align: right;
+        font-size: 10pt;
+      }
+
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.15/esri/themes/dark/main.css"
+    />
+        <!-- Resources -->
+        <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+        <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+        <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+        <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+        <script src="https://js.arcgis.com/4.17/"></script>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/Basemap",
+        "esri/views/MapView",
+        "esri/views/SceneView",
+        "esri/layers/SceneLayer",
+        "esri/layers/FeatureLayer",
+        "esri/layers/GeoJSONLayer",
+        "esri/widgets/TimeSlider",
+        "esri/widgets/Expand",
+        "esri/widgets/Legend",
+        "esri/widgets/support/DatePicker",
+        "esri/layers/VectorTileLayer",
+        "esri/tasks/QueryTask",
+        "esri/tasks/support/Query",
+        "esri/widgets/Legend",
+        "esri/widgets/LayerList",
+        "esri/widgets/Fullscreen",
+        "esri/layers/MapImageLayer"
+      ], function(Map, Basemap, MapView, SceneView, SceneLayer, FeatureLayer, GeoJSONLayer,
+      TimeSlider, Expand, Legend, DatePicker, VectorTileLayer, QueryTask, Query, Legend, LayerList, Fullscreen, MapImageLayer) {
+
+let chartLayerView;
+         var basemap = new Basemap({
+        baseLayers: [
+          new VectorTileLayer({
+            portalItem: {
+              id: "3a62040541b84f528da3ac7b80cf4a63" 
+            }
+          })
+        ]
+      });
+      
+      var map = new Map({
+          basemap: basemap
+          //ground: "world-elevation"
+        });
+        
+        var view = new MapView({
+          map: map,
+          container: "viewDiv",
+          zoom: 14,
+          center: [121.0322874, 14.6750462]
+        });
+
+
+    // Lot
+
+    const layer = new FeatureLayer({
+          portalItem: {
+            id: "b4a03020aeb34c8b8d6cf890b2b74697"
+          },
+          outFields: ["*"]
+        });
+       // var layer = new FeatureLayer({
+       //       url: "https://services7.arcgis.com/JhEuig8xQsFmWZKH/arcgis/rest/services/Simplified_Status_test/FeatureServer",
+       // });
+        //layer.listMode = "hide";
+        map.add(layer);
+
+    // Construction Boundary
+    var boundary = new FeatureLayer({
+      portalItem: {
+        id: "4f277a31d65943bc826f6965a6c49e0e",
+        portal: {
+          url: "https://mmspgc-gis.mmspgc.local/portal"
+        }
+      }
+    });
+    boundary.listMode = "hide";
+    map.add(boundary);
+
+    // Station
+        var stationLayer = new FeatureLayer({
+          portalItem: {
+            id: "24dd34a552cb466b8bdeba72247b13e7",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          }
+        });
+        stationLayer.listMode = "hide";
+        map.add(stationLayer);
+
+
+    // PO Section Alignment Layer
+    const labelClassAlign = {  // autocasts as new LabelClass()
+  symbol: {
+    type: "text",  // autocasts as new TextSymbol()
+    color: "white",
+    haloColor: "black",
+    haloSize: 1,
+    font: {  // autocast as new Font()
+       family: "Ubuntu Mono",
+       size: 9,
+       weight: "normal"
+     },
+     callout: {
+                  type: "balloon", // autocasts as new LineCallout3D()
+                  size: 0.5,
+                  color: [0, 0, 0],
+                  border: {
+                    color: [255, 255, 255, 0.7]
+                  }
+                }
+  },
+  labelPlacement: "always-horizontal",
+  labelExpressionInfo: {
+    expression: "$feature.Layer"
+  }
+    };
+        var poalignLayer = new FeatureLayer({
+          portalItem: {
+            id: "233d696816754f9ab896ae61c1df6996",
+            portal: {
+              url: "https://mmspgc-gis.mmspgc.local/portal"
+            }
+          },
+          labelingInfo: [labelClassAlign],
+          opacity: 0.3,
+          title: "Alignment"
+        });
+        map.add(poalignLayer);
+
+        am4core.ready(function() {
+
+am4core.useTheme(am4themes_animated);
+// Chart
+am4core.ready(function() {
+    // Stacked horizontal chart using amCharts
+    // Paid
+    var total_paid_depot = {
+    onStatisticField: "CASE WHEN (Station = 'Depot'and StatusNVS3 = 1) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_paid_depot",
+    statisticType: "sum"
+    };
+
+    var total_paid_TS = {
+    onStatisticField: "CASE WHEN (Station = 'Tandang Sora'and StatusNVS3 = 1) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_paid_TS",
+    statisticType: "sum"
+    };
+
+    var total_paid_QH = {
+    onStatisticField: "CASE WHEN (Station = 'Quirino Highway'and StatusNVS3 = 1) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_paid_QH",
+    statisticType: "sum"
+    };
+
+    // Payment Processing
+    var total_payp_depot = {
+    onStatisticField: "CASE WHEN (Station = 'Depot'and StatusNVS3 = 2) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_payp_depot",
+    statisticType: "sum"
+    };
+
+    var total_payp_TS = {
+    onStatisticField: "CASE WHEN (Station = 'Tandang Sora'and StatusNVS3 = 2) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_payp_TS",
+    statisticType: "sum"
+    };
+
+    var total_payp_QH = {
+    onStatisticField: "CASE WHEN (Station = 'Quirino Highway'and StatusNVS3 = 2) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_payp_QH",
+    statisticType: "sum"
+    };
+
+    // Legal pass
+    var total_legalp_depot = {
+    onStatisticField: "CASE WHEN (Station = 'Depot'and StatusNVS3 = 3) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_legalp_depot",
+    statisticType: "sum"
+    };
+
+    var total_legalp_TS = {
+    onStatisticField: "CASE WHEN (Station = 'Tandang Sora'and StatusNVS3 = 3) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_legalp_TS",
+    statisticType: "sum"
+    };
+
+    var total_legalp_QH = {
+    onStatisticField: "CASE WHEN (Station = 'Quirino Highway'and StatusNVS3 = 3) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_legalp_QH",
+    statisticType: "sum"
+    };
+
+    // OTB
+    var total_otb_depot = {
+    onStatisticField: "CASE WHEN (Station = 'Depot'and StatusNVS3 = 4) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_otb_depot",
+    statisticType: "sum"
+    };
+
+    var total_otb_TS = {
+    onStatisticField: "CASE WHEN (Station = 'Tandang Sora'and StatusNVS3 = 4) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_otb_TS",
+    statisticType: "sum"
+    };
+
+    var total_otb_QH = {
+    onStatisticField: "CASE WHEN (Station = 'Quirino Highway'and StatusNVS3 = 4) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_otb_QH",
+    statisticType: "sum"
+    };
+
+    // Expropriation
+    var total_expro_depot = {
+    onStatisticField: "CASE WHEN (Station = 'Depot'and StatusNVS3 = 5) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_expro_depot",
+    statisticType: "sum"
+    };
+
+    var total_expro_TS = {
+    onStatisticField: "CASE WHEN (Station = 'Tandang Sora'and StatusNVS3 = 5) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_expro_TS",
+    statisticType: "sum"
+    };
+
+    var total_expro_QH = {
+    onStatisticField: "CASE WHEN (Station = 'Quirino Highway'and StatusNVS3 = 5) THEN 1 ELSE 0 END",  // service field for 2015 population
+    outStatisticFieldName: "total_expro_QH",
+    statisticType: "sum"
+    };
+
+    var query = layer.createQuery();
+//query.where = "Stations = 'Tandang Sora'"; // Selected Stations
+query.outStatistics = [total_paid_depot, total_paid_TS, total_paid_QH,
+                       total_payp_depot, total_payp_TS, total_payp_QH,
+                       total_legalp_depot, total_legalp_TS, total_legalp_QH,
+                       total_otb_depot, total_otb_TS, total_otb_QH,
+                      total_expro_depot, total_expro_TS, total_expro_QH];
+query.returnGeometry = true;
+
+layer.queryFeatures(query)
+    .then(function(response){ 
+        var stats = response.features[0].attributes;
+
+        // Paid
+        const paid_depot = stats.total_paid_depot;
+        const paid_TS = stats.total_paid_TS;
+        const paid_QH = stats.total_paid_QH;
+
+        // Payment Processing
+        const payp_depot = stats.total_payp_depot;
+        const payp_TS = stats.total_payp_TS;
+        const payp_QH = stats.total_payp_QH;
+
+        // Legal Pass
+        const legalp_depot = stats.total_legalp_depot;
+        const legalp_TS = stats.total_legalp_TS;
+        const legalp_QH = stats.total_legalp_QH;
+
+        // OTB
+        const otb_depot = stats.total_otb_depot;
+        const otb_TS = stats.total_otb_TS;
+        const otb_QH = stats.total_otb_QH;
+
+        // Expropriation
+        const expro_depot = stats.total_expro_depot;
+        const expro_TS = stats.total_expro_TS;
+        const expro_QH = stats.total_expro_QH;
+
+
+var chart = am4core.create("chartdiv", am4charts.XYChart);
+chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
+
+chart.data = [
+  {
+    category: "For Paid",
+    value1: paid_depot,
+    value2: paid_TS,
+    value3: paid_QH
+  },
+  {
+    category: "For Payn't Process",
+    value1: payp_depot,
+    value2: payp_TS,
+    value3: payp_QH
+  },
+  {
+    category: "For Legal Pass",
+    value1: legalp_depot,
+    value2: legalp_TS,
+    value3: legalp_QH
+  },
+  {
+    category: "For Otb",
+    value1: otb_depot,
+    value2: otb_TS,
+    value3: otb_QH
+  },
+  {
+    category: "For Expro",
+    value1: expro_depot,
+    value2: expro_TS,
+    value3: expro_QH
+  }
+];
+
+
+chart.colors.step = 2;
+chart.padding(10, 10, 10, 10);
+chart.legend = new am4charts.Legend();
+chart.legend.position = "right";
+chart.legend.labels.template.fontSize = 10;
+chart.legend.labels.template.fill = "#ffffff";
+
+
+var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+categoryAxis.dataFields.category = "category";
+categoryAxis.renderer.grid.template.location = 0;
+categoryAxis.renderer.labels.template.fontSize = 11;
+categoryAxis.renderer.labels.template.fill = "#ffffff";
+categoryAxis.renderer.minGridDistance = 5; //can change label
+
+var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+valueAxis.min = 0;
+valueAxis.max = 100;
+valueAxis.strictMinMax = true;
+valueAxis.calculateTotals = true;
+valueAxis.renderer.minWidth = 50;
+valueAxis.renderer.labels.template.fontSize = 11;
+valueAxis.renderer.labels.template.fill = "#ffffff";
+
+//var title = chart.titles.create();
+//title.text = "Percent Completion by Viaduct Part";
+////title.fontSize = 10;
+//title.marginBottom = 5;
+
+//document.getElementById("chartles").innerHTML = "Percent Completion by Viaduct Part";
+
+function createSeries(field, name) {
+  var series = chart.series.push(new am4charts.ColumnSeries());
+  series.dataFields.valueX = field;
+  series.dataFields.categoryY = "category";
+  series.stacked = true;
+  series.dataFields.valueXShow = "totalPercent";
+  series.dataItems.template.locations.categoryY = 0.5;
+  series.name = name;
+  if (name == 1){
+    series.fill = am4core.color("#707070");
+  } else if (name == 2){
+    series.fill = am4core.color("#c2c2c2");
+  } else if (name == 3){
+    series.fill = am4core.color("#0070ff");
+  }
+  series.columns.template.width = am4core.percent(60);
+  series.columns.template.tooltipText = "{name}: {valueX.totalPercent.formatNumber('#.')}%"
+
+  //var title = document.getElementById("title");
+
+  series.columns.template.events.on("hit", function(ev) {
+        //title.innerHTML = ev.target.dataItem.component.name + ", " + ev.target.dataItem.categoryY;
+        //title.innerHTML = ev.target.dataItem.component.name;
+        var selectedC = ev.target.dataItem.component.name;      
+
+        // Filter
+          view.whenLayerView(layer).then(function (layerView) {
+            layerView.filter = {
+              where: "Station = '" + selectedC + "'" + " AND " + "StatusNVS3 = 1"
+              };
+
+          });
+    }, this);
+
+  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+  labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.value.formatNumber('#.')}";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 10;
+  labelBullet.locationX = 0.5;
+}
+    
+createSeries("value1", "Depot");
+createSeries("value2", "Tandang Sora");
+createSeries("value3", "Quirino Highway");
+
+}); // end am4core.ready()
+
+});
+
+//
+const chartElement = document.getElementById("chartPanel");
+
+
+//
+
+
+const chartExpand = new Expand({
+              expandIconClass: "esri-icon-chart",
+              //expandTooltip: "Population pyramid chart",
+              expanded: false,
+              view: view,
+              content: chartElement//document.getElementById("chartPanel")
+            });
+            view.ui.add(chartExpand, {
+                position: "bottom-right",
+                index:0
+            });
+
+      var layerList = new LayerList({
+            view: view,
+            listItemCreatedFunction: function(event) {
+              const item = event.item;
+              if (item.layer.type != "group") {
+                item.panel = {
+                  content: "legend",
+                  open: false
+                };
+              }
+            }
+          });
+
+          view.ui.add(layerList, {
+            position: "bottom-left"
+          });
+
+
+        // Full screen logo
+        view.ui.add(
+            new Fullscreen({
+                view: view,
+                element: viewDiv
+            }),
+            "top-left"
+        );
+});
+});
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+    <div id="chartPanel">
+        <div id="chartdiv"></div>
+    </div>
+  </body>
+</html>
