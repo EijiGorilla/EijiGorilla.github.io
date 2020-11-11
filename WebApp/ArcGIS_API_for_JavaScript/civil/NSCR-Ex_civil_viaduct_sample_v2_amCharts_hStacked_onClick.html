@@ -233,7 +233,8 @@
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol,
                   TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable, Compass, TimeExtent) {
-     let featureLayer;
+
+     let chartLayerView;
         const features = [];
 
         var basemap = new Basemap({
@@ -372,7 +373,14 @@
           });
           map.add(viaductLayer);
 
-// Create a Bar chart to calculate % completion for each viaduct sample
+
+
+ // Create a Bar chart to calculate % completion for each viaduct sample
+am4core.ready(function() {
+am4core.useTheme(am4themes_animated);
+am4core.ready(function() {
+// Themes end
+
 // Pile
 var total_pile_tobeC = {
     onStatisticField: "CASE WHEN (Layer = 'PILE' and Status1 = 1) THEN 1 ELSE 0 END",  // service field for 2015 population
@@ -484,7 +492,6 @@ var total_precast_delayed = {
     };
 
 
-//
 var query = viaductLayer.createQuery();
 //query.where = "Stations = 'Tandang Sora'"; // Selected Stations
 query.outStatistics = [total_pile_tobeC, total_pile_underC, total_pile_done, total_pile_delayed,
@@ -492,6 +499,8 @@ query.outStatistics = [total_pile_tobeC, total_pile_underC, total_pile_done, tot
                        total_pier_tobeC, total_pier_underC, total_pier_done, total_pier_delayed,
                        total_pierhead_tobeC, total_pierhead_underC, total_pierhead_done, total_pierhead_delayed,
                        total_precast_tobeC, total_precast_underC, total_precast_done, total_precast_delayed];
+query.returnGeometry = true;
+
 viaductLayer.queryFeatures(query)
     .then(function(response){
         var stats = response.features[0].attributes;
@@ -526,13 +535,7 @@ viaductLayer.queryFeatures(query)
         const precast_done = stats.total_precast_done;
         const precast_delayed = stats.total_precast_delayed;
 
-// Chart
-am4core.ready(function() {
-
-// Themes begin
-am4core.useTheme(am4themes_animated);
-// Themes end
-
+ // Chart //
 var chart = am4core.create("chartdiv", am4charts.XYChart);
 chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
 
@@ -598,12 +601,6 @@ valueAxis.renderer.minWidth = 50;
 valueAxis.renderer.labels.template.fontSize = 11;
 valueAxis.renderer.labels.template.fill = "#ffffff";
 
-//var title = chart.titles.create();
-//title.text = "Percent Completion by Viaduct Part";
-////title.fontSize = 10;
-//title.marginBottom = 5;
-
-//document.getElementById("chartles").innerHTML = "Percent Completion by Viaduct Part";
 
 function createSeries(field, name) {
   var series = chart.series.push(new am4charts.ColumnSeries());
@@ -620,13 +617,60 @@ function createSeries(field, name) {
   } else if (name == "Completed"){
     series.fill = am4core.color("#0070ff");
   } else {
-    series.fill = am4core.color("#ff0000");
+    series.fill = am4core.color("#ff0000"); // delayed
   }
   series.columns.template.width = am4core.percent(60);
   series.columns.template.tooltipText = "{name}: {valueX.totalPercent.formatNumber('#.')}%"
 
-  
- //
+  // Click chart and filter, update maps
+  const chartElement = document.getElementById("chartPanel");
+  series.columns.template.events.on("hit", filterByChart, this);
+  function filterByChart(ev) {
+    const selectedC = ev.target.dataItem.component.name;
+    const selectedP = ev.target.dataItem.categoryY;
+
+
+    // Layer
+    if (selectedP == "Precast") {
+      selectedLayer = "PRECAST";
+    } else if (selectedP == "Pier head") {
+      selectedLayer = "PIER_head";
+    } else if (selectedP == "Pier") {
+      selectedLayer = "PIER";
+    } else if (selectedP == "Pilecap") {
+      selectedLayer = "PILECAP";
+    } else if (selectedP == "Pile") {
+      selectedLayer = "PILE";
+    } else {
+      selectedLayer = null;
+    }
+
+    chartLayerView.filter = {
+      where: "Layer = '" + selectedLayer + "'"// + " AND " +  "Status1 =" + selectedStatus
+    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+  };
+  } // End of filterByChart
+
+  view.whenLayerView(viaductLayer).then(function (layerView) {
+  chartLayerView = layerView;
+  chartElement.style.visibility = "visible";
+
+  const chartExpand = new Expand({
+              expandIconClass: "esri-icon-chart",
+              //expandTooltip: "Population pyramid chart",
+              expanded: false,
+              view: view,
+              content: chartElement//document.getElementById("chartPanel")
+            });
+  chartExpand.watch("expanded", function() {
+    if(!chartExpand.expanded) {
+      chartLayerView.filter = null;
+    }
+  });
+  view.ui.add(chartExpand, "bottom-right");
+});
+// End of LayerView
+
 
   var labelBullet = series.bullets.push(new am4charts.LabelBullet());
   labelBullet.locationX = 0.5;
@@ -717,17 +761,6 @@ createSeries("value4", "Delayed");
         });
         //*** End of Highlight & Zoom to Stations*** //
 
-        const chartExpand = new Expand({
-              expandIconClass: "esri-icon-chart",
-              //expandTooltip: "Population pyramid chart",
-              expanded: false,
-              view: view,
-              content: document.getElementById("chartPanel")
-            });
-            view.ui.add(chartExpand, {
-                position: "bottom-right",
-                index:0
-            });
 
         // LayerList and Add legend to the LayerList
         // On-off feature layer tab
@@ -780,7 +813,7 @@ createSeries("value4", "Delayed");
         view.ui.add("menu", "bottom-left");
 
 
-
+      });
       });
     </script>
   </head>
