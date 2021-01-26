@@ -388,15 +388,321 @@
         stationLayer.listMode = "hide";
         map.add(stationLayer, 0);
 
-        var utilExisting = new FeatureLayer({
+///////////////////////////////////////////////////////////////
+ // Practice to render utility lines in 3D with unique color //
+ ///////////////////////////////////////////////////////////////
+ const options = { // Circle
+          profile: "circle",
+          cap: "none",
+          join: "miter",
+          width: 0.5,
+          height: 0.5,
+          color: [200, 200, 200],
+          profileRotation: "all"
+        };
+
+        const options1 = { // rectangular
+          profile: "quad",
+          cap: "none",
+          join: "miter",
+          width: 0.5,
+          height: 0.5,
+          color: [200, 200, 200],
+          profileRotation: "heading"
+        };
+
+        /* The colors used for the each transit line */
+        const colors = {
+          "1": [225, 225, 225, 0.1], // To be Constructed
+          "2": [0, 197, 255, 0.5], // Completed
+          "3": [255, 0, 0, 0.3], // Delayed
+        };
+
+       
+ var testLine = new FeatureLayer({
+   portalItem: {
+     id: "ad92e39d95464dc8820b8e75e227cf13"
+   },
+   title: "testLine",
+   elevationInfo: {
+     mode: "absolute-height",
+     featureExpressionInfo: {
+       expression: "$feature.Height"
+  },
+  unit: "meters"
+     //offset: 0
+   },
+   outFields: ["*"]
+ });
+ map.add(testLine);
+
+
+        function rendertestLine() {
+          const renderer = new UniqueValueRenderer({
+            field: "Id"
+          });
+
+          for (let property in colors) {
+            if (property == '1') {
+              if (colors.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "line-3d",
+                  symbolLayers: [
+                    {
+                      type: "path",
+                      profile: options1.profile,
+                      material: {
+                        color: colors[property]
+                      },
+                      width: options1.width,
+                      height: options1.height,
+                      join: options1.join,
+                      cap: options1.cap,
+                      anchor: "bottom",
+                      profileRotation: options1.profileRotation
+                    }
+                  ]
+                }
+              });
+            }
+            } else {// end of 'property == '1'
+            if (colors.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "line-3d",
+                  symbolLayers: [
+                    {
+                      type: "path",
+                      profile: options.profile,
+                      material: {
+                        color: colors[property]
+                      },
+                      width: options.width,
+                      height: options.height,
+                      join: options.join,
+                      cap: options.cap,
+                      anchor: "bottom",
+                      profileRotation: options.profileRotation
+                    }
+                  ]
+                }
+              });
+            }
+            }
+            
+
+          }
+
+          testLine.renderer = renderer;
+        }
+
+        rendertestLine();
+
+// Points
+
+var testUtilPtRenderer = {
+          type: "unique-value", //"unique-value", "simple"
+          Field: "Type",
+          defaultSymbol: utilPtSymbolInfra("Powerline_Pole"),
+          visualVariables: [
+            {
+              type: "size",
+              axis: "height",
+              field: "SIZE",
+              valueUnit: "meters"
+            },
+            {
+              type: "rotation",
+              field: "ROTATION"
+            }
+          ]
+        };
+
+// Render user-defined symbols above points
+        // Renderer for monitor buildings
+               // verticalOffset shifts the symbol vertically
+               var verticalOffset = {
+          screenLength: 40,
+          maxWorldLength: 200,
+          minWorldLength: 35
+        };
+
+          // Function that automatically creates the symbol for the points of interest
+          function getUniqueValueSymbol(name, color) {
+          // The point symbol is visualized with an icon symbol. To clearly see the location of the point
+          // we displace the icon vertically and add a callout line. The line connects the offseted symbol with the location
+          // of the point feature.
+          return {
+            type: "point-3d", // autocasts as new PointSymbol3D()
+            symbolLayers: [
+              {
+                type: "icon", // autocasts as new IconSymbol3DLayer()
+                resource: {
+                  href: name
+                },
+                size: 20,
+                outline: {
+                  color: "white",
+                  size: 2
+                }
+              }
+            ],
+
+            verticalOffset: verticalOffset,
+
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: "white",
+              size: 2,
+              border: {
+                color: color
+              }
+            }
+          };
+        }
+
+        var testUtilPtSymbolRenderer = {
+          type: "unique-value", // autocasts as new UniqueValueRenderer()
+          field: "Company",
+          uniqueValueInfos: [
+            {
+              value: "Meralco",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/hospital_icon.png",
+                "#D13470"
+              )
+            },
+            {
+              value: "Globe",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/factory.png",
+                "#D13470"
+              )
+            }
+          ]
+        };
+
+
+
+//
+var testUtilPt = new FeatureLayer({
+  portalItem: {
+    id: "a6af768e0591468c89dfd7781a7dcbb0"
+  },
+  title: "Utility 3D Render Test",
+  elevationInfo: {
+     mode: "absolute-height",
+     unit: "meters"
+     //offset: 0
+   },
+   outFields: ["*"],
+   renderer: testUtilPtRenderer
+});
+map.add(testUtilPt);
+
+var testUtilPt1 = new FeatureLayer({
+  portalItem: {
+    id: "a6af768e0591468c89dfd7781a7dcbb0"
+  },
+  title: "Utility 3D Render Test",
+  elevationInfo: {
+     mode: "absolute-height",
+     unit: "meters"
+     //offset: 0
+   },
+   outFields: ["*"],
+   renderer: testUtilPtSymbolRenderer
+});
+testUtilPt1.listMode = "hide";
+map.add(testUtilPt1);
+
+
+/////////////////// UTILITY POINTS and LINES /////////////////////////////////    
+
+// Utility points Symbol
+/// https://developers.arcgis.com/javascript/latest/guide/esri-web-style-symbols-3d/
+
+function utilPtSymbolInfra(name) {
+  return {
+    type: "web-style",
+    name: name,
+    styleName: "EsriInfrastructureStyle"
+  };
+}
+
+function utilPtSymbolStreet(name) {
+  return {
+    type: "web-style",
+    name: name,
+    styleName: "EsriRealisticStreetSceneStyle"
+  };
+}
+
+// Uitlity Points Renderer
+
+
+        var utilPointRel = new FeatureLayer({
             portalItem: {
                 id: "c8c8450b508f4a02b9b743bc82d9a106"
             },
-            layerId: 1
+            layerId: 0,
+            title: "Relocated Points"
         });
-        map.add(utilExisting);
+        map.add(utilPointRel);
 
+//// Point Existing
+        var utilPointExist = new FeatureLayer({
+            portalItem: {
+                id: "c8c8450b508f4a02b9b743bc82d9a106"
+            },
+            layerId: 1,
+            title: "Existing Points"
+        });
+        map.add(utilPointExist);
 
+//// Status Arrow
+var utilPointArrow = new FeatureLayer({
+            portalItem: {
+                id: "3f54efcafa884f67b2dccbc97b22a7ba"
+            },
+            title: "Relocation Status (Point)"
+        });
+        utilPointArrow.listMode = "hide";
+        map.add(utilPointArrow);
+
+//// Utility Line Arrow
+var utilLineArrow = new FeatureLayer({
+  portalItem: {
+    id: "baac25774ae8401c8233d24dc41f104d"
+  },
+  layerId: 0,
+  title: "Relocation Status (Line)"
+});
+utilLineArrow.listMode = "hide";
+map.add(utilLineArrow);
+
+//// Utility Line Existing
+var utilLineExist = new FeatureLayer({
+  portalItem: {
+    id: "baac25774ae8401c8233d24dc41f104d"
+  },
+  layerId: 4,
+  title: "Existing Line"
+});
+map.add(utilLineExist);
+
+//// Utility Line Relocated
+var utilLineRel = new FeatureLayer({
+  portalItem: {
+    id: "baac25774ae8401c8233d24dc41f104d"
+  },
+  layerId: 2,
+  title: "Relocated Line"
+});
+map.add(utilLineRel);
 
 /////////////////////////////////////////////////////////////////////////////////////
           //*** Highlight and Zoom to Stations*** //
