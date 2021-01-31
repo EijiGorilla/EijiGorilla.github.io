@@ -418,7 +418,48 @@
           "3": [255, 0, 0, 0.3], // Delayed
         };
 
-       
+        var testLineLabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d",// autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: {
+                  color: "white"
+                },
+                size: 20,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  //weight: "bold"
+                },
+              }
+            ],
+            
+            verticalOffset: {
+              screenLength: 40,
+              maxWorldLength: 10,
+              minWorldLength: 20
+            },
+            
+            callout: {
+              type: "line",
+              size: 0.5,
+              color: [0, 0, 0],
+              border: {
+                color: [255, 255, 255, 0.7]
+              }
+            }
+
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: 'DefaultValue($feature.Id, "no data")'
+          }
+        });
+
  var testLine = new FeatureLayer({
    portalItem: {
      id: "ad92e39d95464dc8820b8e75e227cf13"
@@ -432,7 +473,8 @@
   unit: "meters"
      //offset: 0
    },
-   outFields: ["*"]
+   outFields: ["*"],
+   labelingInfo: [testLineLabelClass]
  });
  map.add(testLine);
 
@@ -503,6 +545,26 @@
 
 // Points
 
+// Utility points Symbol
+/// https://developers.arcgis.com/javascript/latest/guide/esri-web-style-symbols-3d/
+
+function utilPtSymbolInfra(name) {
+  return {
+    type: "web-style",
+    name: name,
+    styleName: "EsriInfrastructureStyle"
+  };
+}
+
+function utilPtSymbolStreet(name) {
+  return {
+    type: "web-style",
+    name: name,
+    styleName: "EsriRealisticStreetSceneStyle"
+  };
+}
+
+/*
 var testUtilPtRenderer = {
           type: "unique-value", //"unique-value", "simple"
           Field: "Type",
@@ -520,7 +582,40 @@ var testUtilPtRenderer = {
             }
           ]
         };
+*/
 
+
+// custom 3D Web Style
+var symbolUtil = {
+  type: "web-style",  // autocasts as new WebStyleSymbol()
+  styleUrl: "https://www.railway-sector.maps.arcgis.com/sharing/rest/content/items/7cc86329dd2e46229c52d292e660957b/data",
+  name: "3D_Utility_Pole" // note this name refers to Key when writing Description in ArcGIS Pro
+};
+
+//
+var testUtilPt = new FeatureLayer({
+  portalItem: {
+    id: "a6af768e0591468c89dfd7781a7dcbb0"
+  },
+  title: "Utility 3D Render Test",
+   outFields: ["*"]
+});
+map.add(testUtilPt);
+
+testUtilPt.renderer = {
+  type: "simple",
+  symbol: symbolUtil,
+  visualVariables: [{
+    type: "size",
+    field: "Height",
+    axis: "height",
+    valueUnit: "meters"
+  }]
+};
+
+////////////////////////////////////////////////////
+// Test Utility Points: Picture symbols + Label 3D//
+////////////////////////////////////////////////////
 // Render user-defined symbols above points
         // Renderer for monitor buildings
                // verticalOffset shifts the symbol vertically
@@ -555,10 +650,10 @@ var testUtilPtRenderer = {
 
             callout: {
               type: "line", // autocasts as new LineCallout3D()
-              color: "white",
-              size: 2,
+              color: "grey",
+              size: 1,
               border: {
-                color: color
+                color: "grey"
               }
             }
           };
@@ -585,23 +680,36 @@ var testUtilPtRenderer = {
           ]
         };
 
-
-
-//
-var testUtilPt = new FeatureLayer({
-  portalItem: {
-    id: "a6af768e0591468c89dfd7781a7dcbb0"
-  },
-  title: "Utility 3D Render Test",
-  elevationInfo: {
-     mode: "absolute-height",
-     unit: "meters"
-     //offset: 0
-   },
-   outFields: ["*"],
-   renderer: testUtilPtRenderer
-});
-map.add(testUtilPt);
+        // Label
+        var labelUtilPtSymbol = {
+          type: "label-3d", // autocasts as new LabelSymbol3D()
+          labelPlacement: "above-center",
+              labelExpressionInfo: {
+                value: "{Company}"
+              },
+  symbolLayers: [
+    {
+      type: "text", // autocasts as new TextSymbol3DLayer()
+      material: {
+        color: "black"
+      },
+      halo: {
+        color: [255, 255, 255, 0.7],
+        size: 2
+      },
+      size: 10
+    }
+  ],
+  verticalOffset: verticalOffset, 
+  callout: {
+    type: "line", // autocasts as new LineCallout3D()
+    size: 0.5,
+    color: [0, 0, 0, 1],
+    border: {
+      color: [0, 0, 0]
+    }
+  }
+        }
 
 var testUtilPt1 = new FeatureLayer({
   portalItem: {
@@ -614,32 +722,14 @@ var testUtilPt1 = new FeatureLayer({
      //offset: 0
    },
    outFields: ["*"],
-   renderer: testUtilPtSymbolRenderer
+   renderer: testUtilPtSymbolRenderer,
+   labelingInfo: [labelUtilPtSymbol]
 });
 testUtilPt1.listMode = "hide";
 map.add(testUtilPt1);
 
 
 /////////////////// UTILITY POINTS and LINES /////////////////////////////////    
-
-// Utility points Symbol
-/// https://developers.arcgis.com/javascript/latest/guide/esri-web-style-symbols-3d/
-
-function utilPtSymbolInfra(name) {
-  return {
-    type: "web-style",
-    name: name,
-    styleName: "EsriInfrastructureStyle"
-  };
-}
-
-function utilPtSymbolStreet(name) {
-  return {
-    type: "web-style",
-    name: name,
-    styleName: "EsriRealisticStreetSceneStyle"
-  };
-}
 
 // Uitlity Points Renderer
 
