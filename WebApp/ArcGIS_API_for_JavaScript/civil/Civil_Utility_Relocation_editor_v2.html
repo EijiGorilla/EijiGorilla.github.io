@@ -625,7 +625,7 @@ testUtilPt.renderer = {
         };
 
           // Function that automatically creates the symbol for the points of interest
-          function getUniqueValueSymbol(name, color) {
+          function getUniqueValueSymbol(name, color, sizeS) {
           // The point symbol is visualized with an icon symbol. To clearly see the location of the point
           // we displace the icon vertically and add a callout line. The line connects the offseted symbol with the location
           // of the point feature.
@@ -637,7 +637,7 @@ testUtilPt.renderer = {
                 resource: {
                   href: name
                 },
-                size: 20,
+                size: sizeS,
                 outline: {
                   color: "white",
                   size: 2
@@ -660,35 +660,47 @@ testUtilPt.renderer = {
 
         var testUtilPtSymbolRenderer = {
           type: "unique-value", // autocasts as new UniqueValueRenderer()
-          valueExpression: "When($feature.Status == 1 && $feature.LAYER == 'Demolished', 'Complete', $feature.LAYER == 'Demolished', 'Demolished', $feature.Company)",
+          valueExpression: "When($feature.Status == 1 && $feature.LAYER == 'Demolished', 'DemolishComplete', $feature.LAYER == 'Demolished' && $feature.Status == 0, 'DemolishIncomplete', $feature.Status == 0 && $feature.LAYER == 'Relocation', 'RelocIncomplete',$feature.Company)",
           //field: "Company",
           uniqueValueInfos: [
             {
-              value: "Demolished",
+              value: "DemolishIncomplete",
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/Demolished.png",
-                "#D13470"
+                "#D13470",
+                20
               )
             },
             {
-              value: "Complete",
+              value: "DemolishComplete",
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/DemolishComplete.png",
-                "#D13470"
+                "#D13470",
+                35
+                )
+            },
+            {
+              value: "RelocIncomplete",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/Relocatd.png",
+                "#D13470",
+                35
                 )
             },
             {
               value: "Meralco",
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/MERALCO.png",
-                "#D13470"
+                "#D13470",
+                25
               )
             },
             {
               value: "Globe",
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/factory.png",
-                "#D13470"
+                "#D13470",
+                25
               )
             }
           ]
@@ -763,6 +775,9 @@ var testUtilPt1 = new FeatureLayer({
            },
            {
              fieldName: "Status"
+           },
+           {
+             fieldName: "LAYER"
            }
          ]
        }
