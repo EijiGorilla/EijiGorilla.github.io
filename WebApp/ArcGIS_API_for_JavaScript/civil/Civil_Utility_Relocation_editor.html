@@ -255,7 +255,6 @@
                   StatisticDefinition, WebStyleSymbol,
                   TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable, Compass, TimeExtent, Sublayer) {
 
-     let chartLayerView;
         const features = [];
 
         var basemap = new Basemap({
@@ -595,7 +594,7 @@ var symbolUtil = {
 //
 var testUtilPt = new FeatureLayer({
   portalItem: {
-    id: "a6af768e0591468c89dfd7781a7dcbb0"
+    id: "458668635ce042f48515b89032e2ef16"
   },
   title: "Utility 3D Render Test",
    outFields: ["*"]
@@ -722,7 +721,7 @@ testUtilPt.renderer = {
 
 var testUtilPt1 = new FeatureLayer({
   portalItem: {
-    id: "a6af768e0591468c89dfd7781a7dcbb0"
+    id: "458668635ce042f48515b89032e2ef16"
   },
   title: "Utility 3D Render Test",
   elevationInfo: {
@@ -732,11 +731,79 @@ var testUtilPt1 = new FeatureLayer({
    },
    outFields: ["*"],
    renderer: testUtilPtSymbolRenderer,
-   labelingInfo: [labelUtilPtSymbol]
+   labelingInfo: [labelUtilPtSymbol],
+   popupTemplate: {
+     title: "{Id}",
+     lastEditInfoEnabled: false,
+     returnGeometry: true,
+     actions: [
+       {
+        id: "find-relocated",
+        title: "Go to Relocated"
+       }
+     ],
+     content: [
+       {
+         type: "fields",
+         fieldInfos: [
+           {
+             fieldName: "Id"
+           },
+           {
+             fieldName: "Company"
+           },
+           {
+             fieldName: "Height"
+           }
+         ]
+       }
+     ]
+   }
 });
 testUtilPt1.listMode = "hide";
 map.add(testUtilPt1);
 
+
+view.when(function() {
+  var popup = view.popup;
+  popup.viewModel.on("trigger-action", function(event) {
+    if (event.action.id == "find-relocated") {
+      var attributes = popup.viewModel.selectedFeature.attributes;
+      var info = attributes.Id;
+      var objID = attributes.OBJECTID;
+      var queryExt = new Query({
+        objectIds: [objID]
+      });
+
+      testUtilPt1.queryExtent(queryExt).then(function(result) {
+        if (result.extent) {
+          view.goTo(result.extent.expand(50))
+        }
+      });
+
+      if (highlight) {
+        highlight.remove();
+      }
+      highlight = testUtilPt1.highlight([objID]);
+
+
+
+       
+
+      titleDiv.innerHTML = info;
+
+      /*
+
+      view.goTo({
+        center: view.center,
+        zoom: view.zoom - 2
+
+      });
+      */
+
+    }
+  });
+});
 
 /////////////////// UTILITY POINTS and LINES /////////////////////////////////    
 
