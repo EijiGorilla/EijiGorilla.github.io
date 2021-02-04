@@ -382,50 +382,43 @@ var labelUtilPtSymbol = {
       color: [0, 0, 0]
     }
   }
-}
+};
 
 // Utility Line Label
-var testLineLabelClass = new LabelClass({
-          symbol: {
-            type: "label-3d",// autocasts as new LabelSymbol3D()
-            symbolLayers: [
-              {
-                type: "text", // autocasts as new TextSymbol3DLayer()
-                material: {
-                  color: "white"
-                },
-                size: 20,
-                color: "black",
-                haloColor: "black",
-                haloSize: 1,
-                font: {
-                  family: "Ubuntu Mono",
-                  //weight: "bold"
-                },
-              }
-            ],
-            
-            verticalOffset: {
-              screenLength: 40,
-              maxWorldLength: 10,
+
+var testLineLabelClass = {
+  type: "label-3d", // autocasts as new LabelSymbol3D()
+  labelPlacement: "above-center", // Polyline has not choice
+  labelExpressionInfo: {
+    value: "{Company}"
+  },
+  symbolLayers: [
+    {
+      type: "text", // autocasts as new TextSymbol3DLayer()
+      material: {
+        color: "black"
+      },
+      halo: {
+        color: [255, 255, 255, 0.7],
+        size: 2
+      },
+      size: 10
+    }
+  ],
+  verticalOffset: {
+              screenLength: 20,
+              maxWorldLength: 100,
               minWorldLength: 20
             },
-            
-            callout: {
-              type: "line",
-              size: 0.5,
-              color: [0, 0, 0],
-              border: {
-                color: [255, 255, 255, 0.7]
-              }
-            }
-
-          },
-          labelPlacement: "above-center",
-          labelExpressionInfo: {
-            expression: 'DefaultValue($feature.Id, "no data")'
-          }
-        });
+  callout: {
+    type: "line", // autocasts as new LineCallout3D()
+    size: 0.5,
+    color: [115, 109, 223, 0.5],
+    border: {
+      color: [115, 109, 223]
+    }
+  }
+};
 
 //*****************************//
 // 3D Web Symbo Style Settings //
@@ -497,7 +490,7 @@ var verticalOffset = {
             callout: {
               type: "line", // autocasts as new LineCallout3D()
               color: "grey",
-              size: 1,
+              size: 0.5,
               border: {
                 color: "grey"
               }
@@ -601,8 +594,8 @@ const options = { // Circle
           profile: "circle",
           cap: "none",
           join: "miter",
-          width: 0.5,
-          height: 0.5,
+          width: 1,
+          height: 1,
           color: [200, 200, 200],
           profileRotation: "all"
         };
@@ -611,17 +604,17 @@ const options1 = { // rectangular
     profile: "quad",
     cap: "none",
     join: "miter",
-    width: 0.5,
-    height: 0.5,
+    width: 0.1,
+    height: 0.1,
     color: [200, 200, 200],
     profileRotation: "heading"
 };
 
 /* The colors used for the each transit line */
 const colors = {
-    "1": [225, 225, 225, 0.1], // To be Constructed
-     "2": [0, 197, 255, 0.5], // Completed
-     "3": [255, 0, 0, 0.3], // Delayed
+    1: [225, 225, 225, 0.1], //Telecom/CA
+    2: [0, 197, 255, 0.5], //
+    3: [255, 0, 0, 0.3], //
     };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -729,10 +722,12 @@ var testUtilPt1 = new FeatureLayer({
 testUtilPt1.listMode = "hide";
 map.add(testUtilPt1);
 
+
+
 // Utility Line
  var testLine = new FeatureLayer({
    portalItem: {
-     id: "94c39edde8354a86b7f2ea3215998603"
+     id: "d70db59b14d1421ca69a412346daa459"
    },
    title: "testLine",
    elevationInfo: {
@@ -743,19 +738,18 @@ map.add(testUtilPt1);
   unit: "meters"
      //offset: 0
    },
-   outFields: ["*"],
-   labelingInfo: [testLineLabelClass]
+   outFields: ["*"]
  });
  map.add(testLine);
 
  /* Utility Line rendnerer*/
         function rendertestLine() {
           const renderer = new UniqueValueRenderer({
-            field: "Id"
+            field: "UtilType"
           });
 
           for (let property in colors) {
-            if (property == '1') {
+            if (property == 1) {
               if (colors.hasOwnProperty(property)) {
               renderer.addUniqueValueInfo({
                 value: property,
@@ -816,7 +810,7 @@ map.add(testUtilPt1);
 /*Line for Symbols */
 var testLine1 = new FeatureLayer({
    portalItem: {
-     id: "94c39edde8354a86b7f2ea3215998603"
+     id: "d70db59b14d1421ca69a412346daa459"
    },
    title: "testLine",
    elevationInfo: {
@@ -827,7 +821,51 @@ var testLine1 = new FeatureLayer({
   unit: "meters"
      //offset: 0
    },
-   outFields: ["*"]
+   outFields: ["*"],
+   renderer: testUtilPtSymbolRenderer,
+   labelingInfo: [testLineLabelClass],
+   popupTemplate: {
+     title: "{Company}",
+     lastEditInfoEnabled: false,
+     returnGeometry: true,
+     actions: [
+       {
+        id: "find-relocated-line",
+        title: "Go to Relocated"
+       }
+     ],
+     content: [
+       {
+         type: "fields",
+         fieldInfos: [
+           {
+             fieldName: "Id"
+           },
+           {
+             fieldName: "Company"
+           },
+           {
+             fieldName: "Height"
+           },
+           {
+             fieldName: "Status"
+           },
+           {
+             fieldName: "LAYER"
+           },
+           {
+             fieldName: "UtilType"
+           },
+           {
+             fieldName: "SIZE"
+           },
+           {
+             fieldName: "ROTATION"
+           }
+         ]
+       }
+     ]
+   }
  });
  testLine1.listMode = "hide";
  map.add(testLine1);
@@ -893,6 +931,62 @@ view.when(function() {
   });
 }); // End of view.when()
 
+
+
+// Utility Line
+view.when(function() {
+  var popup = view.popup;
+  popup.viewModel.on("trigger-action", function(event) {
+    if (event.action.id == "find-relocated-line") {
+      var attributes = popup.viewModel.selectedFeature.attributes;
+      var info = attributes.Id;
+      var infoObjId = attributes.OBJECTID; //1
+
+      view.whenLayerView(testLine1).then(function(layerView) {
+        testLine1.queryFeatures().then(function(results) {
+          const ggg = results.features;
+          const rowN = ggg.length; //7
+          //var rrr = results.features[0].attributes.Id;
+          //var rrr = results.features[6].attributes.Id; // return Id of 7th row
+          
+          var i;
+          let objID = [];
+            for (i=0; i < rowN; i++) {
+              if (results.features[i].attributes.Id == info) {
+                  if (results.features[i].attributes.OBJECTID == infoObjId) {
+                      continue;
+                  }
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
+                }
+            }
+
+      var queryExt = new Query({
+        //objectIds: [1,2,3,4,5]
+        //objectIds: objID
+        objectIds: objID
+      });
+
+      testLine1.queryExtent(queryExt).then(function(result) {
+        if (result.extent) {
+          view.goTo(result.extent)
+        }
+      });
+
+      if (highlightSelect) {
+        highlightSelect.remove();
+      }
+      highlightSelect = layerView.highlight(objID);
+
+
+    }); // End of queryFeatures()
+
+
+}); // End of layerView
+
+    } // End of if (event.action.id...)
+  });
+}); // End of view.when()
 
 /////////////////////////////////////////////////////////////////////////////////////
           //*** Highlight and Zoom to Stations*** //
