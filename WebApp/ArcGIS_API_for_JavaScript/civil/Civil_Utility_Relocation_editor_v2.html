@@ -461,7 +461,7 @@
 
  var testLine = new FeatureLayer({
    portalItem: {
-     id: "ad92e39d95464dc8820b8e75e227cf13"
+     id: "94c39edde8354a86b7f2ea3215998603"
    },
    title: "testLine",
    elevationInfo: {
@@ -542,6 +542,30 @@
 
         rendertestLine();
 
+
+
+//// Line: Symbol Renderer
+var testLine1 = new FeatureLayer({
+   portalItem: {
+     id: "94c39edde8354a86b7f2ea3215998603"
+   },
+   title: "testLine",
+   elevationInfo: {
+     mode: "absolute-height",
+     featureExpressionInfo: {
+       expression: "$feature.Height"
+  },
+  unit: "meters"
+     //offset: 0
+   },
+   outFields: ["*"]
+ });
+ testLine1.listMode = "hide";
+ map.add(testLine1);
+
+
+
+
 // Points
 
 // Utility points Symbol
@@ -563,27 +587,9 @@ function utilPtSymbolStreet(name) {
   };
 }
 
-/*
-var testUtilPtRenderer = {
-          type: "unique-value", //"unique-value", "simple"
-          Field: "Type",
-          defaultSymbol: utilPtSymbolInfra("Powerline_Pole"),
-          visualVariables: [
-            {
-              type: "size",
-              axis: "height",
-              field: "SIZE",
-              valueUnit: "meters"
-            },
-            {
-              type: "rotation",
-              field: "ROTATION"
-            }
-          ]
-        };
-*/
 
-
+///////////////////////////////////////////////////////////////////////////
+// Unique Render for 3D symbols
 // custom 3D Web Style
 var symbolUtil = {
   type: "web-style",  // autocasts as new WebStyleSymbol()
@@ -591,26 +597,53 @@ var symbolUtil = {
   name: "3D_Utility_Pole" // note this name refers to Key when writing Description in ArcGIS Pro
 };
 
+
+var utilTypePtRenderer = {
+          type: "unique-value", //"unique-value", "simple"
+          //Field: "UtilType",
+          //defaultSymbol: symbolUtil,
+          valueExpression: "When($feature.UtilType == 1, 'Telecom', $feature.UtilType == 3, 'Power',$feature.UtilType)",
+          uniqueValueInfos: [
+            {
+              value: "Telecom",
+              symbol: utilPtSymbolInfra("Cell_Phone_Antenna")
+            },
+            {
+              value: "Power",
+              symbol: symbolUtil
+            }
+          ],
+          visualVariables: [
+            {
+              type: "size",
+              axis: "height",
+              field: "SIZE"
+            },
+            {
+              type: "rotation",
+              field: "ROTATION"
+            }
+          ]
+        };
+
+
 //
 var testUtilPt = new FeatureLayer({
   portalItem: {
     id: "bb0b887715c742799129a5addfed2572"
   },
   title: "Utility 3D Render Test",
-   outFields: ["*"]
+   outFields: ["*"],
+   renderer: utilTypePtRenderer,
+   elevationInfo: {
+            mode: "on-the-ground"
+          }
 });
 map.add(testUtilPt);
 
-testUtilPt.renderer = {
-  type: "simple",
-  symbol: symbolUtil,
-  visualVariables: [{
-    type: "size",
-    field: "Height",
-    axis: "height",
-    valueUnit: "meters"
-  }]
-};
+
+
+//////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////
 // Test Utility Points: Picture symbols + Label 3D//
@@ -778,6 +811,15 @@ var testUtilPt1 = new FeatureLayer({
            },
            {
              fieldName: "LAYER"
+           },
+           {
+             fieldName: "UtilType"
+           },
+           {
+             fieldName: "SIZE"
+           },
+           {
+             fieldName: "ROTATION"
            }
          ]
        }
