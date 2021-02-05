@@ -272,6 +272,7 @@
 
          var map = new Map({
               basemap: basemap // "streets-night-vector", 
+              //ground: "world-elevation"
         }); 
         //map.ground.surfaceColor = "#FFFF";
         //map.ground.opacity = 0.5;
@@ -495,15 +496,20 @@ var utilTypePtRenderer = {
           type: "unique-value", //"unique-value", "simple"
           //Field: "UtilType",
           //defaultSymbol: symbolUtil,
-          valueExpression: "When($feature.UtilType == 1, 'Telecom', $feature.UtilType == 3, 'Power',$feature.UtilType)",
+          valueExpression: "When($feature.UtilType == 1, 'Telecom', $feature.UtilType == 2, 'Water',$feature.UtilType == 3, 'Power',$feature.UtilType)",
           uniqueValueInfos: [
             {
               value: "Telecom",
               symbol: utilPtSymbolInfra("Cell_Phone_Antenna")
             },
             {
+              value: "Water",
+              symbol: utilPtSymbolStreet("Fountain_1")
+            },
+            {
               value: "Power",
-              symbol: symbolUtil
+              symbol: utilPtSymbolInfra("Wind_Turbine")
+              //symbol: symbolUtil
             }
           ],
           visualVariables: [
@@ -521,8 +527,11 @@ var utilTypePtRenderer = {
               field: "SIZE",
               stops: [
                 {value: 0, opacity: 1},
-                {value: 20, opacity: 1}
-              ]
+                {value: 20, opacity: 1},
+              ],
+              legendOptions: {
+                showLegend: false
+              }
             }
           ]
         };
@@ -575,6 +584,9 @@ var testUtilPtSymbolRenderer = {
             }
           ]
         };
+
+
+// Existing Points
 
 // Utility Line
 /* UniqueValueRenderer for line3D: color, width, and line type*/
@@ -650,7 +662,7 @@ var testUtilPt = new FeatureLayer({
 });
 map.add(testUtilPt);
 
-/* Symbols */
+/* Symbols with callout */
 var testUtilPt1 = new FeatureLayer({
   portalItem: {
     id: "bb0b887715c742799129a5addfed2572"
@@ -858,6 +870,41 @@ var testLine1 = new FeatureLayer({
  testLine1.listMode = "hide";
  map.add(testLine1);
 
+
+// Utility Point Existing (this is real dataset)
+/* 3D web Style*/
+
+var utilPointExist = new FeatureLayer({
+            portalItem: {
+                id: "816c6332f99a4c6f8d27183d9d56c758"
+            },
+            title: "Existing Points",
+            elevationInfo: {
+            mode: "on-the-ground"
+          },
+          renderer: utilTypePtRenderer
+            //renderer: existingPtRenderer
+        });
+        utilPointExist.listMode = "hide";
+        map.add(utilPointExist);
+
+ /* Symbol with call out */
+
+ var utilPointExist1 = new FeatureLayer({
+            portalItem: {
+                id: "816c6332f99a4c6f8d27183d9d56c758"
+            },
+            title: "Existing Points",
+            elevationInfo: {
+              mode: "absolute-height",
+              unit: "meters"
+              //offset: 0
+            },
+          renderer: testUtilPtSymbolRenderer,
+            //renderer: existingPtRenderer
+        });
+        utilPointExist1.listMode = "hide";
+        map.add(utilPointExist1);
 
 //*****************************//
 //      PopUp Settig           //
