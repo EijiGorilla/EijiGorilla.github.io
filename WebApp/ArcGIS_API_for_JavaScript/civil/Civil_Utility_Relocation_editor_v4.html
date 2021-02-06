@@ -439,18 +439,26 @@ var symbolUtil = {
 };
 
 /* Company and Utilty Relocation Status Symbols with Callout */
-var verticalOffset = {
-  screenLength: 20,
+var verticalOffsetExisting = {
+  screenLength: 10,
+  maxWorldLength: 10,
+  minWorldLength: 15
+};
+
+var verticalOffsetRelocation = {
+  screenLength: 10,
   maxWorldLength: 30,
   minWorldLength: 35
 };
 
+
           // Function that automatically creates the symbol for the points of interest
-          function getUniqueValueSymbol(name, color, sizeS) {
+          function getUniqueValueSymbol(name, color, sizeS, util) {
           // The point symbol is visualized with an icon symbol. To clearly see the location of the point
           // we displace the icon vertically and add a callout line. The line connects the offseted symbol with the location
           // of the point feature.
-          return {
+          if (util == "Existing") {
+            return {
             type: "point-3d", // autocasts as new PointSymbol3D()
             symbolLayers: [
               {
@@ -466,7 +474,7 @@ var verticalOffset = {
               }
             ],
 
-            verticalOffset: verticalOffset,
+            verticalOffset: verticalOffsetExisting,
 
             callout: {
               type: "line", // autocasts as new LineCallout3D()
@@ -477,6 +485,36 @@ var verticalOffset = {
               }
             }
           };
+          } else {
+            return {
+            type: "point-3d", // autocasts as new PointSymbol3D()
+            symbolLayers: [
+              {
+                type: "icon", // autocasts as new IconSymbol3DLayer()
+                resource: {
+                  href: name
+                },
+                size: sizeS,
+                outline: {
+                  color: "white",
+                  size: 2
+                }
+              }
+            ],
+
+            verticalOffset: verticalOffsetRelocation,
+
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: "grey",
+              size: 0.4,
+              border: {
+                color: "grey"
+              }
+            }
+          };
+          }
+
         }
 
 
@@ -522,6 +560,7 @@ var utilTypePtRenderer = {
               type: "rotation",
               field: "ROTATION"
             },
+            /*
             {
               type: "opacity",
               field: "SIZE",
@@ -533,6 +572,7 @@ var utilTypePtRenderer = {
                 showLegend: false
               }
             }
+            */
           ]
         };
 
@@ -547,7 +587,8 @@ var utilExistSymbolRenderer = {
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/Meralco_Gray.png",
                 "#D13470",
-                20
+                10,
+                "Existing"
               )
             },
             {
@@ -555,10 +596,10 @@ var utilExistSymbolRenderer = {
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/GlobeGray.png",
                 "#D13470",
-                25
+                10,
+                "Existing"
                 )
             }
-
           ]
         };
 
@@ -575,7 +616,8 @@ var utilReloSymbolRenderer = {
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/Demolished.png",
                 "#D13470",
-                20
+                20,
+                "Relocation"
               )
             },
             {
@@ -583,7 +625,8 @@ var utilReloSymbolRenderer = {
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/DemolishComplete_v2.png",
                 "#D13470",
-                25
+                25,
+                "Relocation"
                 )
             },
             {
@@ -591,7 +634,8 @@ var utilReloSymbolRenderer = {
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/Relocatd.png",
                 "#D13470",
-                30
+                30,
+                "Relocation"
                 )
             },
             {
@@ -599,15 +643,17 @@ var utilReloSymbolRenderer = {
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/MERALCO.png",
                 "#D13470",
-                25
+                25,
+                "Relocation"
               )
             },
             {
               value: "Globe",
               symbol: getUniqueValueSymbol(
-                "https://EijiGorilla.github.io/Symbols/GlobeGray.png",
+                "https://EijiGorilla.github.io/Symbols/Globe3.png",
                 "#D13470",
-                25
+                25,
+                "Relocation"
               )
             }
 
@@ -623,8 +669,8 @@ const options = { // Circle
           profile: "circle",
           cap: "none",
           join: "miter",
-          width: 1,
-          height: 1,
+          width: 0.5,
+          height: 0.5,
           color: [200, 200, 200],
           profileRotation: "all"
         };
@@ -633,19 +679,25 @@ const options1 = { // rectangular
     profile: "quad",
     cap: "none",
     join: "miter",
-    width: 0.1,
-    height: 0.1,
+    width: 0.5,
+    height: 0.5,
     color: [200, 200, 200],
     profileRotation: "heading"
 };
 
 /* The colors used for the each transit line */
-const colors = {
+
+const colorsRelocation = {
     1: [225, 225, 225, 0.1], //Telecom/CA (Utility TYpe)
     2: [0, 197, 255, 0.5], //
     3: [255, 0, 0, 0.3], //
     };
 
+    const colorsExisting = {
+    1: [192, 192, 192, 0.5], //Telecom/CA (Utility TYpe)
+    2: [119, 136, 153, 0.5], // Water
+    3: [192, 192, 192, 0.5], // Power
+    }; 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
  //*****************************//
@@ -777,9 +829,9 @@ map.add(testUtilPt1);
             field: "UtilType"
           });
 
-          for (let property in colors) {
+          for (let property in colorsRelocation) {
             if (property == 1) {
-              if (colors.hasOwnProperty(property)) {
+              if (colorsRelocation.hasOwnProperty(property)) {
               renderer.addUniqueValueInfo({
                 value: property,
                 symbol: {
@@ -789,7 +841,7 @@ map.add(testUtilPt1);
                       type: "path",
                       profile: options1.profile,
                       material: {
-                        color: colors[property]
+                        color: colorsRelocation[property]
                       },
                       width: options1.width,
                       height: options1.height,
@@ -803,7 +855,7 @@ map.add(testUtilPt1);
               });
             }
             } else {// end of 'property == '1'
-            if (colors.hasOwnProperty(property)) {
+            if (colorsRelocation.hasOwnProperty(property)) {
               renderer.addUniqueValueInfo({
                 value: property,
                 symbol: {
@@ -813,7 +865,7 @@ map.add(testUtilPt1);
                       type: "path",
                       profile: options.profile,
                       material: {
-                        color: colors[property]
+                        color: colorsRelocation[property]
                       },
                       width: options.width,
                       height: options.height,
@@ -925,7 +977,7 @@ var utilLineExist = new FeatureLayer({
             portalItem: {
                 id: "98fe86a7d2de4565a3b20e848a9b90c6"
             },
-            title: "Existing Line",
+            title: "Existing Line (3D)",
             elevationInfo: {
               mode: "absolute-height",
               featureExpressionInfo: {
@@ -935,7 +987,7 @@ var utilLineExist = new FeatureLayer({
             },
             outFields: ["*"]
         });
-        utilLineExist.listMode = "hide";
+        //utilLineExist.listMode = "hide";
         map.add(utilLineExist);
 
         function rendertestLineExisting() {
@@ -943,9 +995,9 @@ var utilLineExist = new FeatureLayer({
             field: "UtilType"
           });
 
-          for (let property in colors) {
+          for (let property in colorsExisting) {
             if (property == 1) {
-              if (colors.hasOwnProperty(property)) {
+              if (colorsExisting.hasOwnProperty(property)) {
               renderer.addUniqueValueInfo({
                 value: property,
                 symbol: {
@@ -955,7 +1007,7 @@ var utilLineExist = new FeatureLayer({
                       type: "path",
                       profile: options1.profile,
                       material: {
-                        color: colors[property]
+                        color: colorsExisting[property]
                       },
                       width: options1.width,
                       height: options1.height,
@@ -969,7 +1021,7 @@ var utilLineExist = new FeatureLayer({
               });
             }
             } else {// end of 'property == '1'
-            if (colors.hasOwnProperty(property)) {
+            if (colorsExisting.hasOwnProperty(property)) {
               renderer.addUniqueValueInfo({
                 value: property,
                 symbol: {
@@ -979,7 +1031,7 @@ var utilLineExist = new FeatureLayer({
                       type: "path",
                       profile: options.profile,
                       material: {
-                        color: colors[property]
+                        color: colorsExisting[property]
                       },
                       width: options.width,
                       height: options.height,
@@ -1003,11 +1055,12 @@ var utilLineExist = new FeatureLayer({
         rendertestLineExisting();
 
 /* Symbol with callout */
+/*
 var testLineExisting1 = new FeatureLayer({
    portalItem: {
      id: "98fe86a7d2de4565a3b20e848a9b90c6"
    },
-   title: "testLine",
+   title: "Exist Line (Callout)",
    elevationInfo: {
      mode: "absolute-height",
      featureExpressionInfo: {
@@ -1016,12 +1069,12 @@ var testLineExisting1 = new FeatureLayer({
   unit: "meters"
      //offset: 0
    },
-   outFields: ["*"]
+   outFields: ["*"],
    //renderer: utilExistSymbolRenderer
  });
- testLineExisting1.listMode = "hide";
+ //testLineExisting1.listMode = "hide";
  map.add(testLineExisting1);
-
+*/
 
 
 
