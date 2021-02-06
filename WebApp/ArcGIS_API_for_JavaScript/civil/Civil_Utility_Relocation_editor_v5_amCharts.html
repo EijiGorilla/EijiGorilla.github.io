@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>Viaduct Monitoring Map for N-04</title>
+<title>Utility Relocation (Sample)</title>
 
     <style>
       html,
@@ -243,7 +243,8 @@
         "esri/widgets/support/DatePicker",
         "esri/widgets/FeatureTable",
         "esri/widgets/Compass",
-        "esri/TimeExtent"
+        "esri/TimeExtent",
+        "esri/layers/support/Sublayer"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -252,11 +253,14 @@
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol,
-                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable, Compass, TimeExtent) {
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable, Compass, TimeExtent, Sublayer) {
 
-     let chartLayerView;
-        const features = [];
+let chartLayerView;
+  const features = [];
 
+//******************************//
+// Basemap and Scenview Setting //
+//******************************//
         var basemap = new Basemap({
         baseLayers: [
           new VectorTileLayer({
@@ -267,9 +271,9 @@
         ]
       });
 
-
          var map = new Map({
               basemap: basemap // "streets-night-vector", 
+              //ground: "world-elevation"
         }); 
         //map.ground.surfaceColor = "#FFFF";
         //map.ground.opacity = 0.5;
@@ -309,13 +313,16 @@
             console.error(error);
           }
         }
+           // Setup UI
+        var titleDiv = document.getElementById("titleDiv");
 
-        //*******************************//
+
+//*******************************//
 // Label Class Property Settings //
 //*******************************//
 
 // Station Label
-var labelClass = new LabelClass({
+        var labelClass = new LabelClass({
           symbol: {
             type: "label-3d",// autocasts as new LabelSymbol3D()
             symbolLayers: [
@@ -698,8 +705,7 @@ const colorsRelocation = {
 //      Layer Import           //
 //*****************************//
 // Station
-// Station
-var stationLayer = new SceneLayer({
+        var stationLayer = new SceneLayer({
           portalItem: {
             id: "f86aa93b4c3647f8ad8885a270ea9e78"
           },
@@ -1049,126 +1055,11 @@ var utilLineExist = new FeatureLayer({
 
         rendertestLineExisting();
 
-//*****************************//
-//      PopUp Settig           //
-//*****************************//
-// Utility Point
-var highlightSelect;
 
-view.when(function() {
-  var popup = view.popup;
-  popup.viewModel.on("trigger-action", function(event) {
-    if (event.action.id == "find-relocated") {
-      var attributes = popup.viewModel.selectedFeature.attributes;
-      var info = attributes.Id;
-      var infoObjId = attributes.OBJECTID; //1
-
-      view.whenLayerView(testUtilPt1).then(function(layerView) {
-      testUtilPt1.queryFeatures().then(function(results) {
-          const ggg = results.features;
-          const rowN = ggg.length; //7
-          //var rrr = results.features[0].attributes.Id;
-          //var rrr = results.features[6].attributes.Id; // return Id of 7th row
-          
-          var i;
-          let objID = [];
-            for (i=0; i < rowN; i++) {
-              if (results.features[i].attributes.Id == info) {
-                  if (results.features[i].attributes.OBJECTID == infoObjId) {
-                      continue;
-                  }
-                  var obj = results.features[i].attributes.OBJECTID;
-                  objID.push(obj);
-                }
-            }
-
-      var queryExt = new Query({
-        //objectIds: [1,2,3,4,5]
-        //objectIds: objID
-        objectIds: objID
-      });
-
-      testUtilPt1.queryExtent(queryExt).then(function(result) {
-        if (result.extent) {
-          view.goTo(result.extent.expand(200))
-        }
-      });
-
-      if (highlightSelect) {
-        highlightSelect.remove();
-      }
-      highlightSelect = layerView.highlight(objID);
-
-
-    }); // End of queryFeatures()
-
-
-}); // End of layerView
-
-    } // End of if (event.action.id...)
-  });
-}); // End of view.when()
-
-
-
-// Utility Line
-view.when(function() {
-  var popup = view.popup;
-  popup.viewModel.on("trigger-action", function(event) {
-    if (event.action.id == "find-relocated-line") {
-      var attributes = popup.viewModel.selectedFeature.attributes;
-      var info = attributes.Id;
-      var infoObjId = attributes.OBJECTID; //1
-
-      view.whenLayerView(testLine1).then(function(layerView) {
-        testLine1.queryFeatures().then(function(results) {
-          const ggg = results.features;
-          const rowN = ggg.length; //7
-          //var rrr = results.features[0].attributes.Id;
-          //var rrr = results.features[6].attributes.Id; // return Id of 7th row
-          
-          var i;
-          let objID = [];
-            for (i=0; i < rowN; i++) {
-              if (results.features[i].attributes.Id == info) {
-                  if (results.features[i].attributes.OBJECTID == infoObjId) {
-                      continue;
-                  }
-                  var obj = results.features[i].attributes.OBJECTID;
-                  objID.push(obj);
-                }
-            }
-
-      var queryExt = new Query({
-        //objectIds: [1,2,3,4,5]
-        //objectIds: objID
-        objectIds: objID
-      });
-
-      testLine1.queryExtent(queryExt).then(function(result) {
-        if (result.extent) {
-          view.goTo(result.extent)
-        }
-      });
-
-      if (highlightSelect) {
-        highlightSelect.remove();
-      }
-      highlightSelect = layerView.highlight(objID);
-
-
-    }); // End of queryFeatures()
-
-
-}); // End of layerView
-
-    } // End of if (event.action.id...)
-  });
-}); // End of view.when()
-
-
-
-/////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+//*******************************//
+//      Progress Chart           //
+//*******************************//
 const seasonsNodes = document.querySelectorAll(`.test-item`);
 const testElement = document.getElementById("test-filter");
 
@@ -1418,6 +1309,128 @@ createSeries("value2", "Complete");
 
 }); // End of am4core.ready
 
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//*****************************//
+//      PopUp Settig           //
+//*****************************//
+// Utility Point
+var highlightSelect;
+
+view.when(function() {
+  var popup = view.popup;
+  popup.viewModel.on("trigger-action", function(event) {
+    if (event.action.id == "find-relocated") {
+      var attributes = popup.viewModel.selectedFeature.attributes;
+      var info = attributes.Id;
+      var infoObjId = attributes.OBJECTID; //1
+
+      view.whenLayerView(testUtilPt1).then(function(layerView) {
+      testUtilPt1.queryFeatures().then(function(results) {
+          const ggg = results.features;
+          const rowN = ggg.length; //7
+          //var rrr = results.features[0].attributes.Id;
+          //var rrr = results.features[6].attributes.Id; // return Id of 7th row
+          
+          var i;
+          let objID = [];
+            for (i=0; i < rowN; i++) {
+              if (results.features[i].attributes.Id == info) {
+                  if (results.features[i].attributes.OBJECTID == infoObjId) {
+                      continue;
+                  }
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
+                }
+            }
+
+      var queryExt = new Query({
+        //objectIds: [1,2,3,4,5]
+        //objectIds: objID
+        objectIds: objID
+      });
+
+      testUtilPt1.queryExtent(queryExt).then(function(result) {
+        if (result.extent) {
+          view.goTo(result.extent.expand(200))
+        }
+      });
+
+      if (highlightSelect) {
+        highlightSelect.remove();
+      }
+      highlightSelect = layerView.highlight(objID);
+
+
+    }); // End of queryFeatures()
+
+
+}); // End of layerView
+
+    } // End of if (event.action.id...)
+  });
+}); // End of view.when()
+
+
+
+// Utility Line
+view.when(function() {
+  var popup = view.popup;
+  popup.viewModel.on("trigger-action", function(event) {
+    if (event.action.id == "find-relocated-line") {
+      var attributes = popup.viewModel.selectedFeature.attributes;
+      var info = attributes.Id;
+      var infoObjId = attributes.OBJECTID; //1
+
+      view.whenLayerView(testLine1).then(function(layerView) {
+        testLine1.queryFeatures().then(function(results) {
+          const ggg = results.features;
+          const rowN = ggg.length; //7
+          //var rrr = results.features[0].attributes.Id;
+          //var rrr = results.features[6].attributes.Id; // return Id of 7th row
+          
+          var i;
+          let objID = [];
+            for (i=0; i < rowN; i++) {
+              if (results.features[i].attributes.Id == info) {
+                  if (results.features[i].attributes.OBJECTID == infoObjId) {
+                      continue;
+                  }
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
+                }
+            }
+
+      var queryExt = new Query({
+        //objectIds: [1,2,3,4,5]
+        //objectIds: objID
+        objectIds: objID
+      });
+
+      testLine1.queryExtent(queryExt).then(function(result) {
+        if (result.extent) {
+          view.goTo(result.extent)
+        }
+      });
+
+      if (highlightSelect) {
+        highlightSelect.remove();
+      }
+      highlightSelect = layerView.highlight(objID);
+
+
+    }); // End of queryFeatures()
+
+
+}); // End of layerView
+
+    } // End of if (event.action.id...)
+  });
+}); // End of view.when()
+
+/////////////////////////////////////////////////////////////////////////////////////
           //*** Highlight and Zoom to Stations*** //
         // This variable will store highlight handle that is used to remove the highlight
         var highlight = null;
@@ -1425,7 +1438,7 @@ createSeries("value2", "Complete");
         view.when(function() {
         
           // define the attributes which are used in the query
-          stationLayer.outFields = "Station";
+          stationLayer.outFields = "Name";
 
           // Get DOM (Document Object Model) eement where list items will be placed
           var container = document.getElementById("stationList");
@@ -1446,7 +1459,7 @@ createSeries("value2", "Complete");
                     // we only want to add features of station to the list
                     var li = document.createElement("li");
                     li.setAttribute("class", "panel-result");
-                    li.innerHTML = attributes.Station;
+                    li.innerHTML = attributes.Name;
                     li.addEventListener("click", function(event) {
                       var target = event.target;
                       
@@ -1491,6 +1504,8 @@ createSeries("value2", "Complete");
         //*** End of Highlight & Zoom to Stations*** //
 
 
+
+/////////////////////////////////////////////////////////////////////////////////////
         // LayerList and Add legend to the LayerList
         // On-off feature layer tab
         var layerList = new LayerList({
@@ -1515,7 +1530,6 @@ createSeries("value2", "Complete");
         view.ui.empty("top-left");
         view.ui.add(titleDiv, "top-left");
 
-        // Compass
 
 
         // See-through-Ground        
@@ -1527,7 +1541,7 @@ createSeries("value2", "Complete");
           // the webscene has no basemap, so set a surfaceColor on the ground
           map.ground.surfaceColor = "#fff";
           // to see through the ground, set the ground opacity to 0.4
-          map.ground.opacity = 0.1;
+          map.ground.opacity = 0.9; //
         });
           
         // Full screen logo
@@ -1536,7 +1550,8 @@ createSeries("value2", "Complete");
         document
           .getElementById("opacityInput")
           .addEventListener("change", function(event) {
-            map.ground.opacity = event.target.checked ? 0.1 : 1;
+            //map.ground.opacity = event.target.checked ? 0.1 : 0.9;
+            map.ground.opacity = event.target.checked ? 0.1 : 0.9;
           });
 
         view.ui.add("menu", "bottom-left");
@@ -1547,17 +1562,16 @@ createSeries("value2", "Complete");
   </head>
   <body>
       <div id="viewDiv">
-        <div id="titleDiv" class="esri-widget">Viaduct
-            <p>Choose Contract Package:</p>
+        <div id="titleDiv" class="esri-widget">Utility Relocation
+          <p>Choose Contract Package:</p>
         </div>
       </div>
           <div id="menu" class="esri-widget">
-        <input type="checkbox" id="opacityInput" checked />
+        <input type="checkbox" id="opacityInput" unchecked />
         <label for="opacityInput">See through ground</label>
       </div>
       <div id="test-filter" class="esri-widget">
         <div class="test-item visible-test" data-test="N-03">N-03</div>
-        <div class="test-item visible-test" data-test="N-04">N-04</div>
       </div>
       <div class="panel-side esri-widget">
         <h2>Stations List</h2>
