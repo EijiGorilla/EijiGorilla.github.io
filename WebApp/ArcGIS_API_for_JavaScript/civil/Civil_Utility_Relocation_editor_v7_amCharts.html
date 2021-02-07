@@ -899,6 +899,20 @@ var testLine1 = new FeatureLayer({
         //utilPointExist1.listMode = "hide";
         map.add(utilPointExist1);
 
+        var utilPointExist2 = new FeatureLayer({
+            portalItem: {
+                id: "816c6332f99a4c6f8d27183d9d56c758"
+            },
+            title: "Existing Points (3D)",
+            elevationInfo: {
+              mode: "absolute-height",
+              unit: "meters"
+              //offset: 0
+            },
+            renderer: utilTypePtRenderer
+        });
+        //utilPointExist1.listMode = "hide";
+        map.add(utilPointExist2);
 
 // Utility Line Existing (this is real dataset)
 /* Line size, width, and height */
@@ -996,21 +1010,26 @@ const utilTypesButton = document.getElementById("dataTypeInput");
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
-// Click Radio button
+// Event Handler for Data Type (poinr or line)
 utilTypesButton.addEventListener("change", filterByTypes);
 function filterByTypes(e) {
   const selectedTypes = e.target.id;
-  if (selectedTypes == "points") {
-    testUtilPt.definitionExpression = "Type = 'Point'";
+  if (selectedTypes == "None") {
+    testUtilPt.definitionExpression = null;
+    chartTitleDiv.innerHTML = "Percent Completion of Utility Point/Line"
+    updateChart()  
+  } else {
+  if (selectedTypes == "Point") {
+    testUtilPt.definitionExpression = "Type = '" + selectedTypes + "'";
     chartTitleDiv.innerHTML = "Percent Completion of Utility Point"
     updateChart()
   } else {
-    testUtilPt.definitionExpression = "Type = 'Line'";
+    testUtilPt.definitionExpression = "Type = '" + selectedTypes + "'";
     chartTitleDiv.innerHTML = "Percent Completion of Utility Line"
     updateChart()
   }
 }
-
+}
 
 
 
@@ -1047,7 +1066,7 @@ view.when(function() {
   view.ui.add(testExpand,"top-left")
 });
 
-// Start of "updateChart" function
+// Start of "updateChart" function for Utility Point
 function updateChart() {
   // Define statistics
   /* Telecom/CATV */
@@ -1437,14 +1456,15 @@ view.when(function() {
   <body>
       <div class="mainContainer">
         <div class="boxA">
-          <div id="chartTitleDiv" class="esri-widget">Percent Completion of Utility</div>
+          <div id="chartTitleDiv" class="esri-widget">Progress of Utility Relocation</div>
             <div id="chartPanel">
               <div id="chartdiv"></div>
           </div>
           <div id="dataTypeInput" class="esri-widget">
             <label for="dataTypeInput">Data Type</label>
-            <input type="radio" id="points" name="dataTypeInput"> Points
-            <input type="radio" id="lines" name="dataTypeInput"> Lines
+            <input type="radio" id="None" name="dataTypeInput" checked /> None
+            <input type="radio" id="Point" name="dataTypeInput"> Point
+            <input type="radio" id="Line" name="dataTypeInput"> Line
           </div>
       </div>
         <div id="viewDiv">
