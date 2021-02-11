@@ -1073,6 +1073,12 @@ const utilTypesButton = document.getElementById("dataTypeInput");
 const cpButtonElement = document.getElementById("cpButton");
 
 // For Combined Chart of points and lines
+
+
+// Start of am4core
+am4core.ready(function() {
+am4core.useTheme(am4themes_animated);
+
 let chartSumArrayIncompPoint = [];
 let chartSumArrayCompPoint = [];
 
@@ -1082,10 +1088,10 @@ let chartSumArrayCompLine = [];
 let chartSumTotalIncomp = [];
 let chartSumTotalComp = [];
 
-// Start of am4core
-am4core.ready(function() {
-am4core.useTheme(am4themes_animated);
-
+var obj = {
+  arrayOne: [],
+  arrayTwo: []
+};
 // Event Handler for Data Type (poinr or line)
 /*
 cpButtonElement.addEventListener("change", filterByChartTypesA);
@@ -1101,59 +1107,66 @@ cpButtonElement.addEventListener("change", filterByChartTypesA);
     }
   }
 */
-document.querySelectorAll('.cpButtonClass').forEach(item => {
-    item.addEventListener("change", filterByChartTypes);
+
+cpButtonElement.addEventListener("change", filterByChartTypes);
     function filterByChartTypes(e) {
         const selectedTypes = e.target.id; // e.g., "N-01"
-        const itemName = item.id; // e.g., "cpButton" class name
-
         // Click 1:
         const chartTitleLabel = "Progress of Utility Relocation (%)";
 
         // Utility Point:
         if (selectedTypes == "N-01(P)") {
           testUtilPt.definitionExpression = "CPType = '" + selectedTypes + "'";
-          //headerTitleDiv.innerHTML = "Utility Relocation" + "<h2>" + ": N-01" + "</h2>";
+          testLine.definitionExpression = "Type = 'Point'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-01 Point" + "</p>";
           updateChartPoint();
         } else if (selectedTypes == "N-02(P)") {
           testUtilPt.definitionExpression = "CPType = '" + selectedTypes + "'";
+          testLine.definitionExpression = "Type = 'Point'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-02 Point" + "</p>";
           updateChartPoint();
         } else if (selectedTypes == "N-03(P)") {
           testUtilPt.definitionExpression = "CPType = '" + selectedTypes + "'";
+          testLine.definitionExpression = "Type = 'Point'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-03 Point" + "</p>";
           view.goTo(testUtilPt.fullExtent);
           updateChartPoint();
         } else if (selectedTypes == "N-04(P)") {
           testUtilPt.definitionExpression = "CPType = '" + selectedTypes + "'";
+          testLine.definitionExpression = "Type = 'Point'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-04 Point" + "</p>";
           updateChartPoint();
         } else if (selectedTypes == "N-05(P)") {
           testUtilPt.definitionExpression = "CPType = '" + selectedTypes + "'";
+          testLine.definitionExpression = "Type = 'Point'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-05 Point" + "</p>";
           updateChartPoint();
 
         // Utility Line
         } else if (selectedTypes == "N-01(L)") {
           testLine.definitionExpression = "CPType = '" + selectedTypes + "'";
+          testUtilPt.definitionExpression = "Type = 'Line'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-01 Line" + "</p>";
           updateChartLine();
         } else if (selectedTypes == "N-02(L)") {
           testLine.definitionExpression = "CPType = '" + selectedTypes + "'";
+          testUtilPt.definitionExpression = "Type = 'Line'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-02 Line" + "</p>";
           updateChartLine();
         } else if (selectedTypes == "N-03(L)") {
           testLine.definitionExpression = "CPType = '" + selectedTypes + "'";
+          testUtilPt.definitionExpression = "Type = 'Line'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-03 Line" + "</p>";
           view.goTo(testUtilPt.fullExtent);
           updateChartLine();
         } else if (selectedTypes == "N-04(L)") {
           testLine.definitionExpression = "CPType = '" + selectedTypes + "'";
+          testUtilPt.definitionExpression = "Type = 'Line'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-04 Line" + "</p>";
           updateChartLine();
         } else if (selectedTypes == "N-05(L)") {
           testLine.definitionExpression = "CPType = '" + selectedTypes + "'";
+          testUtilPt.definitionExpression = "Type = 'Line'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-05 Line" + "</p>";
           updateChartLine();
 
@@ -1167,7 +1180,7 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
 
 
       }
-});
+
 
 // Click event handler for choices
 
@@ -1176,7 +1189,7 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
 
 
 // Start of "updateChart" function for Utility Point
-function updateChartPoint() {
+async function updateChartPoint() {
   // Define statistics
   /* Telecom/CATV */
   var total_telecom_incomp = {
@@ -1239,9 +1252,6 @@ function updateChartPoint() {
     /* Power */
     const power_incomp = stats.total_power_incomp;
     const power_comp = stats.total_power_comp;
-
-    chartSumArrayIncompPoint.push(telecom_incomp, water_incomp, power_incomp);
-    chartSumArrayCompPoint.push(telecom_comp, water_comp, power_comp);
 
 // Chart //
 var chart = am4core.create("chartdiv", am4charts.XYChart);
@@ -1387,7 +1397,7 @@ createSeries("value2", "Complete");
 ////////////////////////////
 // UpdateChart for LINE
 // Start of "updateChart" function for Utility Point
-function updateChartLine() {
+async function updateChartLine() {
   // Define statistics
   /* Telecom/CATV */
   var total_telecom_incomp = {
@@ -1436,7 +1446,7 @@ function updateChartLine() {
                         total_power_incomp, total_power_comp];
   query.returnGeometry = true;
 
-  testLine.queryFeatures(query).then(function(response) {
+ testLine.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
     /* Telecom */
@@ -1450,10 +1460,6 @@ function updateChartLine() {
     /* Power */
     const power_incomp = stats.total_power_incomp;
     const power_comp = stats.total_power_comp;
-
-    chartSumArrayIncompLine.push(telecom_incomp, water_incomp, power_incomp);
-    chartSumArrayCompLine.push(telecom_comp, water_comp, power_comp);
-
 
 // Chart //
 var chart = am4core.create("chartdiv", am4charts.XYChart);
@@ -1600,14 +1606,148 @@ createSeries("value2", "Complete");
 //////////////////////////////////////////////////////////////////////////////////
 // Combined Chart (Utility Point + Utility Line)
 function updateChartCombine() {
+  // Define statistics
+  /* Telecom/CATV */
+  var total_telecom_incomp1 = {
+    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_telecom_incomp1",
+    statisticType: "sum"
+  };
 
-  // Sum
-headerTitleDiv.innerHTML = "TESTEET";
+  var total_telecom_comp1 = {
+    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_telecom_comp1",
+    statisticType: "sum"  
+  };
+
+  /* Water */
+  var total_water_incomp1 = {
+    onStatisticField: "CASE WHEN (UtilType = 2 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_water_incomp1",
+    statisticType: "sum"
+  };
+
+  var total_water_comp1 = {
+    onStatisticField: "CASE WHEN (UtilType = 2 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_water_comp1",
+    statisticType: "sum"  
+  };
+
+  /* Power */
+  var total_power_incomp1 = {
+    onStatisticField: "CASE WHEN (UtilType = 3 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_power_incomp1",
+    statisticType: "sum"
+  };
+
+  var total_power_comp1 = {
+    onStatisticField: "CASE WHEN (UtilType = 3 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_power_comp1",
+    statisticType: "sum"  
+  };
+
+  // Start Query
+  var queryPt = testUtilPt.createQuery();
+  //query.where = "Stations = 'Tandang Sora'"; // Selected Stations
+  queryPt.outStatistics = [total_telecom_incomp1, total_telecom_comp1,
+                        total_water_incomp1, total_water_comp1,
+                        total_power_incomp1, total_power_comp1];
+
+  testUtilPt.queryFeatures(queryPt).then(function(response) {
+    var statsPt = response.features[0].attributes;
+
+    /* Telecom */
+    const telecom_incomp1 = statsPt.total_telecom_incomp1;
+    const telecom_comp1 = statsPt.total_telecom_comp1;
+
+    /* Water */
+    const water_incomp1 = statsPt.total_water_incomp1;
+    const water_comp1 = statsPt.total_water_comp1;   
+
+    /* Power */
+    const power_incomp1 = statsPt.total_power_incomp1;
+    const power_comp1 = statsPt.total_power_comp1;
+
+    chartSumArrayIncompPoint.push(telecom_incomp1, water_incomp1, power_incomp1);
+    chartSumArrayCompPoint.push(telecom_comp1, water_comp1, power_comp1);
+
+
+////////////////
+  // Define statistics
+  /* Telecom/CATV */
+  var total_telecom_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_telecom_incomp",
+    statisticType: "sum"
+  };
+
+  var total_telecom_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_telecom_comp",
+    statisticType: "sum"  
+  };
+
+  /* Water */
+  var total_water_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 2 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_water_incomp",
+    statisticType: "sum"
+  };
+
+  var total_water_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 2 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_water_comp",
+    statisticType: "sum"  
+  };
+
+  /* Power */
+  var total_power_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 3 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_power_incomp",
+    statisticType: "sum"
+  };
+
+  var total_power_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 3 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_power_comp",
+    statisticType: "sum"  
+  };
+
+  // Start Query
+  var query = testLine.createQuery();
+  //query.where = "Stations = 'Tandang Sora'"; // Selected Stations
+  query.outStatistics = [total_telecom_incomp, total_telecom_comp,
+                        total_water_incomp, total_water_comp,
+                        total_power_incomp, total_power_comp];
+
+ testLine.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    /* Telecom */
+    const telecom_incomp = stats.total_telecom_incomp;
+    const telecom_comp = stats.total_telecom_comp;
+
+    /* Water */
+    const water_incomp = stats.total_water_incomp;
+    const water_comp = stats.total_water_comp;   
+
+    /* Power */
+    const power_incomp = stats.total_power_incomp;
+    const power_comp = stats.total_power_comp;
+
+    chartSumArrayIncompLine.push(telecom_incomp, water_incomp, power_incomp);
+    chartSumArrayCompLine.push(telecom_comp, water_comp, power_comp);
+
+
+
+
+///////////////////
 /* Status = Incomplete */
   chartSumTotalIncomp = [chartSumArrayIncompPoint[0] + chartSumArrayIncompLine[0], // telecom
                         chartSumArrayIncompPoint[1] + chartSumArrayIncompLine[1], // Water
                         chartSumArrayIncompPoint[2] + chartSumArrayIncompLine[2]]; // Power
 
+                        
 /* Status = complete */
 chartSumTotalComp = [chartSumArrayCompPoint[0] + chartSumArrayCompLine[0], // telecom
                         chartSumArrayCompPoint[1] + chartSumArrayCompLine[1], // water
@@ -1691,7 +1831,9 @@ function createSeriesCombine(field, name) {
 createSeriesCombine("value1", "Incomplete");
 createSeriesCombine("value2", "Complete");
 
+}); // End of queryFeatures
  // End of queryFeatures
+}); // End of queryFeatures
 } // End of Combined Chart function
 
 }); // End of am4core.ready
