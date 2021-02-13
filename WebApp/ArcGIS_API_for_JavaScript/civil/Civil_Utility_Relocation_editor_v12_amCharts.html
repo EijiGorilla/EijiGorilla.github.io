@@ -730,7 +730,7 @@ var testUtilPt = new FeatureLayer({
             mode: "on-the-ground"
           }
 });
-
+//testUtilPt.listMode = "hide";
 map.add(testUtilPt);
 
 /* Symbols with callout */
@@ -1068,6 +1068,20 @@ var utilLineExist = new FeatureLayer({
 
 
 /////////////////////////////////////////////////////////////////////////////////////
+/* Function for zooming to selected layers */
+function zoomToLayer(layer) {
+  return layer.queryExtent().then(function(response) {
+    view.goTo(response.extent, { //response.extent
+      speedFactor: 2
+    }).catch(function(error) {
+      if (error.name != "AbortError") {
+        console.error(error);
+      }
+    });
+  });
+}
+
+
 //*******************************//
 //      Progress Chart           //
 //*******************************//
@@ -1128,6 +1142,8 @@ cpButtonElement.addEventListener("change", filterByChartTypes);
           testLine.definitionExpression = "Type = 'Point'";
           testLine1.definitionExpression = "Type = 'Point'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-01 Point" + "</p>";
+
+          zoomToLayer(testUtilPt);
           updateChartPoint();
 
         } else if (selectedTypes == "N-02(P)") {
@@ -1136,6 +1152,8 @@ cpButtonElement.addEventListener("change", filterByChartTypes);
           testLine.definitionExpression = "Type = 'Point'";
           testLine1.definitionExpression = "Type = 'Point'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-02 Point" + "</p>";
+
+          zoomToLayer(testUtilPt);
           updateChartPoint();
 
         } else if (selectedTypes == "N-03(P)") {
@@ -1144,7 +1162,8 @@ cpButtonElement.addEventListener("change", filterByChartTypes);
           testLine.definitionExpression = "Type = 'Point'";
           testLine1.definitionExpression = "Type = 'Point'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-03 Point" + "</p>";
-          view.goTo(testUtilPt.fullExtent);
+
+          zoomToLayer(testUtilPt);
           updateChartPoint();
 
         } else if (selectedTypes == "N-04(P)") {
@@ -1153,6 +1172,8 @@ cpButtonElement.addEventListener("change", filterByChartTypes);
           testLine.definitionExpression = "Type = 'Point'";
           testLine1.definitionExpression = "Type = 'Point'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-04 Point" + "</p>";
+
+          zoomToLayer(testUtilPt);
           updateChartPoint();
 
         } else if (selectedTypes == "N-05(P)") {
@@ -1161,6 +1182,8 @@ cpButtonElement.addEventListener("change", filterByChartTypes);
           testLine.definitionExpression = "Type = 'Point'";
           testLine1.definitionExpression = "Type = 'Point'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-05 Point" + "</p>";
+
+          zoomToLayer(testUtilPt);
           updateChartPoint();
 
         // Utility Line
@@ -1170,6 +1193,8 @@ cpButtonElement.addEventListener("change", filterByChartTypes);
           testUtilPt.definitionExpression = "Type = 'Line'";
           testUtilPt1.definitionExpression = "Type = 'Line'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-01 Line" + "</p>";
+
+          zoomToLayer(testLine);
           updateChartLine();
 
         } else if (selectedTypes == "N-02(L)") {
@@ -1178,6 +1203,8 @@ cpButtonElement.addEventListener("change", filterByChartTypes);
           testUtilPt.definitionExpression = "Type = 'Line'";
           testUtilPt1.definitionExpression = "Type = 'Line'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-02 Line" + "</p>";
+
+          zoomToLayer(testLine);
           updateChartLine();
 
         } else if (selectedTypes == "N-03(L)") {
@@ -1186,7 +1213,8 @@ cpButtonElement.addEventListener("change", filterByChartTypes);
           testUtilPt.definitionExpression = "Type = 'Line'";
           testUtilPt1.definitionExpression = "Type = 'Line'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-03 Line" + "</p>";
-          view.goTo(testUtilPt.fullExtent);
+
+          zoomToLayer(testLine);
           updateChartLine();
 
         } else if (selectedTypes == "N-04(L)") {
@@ -1195,6 +1223,8 @@ cpButtonElement.addEventListener("change", filterByChartTypes);
           testUtilPt.definitionExpression = "Type = 'Line'";
           testUtilPt1.definitionExpression = "Type = 'Line'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-04 Line" + "</p>";
+
+          zoomToLayer(testLine);
           updateChartLine();
 
         } else if (selectedTypes == "N-05(L)") {
@@ -1203,6 +1233,8 @@ cpButtonElement.addEventListener("change", filterByChartTypes);
           testUtilPt.definitionExpression = "Type = 'Line'";
           testUtilPt1.definitionExpression = "Type = 'Line'";
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-05 Line" + "</p>";
+
+          zoomToLayer(testLine);
           updateChartLine();
 
         // For None, generate combined chart with no map filtering
@@ -1409,7 +1441,6 @@ view.whenLayerView(testUtilPt1).then(function (layerView) {
   arrLviews.push(layerView);
   
   chartElement.style.visibility = "visible";
-
   
 view.on("click", function() {
   layerView.filter = null;
@@ -1768,13 +1799,13 @@ function updateChartCombine() {
 
 ///////////////////
 /* Status = Incomplete */
-  chartSumTotalIncomp = [chartSumArrayIncompPoint[0] + chartSumArrayIncompLine[0], // telecom
+  var chartSumTotalIncomp = [chartSumArrayIncompPoint[0] + chartSumArrayIncompLine[0], // telecom
                         chartSumArrayIncompPoint[1] + chartSumArrayIncompLine[1], // Water
                         chartSumArrayIncompPoint[2] + chartSumArrayIncompLine[2]]; // Power
 
                         
 /* Status = complete */
-chartSumTotalComp = [chartSumArrayCompPoint[0] + chartSumArrayCompLine[0], // telecom
+var chartSumTotalComp = [chartSumArrayCompPoint[0] + chartSumArrayCompLine[0], // telecom
                         chartSumArrayCompPoint[1] + chartSumArrayCompLine[1], // water
                         chartSumArrayCompPoint[2] + chartSumArrayCompLine[2]]; // Power
 

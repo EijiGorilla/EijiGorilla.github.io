@@ -86,7 +86,7 @@
         border-bottom: 0px solid gray;
       }
 
- 
+
       #chartPanel {
         background: rgb(0, 0, 0, 0);
         font: "Avenir Next W00";
@@ -743,6 +743,9 @@ var testUtilPt1 = new FeatureLayer({
              fieldName: "Id"
            },
            {
+             fieldName: "Type"
+           },
+           {
              fieldName: "Company"
            },
            {
@@ -1052,97 +1055,114 @@ const testElement = document.getElementById("test-filter");
 const utilTypesButton = document.getElementById("dataTypeInput");
 const cpButtonElement = document.getElementById("cpButton");
 
+let cpArray = [];
+let typeArray = [];
 let chartArray = [];
 let itemNameArray = [];
+
 
 // Start of am4core
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
-// Event Handler for Data Type (poinr or line)
-/*
-cpButtonElement.addEventListener("change", filterByChartTypesA);
-  function filterByChartTypesA(e) {
-    const selectedTypes = e.target.id;
-
-
-    if (chartArray.length < 2) {
-      chartArray.push(selectedTypes);
-      chartTitleDiv.innerHTML = chartArray;
-    } else {
-      chartArray.length = 0;
-    }
-  }
-*/
 document.querySelectorAll('.cpButtonClass').forEach(item => {
     item.addEventListener("change", filterByChartTypes);
     function filterByChartTypes(e) {
         const selectedTypes = e.target.id; // e.g., "N-01"
         const itemName = item.id; // e.g., "cpButton" class name
 
+        
         chartArray.push(selectedTypes);
         itemNameArray.push(itemName);
 
-        chartTitleDiv.innerHTML = chartArray;
+
+        if (itemName === "cpButton") {
+          cpArray.push(selectedTypes);
+        } else {
+          typeArray.push(selectedTypes);
+        }
+
+        chartTitleDiv.innerHTML = cpArray[cpArray.length-1] + typeArray[typeArray.length-1];
+
+        if (cpArray[cpArray.length-1] === undefined) {
+          testUtilPt.definitionExpression = "Type = '" + typeArray[typeArray.length-1] + "'";
+        updateChart();
+
+        } else if (typeArray[typeArray.length-1] === undefined) {
+        testUtilPt.definitionExpression = "CP = '" + cpArray[cpArray.length-1] + "'";
+        updateChart();
+
+        } else {
+        testUtilPt.definitionExpression = "CP = '" + cpArray[cpArray.length-1] + "'" + " AND " + "Type = " + typeArray[typeArray.length-1];
+        updateChart();
+
+        }
 
 
+
+
+
+        
+/*
         // Click 1:
         if (chartArray.length == 1 && itemNameArray[0] == "cpButton") { //OK ["N-03"]
-            chartTitleDiv.innerHTML = chartArray;
+        testHeaderDiv.innerHTML = chartArray;
             testUtilPt.definitionExpression = "CP = '" + chartArray[0] + "'";
             updateChart();
         } else if (chartArray.length == 1 && itemNameArray[0] == "cpButton" && chartArray[0] == "None") {
+          testHeaderDiv.innerHTML = chartArray;
             updateChart();
         } else if (chartArray.length == 1 && itemNameArray[0] == "dataTypeInput") { //OK ["Point"]
-            chartTitleDiv.innerHTML = chartArray;
+        testHeaderDiv.innerHTML = chartArray;
             testUtilPt.definitionExpression = "Type = '" + chartArray[0] + "'";
             updateChart();
         } else if (chartArray.length == 1 && itemNameArray[0] == "dataTypeInput" && chartArray[0] == "None") {
+          testHeaderDiv.innerHTML = chartArray;
             updateChart();
 
         // Click 2
         } else if (chartArray.length == 2 && itemNameArray[0] == itemNameArray[1]) { // ["N-01", "N-03"] -> ["N-03"] OK
                 chartArray.shift(); // remove the first element: ["N-01"] 
-                chartTitleDiv.innerHTML = chartArray;
+                testHeaderDiv.innerHTML = chartArray;
                 testUtilPt.definitionExpression = "CP = '" + chartArray[0] + "'";
                 updateChart();
-        } else if (chartArray.length == 2 && itemNameArray[0] !== itemNameArray[1] && itemNameArray[1] == "dataTypeInput") { // ["Point", "N-01"] -> ["N-01","Point"]
+        } else if (chartArray.length == 2 && (itemNameArray[0] !== itemNameArray[1]) && (itemNameArray[0] == "dataTypeInput")) { // ["Point", "N-01"] -> ["N-01","Point"]
                 chartArray = [chartArray[1], chartArray[0]];
-                chartTitleDiv.innerHTML = chartArray;
+                testHeaderDiv.innerHTML = chartArray;
                 testUtilPt.definitionExpression = "CP = '" + chartArray[0] + "'" + " AND " + "Type = " + chartArray[1];
                 updateChart();
-        } else if (chartArray.length == 2 && itemNameArray[0] !== itemNameArray[1] && itemNameArray[1] == "dataTypeInput") { // ["N-01", "Point"]
-                chartTitleDiv.innerHTML = chartArray;
-                testUtilPt.definitionExpression = "CP = '" + chartArray[0] + "'" + " AND " + "Type = " + chartArray[1];
+        } else if (chartArray.length == 2 && (itemNameArray[0] !== itemNameArray[1]) && (itemNameArray[1] == "dataTypeInput")) { // ["N-01", "Point"]
+        testHeaderDiv.innerHTML = chartArray;        
+        testUtilPt.definitionExpression = "CP = '" + chartArray[0] + "'" + " AND " + "Type = " + chartArray[1];
                 updateChart();
         } else if (chartArray.length == 2 && chartArray[0] == "None" && chartArray[1] == "None") { // ["None", "None"]
-                chartTitleDiv.innerHTML = chartArray;
                 chartArray.length = [];
+                testHeaderDiv.innerHTML = chartArray;
                 testUtilPt.definitionExpression = null;
                 updateChart();    
 
         // Click 3
-        } else if (chartArray.length == 3 && itemNameArray[1] == itemNameArray[2] && itemNameArray[0] == "dataTypeInput") { // ["Point", "N-01", "N-04"] -> ["N-04","Point"]
+        } else if (chartArray.length == 3 && (itemNameArray[1] == itemNameArray[2]) && (itemNameArray[0] == "dataTypeInput")) { // ["Point", "N-01", "N-04"] -> ["N-04","Point"]
                 chartArray = [chartArray[2], chartArray[0]];
-                chartTitleDiv.innerHTML = chartArray;    
+                testHeaderDiv.innerHTML = chartArray;
                 testUtilPt.definitionExpression = "CP = '" + chartArray[0] + "'" + " AND " + "Type = " + chartArray[1];
                 updateChart();
-        } else if (chartArray.length == 3 && itemNameArray[0] == itemNameArray[2] && itemNameArray[2] == "cpButton") { // ["N-01", "Point", "N-04"] -> ["N-04", "Point"] //OK
+        } else if (chartArray.length == 3 && (itemNameArray[0] == itemNameArray[2]) && (itemNameArray[2] == "cpButton")) { // ["N-01", "Point", "N-04"] -> ["N-04", "Point"] //OK
                 chartArray = [chartArray[2], chartArray[1]];
-                chartTitleDiv.innerHTML = chartArray;               
+                testHeaderDiv.innerHTML = chartArray;
                 testUtilPt.definitionExpression = "CP = '" + chartArray[0] + "'" + " AND " + "Type = " + chartArray[1];
                 updateChart();
         } else if (chartArray.length == 3 && itemNameArray[1] == itemNameArray[2] && itemNameArray[2] == "dataTypeInput") { // ["N-01", "Point", "Line"] -> ["N-01", "Line"] //OK
                 chartArray = [chartArray[0], chartArray[2]];
-                chartTitleDiv.innerHTML = chartArray;    
+                testHeaderDiv.innerHTML = chartArray;
                 testUtilPt.definitionExpression = "CP = '" + chartArray[0] + "'" + " AND " + "Type = " + chartArray[1];
                 updateChart();
         } else if (chartArray.length == 3 && itemNameArray[0] == itemNameArray[2] && itemNameArray[2] == "dataTypeInput") { // ["Point", "N-01", "Line"] -> ["N-01", "Line"]
                 chartArray = [chartArray[1], chartArray[2]];
-                chartTitleDiv.innerHTML = chartArray;    
+                testHeaderDiv.innerHTML = chartArray;
                 testUtilPt.definitionExpression = "CP = '" + chartArray[0] + "'" + " AND " + "Type = " + chartArray[1];
                 updateChart();
-        }
+        }*/
     }
 
 });

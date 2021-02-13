@@ -59,11 +59,13 @@
         font-size: 25px;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         color: white;
-        padding: 12px;
+        padding: 10px 0px 5px 12px;
         border: solid 2.5px gray;
         margin: 0px 6px 2px 3px;
-
+        display: grid;
+        grid-template-columns: 250px 1fr 1fr;
       }
+
 
       #tableDiv {
         padding: 0;
@@ -98,12 +100,24 @@
           width: 100%;
           height: 100%;
           }
+
+      .cpButtonClass {
+          font-style: normal;
+          font-size: 14px;
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+          color: white;
+          padding: 2px;
+          }
       
       p {
         color: orange;
         text-align: center;
         font-weight: normal;
         font-size: 14px;
+        vertical-align: text-top;
+        padding: 0;
+        margin-top: 4px;
+        margin-bottom: 0;
       }
 
       h2 {
@@ -1034,12 +1048,99 @@ var utilLineExist = new FeatureLayer({
 const seasonsNodes = document.querySelectorAll(`.test-item`);
 const testElement = document.getElementById("test-filter");
 const utilTypesButton = document.getElementById("dataTypeInput");
+const cpButtonElement = document.getElementById("cpButton");
+
+let chartArray = [];
+let itemNameArray = [];
 
 // Start of am4core
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
 // Event Handler for Data Type (poinr or line)
+/*
+cpButtonElement.addEventListener("change", filterByChartTypesA);
+  function filterByChartTypesA(e) {
+    const selectedTypes = e.target.id;
+
+
+    if (chartArray.length < 2) {
+      chartArray.push(selectedTypes);
+      chartTitleDiv.innerHTML = chartArray;
+    } else {
+      chartArray.length = 0;
+    }
+  }
+*/
+
+
+
+document.querySelectorAll('.cpButtonClass').forEach(item => {
+    item.addEventListener("change", filterByChartTypes);
+    function filterByChartTypes(e) {
+        const selectedTypes = e.target.id; // e.g., "N-01"
+        const itemName = item.id; // e.g., "cpButton" class name
+
+        if (chartArray.length < 2) { // First "IF"
+          chartArray.push(selectedTypes);
+          itemNameArray.push(itemName);
+
+          // Click 1: Always one condition
+          if (itemName == "cpButton" && chartArray.length == 1) { // chartArray.length = the number of clicks
+            testUtilPt.definitionExpression = "CP = '" + selectedTypes + "'";
+            updateChart();
+            chartTitleDiv.innerHTML = chartArray;
+          } else if (itemName == "dataTypeInput" && chartArray.length == 1) {
+            testUtilPt.definitionExpression = "Type = '" + selectedTypes + "'";
+            updateChart();
+            chartTitleDiv.innerHTML = chartArray;
+          }
+
+          // Click 2: Two conditions
+          /* If the second selectedTypes has the same class as the first clicked for "cpButton", simply use the second clicked: ["N-01", "N-05"]*/
+          if (chartArray.length == 2 && itemNameArray[0] == itemNameArray[1] && itemName == "cpButton") {
+            testUtilPt.definitionExpression = "CP = '" + chartArray[1] + "'";
+            updateChart();
+            chartTitleDiv.innerHTML = chartArray;
+
+          /* If the second selectedTypes has the same class as the first clicked for "dataTypeInput", simply use the second clicked: ["Point", "Line"]*/
+          } else if (chartArray.length == 2 && itemNameArray[0] == itemNameArray[1] && itemName == "dataTypeInput") {
+            testUtilPt.definitionExpression = "Type = '" + chartArray[1] + "'";
+            updateChart();
+            chartTitleDiv.innerHTML = chartArray;
+
+            /* Else if the first and second selectedTypes are different but the first clicked is "cpButton": ["N-01", "Point"]*/
+          } else if (chartArray.length == 2 && itemNameArray[0] !== itemNameArray[1] && itemNameArray[0] == "cpButton") {
+            testUtilPt.definitionExpression = "CP = '" + chartArray[0] + "'" + " AND " + "Type = " + chartArray[1];
+            updateChart();
+            chartTitleDiv.innerHTML = chartArray;
+
+            /* Else if the first and second selectedTypes are different but the first clicked is "dataTypeInput": ["Point", "N-01"]*/            
+          } else if (chartArray.length == 2 && itemNameArray[0] !== itemNameArray[1] && itemNameArray[0] == "dataTypeInput") {
+            testUtilPt.definitionExpression = "CP = '" + chartArray[1] + "'" + " AND " + "Type = " + chartArray[0];
+            updateChart();
+            chartTitleDiv.innerHTML = chartArray;
+          }
+       } else {
+         chartArray.length = 0;
+         itemNameArray.length = 0;
+         itemNameArray.push(itemName);
+         chartArray.push(selectedTypes);
+       } // End of first "IF"
+        /*
+            if (chartArray.includes("None", "N-01", "N-02", "N-03", "N-04", "N-05")) {
+                testUtilPt.definitionExpression = "CP = '" + selectedTypes + "'";
+                updateChart();
+            } else if (chartArray.includes("Point", "Line")) {
+                testUtilPt.definitionExpression = "Type = '" + selectedTypes + "'";
+                updateChart();
+            }*/
+
+    }
+
+});
+
+/*
 utilTypesButton.addEventListener("change", filterByTypes);
 function filterByTypes(e) {
   const selectedTypes = e.target.id;
@@ -1059,41 +1160,13 @@ function filterByTypes(e) {
   }
 }
 }
-
+*/
 
 // Click event handler for choices
-testElement.addEventListener("click", filterByCP);
-function filterByCP(event) {
-    const selectedID = event.target.getAttribute("data-test");
-    testUtilPt.definitionExpression = "CP = '" + selectedID + "'";
-    titleDiv.innerHTML = "Utility Relocation: " + selectedID;
-    headerDiv.innerHTML = "Utility Relocation:" + selectedID;
-    updateChart();
 
-    view.goTo(testUtilPt.fullExtent);
-} // End of filterByCP function
 
 /* Create Expand widget for selecting CP and updating chart */
-view.when(function() {
-  testElement.style.visibility = "visible";
-  const testExpand = new Expand({
-    view: view,
-    content: testElement,
-    expandIconClass: "esri-icon-filter",
-    group: "top-left"
-  });
 
-  // Watch expand widget 
-  testExpand.watch("expanded", function() {
-    if (!testExpand.expanded) {
-      testUtilPt.definitionExpression = null;
-      titleDiv.innerHTML = "Utility Relocation" + "<p>" + "Choose Contract Package" + "</p>";
-      updateChart();
-      view.goTo(testUtilPt.fullExtent).catch(catchAbortError);
-    }
-  });
-  view.ui.add(testExpand,"top-left")
-});
 
 // Start of "updateChart" function for Utility Point
 function updateChart() {
@@ -1484,6 +1557,20 @@ view.when(function() {
   </head>
   <body>
       <div id="headerDiv" class="esri-widget">Utility Relocation
+          <div class="dateDiv">
+              <p>As of February 8, 2021</p>
+          </div>
+          <div class="cpButtonBox">
+            <div id="cpButton" class="cpButtonClass">
+                <label for="cpButton">CP</label>
+                <input type="radio" id="None" name="cpButton" checked /> None
+                <input type="radio" id="N-01" name="cpButton"> N-01
+                <input type="radio" id="N-02" name="cpButton"> N-02
+                <input type="radio" id="N-03" name="cpButton"> N-03
+                <input type="radio" id="N-04" name="cpButton"> N-04
+                <input type="radio" id="N-05" name="cpButton"> N-05
+              </div>
+          </div>
       </div>
       <div class="container">
         <div class="boxB">
@@ -1505,7 +1592,7 @@ view.when(function() {
             <div id="chartPanel">
               <div id="chartdiv"></div>
           </div>
-          <div id="dataTypeInput" class="esri-widget">
+          <div id="dataTypeInput" class="cpButtonClass">
             <label for="dataTypeInput">Data Type</label>
             <input type="radio" id="None" name="dataTypeInput" checked /> None
             <input type="radio" id="Point" name="dataTypeInput"> Point
