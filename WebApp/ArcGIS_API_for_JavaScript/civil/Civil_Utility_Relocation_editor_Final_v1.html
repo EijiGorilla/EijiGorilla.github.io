@@ -208,7 +208,8 @@
         "esri/widgets/FeatureTable",
         "esri/widgets/Compass",
         "esri/TimeExtent",
-        "esri/layers/support/Sublayer"
+        "esri/layers/support/Sublayer",
+        "esri/widgets/Search"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -217,7 +218,7 @@
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol,
-                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable, Compass, TimeExtent, Sublayer) {
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable, Compass, TimeExtent, Sublayer, Search) {
 
 let chartLayerView;
   const features = [];
@@ -286,6 +287,15 @@ let chartLayerView;
 //*******************************//
 // Label Class Property Settings //
 //*******************************//
+// Chainage Label
+var labelChainage = new LabelClass({
+  labelExpressionInfo: {expression: "$feature.KM_MAIN"},
+  symbol: {
+    type: "text",
+    color: [220,220,220,0.2],
+    size: 20
+  }
+});
 
 // Station Label
         var labelClass = new LabelClass({
@@ -371,6 +381,7 @@ var testLineLabelClass = {
 //*****************************//
 // 3D Web Symbo Style Settings //
 //*****************************//
+
 // Station Symbol
         function stationsSymbol(name) {
           return {
@@ -488,6 +499,21 @@ var verticalOffsetRelocation = {
 //*****************************//
 //      Renderer Settings      //
 //*****************************//
+
+// Chainage symbol
+var chainageRenderer = {
+    type: "simple",
+    symbol: {
+      type: "simple-marker",
+      size: 2,
+      color: [220,20,60,0.2],
+      outline: {
+        width: 0.2,
+        color: "black"
+      }
+    }
+  };
+
 // Station
 var stationsRenderer = {
           type: "unique-value", // autocasts as new UniqueValueRenderer()
@@ -665,11 +691,52 @@ const colorsRelocation = {
     2: [119, 136, 153, 0.5], // Water
     3: [192, 192, 192, 0.5], // Power
     }; 
+
+
+
+
+//*****************************//
+//      Search Widget          //
+//*****************************//
+var searchWidget = new Search({
+  view: view,
+  locationEnabled: false,
+  searchAllEnabled: true,
+  sources: [
+    {
+      layer: chainageLayer,
+      searchFields: ["KM_MAIN"],
+              exactMatch: false,
+              outFields: ["KM_MAIN"],
+              name: "Main KM",
+              placeholder: "example: 80+400"
+  }
+]
+});
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
  //*****************************//
 //      Layer Import           //
 //*****************************//
+
+// Centerline and chainage
+var chainageLayer = new FeatureLayer ({
+  portalItem: {
+    id: "7e1812db542a4261b73787dfe5a5d438"
+  },
+  layerId: 0,
+  elevationInfo: {
+    mode: "relative-to-ground"
+  },
+  labelingInfo: [labelChainage],
+  renderer: chainageRenderer,
+  outFields: ["*"]
+
+})
+chainageLayer.listMode = "hide",
+map.add(chainageLayer);
+
 // Station
         var stationLayer = new SceneLayer({
           portalItem: {
@@ -1050,6 +1117,20 @@ var utilLineExist = new FeatureLayer({
 //*******************************//
 //      Progress Chart           //
 //*******************************//
+/* Function for zooming to selected layers */
+function zoomToLayer(layer) {
+  return layer.queryExtent().then(function(response) {
+    view.goTo(response.extent, { //response.extent
+      speedFactor: 2
+    }).catch(function(error) {
+      if (error.name != "AbortError") {
+        console.error(error);
+      }
+    });
+  });
+}
+
+//
 const seasonsNodes = document.querySelectorAll(`.test-item`);
 const testElement = document.getElementById("test-filter");
 const utilTypesButton = document.getElementById("dataTypeInput");
@@ -1110,7 +1191,8 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           /* We need to define expression such that lines are disappeard when 'Point' is selected*/
           testLine.definitionExpression = "Type = 'Point'";
           testLine1.definitionExpression = "Type = 'Point'";
-          view.goTo(testUtilPt.fullExtent);
+          
+          zoomToLayer(testUtilPt);
           updateChartPoint();
 
         } else if ((cpArrayConcat === undefined && typeArrayConcat === "Line") || (cpArrayConcat === "None" && typeArrayConcat === "Line")) { // [undefined, "Line"] or ["None", "Line"]
@@ -1118,7 +1200,8 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           testLine1.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testUtilPt.definitionExpression = "Type = 'Line'";
           testUtilPt1.definitionExpression = "Type = 'Line'";
-          view.goTo(testLine.fullExtent);
+
+          zoomToLayer(testLine);
           updateChartLine();
 
         } else if (cpArrayConcat === undefined && typeArrayConcat === "None") { // [undefined, "None"]
@@ -1126,7 +1209,7 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           testLine1.definitionExpression = null;
           testUtilPt.definitionExpression = null;
           testUtilPt1.definitionExpression = null;
-          view.goTo(testLine.fullExtent);
+
           updateChartCombine();
 
         } else if (cpArrayConcat === "None" && typeArrayConcat === undefined) { // ["None", undefined]
@@ -1134,7 +1217,7 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           testLine1.definitionExpression = null;
           testUtilPt.definitionExpression = null;
           testUtilPt1.definitionExpression = null;
-          view.goTo(testLine.fullExtent);
+
           updateChartCombine();
 
         } else if (typeArrayConcat === undefined) { // ["N-01", undefined]
@@ -1142,8 +1225,8 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           testUtilPt1.definitionExpression = "CP = '" + cpArrayConcat + "'";
           testLine.definitionExpression = "CP = '" + cpArrayConcat + "'";
           testLine1.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          view.goTo(testUtilPt.fullExtent);
 
+          zoomToLayer(testUtilPt);
           updateChartCombine();
 
         } else if (typeArrayConcat === "Point") { // ["N-01", "Point"]
@@ -1153,7 +1236,8 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           // For disappearing Line
           testLine.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testLine1.definitionExpression = "Type = '" + typeArrayConcat + "'";
-          view.goTo(testUtilPt.fullExtent);
+
+          zoomToLayer(testUtilPt);;
           updateChartPoint();
 
         } else if (typeArrayConcat === "Line") { // ["N-01", "Line"]
@@ -1163,17 +1247,30 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           // For disappearing Point
           testUtilPt.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testUtilPt1.definitionExpression = "Type = '" + typeArrayConcat + "'";
-          view.goTo(testLine.fullExtent);
+
+          zoomToLayer(testUtilPt);;
           updateChartLine();
 
           // "None" buttons
-        } else if (cpArrayConcat === "None" && typeArrayConcat === "None") {
+        } else if (cpArrayConcat === "None" && typeArrayConcat === "None") { // ["None", "None"]
           testLine.definitionExpression = null;
           testLine1.definitionExpression = null;
           testUtilPt.definitionExpression = null;
           testUtilPt1.definitionExpression = null;
           updateChartCombine();
         }
+
+        else if (typeArrayConcat === "None") { // ["N-01, "None"]
+          testLine.definitionExpression = "CP = '" + cpArrayConcat + "'";
+          testLine1.definitionExpression = "CP = '" + cpArrayConcat + "'";
+          testUtilPt.definitionExpression = "CP = '" + cpArrayConcat + "'";
+          testUtilPt1.definitionExpression = "CP = '" + cpArrayConcat + "'";
+
+          zoomToLayer(testUtilPt);
+          updateChartCombine();
+        }
+
+
 
       }
     });
@@ -2036,6 +2133,7 @@ view.when(function() {
 
 
 /////////////////////////////////////////////////////////////////////////////////////
+/*
 view.when(function () {
           view.popup.autoOpenEnabled = true; //disable popups
 
@@ -2046,7 +2144,8 @@ view.when(function () {
 
           // Add widget to top-right of the view
           view.ui.add(editor, "top-left");
-        });        
+        });   
+        */     
 // LayerList and Add legend to the LayerList
         // On-off feature layer tab
         var layerList = new LayerList({
@@ -2096,6 +2195,9 @@ view.when(function () {
         view.ui.add("menu", "bottom-left");
   
         view.ui.empty("top-left");
+
+        // Search Widget
+        view.ui.add([searchWidget], "top-right")
 
       });
     </script>
