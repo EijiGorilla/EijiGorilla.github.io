@@ -1188,17 +1188,12 @@ let typeArray = [];
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
-let chartSumArrayIncompPoint = [];
-let chartSumArrayCompPoint = [];
-
-let chartSumArrayIncompLine = [];
-let chartSumArrayCompLine = [];
-
-let chartSumTotalIncomp = [];
-let chartSumTotalComp = [];
-
 let compileArrayPoint = [];
 let compileArrayLine = [];
+
+const chartTitleLabel = "Progress of Utility Relocation (%)";
+// Default label
+chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
 
 // As default, chart shows the progress of all the relocated layers (point + line)
 if (document.getElementById("None").checked = true) {
@@ -1212,9 +1207,6 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
     function filterByChartTypes(e) {
         const selectedTypes = e.target.id; // e.g., "N-01"
         const itemName = item.id; // e.g., "cpButton" class name
-
-        // Click 1:
-        const chartTitleLabel = "Progress of Utility Relocation (%)";
 
         // Start Filtering:
         if (itemName === "cpButton") {
@@ -1258,6 +1250,8 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           testUtilPt.definitionExpression = null;
           testUtilPt1.definitionExpression = null;
 
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
+
           updateChartCombine();
 
         } else if (cpArrayConcat === "None" && typeArrayConcat === undefined) { // ["None", undefined]
@@ -1266,6 +1260,8 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           testUtilPt.definitionExpression = null;
           testUtilPt1.definitionExpression = null;
 
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
+
           updateChartCombine();
 
         } else if (typeArrayConcat === undefined) { // ["N-01", undefined]
@@ -1273,6 +1269,8 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           testUtilPt1.definitionExpression = "CP = '" + cpArrayConcat + "'";
           testLine.definitionExpression = "CP = '" + cpArrayConcat + "'";
           testLine1.definitionExpression = "CP = '" + cpArrayConcat + "'";
+
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + cpArrayConcat + "</p>";
 
           zoomToLayer(testUtilPt);
           updateChartCombine();
@@ -1285,6 +1283,8 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           testLine.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testLine1.definitionExpression = "Type = '" + typeArrayConcat + "'";
 
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + cpArrayConcat + " ," + typeArrayConcat + "</p>";
+
           zoomToLayer(testUtilPt);;
           updateChartPoint();
 
@@ -1296,6 +1296,8 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           testUtilPt.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testUtilPt1.definitionExpression = "Type = '" + typeArrayConcat + "'";
 
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + cpArrayConcat + " ," + typeArrayConcat + "</p>";
+
           zoomToLayer(testLine); //CHECK
           updateChartLine();
 
@@ -1305,6 +1307,9 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           testLine1.definitionExpression = null;
           testUtilPt.definitionExpression = null;
           testUtilPt1.definitionExpression = null;
+
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
+
           updateChartCombine();
         }
 
@@ -1313,6 +1318,8 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           testLine1.definitionExpression = "CP = '" + cpArrayConcat + "'";
           testUtilPt.definitionExpression = "CP = '" + cpArrayConcat + "'";
           testUtilPt1.definitionExpression = "CP = '" + cpArrayConcat + "'";
+
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + cpArrayConcat + "</p>";
 
           zoomToLayer(testUtilPt);
           updateChartCombine();
@@ -1968,6 +1975,7 @@ valueAxis.renderer.minWidth = 50;
 valueAxis.renderer.labels.template.fontSize = 11;
 valueAxis.renderer.labels.template.fill = "#ffffff";
 
+let arrLviews = [];
 
 // Layerview and Expand
 function createSeriesCombine(field, name) {
@@ -2023,12 +2031,11 @@ function createSeriesCombine(field, name) {
     // It seems that if both selectedLayer and selectedStatus are numbers in data types this fails for hosted feature layers.
 
 
-/*
-    chartLayerView.filter = {
-      where: "Remarks = '" + selectedLayer + "'" + " AND " +  "Status = " + selectedStatus
-    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
-  };
-*/
+    for (var i = 0; i < arrLviews.length; i++) {
+      arrLviews[i].filter = {
+        where: "Remarks = '" + selectedLayer + "'" + " AND " +  "Status = " + selectedStatus
+      }
+    }
   
   } // End of filterByChart
 
@@ -2041,7 +2048,61 @@ function createSeriesCombine(field, name) {
   labelBullet.interactionsEnabled = false;
   labelBullet.label.fontSize = 10;
   labelBullet.locationX = 0.5;
+
+
+    // LayerView for point 2
+    view.whenLayerView(testLine1).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+
+});
+
+  view.whenLayerView(testLine).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+});
+
+view.whenLayerView(testUtilPt).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+
+});
+
+  view.whenLayerView(testUtilPt1).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+});
+
 } // End of createSeries function
+
 
 // Run createSeries
 createSeriesCombine("value1", "Incomplete");
