@@ -196,7 +196,6 @@
         "esri/WebScene",
         "esri/portal/PortalItem",
         "esri/portal/Portal",
-        "esri/widgets/TimeSlider",
         "esri/widgets/Legend",
         "esri/widgets/LayerList",
         "esri/widgets/Fullscreen",
@@ -206,25 +205,18 @@
         "esri/renderers/smartMapping/statistics/summaryStatistics",
         "esri/tasks/support/StatisticDefinition",
         "esri/symbols/WebStyleSymbol",
-        "esri/TimeExtent",
         "esri/widgets/Expand",
         "esri/widgets/Editor",
         "esri/renderers/UniqueValueRenderer",
-        "esri/widgets/support/DatePicker",
-        "esri/widgets/FeatureTable",
-        "esri/widgets/Compass",
-        "esri/TimeExtent",
         "esri/layers/support/Sublayer",
         "esri/widgets/Search"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
                   LabelClass, LabelSymbol3D, WebMap,
-                  WebScene, PortalItem, Portal,
-                  TimeSlider, Legend, LayerList, Fullscreen,
+                  WebScene, PortalItem, Portal, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
-                  StatisticDefinition, WebStyleSymbol,
-                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable, Compass, TimeExtent, Sublayer, Search) {
+                  StatisticDefinition, WebStyleSymbol, Expand, Editor, UniqueValueRenderer, Sublayer, Search) {
 
 let chartLayerView;
   const features = [];
@@ -1061,6 +1053,7 @@ var testLine1 = new FeatureLayer({
 // Utility Point Existing (this is real dataset)
 /* 3D web Style*/
 
+
  var utilPointExist1 = new FeatureLayer({
             portalItem: {
                 id: "816c6332f99a4c6f8d27183d9d56c758" // 816c6332f99a4c6f8d27183d9d56c758
@@ -1071,7 +1064,7 @@ var testLine1 = new FeatureLayer({
               unit: "meters"
               //offset: 0
             },
-            renderer: utilTypePtRenderer, //utilExistSymbolRenderer,
+            renderer: utilExistSymbolRenderer,//utilExistSymbolRenderer,
             popupTemplate: {
               title: "{Company}",
               lastEditInfoEnabled: false,
@@ -1108,9 +1101,10 @@ var testLine1 = new FeatureLayer({
         });
         utilPointExist2.listMode = "hide";
         map.add(utilPointExist2);
-*/
+   */    
 // Utility Line Existing (this is real dataset)
 /* Line size, width, and height */
+
 var utilLineExist = new FeatureLayer({
             portalItem: {
                 id: "98fe86a7d2de4565a3b20e848a9b90c6"
@@ -1547,11 +1541,68 @@ function createSeries(field, name) {
       selectedLayer = null;
     }
 
+    view.when(function() {
+        view.whenLayerView(testUtilPt1).then(function (layerView) {
+        chartLayerView = layerView;
+        arrLviews.push(layerView);
+        chartElement.style.visibility = "visible";
+
+        //testUtilPt1.definitionExpression = sqlExpression;
+        testUtilPt1.queryFeatures().then(function(results) {
+            const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i < rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            testUtilPt1.queryExtent(queryExt).then(function(result) {
+                if (result.extent) {
+                    view.goTo(result.extent)
+                }
+            });
+
+            if (highlightSelect) {
+                highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+
+            view.on("click", function() {
+            layerView.filter = null;
+            highlightSelect.remove();
+        });
+
+        }); // end of query features   
+}); // end of when layerview
+
+// Point: 2
+view.whenLayerView(testUtilPt).then(function (layerView) {
+        chartLayerView = layerView;
+        arrLviews.push(layerView);
+        chartElement.style.visibility = "visible";
+
+        view.on("click", function() {
+            layerView.filter = null;
+        });
+
+}); // end of when layerview
+    }); // end of view.when
+    
     for(var i = 0; i < arrLviews.length; i++) {
       arrLviews[i].filter = {
         where: "Remarks = '" + selectedLayer + "'" + " AND " +  "Status = " + selectedStatus
       }
     }
+
+    /* Highlight clicked feature layers */
+    // Point 1:
+ 
 
   } // End of filterByChart
 
@@ -1566,30 +1617,7 @@ function createSeries(field, name) {
   labelBullet.locationX = 0.5;
 
   // LayerView for point 2
-view.whenLayerView(testUtilPt1).then(function (layerView) {
-  chartLayerView = layerView;
-  arrLviews.push(layerView);
-  
-  chartElement.style.visibility = "visible";
 
-  
-view.on("click", function() {
-  layerView.filter = null;
-});
-
-});
-
-  view.whenLayerView(testUtilPt).then(function (layerView) {
-  chartLayerView = layerView;
-  arrLviews.push(layerView);
-  
-  chartElement.style.visibility = "visible";
-
-  
-view.on("click", function() {
-  chartLayerView.filter = null;
-});
-});
 
 
 
@@ -1769,6 +1797,59 @@ function createSeries(field, name) {
       selectedLayer = null;
     }
 
+    view.when(function() {
+        view.whenLayerView(testLine1).then(function (layerView) {
+        chartLayerView = layerView;
+        arrLviews.push(layerView);
+        chartElement.style.visibility = "visible";
+
+        //testLine1.definitionExpression = sqlExpression;
+        testLine1.queryFeatures().then(function(results) {
+            const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i < rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            testLine1.queryExtent(queryExt).then(function(result) {
+                if (result.extent) {
+                    view.goTo(result.extent)
+                }
+            });
+
+            if (highlightSelect) {
+                highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+
+            view.on("click", function() {
+            layerView.filter = null;
+            highlightSelect.remove();
+        });
+
+        }); // end of query features   
+}); // end of when layerview
+
+// Point: 2
+view.whenLayerView(testLine).then(function (layerView) {
+        chartLayerView = layerView;
+        arrLviews.push(layerView);
+        chartElement.style.visibility = "visible";
+
+        view.on("click", function() {
+            layerView.filter = null;
+        });
+
+}); // end of when layerview
+    }); // end of view.when
+
     for(var i = 0; i < arrLviews.length; i++) {
       arrLviews[i].filter = {
         where: "Remarks = '" + selectedLayer + "'" + " AND " +  "Status = " + selectedStatus
@@ -1787,31 +1868,6 @@ function createSeries(field, name) {
   labelBullet.label.fontSize = 10;
   labelBullet.locationX = 0.5;
 
-    // LayerView for point 2
-view.whenLayerView(testLine1).then(function (layerView) {
-  chartLayerView = layerView;
-  arrLviews.push(layerView);
-  
-  chartElement.style.visibility = "visible";
-
-  
-view.on("click", function() {
-  layerView.filter = null;
-});
-
-});
-
-  view.whenLayerView(testLine).then(function (layerView) {
-  chartLayerView = layerView;
-  arrLviews.push(layerView);
-  
-  chartElement.style.visibility = "visible";
-
-  
-view.on("click", function() {
-  chartLayerView.filter = null;
-});
-});
 
 
 } // End of createSeries function
@@ -2299,7 +2355,7 @@ view.when(function() {
 
 
 /////////////////////////////////////////////////////////////////////////////////////
-/*
+
 view.when(function () {
           view.popup.autoOpenEnabled = true; //disable popups
 
@@ -2311,7 +2367,7 @@ view.when(function () {
           // Add widget to top-right of the view
           view.ui.add(editor, "top-left");
         });   
-  */
+
 // LayerList and Add legend to the LayerList
         // On-off feature layer tab
         var layerList = new LayerList({
