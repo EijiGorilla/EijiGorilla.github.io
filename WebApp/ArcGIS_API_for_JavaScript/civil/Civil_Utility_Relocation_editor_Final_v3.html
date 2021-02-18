@@ -380,7 +380,7 @@ var testLineLabelClass = {
 // 3D Web Symbo Style Settings //
 //*****************************//
 
-// Station Symbol
+// Esri Icon Symbol
         function IconSymbol(name) {
           return {
             type: "web-style", // autocasts as new WebStyleSymbol()
@@ -416,10 +416,28 @@ function utilPtSymbolIcons(name) {
 }
 
 /* custom 3D Web Style for Utility Pole */
-var symbolUtil = {
+var symbolElectricPole = {
   type: "web-style",  // autocasts as new WebStyleSymbol()
   styleUrl: "https://www.railway-sector.maps.arcgis.com/sharing/rest/content/items/7cc86329dd2e46229c52d292e660957b/data",
   name: "3D_Electric_Pole" // note this name refers to Key when writing Description in ArcGIS Pro "3D_Utility_Pole"
+};
+
+var symbolDrainBox = {
+    type: "web-style",
+    styleUrl: "https://www.railway-sector.maps.arcgis.com/sharing/rest/content/items/7cc86329dd2e46229c52d292e660957b/data",
+    name: "3D_Drain_Box"
+};
+
+var symbolWaterValve = {
+    type: "web-style",
+    styleUrl: "https://www.railway-sector.maps.arcgis.com/sharing/rest/content/items/7cc86329dd2e46229c52d292e660957b/data",
+    name: "3D_Water_Valve"
+};
+
+var symbolManhole = {
+    type: "web-style",
+    styleUrl: "https://www.railway-sector.maps.arcgis.com/sharing/rest/content/items/7cc86329dd2e46229c52d292e660957b/data",
+    name: "3D_Manhole"
 };
 
 /* Company and Utilty Relocation Status Symbols with Callout */
@@ -531,29 +549,52 @@ var stationsRenderer = {
 /* 3D Web Style */
 var utilTypePtRenderer = {
           type: "unique-value", //"unique-value", "simple"
-          //Field: "UtilType",
-          //defaultSymbol: symbolUtil,
-          valueExpression: "When($feature.UtilType == 1, 'Telecom', $feature.UtilType == 2, 'Water',$feature.UtilType == 3, 'Power', $feature.UtilType)",
+          //Field: "UtilType2",
+          //defaultSymbol: ,
+          //valueExpression: "When($feature.UtilType == 1, 'Telecom', $feature.UtilType == 2, 'Water',$feature.UtilType == 3, 'Power', $feature.UtilType)",
+          valueExpression: "When($feature.UtilType2 == 1, 'Telecom (BTS)', $feature.UtilType2 == 2, 'Telecom Pole', $feature.UtilType2 == 3, 'Water Meter', \
+                                 $feature.UtilType2 == 4, 'Water Valve', $feature.UtilType2 == 5, 'Manhole', $feature.UtilType2 == 6, 'Drain Box', \
+                                 $feature.UtilType2 == 7, 'Electric Pole', $feature.UtilType2 == 8, 'Street Light', $feature.UtilType)",
           uniqueValueInfos: [
             {
-              value: "Telecom",
+              value: "Telecom (BTS)",
               symbol: utilPtSymbolInfra("Cell_Phone_Antenna")
             },
             {
-              value: "Water",
-              symbol: utilPtSymbolStreet("Fountain_1")
+              value: "Telecom Pole",
+              symbol: utilPtSymbolInfra("Cell_Phone_Antenna")
             },
             {
-              value: "Power",
-              //symbol: utilPtSymbolInfra("Powerline_Pole")
-              symbol: symbolUtil
+              value: "Water Meter",
+              symbol: utilPtSymbolInfra("Cell_Phone_Antenna")
+            },
+            {
+              value: "Water Valve",
+              symbol: symbolWaterValve
+            },
+            {
+              value: "Manhole",
+              symbol: utilPtSymbolStreet("Storm_Drain")
+            },
+            {
+              value: "Drain Box",
+              symbol: symbolDrainBox
+            },
+            {
+              value: "Electric Pole",
+              symbol: symbolElectricPole
+            },
+            {
+              value: "Street Light",
+              symbol: utilPtSymbolStreet("Overhanging_Street_and_Sidewalk_-_Light_on")
             }
           ],
           visualVariables: [
             {
               type: "size",
               axis: "height",
-              field: "SIZE"
+              field: "SIZE",
+              valueUnit: "meters"
             },
             {
               type: "rotation",
@@ -2372,7 +2413,7 @@ view.when(function () {
           });
 
           // Add widget to top-right of the view
-          view.ui.add(editor, "top-left");
+          view.ui.add(editor, "bottom-right");
         });   
 
 // LayerList and Add legend to the LayerList
