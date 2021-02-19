@@ -235,8 +235,8 @@ let chartLayerView;
       });
 
          var map = new Map({
-              basemap: basemap // "streets-night-vector", 
-              //ground: "world-elevation"
+              basemap: basemap, // "streets-night-vector", 
+              ground: "world-elevation"
         }); 
         //map.ground.surfaceColor = "#FFFF";
         //map.ground.opacity = 0.5;
@@ -745,15 +745,7 @@ const colorsRelocation = {
 //      Layer Import           //
 //*****************************//
 
-// ROW //
-var rowLayer = new FeatureLayer ({
-  portalItem: {
-    id: "878c49e145b34f269947f8584cd3512c"
-  },
-  title: "ROW",
-  popupEnabled: false
-});
-map.add(rowLayer, 0);
+
 
 // Centerline and chainage
 var chainageLayer = new FeatureLayer ({
@@ -772,7 +764,17 @@ var chainageLayer = new FeatureLayer ({
 
 });
 //chainageLayer.listMode = "hide";
-map.add(chainageLayer, 0);
+map.add(chainageLayer, 1);
+
+// ROW //
+var rowLayer = new FeatureLayer ({
+  portalItem: {
+    id: "878c49e145b34f269947f8584cd3512c"
+  },
+  title: "ROW",
+  popupEnabled: false
+});
+map.add(rowLayer,2);
 
 // Station
         var stationLayer = new SceneLayer({
@@ -801,13 +803,16 @@ map.add(chainageLayer, 0);
         map.add(stationLayer);
 
 // Utility Point
+// To locate a symbol with callout on the ground, 
+// If basemap elevation layer is on, use "relative-to-scene"
+// If basemap elevatio layer is off, use "absolute-height"
 /* 3D Web Style */
 
 var testUtilPt = new FeatureLayer({
   portalItem: {
     id: "d9d0668f475c404fb3c3082c45a74b86"//bb0b887715c742799129a5addfed2572
   },
-  title: "Demolished/Relocation Point",
+  title: "Relocation Plan (Point)",
    outFields: ["*"],
    renderer: utilTypePtRenderer,
    elevationInfo: {
@@ -850,9 +855,12 @@ var testUtilPt = new FeatureLayer({
    }
 });
 
-map.add(testUtilPt, 4);
+map.add(testUtilPt, 3);
 
 /* Symbols with callout */
+// To locate a symbol with callout on the ground, 
+// If basemap elevation layer is on, use "relative-to-scene"
+// If basemap elevatio layer is off, use "absolute-height"
 
 var testUtilPt1 = new FeatureLayer({
   portalItem: {
@@ -860,7 +868,7 @@ var testUtilPt1 = new FeatureLayer({
   },
   title: "Utility 3D Render Test",
   elevationInfo: {
-     mode: "absolute-height",
+     mode: "relative-to-scene",
      unit: "meters"
      //offset: 0
    },
@@ -913,9 +921,9 @@ map.add(testUtilPt1);
    portalItem: {
      id: "4765431b98184c27abaa0f3e828a438d"
    },
-   title: "Demolished/Relocation Line",
+   title: "Relocation Plan (Line)",
    elevationInfo: {
-     mode: "absolute-height",
+     mode: "relative-to-scene",
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
@@ -959,7 +967,7 @@ map.add(testUtilPt1);
      ]
    }
  });
- map.add(testLine, 3);
+ map.add(testLine, 4);
 
  /* Utility Line rendnerer*/
         function rendertestLine() {
@@ -1033,7 +1041,7 @@ var testLine1 = new FeatureLayer({
    },
    title: "testLine",
    elevationInfo: {
-     mode: "absolute-height",
+     mode: "relative-to-scene",
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
@@ -1117,7 +1125,7 @@ var testLine1 = new FeatureLayer({
             }
         });
         //utilPointExist1.listMode = "hide";
-        map.add(utilPointExist1, 1);
+        map.add(utilPointExist1, 5);
 
 
 /*
@@ -1170,7 +1178,7 @@ var utilLineExist = new FeatureLayer({
             }
         });
         //utilLineExist.listMode = "hide";
-        map.add(utilLineExist, 2);
+        map.add(utilLineExist, 6);
 
         function rendertestLineExisting() {
           const renderer = new UniqueValueRenderer({
@@ -2416,10 +2424,20 @@ view.when(function () {
               }
             }
           });
-
+/*
           view.ui.add(layerList, {
             position: "bottom-left"
           });
+*/
+        var layerListExpand = new Expand ({
+            view: view,
+            content: layerList,
+            expandIconClass: "esri-icon-expand",
+            group: "bottom-left"
+        });
+        view.ui.add(layerListExpand, {
+            position: "bottom-left"
+        });
         // End of LayerList
         // End of LayerList
 
@@ -2490,7 +2508,7 @@ var searchWidget = new Search({
   const searchExpand = new Expand({
     view: view,
     content: searchWidget,
-    expandIconClass: "esri-icon-filter",
+    expandIconClass: "esri-icon-search",
     group: "top-right"
   });
         view.ui.add(searchExpand, {
