@@ -57,7 +57,6 @@ as the coding pattern varies between feature layers and scene layers. Plase refe
 >// Time SLider
 const start = new Date(2019, 0, 1);  
 const end = new Date(2022,0,1);  
-
 const timeSlider = new TimeSlider({  
     container: "timeContainer",  
     mode: "cumulative-from-start",  
@@ -75,7 +74,7 @@ const timeSlider = new TimeSlider({
     }  
 });  
 view.ui.add(timeSlider, "bottom-left");  
-  
   timeSlider.watch("timeExtent", function(timeExtent) {  
    viaductLayer.definitionExpression = "TargetDate <= date'" + timeExtent.end.getFullYear() + "-" + (timeExtent.end.getMonth()+1) + "-" + (timeExtent.end.getDate()) +"'";  
   });  
+  
