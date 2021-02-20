@@ -41,20 +41,20 @@ as the coding pattern varies between feature layers and scene layers. Plase refe
 });  
 
 ### 1.2 Scene Layer
->var viaductLayer = new SceneLayer({
-            portalItem: {
-            id: "024e53d5a4294c20ac9a5c822e3d1da9", //68da30606df344d09e8e7b7811debc07
-          },
-          elevationInfo: {
-          mode: "absolute-height" //absolute-height, relative-to-ground
-        },
-            title: "Viaduct sample",
-            outFields: ["*"]
-            // when filter using date, example below. use this format
-            //definitionExpression: "EndDate = date'2020-6-3'"
-          });
+>var viaductLayer = new SceneLayer({  
+            portalItem: {  
+            id: "024e53d5a4294c20ac9a5c822e3d1da9", //68da30606df344d09e8e7b7811debc07  
+          },  
+          elevationInfo: {  
+          mode: "absolute-height" //absolute-height, relative-to-ground  
+        },  
+            title: "Viaduct sample",  
+            outFields: ["*"]  
+            // when filter using date, example below. use this format  
+            //definitionExpression: "EndDate = date'2020-6-3'"  
+          });  
           map.add(viaductLayer);  
->// Time SLider
+>// Time SLider  
 const start = new Date(2019, 0, 1);  
 const end = new Date(2022,0,1);  
 const timeSlider = new TimeSlider({  
