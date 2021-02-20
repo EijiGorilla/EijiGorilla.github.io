@@ -78,28 +78,27 @@ as the coding pattern varies between feature layers and scene layers. Plase refe
           });
           map.add(viaductLayer);
 >// Time SLider
-const start = new Date(2019, 0, 1);
-const end = new Date(2022,0,1);
+const start = new Date(2019, 0, 1);  
+const end = new Date(2022,0,1);  
 
-const timeSlider = new TimeSlider({
-    container: "timeContainer",
-    mode: "cumulative-from-start",
-    fullTimeExtent: {
-        start: start,
-        end: end
-    },
-    values: [start],
-    stops: {
-        interval: {
-            value: 1,
-            unit: "days"
-        },
-        timeExtent: { start, end }
-    }
-});
-view.ui.add(timeSlider, "bottom-left");
-
-  timeSlider.watch("timeExtent", function(timeExtent) {
-   viaductLayer.definitionExpression = "TargetDate <= date'" + timeExtent.end.getFullYear() + "-" + (timeExtent.end.getMonth()+1) + "-" + (timeExtent.end.getDate()) +"'";
-   
-  });
+const timeSlider = new TimeSlider({  
+    container: "timeContainer",  
+    mode: "cumulative-from-start",  
+    fullTimeExtent: {  
+        start: start,  
+        end: end  
+    },  
+    values: [start],  
+    stops: {  
+        interval: {  
+            value: 1,  
+            unit: "days"  
+        },  
+        timeExtent: { start, end }  
+    }  
+});  
+view.ui.add(timeSlider, "bottom-left");  
+  
+  timeSlider.watch("timeExtent", function(timeExtent) {  
+   viaductLayer.definitionExpression = "TargetDate <= date'" + timeExtent.end.getFullYear() + "-" + (timeExtent.end.getMonth()+1) + "-" + (timeExtent.end.getDate()) +"'";  
+  });  
