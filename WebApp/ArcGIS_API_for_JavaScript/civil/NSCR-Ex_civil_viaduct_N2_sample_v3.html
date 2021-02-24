@@ -16,10 +16,19 @@
       html,
       body {
         width: 100%;
-        height: 95%;
+        height: 100%;
         padding: 0;
         margin: 0;
         background-color: black;       
+      }
+
+      #applicationDiv {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
 
       #viewDiv {
@@ -108,9 +117,10 @@
           }
 
     #timeContainer {
+      visibility: hidden;
         position: absolute;
-        left: 840px;
-        right: 500px;
+        left: 540px;
+        right: 800px;
         bottom: 0px;
         top: 540px;
         opacity: 0.5;
@@ -242,7 +252,7 @@
         baseLayers: [
           new VectorTileLayer({
             portalItem: {
-              id: "3a62040541b84f528da3ac7b80cf4a63" 
+              id: "8a9ef2a144e8423786f6139408ac3424" 
             }
           })
         ]
@@ -296,6 +306,7 @@
         var chartTitleDiv = document.getElementById("chartTitleDiv");
         var headerDiv = document.getElementById("headerDiv");
         var headerTitleDiv = document.getElementById("headerTitleDiv");
+        var applicationDiv = document.getElementById("applicationDiv");
 
 
 //*******************************//
@@ -972,21 +983,29 @@ const timeSlider = new TimeSlider({
         timeExtent: { start, end }
     }
 });
-view.ui.add(timeSlider, "manual");
+//view.ui.add(timeSlider, "manual");
+
  timeSlider.watch("timeExtent", function(timeExtent) {
    viaductLayer.definitionExpression = "TargetDate <= date'" + timeExtent.end.getFullYear() + "-" + (timeExtent.end.getMonth()+1) + "-" + (timeExtent.end.getDate()) +"'";
   });
-  
-/*
-var timeSliderExpand = new Expand ({
-            view: view,
-            content: timeSlider,
-            expandIconClass: "esri-icon-expand"
-        });
-        view.ui.add(timeSliderExpand, {
-            position: "bottom-right"
-        });
-*/
+
+  const timeSliderExpand = new Expand({
+    view: view,
+    content: timeSlider,
+    expandIconClass: "esri-icon-sliders-horizontal"
+  });
+
+  view.ui.add(timeSliderExpand, {
+    position: "bottom-right"
+  });
+
+  timeSliderExpand.watch("expanded", function() {
+    if(!timeSliderExpand.expanded) {
+      view.ui.remove(timeSlider);
+      viaductLayer.definitionExpression = null;
+      //timeSlider.destroy();
+    }
+  });
 
 
 //*****************************//
@@ -1032,47 +1051,75 @@ searchExpand.watch("expanded", function() {
       searchWidget.searchTerm = null;
     }
   });
-      });
+
+  ////////////////
+  // FUll SCREEN//
+  ////////////////
+  view.ui.add(
+            new Fullscreen({
+              view: view,
+              element: applicationDiv
+              //element: viewDiv // if you change element to viewDiv, only viewDiv panel is fully expanded
+              // this is good for demonstration, as this removes header and chart panels.
+            }),
+            "top-left"
+          );
+
+  // End of Full Screen
+
+  /////////////
+  // COMPASS //
+  /////////////
+  var compassWidget = new Compass({
+          view: view
+        });
+view.ui.add(compassWidget, "top-left");
+
+// End of Compass
+
+});
 
     </script>
   </head>
   <body>
+    <div id="applicationDiv">
       <div id="headerDiv">
-          <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
-          <div id="headerTitleDiv">
-              <h2>Viaduct (N2)</h2>
-          </div>
-          <div class="dateDiv">
-              <h4>As of February 20, 2020</h4>
-          </div>
-          <div class="cpButtonBox">
-            <div id="cpButton" class="cpButtonClass">
-                <label for="cpButton">CP</label>
-                <input type="radio" id="None" name="cpButton"> None
-                <input type="radio" id="N-01" name="cpButton"> N-01
-                <input type="radio" id="N-02" name="cpButton"> N-02
-                <input type="radio" id="N-03" name="cpButton"> N-03
-                <input type="radio" id="N-04" name="cpButton"> N-04
-                <input type="radio" id="N-05" name="cpButton"> N-05
-              </div>
-          </div>
-      </div>
-      <div class="container">
-          <div class="boxB">
-            <div id="viewDiv">
-              <div id="timeContainer" class="timeSlider"></div>
+        <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
+        <div id="headerTitleDiv">
+            <h2>Viaduct (N2)</h2>
+        </div>
+        <div class="dateDiv">
+            <h4>As of February 20, 2020</h4>
+        </div>
+        <div class="cpButtonBox">
+          <div id="cpButton" class="cpButtonClass">
+              <label for="cpButton">CP</label>
+              <input type="radio" id="None" name="cpButton"> None
+              <input type="radio" id="N-01" name="cpButton"> N-01
+              <input type="radio" id="N-02" name="cpButton"> N-02
+              <input type="radio" id="N-03" name="cpButton"> N-03
+              <input type="radio" id="N-04" name="cpButton"> N-04
+              <input type="radio" id="N-05" name="cpButton"> N-05
             </div>
-          <div id="menu" class="esri-widget">
-            <input type="checkbox" id="opacityInput" unchecked />
-            <label for="opacityInput">See through ground</label>
+        </div>
+    </div>
+    <div class="container">
+        <div class="boxB">
+          <div id="viewDiv">
+            <div id="timeContainer" class="timeSlider"></div>
           </div>
-          </div>
-          <div class="boxA">
-            <div id="chartTitleDiv" class="esri-widget">Progress of Viaduct (%)</div>
-            <div id="chartPanel">
-              <div id="chartdiv"></div>
-          </div>
-          </div>
-      </div>
+        <div id="menu" class="esri-widget">
+          <input type="checkbox" id="opacityInput" unchecked />
+          <label for="opacityInput">See through ground</label>
+        </div>
+        </div>
+        <div class="boxA">
+          <div id="chartTitleDiv" class="esri-widget">Progress of Viaduct (%)</div>
+          <div id="chartPanel">
+            <div id="chartdiv"></div>
+        </div>
+        </div>
+    </div>
+    </div>
   </body>
 </html>
