@@ -22,9 +22,20 @@
         background-color: black;       
       }
 
+      #optionsDiv {
+        font-size: 20px;
+        font-weight: normal;
+        text-align: center;
+        vertical-align: middle;
+        color: white;
+        padding-top: 10px;
+        line-height: 0.3;
+        opacity: 0.8;
+      }
+
       #applicationDiv {
         position: absolute;
-        width: 100%;
+        width: auto;
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -79,6 +90,7 @@
         font-size: 17px;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         color: white;
+        margin-top: 10px;
         padding: 10px;
         background-color: rgb(0, 0, 0, 0.5);
         opacity: 0.9;
@@ -91,7 +103,7 @@
         font-size: 17px;
         overflow: auto;
         padding: 0px;
-        width: 300px;
+        width: 350px;
         height: 500px;
         margin: 10px;
       }
@@ -150,6 +162,15 @@
         padding: 3;
         margin: 10;
       }
+
+      h6 {
+        color: orange;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: center;
+        font-weight: normal;
+        font-size: 40px;
+        margin: 30px;
+        }
 
       #menu {
         padding: 3px 3px 3px 3px;
@@ -949,6 +970,36 @@ map.add(tbmAlign, 0);
 //*******************************//
 //      Progress Chart           //
 //*******************************//
+
+// Total progress //
+var total_complete = {
+  onStatisticField: "CASE WHEN status = 1 THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_complete",
+  statisticType: "sum"
+};
+
+var total_obs = {
+  onStatisticField: "status",
+  outStatisticFieldName: "total_obs",
+  statisticType: "count"
+};
+var query = transitLayer.createQuery();
+query.outStatistics = [total_complete, total_obs];
+query.returnGeometry = true;
+transitLayer.queryFeatures(query).then(function(response) {
+  var stats = response.features[0].attributes;
+
+  const total_complete = stats.total_complete;
+  const total_obs = stats.total_obs;
+  document.getElementById("totalProgress").innerHTML = (total_complete/total_obs).toFixed(1) + " %";
+});
+
+
+
+/////////////////////////////////////
+
+
+
 /* Function for zooming to selected layers */
 function zoomToLayer(layer) {
   return layer.queryExtent().then(function(response) {
@@ -1168,7 +1219,7 @@ chart.colors.step = 2;
 chart.padding(10, 10, 10, 10);
 chart.legend = new am4charts.Legend();
 chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = 10;
+chart.legend.labels.template.fontSize = 12;
 chart.legend.labels.template.fill = "#ffffff";
 
 
@@ -1488,6 +1539,10 @@ var compass = new Compass({
           <div id="chartTitleDiv" class="esri-widget">Progress of TBM Tunnel (%)</div>
           <div id="chartPanel">
             <div id="chartdiv"></div>
+        </div>
+        <div id="optionsDiv" class="esri-widget">
+          <div><b>Total Progress (%)</b></div>
+          <h6 id="totalProgress"></h6>
         </div>
         </div>
       </div>

@@ -22,6 +22,78 @@
         background-color: black;       
       }
 
+      .hide {
+    max-height: 0 !important;
+}
+      .dropdown{
+	border: 0.05em solid white;
+	width: 5em;
+	margin-bottom: 1em;
+}
+
+
+.dropdown .title{
+	margin: .3em .3em .3em .3em;	
+	width: 100%;
+    font-size: 12px;
+}
+
+.dropdown .title .fa-angle-right{
+	float: right;
+	margin-right: .7em;
+	transition: transform .3s;
+}
+
+/* Scroll Bar Configuration */
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+
+.dropdown .menu{
+	transition: max-height .5s ease-out;
+	max-height: 10em;
+	overflow-y: scroll;
+    font-size: 10px;
+    position:absolute;
+    width: 126px;
+    z-index: 9999;
+}
+
+.dropdown .menu .option{
+	margin: .3em .3em .3em .3em;
+	margin-top: 0.3em;
+}
+
+.dropdown .menu .option:hover{
+	background: rgba(85, 83, 83, 0.2);
+}
+
+.pointerCursor:hover{
+	cursor: pointer;
+    color: white;
+}
+
+.rotate-90{
+	transform: rotate(90deg);
+
+}
+
       #viewDiv {
         padding: 0;
         margin: 0;
@@ -53,7 +125,7 @@
         border: solid 2.5px gray;
         margin: 2px 6px 2px 3px;
         display: grid;
-        grid-template-columns: 40px 250fr 0fr 0fr;
+        grid-template-columns: 40px 250fr 0fr 0fr 0fr;
       }
 
       .boxA {
@@ -219,6 +291,76 @@
 let chartLayerView;
   const features = [];
   
+
+// Dropdown List //
+  function toggleClass(elem,className){
+  if (elem.className.indexOf(className) !== -1){
+    elem.className = elem.className.replace(className,'');
+  }
+  else{
+    elem.className = elem.className.replace(/\s+/g,' ') + 	' ' + className;
+  }
+
+  return elem;
+}
+
+function toggleDisplay(elem){
+  const curDisplayStyle = elem.style.display;			
+
+  if (curDisplayStyle === 'none' || curDisplayStyle === ''){
+    elem.style.display = 'block';
+  }
+  else{
+    elem.style.display = 'none';
+  }
+
+}
+
+function toggleMenuDisplay(e){
+  const dropdown = e.currentTarget.parentNode;
+  const menu = dropdown.querySelector('.menu');
+  const icon = dropdown.querySelector('.fa-angle-right');
+
+  toggleClass(menu,'hide');
+  toggleClass(icon,'rotate-90');
+}
+
+function handleOptionSelected(e){
+  toggleClass(e.target.parentNode, 'hide');			
+
+  const id = e.target.id;
+  const newValue = e.target.textContent + ' ';
+  const titleElem = document.querySelector('.dropdown .title');
+  const icon = document.querySelector('.dropdown .title .fa');
+
+
+  titleElem.textContent = newValue;
+  titleElem.appendChild(icon);
+
+  //trigger custom event
+  document.querySelector('.dropdown .title').dispatchEvent(new Event('change'));
+    //setTimeout is used so transition is properly shown
+  setTimeout(() => toggleClass(icon,'rotate-90',0));
+}
+
+function handleTitleChange(e){
+  const result = document.getElementById('result');
+
+  result.innerHTML = 'The result is: ' + e.target.textContent;
+}
+
+//get elements
+const dropdownTitle = document.querySelector('.dropdown .title');
+const dropdownOptions = document.querySelectorAll('.dropdown .option');
+
+//bind listeners to these elements
+dropdownTitle.addEventListener('click', toggleMenuDisplay);
+
+dropdownOptions.forEach(option => option.addEventListener('click',handleOptionSelected));
+
+document.querySelector('.dropdown .title').addEventListener('change',handleTitleChange);
+
+
 //******************************//
 // Basemap and Scenview Setting //
 //******************************//
@@ -2686,10 +2828,24 @@ searchExpand.watch("expanded", function() {
     </script>
   </head>
   <body>
+    <div id="applicationDiv">
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/UtilitySymbol_smartmap_v2.png" width="30" height="30">
         <div id="headerTitleDiv">
           <h2>Utility Relocation (N2)</h2>
+        </div>
+        <div class='dropdown'>
+            <div class='title pointerCursor'>Select an option <i class="fa fa-angle-right"></i></div>
+            <div class='menu pointerCursor hide'>
+                <div class='option' id='option1'>Option 1</div>
+                <div class='option' id='option2'>Option 2</div>
+                <div class='option' id='option3'>Option 3</div>
+                <div class='option' id='option4'>Option 4</div>
+                <div class='option' id='option1'>Option 5</div>
+                <div class='option' id='option2'>Option 6</div>
+                <div class='option' id='option3'>Option 7</div>
+                <div class='option' id='option4'>Option 8</div>               
+            </div>
         </div>
           <div class="dateDiv">
               <h4>As of February 24, 2021</h4>
@@ -2708,7 +2864,8 @@ searchExpand.watch("expanded", function() {
       </div>
       <div class="container">
         <div class="boxB">
-            <div id="viewDiv"></div>
+            <div id="viewDiv">
+            </div>
                   <div id="menu" class="esri-widget">
                 <input type="checkbox" id="opacityInput" unchecked />
                 <label for="opacityInput">See through ground</label>
@@ -2725,6 +2882,7 @@ searchExpand.watch("expanded", function() {
             <input type="radio" id="Point" name="dataTypeInput"> Point
             <input type="radio" id="Line" name="dataTypeInput"> Line
           </div>
+      </div>
       </div>
       </div>
   </body>
