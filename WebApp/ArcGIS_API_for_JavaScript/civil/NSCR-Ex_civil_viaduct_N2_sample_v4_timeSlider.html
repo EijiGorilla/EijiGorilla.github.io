@@ -117,25 +117,7 @@
           }
 
     #timeContainer {
-     visibility: hidden;
-        position: absolute;
-        left: 540px;
-        right: 800px;
-        bottom: 0px;
-        top: 540px;
         opacity: 0.5;
-      }
-
-      #optionsDiv {
-        font-size: 20px;
-        font-weight: normal;
-        text-align: center;
-        vertical-align: middle;
-        color: white;
-        padding-top: 10px;
-        line-height: 0.3;
-        opacity: 0.8;
-        height: 100px;
       }
       
       p {
@@ -186,20 +168,6 @@
         font-size: 14px;
         padding: 0;
         margin: 0;
-      }
-
-      h6 {
-        color: orange;
-        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-        text-align: center;
-        font-weight: normal;
-        font-size: 45px;
-        margin-top: 30px;
-        padding: 0px 0px 5px 0px;
-        }
-
-      #totalProgress {
-        padding-top: 10px;
       }
 
       #menu {
@@ -513,29 +481,6 @@ var viaductLayer = new SceneLayer({
 //*******************************//
 //      Progress Chart           //
 //*******************************//
-// Total progress //
-var total_complete = {
-  onStatisticField: "CASE WHEN (Status1 = 4 or Status1 = 5 or Status1 = 6 or Status1 = 7 or Status1 = 8) THEN 1 ELSE 0 END",
-  outStatisticFieldName: "total_complete",
-  statisticType: "sum"
-};
-
-var total_obs = {
-  onStatisticField: "Status1",
-  outStatisticFieldName: "total_obs",
-  statisticType: "count"
-};
-var query = viaductLayer.createQuery();
-query.outStatistics = [total_complete, total_obs];
-query.returnGeometry = true;
-viaductLayer.queryFeatures(query).then(function(response) {
-  var stats = response.features[0].attributes;
-
-  const total_complete = stats.total_complete;
-  const total_obs = stats.total_obs;
-  document.getElementById("totalProgress").innerHTML = ((total_complete/total_obs)*100).toFixed(1) + " %";
-});
-
 /* Function for zooming to selected layers */
 function zoomToLayer(layer) {
   return layer.queryExtent().then(function(response) {
@@ -1019,6 +964,7 @@ const end = new Date(2022,0,1);
 const timeSlider = new TimeSlider({
     container: "timeContainer",
     mode: "cumulative-from-start",
+    layout: "compact",
     fullTimeExtent: {
         start: start,
         end: end
@@ -1032,30 +978,20 @@ const timeSlider = new TimeSlider({
         timeExtent: { start, end }
     }
 });
-//view.ui.add(timeSlider, "manual");
+view.ui.add(timeSlider, "bottom-right");
 
  timeSlider.watch("timeExtent", function(timeExtent) {
    viaductLayer.definitionExpression = "TargetDate <= date'" + timeExtent.end.getFullYear() + "-" + (timeExtent.end.getMonth()+1) + "-" + (timeExtent.end.getDate()) +"'";
+   
   });
-
-  const timeSliderExpand = new Expand({
-    view: view,
-    content: timeSlider,
-    expandIconClass: "esri-icon-sliders-horizontal"
-  });
-
-  view.ui.add(timeSliderExpand, {
-    position: "bottom-right"
-  });
-
-  timeSliderExpand.watch("expanded", function() {
-    if(!timeSliderExpand.expanded) {
-      view.ui.remove(timeSlider);
-      viaductLayer.definitionExpression = null;
-      //timeSlider.destroy();
-    }
-  });
-
+let timeLayerView;
+  view.whenLayerView(viaductLayer).then(function (layerView) {
+      timeLayerView = layerView;
+      view.on("click", function() {
+          timeLayerView.filter = null;
+          viaductLayer.definitionExpression = null;
+        });
+    });
 
 //*****************************//
 //      Search Widget          //
@@ -1166,10 +1102,6 @@ view.ui.add(compassWidget, "top-left");
           <div id="chartTitleDiv" class="esri-widget">Progress of Viaduct (%)</div>
           <div id="chartPanel">
             <div id="chartdiv"></div>
-        </div>
-        <div id="optionsDiv" class="esri-widget">
-          <div><b>Total Progress (%)</b></div>
-          <h6 id="totalProgress"></h6>
         </div>
         </div>
     </div>
