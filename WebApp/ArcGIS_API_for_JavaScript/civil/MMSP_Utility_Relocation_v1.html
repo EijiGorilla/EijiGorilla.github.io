@@ -93,13 +93,13 @@
           height: 100%;
           }
       
-      #cpButton {
+      #StationButton {
         margin:0;
         width: 350px;
         text-align: left;
       }
 
-      .cpButtonClass {
+      .StationButtonClass {
           font-style: normal;
           width: 350px;
           font-size: 12px;
@@ -874,7 +874,7 @@ var testUtilPt = new FeatureLayer({
              label: "<h5>Status</h5>"
            },
            {
-             fieldName: "CP"
+             fieldName: "Station"
            },
            {
              fieldName: "Remarks"
@@ -932,7 +932,7 @@ var testUtilPt1 = new FeatureLayer({
              label: "<h5>Status</h5>"
            },
            {
-             fieldName: "CP"
+             fieldName: "Station"
            },
            {
              fieldName: "Remarks"
@@ -989,7 +989,7 @@ map.add(testUtilPt1);
              label: "<h5>Status</h5>"
            },
            {
-             fieldName: "CP"
+             fieldName: "Station"
            },
            {
              fieldName: "Remarks"
@@ -1136,7 +1136,7 @@ var testLine1 = new FeatureLayer({
              label: "<h5>Status</h5>"
            },
            {
-             fieldName: "CP"
+             fieldName: "Station"
            },
            {
              fieldName: "Remarks"
@@ -1323,9 +1323,9 @@ function zoomToLayer(layer) {
 const seasonsNodes = document.querySelectorAll(`.test-item`);
 const testElement = document.getElementById("test-filter");
 const utilTypesButton = document.getElementById("dataTypeInput");
-const cpButtonElement = document.getElementById("cpButton");
+const StationButtonElement = document.getElementById("StationButton");
 
-let cpArray = [];
+let stArray = [];
 let typeArray = [];
 
 // Start of am4core
@@ -1346,28 +1346,28 @@ if (document.getElementById("None").checked = true) {
 
 //document.getElementsByTagName('input')[0].checked = true;
 
-document.querySelectorAll('.cpButtonClass').forEach(item => {
+document.querySelectorAll('.StationButtonClass').forEach(item => {
     item.addEventListener("change", filterByChartTypes);
     function filterByChartTypes(e) {
         const selectedTypes = e.target.id; // e.g., "N-01"
-        const itemName = item.id; // e.g., "cpButton" class name
+        const itemName = item.id; // e.g., "StationButton" class name
 
         // Start Filtering:
-        if (itemName === "cpButton") {
-          cpArray.push(selectedTypes);
+        if (itemName === "StationButton") {
+          stArray.push(selectedTypes);
         } else {
           typeArray.push(selectedTypes);
         }
 
         // Always choose the newest ones
-        cpArrayConcat = cpArray[cpArray.length-1];
+        stArrayConcat = stArray[stArray.length-1];
         typeArrayConcat = typeArray[typeArray.length-1];
 
-        if ((cpArrayConcat === undefined && typeArrayConcat === "Point") || (cpArrayConcat === "None" && typeArrayConcat === "Point")) { // [undefined, "Point"] or ["None", "Point"]
+        if ((stArrayConcat === undefined && typeArrayConcat === "Point") || (stArrayConcat === "None" && typeArrayConcat === "Point")) { // [undefined, "Point"] or ["None", "Point"]
           testUtilPt.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testUtilPt1.definitionExpression = "Type = '" + typeArrayConcat + "'";
 
-          /* As points and table feature layers do not share the same information for 'Type' (unline CP)*/
+          /* As points and table feature layers do not share the same information for 'Type' (unline Station)*/
           /* We need to define expression such that lines are disappeard when 'Point' is selected*/
           testLine.definitionExpression = "Type = 'Point'";
           testLine1.definitionExpression = "Type = 'Point'";
@@ -1377,7 +1377,7 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           zoomToLayer(testUtilPt);
           updateChartPoint();
 
-        } else if ((cpArrayConcat === undefined && typeArrayConcat === "Line") || (cpArrayConcat === "None" && typeArrayConcat === "Line")) { // [undefined, "Line"] or ["None", "Line"]
+        } else if ((stArrayConcat === undefined && typeArrayConcat === "Line") || (stArrayConcat === "None" && typeArrayConcat === "Line")) { // [undefined, "Line"] or ["None", "Line"]
           testLine.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testLine1.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testUtilPt.definitionExpression = "Type = 'Line'";
@@ -1388,7 +1388,7 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           zoomToLayer(testLine);
           updateChartLine();
 
-        } else if (cpArrayConcat === undefined && typeArrayConcat === "None") { // [undefined, "None"]
+        } else if (stArrayConcat === undefined && typeArrayConcat === "None") { // [undefined, "None"]
           testLine.definitionExpression = null;
           testLine1.definitionExpression = null;
           testUtilPt.definitionExpression = null;
@@ -1398,7 +1398,7 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
 
           updateChartCombine();
 
-        } else if (cpArrayConcat === "None" && typeArrayConcat === undefined) { // ["None", undefined]
+        } else if (stArrayConcat === "None" && typeArrayConcat === undefined) { // ["None", undefined]
           testLine.definitionExpression = null;
           testLine1.definitionExpression = null;
           testUtilPt.definitionExpression = null;
@@ -1408,45 +1408,45 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
 
           updateChartCombine();
 
-        } else if (typeArrayConcat === undefined) { // ["N-01", undefined]
-          testUtilPt.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testUtilPt1.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testLine.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testLine1.definitionExpression = "CP = '" + cpArrayConcat + "'";
+        } else if (typeArrayConcat === undefined) { // ["Depot", undefined]
+          testUtilPt.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testUtilPt1.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testLine.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testLine1.definitionExpression = "Station = '" + stArrayConcat + "'";
 
-          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + cpArrayConcat + "</p>";
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stArrayConcat + "</p>";
 
           zoomToLayer(testUtilPt);
           updateChartCombine();
 
-        } else if (typeArrayConcat === "Point") { // ["N-01", "Point"]
-          testUtilPt.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testUtilPt1.definitionExpression = "CP = '" + cpArrayConcat + "'";
+        } else if (typeArrayConcat === "Point") { // ["Depot", "Point"]
+          testUtilPt.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testUtilPt1.definitionExpression = "Station = '" + stArrayConcat + "'";
 
           // For disappearing Line
           testLine.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testLine1.definitionExpression = "Type = '" + typeArrayConcat + "'";
 
-          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + cpArrayConcat + " ," + typeArrayConcat + "</p>";
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stArrayConcat + " ," + typeArrayConcat + "</p>";
 
           zoomToLayer(testUtilPt);;
           updateChartPoint();
 
-        } else if (typeArrayConcat === "Line") { // ["N-01", "Line"]
-          testLine.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testLine1.definitionExpression = "CP = '" + cpArrayConcat + "'";
+        } else if (typeArrayConcat === "Line") { // ["Depot", "Line"]
+          testLine.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testLine1.definitionExpression = "Station = '" + stArrayConcat + "'";
 
           // For disappearing Point
           testUtilPt.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testUtilPt1.definitionExpression = "Type = '" + typeArrayConcat + "'";
 
-          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + cpArrayConcat + " ," + typeArrayConcat + "</p>";
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stArrayConcat + " ," + typeArrayConcat + "</p>";
 
           zoomToLayer(testLine); //CHECK
           updateChartLine();
 
           // "None" buttons
-        } else if (cpArrayConcat === "None" && typeArrayConcat === "None") { // ["None", "None"]
+        } else if (stArrayConcat === "None" && typeArrayConcat === "None") { // ["None", "None"]
           testLine.definitionExpression = null;
           testLine1.definitionExpression = null;
           testUtilPt.definitionExpression = null;
@@ -1457,13 +1457,13 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           updateChartCombine();
         }
 
-        else if (typeArrayConcat === "None") { // ["N-01, "None"]
-          testLine.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testLine1.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testUtilPt.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testUtilPt1.definitionExpression = "CP = '" + cpArrayConcat + "'";
+        else if (typeArrayConcat === "None") { // ["Depot", "None"]
+          testLine.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testLine1.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testUtilPt.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testUtilPt1.definitionExpression = "Station = '" + stArrayConcat + "'";
 
-          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + cpArrayConcat + "</p>";
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stArrayConcat + "</p>";
 
           zoomToLayer(testUtilPt);
           updateChartCombine();
@@ -1477,7 +1477,7 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
 // Click event handler for choices
 
 
-/* Create Expand widget for selecting CP and updating chart */
+/* Create Expand widget for selecting Station and updating chart */
 
 
 // Start of "updateChart" function for Utility Point
@@ -1642,30 +1642,29 @@ function createSeries(field, name) {
     const selectedP = ev.target.dataItem.categoryY;
 
     // Layer
-
-      if (selectedP == "Telecom/CATV" && selectedC == "Incomplete") {
-      selectedLayer = "Telecom/CableTV";
+    if (selectedP == "Telecom/CATV" && selectedC == "Incomplete") {
+      selectedLayer = 1;
       selectedStatus = 0;
     } else if (selectedP == "Telecom/CATV" && selectedC == "Complete") {
-      selectedLayer = "Telecom/CableTV";
+      selectedLayer = 1;
       selectedStatus = 1;
     } else if (selectedP == "Water" && selectedC == "Incomplete") {
-      selectedLayer = "Water";
+      selectedLayer = 2;
       selectedStatus = 0;
     } else if (selectedP == "Water" && selectedC == "Complete") {
-      selectedLayer = "Water";
+      selectedLayer = 2;
       selectedStatus = 1;
     } else if (selectedP == "Sewage" && selectedC == "Incomplete") {
-      selectedLayer = "Sewage";
+      selectedLayer = 3;
       selectedStatus = 0;
     } else if (selectedP == "Sewage" && selectedC == "Complete") {
-      selectedLayer = "Sewage";
+      selectedLayer = 3;
       selectedStatus = 1;
     } else if (selectedP == "Power" && selectedC == "Incomplete") {
-      selectedLayer = "Power";
+      selectedLayer = 4;
       selectedStatus = 0;
     } else if (selectedP == "Power" && selectedC == "Complete") {
-      selectedLayer = "Power";
+      selectedLayer = 4;
       selectedStatus = 1;
     } else {
       selectedLayer = null;
@@ -1726,7 +1725,7 @@ function createSeries(field, name) {
     
     for(var i = 0; i < arrLviews.length; i++) {
       arrLviews[i].filter = {
-        where: "Remarks = '" + selectedLayer + "'" + " AND " +  "Status = " + selectedStatus
+        where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
       }
     }
  
@@ -1744,10 +1743,6 @@ function createSeries(field, name) {
   labelBullet.locationX = 0.5;
 
   // LayerView for point 2
-
-
-
-
 
 } // End of createSeries function
 // LayerView for point 1
@@ -1924,30 +1919,29 @@ function createSeries(field, name) {
     const selectedP = ev.target.dataItem.categoryY;
 
     // Layer
-
-      if (selectedP == "Telecom/CATV" && selectedC == "Incomplete") {
-      selectedLayer = "Telecom/CableTV";
+    if (selectedP == "Telecom/CATV" && selectedC == "Incomplete") {
+      selectedLayer = 1;
       selectedStatus = 0;
     } else if (selectedP == "Telecom/CATV" && selectedC == "Complete") {
-      selectedLayer = "Telecom/CableTV";
+      selectedLayer = 1;
       selectedStatus = 1;
     } else if (selectedP == "Water" && selectedC == "Incomplete") {
-      selectedLayer = "Water";
+      selectedLayer = 2;
       selectedStatus = 0;
     } else if (selectedP == "Water" && selectedC == "Complete") {
-      selectedLayer = "Water";
+      selectedLayer = 2;
       selectedStatus = 1;
     } else if (selectedP == "Sewage" && selectedC == "Incomplete") {
-      selectedLayer = "Sewage";
+      selectedLayer = 3;
       selectedStatus = 0;
     } else if (selectedP == "Sewage" && selectedC == "Complete") {
-      selectedLayer = "Sewage";
+      selectedLayer = 3;
       selectedStatus = 1;
     } else if (selectedP == "Power" && selectedC == "Incomplete") {
-      selectedLayer = "Power";
+      selectedLayer = 4;
       selectedStatus = 0;
     } else if (selectedP == "Power" && selectedC == "Complete") {
-      selectedLayer = "Power";
+      selectedLayer = 4;
       selectedStatus = 1;
     } else {
       selectedLayer = null;
@@ -2008,7 +2002,7 @@ view.whenLayerView(testLine).then(function (layerView) {
 
     for(var i = 0; i < arrLviews.length; i++) {
       arrLviews[i].filter = {
-        where: "Remarks = '" + selectedLayer + "'" + " AND " +  "Status = " + selectedStatus
+        where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
       }
     }
 
@@ -2309,30 +2303,29 @@ function createSeriesCombine(field, name) {
     const selectedP = ev.target.dataItem.categoryY;
 
     // Layer
-
-      if (selectedP == "Telecom/CATV" && selectedC == "Incomplete") {
-      selectedLayer = "Telecom/CableTV";
+    if (selectedP == "Telecom/CATV" && selectedC == "Incomplete") {
+      selectedLayer = 1;
       selectedStatus = 0;
     } else if (selectedP == "Telecom/CATV" && selectedC == "Complete") {
-      selectedLayer = "Telecom/CableTV";
+      selectedLayer = 1;
       selectedStatus = 1;
     } else if (selectedP == "Water" && selectedC == "Incomplete") {
-      selectedLayer = "Water";
+      selectedLayer = 2;
       selectedStatus = 0;
     } else if (selectedP == "Water" && selectedC == "Complete") {
-      selectedLayer = "Water";
+      selectedLayer = 2;
       selectedStatus = 1;
-    }  else if (selectedP == "Sewage" && selectedC == "Incomplete") {
-      selectedLayer = "Sewage";
+    } else if (selectedP == "Sewage" && selectedC == "Incomplete") {
+      selectedLayer = 3;
       selectedStatus = 0;
     } else if (selectedP == "Sewage" && selectedC == "Complete") {
-      selectedLayer = "Sewage";
+      selectedLayer = 3;
       selectedStatus = 1;
     } else if (selectedP == "Power" && selectedC == "Incomplete") {
-      selectedLayer = "Power";
+      selectedLayer = 4;
       selectedStatus = 0;
     } else if (selectedP == "Power" && selectedC == "Complete") {
-      selectedLayer = "Power";
+      selectedLayer = 4;
       selectedStatus = 1;
     } else {
       selectedLayer = null;
@@ -2346,7 +2339,7 @@ function createSeriesCombine(field, name) {
 
     for (var i = 0; i < arrLviews.length; i++) {
       arrLviews[i].filter = {
-        where: "Remarks = '" + selectedLayer + "'" + " AND " +  "Status = " + selectedStatus
+        where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
       }
     }
   
@@ -2706,15 +2699,14 @@ searchExpand.watch("expanded", function() {
           <div class="dateDiv">
               <h4>As of February 24, 2021</h4>
           </div>
-          <div class="cpButtonBox">
-            <div id="cpButton" class="cpButtonClass">
-                <label for="cpButton">CP</label>
-                <input type="radio" id="None" name="cpButton"> None
-                <input type="radio" id="N-01" name="cpButton"> N-01
-                <input type="radio" id="N-02" name="cpButton"> N-02
-                <input type="radio" id="N-03" name="cpButton"> N-03
-                <input type="radio" id="N-04" name="cpButton"> N-04
-                <input type="radio" id="N-05" name="cpButton"> N-05
+          <div class="StationButtonBox">
+            <div id="StationButton" class="StationButtonClass">
+                <label for="StationButton">Station</label>
+                <input type="radio" id="None" name="StationButton"> All                
+                <input type="radio" id="Depot" name="StationButton"> Depot
+                <input type="radio" id="Quirino Highway" name="StationButton"> Quirino Highway
+                <input type="radio" id="Tandang Sora" name="StationButton"> Tandang Sora
+                <input type="radio" id="North Avenue" name="StationButton"> North Avenue
               </div>
           </div>
       </div>
@@ -2731,7 +2723,7 @@ searchExpand.watch("expanded", function() {
             <div id="chartPanel">
               <div id="chartdiv"></div>
           </div>
-          <div id="dataTypeInput" class="cpButtonClass">
+          <div id="dataTypeInput" class="StationButtonClass">
             <label for="dataTypeInput">Data Type</label>
             <input type="radio" id="None" name="dataTypeInput" checked/> None
             <input type="radio" id="Point" name="dataTypeInput"> Point

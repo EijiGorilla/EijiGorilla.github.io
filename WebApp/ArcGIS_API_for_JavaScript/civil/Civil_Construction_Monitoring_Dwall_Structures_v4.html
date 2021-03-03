@@ -476,11 +476,11 @@ var basemap = new Basemap({
 // Legend Color for Structure Layer        
         const colors = {
           1: [225, 225, 225, 0], // To be Constructed (white)
-          2: [115, 76, 0, 0.5], // Under Construction
+          2: [130, 130, 130, 0.3], // Under Construction
           3: [255, 0, 0, 0.5], // Delayed
-          4: [0, 112, 255, 0.5], // D-Wall
-          5: [255, 0, 0, 0.5], // King's Post
-          6: [255, 0, 0, 0.5] // Slab
+          4: [0, 166, 76, 0.5], // D-Wall
+          5: [168, 168, 0, 0.5], // King's Post
+          6: [0, 112, 255, 0.5] // Slab
         };
 
 //*******************************//
@@ -530,7 +530,7 @@ var basemap = new Basemap({
           },
             elevationInfo: {
                 mode: "absolute-height",
-                offset: 30
+                offset: 0
             },
             title: "Station Structure",
             outFields: ["*"]
@@ -538,6 +538,40 @@ var basemap = new Basemap({
             //definitionExpression: "EndDate = date'2020-6-3'"
         });
         map.add(structureLayer, 1);
+
+        function renderStructureLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "Status"
+          });
+
+          for (let property in colors) {
+            if (colors.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "mesh-3d",
+                  symbolLayers: [
+                    {
+                      type: "fill",
+                      material: {
+                        color: colors[property],
+                        colorMixMode: "replace"
+                      },
+                      edges: {
+                        type: "solid", // autocasts as new SolidEdges3D()
+                        color: [225, 225, 225, 0.3]
+                        }
+                    }
+                  ]
+                 }
+              });
+            }
+          }
+
+          structureLayer.renderer = renderer;
+        }
+
+        renderStructureLayer();
 
 // Radio Button Selection //        
 // Selection of 'D-Wall' or 'Station Box' only for visualization (not chart)
@@ -584,7 +618,7 @@ structureLayer.queryFeatures(query).then(function(response) {
 
   const total_complete = stats.total_complete;
   const total_obs = stats.total_obs;
-  document.getElementById("totalProgress").innerHTML = (total_complete/total_obs).toFixed(1) + " %";
+  document.getElementById("totalProgress").innerHTML = ((total_complete/total_obs)*100).toFixed(1) + " %";
 });
 
 /* Function for zooming to selected layers */
@@ -919,7 +953,6 @@ createSeries("value4", "Delayed");
 
 
 ///////////////////////////////////////////////
-        
 // LayerList and Add legend to the LayerList
         // On-off feature layer tab
         var layerList = new LayerList({
