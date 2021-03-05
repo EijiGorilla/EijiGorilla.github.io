@@ -15,11 +15,43 @@
     <style>
       html,
       body {
-        width: 100%;
-        height: 95%;
         padding: 0;
         margin: 0;
         background-color: black;       
+      }
+
+      #applicationDiv {
+        display: flex;
+        flex-wrap: wrap;
+        height: 90vh;
+        padding: 10px;
+        margin: 0 auto;
+        box-sizing: border-box;
+      }
+
+      .container {
+        display: grid;
+          border: solid 2.5px gray;
+          flex-wrap: wrap;
+        height: 90vh;
+        width: 100%;
+        box-sizing: border-box;
+          grid-template-columns: 4fr 1fr;
+          border-right: 0;
+      }
+
+      #headerDiv {
+        font-weight: 400;
+        max-width: 2000px;
+        font-style: normal;
+        font-size: 25px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        color: white;
+        padding: 10px 0px 2px 12px;
+        border: solid 2.5px gray;
+        margin-bottom: 3px;
+        display: grid;
+        grid-template-columns: 40px 250fr 0fr 0fr;
       }
 
       #viewDiv {
@@ -33,35 +65,14 @@
         overflow: hidden;
       }
 
-      .container {
-          display: grid;
-          border: solid 2.5px gray;
-          height: 99%;
-          width: 99%;
-          margin: 1px 3px 0px 3px;
-          grid-template-columns: 4fr 1fr;
-      }
-
-
-      #headerDiv {
-        font-weight: 400;
-        font-style: normal;
-        font-size: 25px;
-        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-        color: white;
-        padding: 10px 0px 2px 12px;
-        border: solid 2.5px gray;
-        margin: 2px 6px 2px 3px;
-        display: grid;
-        grid-template-columns: 40px 250fr 0fr 0fr;
-      }
-
       .boxA {
-        border: solid 2.5px gray;
+        border: solid 2px gray;
+        display: flex; flex-direction: Column;
+        flex-wrap: wrap;
         height: 100%;
-        width: 99%;
-        border-top: 0px solid gray;
-        border-bottom: 0px solid gray;
+        box-sizing: border-box;
+        border-top: 0;
+        border-bottom: 0;
       }
 
       #chartTitleDiv {
@@ -71,6 +82,7 @@
         font-size: 17px;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         color: white;
+        margin-top: 10px;
         padding: 10px;
         background-color: rgb(0, 0, 0, 0.5);
         opacity: 0.9;
@@ -81,11 +93,12 @@
         background: rgb(0, 0, 0, 0);
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         font-size: 17px;
-        overflow: auto;
-        padding: 0px;
-        width: 300px;
-        height: 500px;
-        margin: 10px;
+        padding: 5px;
+        width: 99%;
+        height: 70%;
+        flex-wrap: wrap;
+        box-sizing: border-box;
+        margin: 3px;
       }
 
       #chartdiv {
@@ -110,7 +123,7 @@
 
       
       p {
-        color: orange;
+        color: rgb(0, 197, 255);
         text-align: center;
         font-weight: bold;
         font-size: 14px;
@@ -138,7 +151,7 @@
       }
 
       h4 {
-        color: orange;
+        color: rgb(0, 197, 255);
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         text-align: left;
         font-weight: normal;
@@ -150,7 +163,7 @@
       }
 
       h5 {
-        color: orange;
+        color: rgb(0, 197, 255);
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         text-align: left;
         font-weight: normal;
@@ -209,7 +222,8 @@
         "esri/layers/support/Sublayer",
         "esri/widgets/Search",
         "esri/layers/ElevationLayer",
-        "esri/Ground"
+        "esri/Ground",
+        "esri/widgets/Compass"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -217,7 +231,7 @@
                   WebScene, PortalItem, Portal, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol, Expand, Editor,
-                  UniqueValueRenderer, Sublayer, Search, ElevationLayer, Ground) {
+                  UniqueValueRenderer, Sublayer, Search, ElevationLayer, Ground, Compass) {
 
 let chartLayerView;
   
@@ -258,6 +272,7 @@ var basemap = new Basemap({
         //map.ground.surfaceColor = "#FFFF";
         //map.ground.opacity = 0.1;
          
+         
         var view = new SceneView ({
             map: map,
             container: "viewDiv",
@@ -297,6 +312,7 @@ var basemap = new Basemap({
         var chartTitleDiv = document.getElementById("chartTitleDiv");
         var headerDiv = document.getElementById("headerDiv");
         var headerTitleDiv = document.getElementById("headerTitleDiv");
+        var applicationDiv = document.getElementById("applicationDiv");
 
 //*******************************//
 // Label Class Property Settings //
@@ -1459,6 +1475,7 @@ if (document.getElementById("None").checked = true) {
 }
 
 //document.getElementsByTagName('input')[0].checked = true;
+var stationNames = ['EVS', 'Depot', 'Quirino Highway', 'Tandang Sora', 'North Avenue']
 
 document.querySelectorAll('.StationButtonClass').forEach(item => {
     item.addEventListener("change", filterByChartTypes);
@@ -1528,7 +1545,7 @@ document.querySelectorAll('.StationButtonClass').forEach(item => {
           testLine.definitionExpression = "Station = '" + stArrayConcat + "'";
           testLine1.definitionExpression = "Station = '" + stArrayConcat + "'";
 
-          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stArrayConcat + "</p>";
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stationNames[stArrayConcat-1] + "</p>";
 
           zoomToLayer(testUtilPt);
           updateChartCombine();
@@ -1541,7 +1558,7 @@ document.querySelectorAll('.StationButtonClass').forEach(item => {
           testLine.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testLine1.definitionExpression = "Type = '" + typeArrayConcat + "'";
 
-          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stArrayConcat + " ," + typeArrayConcat + "</p>";
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stationNames[stArrayConcat-1] + " ," + typeArrayConcat + "</p>";
 
           zoomToLayer(testUtilPt);;
           updateChartPoint();
@@ -1554,7 +1571,7 @@ document.querySelectorAll('.StationButtonClass').forEach(item => {
           testUtilPt.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testUtilPt1.definitionExpression = "Type = '" + typeArrayConcat + "'";
 
-          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stArrayConcat + " ," + typeArrayConcat + "</p>";
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stationNames[stArrayConcat-1] + " ," + typeArrayConcat + "</p>";
 
           zoomToLayer(testLine); //CHECK
           updateChartLine();
@@ -1577,7 +1594,7 @@ document.querySelectorAll('.StationButtonClass').forEach(item => {
           testUtilPt.definitionExpression = "Station = '" + stArrayConcat + "'";
           testUtilPt1.definitionExpression = "Station = '" + stArrayConcat + "'";
 
-          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stArrayConcat + "</p>";
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stationNames[stArrayConcat-1] + "</p>";
 
           zoomToLayer(testUtilPt);
           updateChartCombine();
@@ -1710,7 +1727,7 @@ chart.colors.step = 2;
 chart.padding(10, 10, 10, 10);
 chart.legend = new am4charts.Legend();
 chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = 10;
+chart.legend.labels.template.fontSize = 12;
 chart.legend.labels.template.fill = "#ffffff";
 
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
@@ -1743,7 +1760,7 @@ function createSeries(field, name) {
   if (name == "Incomplete"){
     series.fill = am4core.color("#707070");
   } else {
-    series.fill = am4core.color("#32CD32"); // Completed
+    series.fill = am4core.color("#0070ff"); // Completed
   }
   series.columns.template.width = am4core.percent(60);
   series.columns.template.tooltipText = "{name}: {valueX.totalPercent.formatNumber('#.')}%"
@@ -1987,7 +2004,7 @@ chart.colors.step = 2;
 chart.padding(10, 10, 10, 10);
 chart.legend = new am4charts.Legend();
 chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = 10;
+chart.legend.labels.template.fontSize = 12;
 chart.legend.labels.template.fill = "#ffffff";
 
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
@@ -2020,7 +2037,7 @@ function createSeries(field, name) {
   if (name == "Incomplete"){
     series.fill = am4core.color("#707070");
   } else {
-    series.fill = am4core.color("#32CD32"); // Completed
+    series.fill = am4core.color("#0070ff"); // Completed
   }
   series.columns.template.width = am4core.percent(60);
   series.columns.template.tooltipText = "{name}: {valueX.totalPercent.formatNumber('#.')}%"
@@ -2371,7 +2388,7 @@ chart.colors.step = 2;
 chart.padding(10, 10, 10, 10);
 chart.legend = new am4charts.Legend();
 chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = 10;
+chart.legend.labels.template.fontSize = 12;
 chart.legend.labels.template.fill = "#ffffff";
 
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
@@ -2404,7 +2421,7 @@ function createSeriesCombine(field, name) {
   if (name == "Incomplete"){
     series.fill = am4core.color("#707070");
   } else {
-    series.fill = am4core.color("#32CD32"); // Completed
+    series.fill = am4core.color("#0070ff"); // Completed
   }
   series.columns.template.width = am4core.percent(60);
   series.columns.template.tooltipText = "{name}: {valueX.totalPercent.formatNumber('#.')}%"
@@ -2714,7 +2731,22 @@ view.when(function () {
             position: "bottom-left"
         });
         // End of LayerList
+        view.ui.empty("top-left");
 
+        // Compass
+        var compass = new Compass({
+          view: view});
+          // adds the compass to the top left corner of the MapView
+        view.ui.add(compass, "top-left");
+
+                // Full screen logo
+        view.ui.add(
+            new Fullscreen({
+                view: view,
+                element: applicationDiv
+            }),
+            "top-left"
+        );
 
         // See-through-Ground        
           view.when(function() {
@@ -2739,8 +2771,6 @@ view.when(function () {
           });
 
         view.ui.add("menu", "bottom-left");
-  
-        view.ui.empty("top-left");
 
         // Search Widget
         
@@ -2805,6 +2835,7 @@ searchExpand.watch("expanded", function() {
     </script>
   </head>
   <body>
+    <div id="applicationDiv">
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/UtilitySymbol_smartmap_v2.png" width="30" height="30">
         <div id="headerTitleDiv">
@@ -2833,18 +2864,19 @@ searchExpand.watch("expanded", function() {
                 <label for="opacityInput">See through ground</label>
               </div>
           </div>
-        <div class="boxA">
-          <div id="chartTitleDiv" class="esri-widget">Progress of Utility Relocation (%)</div>
+          <div class="boxA">
             <div id="chartPanel">
+              <div id="chartTitleDiv" class="esri-widget">Progress of Utility Relocation (%)</div>
               <div id="chartdiv"></div>
-          </div>
-          <div id="dataTypeInput" class="StationButtonClass">
-            <label for="dataTypeInput">Data Type</label>
-            <input type="radio" id="None" name="dataTypeInput" checked/> None
-            <input type="radio" id="Point" name="dataTypeInput"> Point
-            <input type="radio" id="Line" name="dataTypeInput"> Line
+              <div id="dataTypeInput" class="StationButtonClass">
+                <label for="dataTypeInput">Data Type</label>
+                <input type="radio" id="None" name="dataTypeInput" checked/> None
+                <input type="radio" id="Point" name="dataTypeInput"> Point
+                <input type="radio" id="Line" name="dataTypeInput"> Line
+              </div>
           </div>
       </div>
       </div>
+    </div>
   </body>
 </html>
