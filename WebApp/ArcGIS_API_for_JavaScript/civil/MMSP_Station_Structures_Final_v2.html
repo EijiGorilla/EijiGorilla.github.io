@@ -484,7 +484,7 @@ var basemap = new Basemap({
           2: [130, 130, 130, 0.3], // Under Construction
           3: [255, 0, 0, 0.5], // Delayed
           4: [0, 166, 76, 0.5], // D-Wall
-          5: [168, 168, 0, 0.5], // King's Post
+          5: [168, 168, 0, 0.5], // Column
           6: [0, 112, 255, 0.5] // Slab
         };
 
@@ -538,46 +538,36 @@ var basemap = new Basemap({
 // Structure Layer
         var structureLayer = new SceneLayer({ //structureLayer
           portalItem: {
-            id: "b4e32205de9a44d88e99a340697cd277",
+            id: "4856fd0963c248f58dd09cd80739b8df",
             portal: {
               url: "https://mmspgc-gis.mmspgc.local/portal"
             }
           },
-
- 
-         /*
-          portalItem: {
-            id: "506a3879352744f090d2dc67b0754270"
-          },
-          */
+          popupTemplate: {
+     title: "<h5>{Status}</h5>",
+     lastEditInfoEnabled: false,
+     returnGeometry: true,
+     content: [
+       {
+         type: "fields",
+         fieldInfos: [
+           {
+             fieldName: "Type",
+             label: "Type of Structure"
+           },
+           {
+             fieldName: "SubType",
+             label: "Subtype of Structure",
+           }
+         ]
+       }
+     ]
+   },
             elevationInfo: {
                 mode: "absolute-height",
                 offset: 0
             },
-            title: "Station Structure",
-            outFields: ["*"],
-            popupTemplate: {
-            // autocasts as new PopupTemplate()
-            title: "<h5>{Status}</h5>",
-            content: [
-              {
-                type: "fields",
-                fieldInfos: [
-                  {
-                    fieldName: "Station"
-                  },
-                  {
-                    fieldName: "Type",
-                    label: "Type of Building"
-                  },
-                  {
-                    fieldName: "SubType",
-                    label: "Sub-Type"
-                  }
-                ]
-              }
-            ]
-          },
+            title: "Station Structure"
             // when filter using date, example below. use this format
             //definitionExpression: "EndDate = date'2020-6-3'"
         });
@@ -755,7 +745,7 @@ var total_dwall_delayed = {
     statisticType: "sum"
     };
 
-// King's Post
+// Column
 var total_kingpost_tobeC = {
     onStatisticField: "CASE WHEN (SubType = 2 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
     outStatisticFieldName: "total_kingpost_tobeC",
@@ -817,7 +807,7 @@ structureLayer.queryFeatures(query).then(function(response) {
   const dwall_done = stats.total_dwall_done;
   const dwall_delayed = stats.total_dwall_delayed;
 
-  // King's Post
+  // Column
   const kingpost_tobeC = stats.total_kingpost_tobeC;
   const kingpost_underC = stats.total_kingpost_underC;
   const kingpost_done = stats.total_kingpost_done;
@@ -842,7 +832,7 @@ chart.data = [
     value4: slab_delayed
   },
   {
-    category: "King's Post",
+    category: "Column",
     value1: kingpost_tobeC,
     value2: kingpost_underC,
     value3: kingpost_done,
@@ -923,17 +913,17 @@ function createSeries(field, name) {
       selectedLayer = 1;
       selectedStatus = 4;
 
-    // King's Post
-    } else if (selectedP == "King's Post" && selectedC == "To be Constructed") {
+    // Column
+    } else if (selectedP == "Column" && selectedC == "To be Constructed") {
       selectedLayer = 2;
       selectedStatus = 1;
-    } else if (selectedP == "King's Post" && selectedC == "Under Construction") {
+    } else if (selectedP == "Column" && selectedC == "Under Construction") {
       selectedLayer = 2;
       selectedStatus = 2;
-    } else if (selectedP == "King's Post" && selectedC == "Delayed") {
+    } else if (selectedP == "Column" && selectedC == "Delayed") {
       selectedLayer = 2;
       selectedStatus = 3;
-    } else if (selectedP == "King's Post" && selectedC == "Completed") {
+    } else if (selectedP == "Column" && selectedC == "Completed") {
       selectedLayer = 2;
       selectedStatus = 5;
 
@@ -1047,7 +1037,7 @@ createSeries("value4", "Delayed");
           // the webscene has no basemap, so set a surfaceColor on the ground
           map.ground.surfaceColor = "#fff";
           // to see through the ground, set the ground opacity to 0.4
-          map.ground.opacity = 0.9;
+          map.ground.opacity = 0.5;
         });
           
         // Full screen logo
@@ -1080,7 +1070,7 @@ createSeries("value4", "Delayed");
             <h2>Station Structure (PO Section)</h2>
         </div>
         <div class="dateDiv">
-            <h4>As of February 20, 2020</h4>
+            <h4>As of March 31, 2021</h4>
         </div>
         <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">Station:</label>
