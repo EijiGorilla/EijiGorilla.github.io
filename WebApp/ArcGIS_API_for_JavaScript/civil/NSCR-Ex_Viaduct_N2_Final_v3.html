@@ -412,6 +412,21 @@ var chainageRenderer = {
       }
     }
   };
+
+// Legend Color for Viaduct Layer
+// 0.1: more transparent, 0.9: not transparent 
+const colors = {
+          1: [225, 225, 225, 0.1], // To be Constructed (white)
+          2: [130, 130, 130, 0.5], // Under Construction
+          3: [255, 0, 0, 1], // Delayed
+          4: [158, 127, 255, 1], // Bored Pile
+          5: [168, 168, 0, 1], // Pile cap
+          6: [0, 166, 76, 1], // Pier
+          7: [255, 85, 0, 1], // Pier head
+          8: [0, 92, 230, 1], // Pre-cast
+        };
+
+
 //*******************************//
 // Import Layers                 //
 //*******************************//
@@ -504,7 +519,39 @@ var viaductLayer = new SceneLayer({
           });
           map.add(viaductLayer);
 
+          function renderViaductLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "Status1"
+          });
 
+          for (let property in colors) {
+            if (colors.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "mesh-3d",
+                  symbolLayers: [
+                    {
+                      type: "fill",
+                      material: {
+                        color: colors[property],
+                        colorMixMode: "replace"
+                      },
+                      edges: {
+                        type: "solid", // autocasts as new SolidEdges3D()
+                        color: [225, 225, 225, 0.3]
+                        }
+                    }
+                  ]
+                 }
+              });
+            }
+          }
+
+          viaductLayer.renderer = renderer;
+        }
+
+        renderViaductLayer();
 /////////////////////////////////////
 
 
