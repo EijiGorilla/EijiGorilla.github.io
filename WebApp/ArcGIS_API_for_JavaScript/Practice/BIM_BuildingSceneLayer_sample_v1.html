@@ -1,0 +1,362 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
+  -->
+<title>Viaduct Monitoring Map for N-04</title>
+
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        background-color: black;       
+      }
+
+      #applicationDiv {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+        background-color: black;
+        flex: 1 1 auto;
+        order: 1;
+        overflow: hidden;
+      }
+
+      .container {
+          display: grid;
+          border: solid 2.5px gray;
+          height: 99%;
+          width: 99%;
+          margin: 1px 3px 0px 3px;
+          grid-template-columns: 4fr 1fr;
+      }
+
+      #headerDiv {
+        font-weight: 400;
+        font-style: normal;
+        font-size: 25px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        color: white;
+        padding: 10px 0px 2px 12px;
+        border: solid 2.5px gray;
+        margin: 2px 6px 2px 3px;
+        display: grid;
+        grid-template-columns: 40px 250fr 0fr 0fr;
+      }
+
+      .boxA {
+        border: solid 2.5px gray;
+        height: 100%;
+        width: 99%;
+        border-top: 0px solid gray;
+        border-bottom: 0px solid gray;
+      }
+
+      #chartTitleDiv {
+        font-weight: 200;
+        text-align: center;
+        font-style: normal;
+        font-size: 17px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        color: white;
+        padding: 10px;
+        background-color: rgb(0, 0, 0, 0.5);
+        opacity: 0.9;
+        line-height: 0.5;
+      }
+ 
+      #chartPanel {
+        background: rgb(0, 0, 0, 0);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-size: 17px;
+        overflow: auto;
+        padding: 0px;
+        width: 300px;
+        height: 500px;
+        margin: 10px;
+      }
+
+      #chartdiv {
+          width: 100%;
+          height: 100%;
+          }
+      
+      #cpButton {
+        margin:0;
+        width: 350px;
+        text-align: left;
+      }
+
+      .cpButtonClass {
+          font-style: normal;
+          width: 350px;
+          font-size: 12px;
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+          color: white;
+          text-align: center;
+          }
+
+    #timeContainer {
+        opacity: 0.5;
+      }
+      
+      p {
+        color: orange;
+        text-align: center;
+        font-weight: bold;
+        font-size: 14px;
+        width: auto;
+        vertical-align: text-bottom;
+        padding: 3px;
+        margin-top: 10px;
+      }
+
+      h2 {
+        font-weight: 400;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-style: normal;
+        font-size: 23px;
+        color: white;
+        padding:3px;
+        margin: 0px;
+        width: 250px;
+        vertical-align: text-top;
+      }
+
+      img {
+        padding: 0;
+        margin: 0;
+      }
+
+      h4 {
+        color: orange;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: left;
+        font-weight: normal;
+        font-size: 14px;
+        padding-top: 20px;
+        margin: 0;
+        width: 160px;
+        vertical-align: text-bottom;
+      }
+
+      h5 {
+        color: orange;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: left;
+        font-weight: normal;
+        font-size: 14px;
+        padding: 0;
+        margin: 0;
+      }
+
+      #menu {
+        padding: 3px 3px 3px 3px;
+        background-color: black;
+        color: white;
+      }
+
+      br{content:' ';}
+      br:after{content:' ';}
+
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.18/esri/themes/dark/main.css"
+    />
+    <!-- Resources -->
+    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+    <script src="https://js.arcgis.com/4.18/"></script>
+
+    <script>
+      require([
+        "esri/Basemap",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/views/SceneView",
+        "esri/layers/FeatureLayer",
+        "esri/views/layers/support/FeatureFilter",
+        "esri/layers/SceneLayer",
+        "esri/layers/Layer",
+        "esri/layers/TileLayer",
+        "esri/layers/VectorTileLayer",
+        "esri/layers/support/LabelClass",
+        "esri/symbols/LabelSymbol3D",
+        "esri/WebMap",
+        "esri/WebScene",
+        "esri/portal/PortalItem",
+        "esri/portal/Portal",
+        "esri/widgets/TimeSlider",
+        "esri/widgets/Legend",
+        "esri/widgets/LayerList",
+        "esri/widgets/Fullscreen",
+        "esri/tasks/GeometryService",
+        "esri/tasks/support/Query",
+        "esri/tasks/QueryTask",
+        "esri/renderers/smartMapping/statistics/summaryStatistics",
+        "esri/tasks/support/StatisticDefinition",
+        "esri/symbols/WebStyleSymbol",
+        "esri/TimeExtent",
+        "esri/widgets/Expand",
+        "esri/widgets/Editor",
+        "esri/renderers/UniqueValueRenderer",
+        "esri/widgets/support/DatePicker",
+        "esri/widgets/FeatureTable",
+        "esri/widgets/Compass",
+        "esri/TimeExtent",
+        "esri/widgets/Search",
+        "esri/layers/BuildingSceneLayer",
+        "esri/widgets/BuildingExplorer"
+      ], function(Basemap, Map, MapView, SceneView, 
+                  FeatureLayer, FeatureFilter,
+                  SceneLayer, Layer, TileLayer, VectorTileLayer,
+                  LabelClass, LabelSymbol3D, WebMap,
+                  WebScene, PortalItem, Portal,
+                  TimeSlider, Legend, LayerList, Fullscreen,
+                  GeometryService, Query, QueryTask, summaryStatistics,
+                  StatisticDefinition, WebStyleSymbol,
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable,
+                  Compass, TimeExtent, Search, BuildingSceneLayer, BuildingExplorer) {
+
+const webscene = new WebScene({
+          portalItem: {
+            id: "f9ded41096894f53ba95c526ee2a6046"
+          }
+        });
+
+        //map.ground.surfaceColor = "#FFFF";
+        //map.ground.opacity = 0.5;
+
+        const view = new SceneView({
+          container: "viewDiv",
+          map: webscene
+        });
+// https://developers.arcgis.com/javascript/latest/sample-code/highlight-point-features/?search=FeatureLayerView
+
+view.when(function() {
+            // get the BuildingSceneLayer from the webscene
+            webscene.allLayers.forEach(function(layer) {
+              if (layer.title === "Esri Building E Demo") {
+
+                // explore components in the layer using the BuildingExplorer widget
+                const buildingExplorer = new BuildingExplorer({
+                  view: view,
+                  layers: [layer],
+                });
+                view.ui.add(buildingExplorer, "top-right");
+              }
+
+
+            });
+            var total_complete = {
+  onStatisticField: "CASE WHEN OmniClassDescription = 'Beams' THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_complete",
+  statisticType: "sum"
+};
+
+var total_obs = {
+  onStatisticField: "CASE WHEN OmniClassDescription = 'Foundation Piles' THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_obs",
+  statisticType: "sum"
+};
+
+document.getElementById("chartTitleDiv").innerHTML = "GGGGGGGGG"
+var query = layer.createQuery();
+query.outStatistics = [total_complete, total_obs];
+query.returnGeometry = true;
+layer.queryFeatures(query).then(function(response) {
+  var stats = response.features[0].attributes;
+
+  const total_complete = stats.total_complete;
+  const total_obs = stats.total_obs;
+  document.getElementById("chartTitleDiv").innerHTML = "GGGGGGGGG";
+});
+          });
+        // LayerList and Add legend to the LayerList
+        // Total progress //
+//const buildingLayer = webscene.allLayers.find(function(layer) {
+//    return layer.title === "Esri Building E Demo"
+//});
+
+
+
+
+var layerList = new LayerList({
+            view: view,
+          });
+
+
+          var layerListExpand = new Expand ({
+            view: view,
+            content: layerList,
+            expandIconClass: "esri-icon-expand",
+            group: "bottom-left"
+        });
+        view.ui.add(layerListExpand, {
+            position: "bottom-left"
+        });
+
+        view.ui.empty("top-left");
+
+        // See-through-Ground        
+          view.when(function() {
+          // allow navigation above and below the ground
+          map.ground.navigationConstraint = {
+            type: "none"
+          };
+          // the webscene has no basemap, so set a surfaceColor on the ground
+          map.ground.surfaceColor = "#fff";
+          // to see through the ground, set the ground opacity to 0.4
+          map.ground.opacity = 0.9;
+        });
+          
+        // Full screen logo
+        
+        // See through Gound
+        document
+          .getElementById("opacityInput")
+          .addEventListener("change", function(event) {
+            map.ground.opacity = event.target.checked ? 0.1 : 0.6;
+          });
+
+        view.ui.add("menu", "bottom-left");
+
+});
+
+    </script>
+  </head>
+  <body>
+    <div id="chartTitleDiv"></div>
+    <div id="viewDiv" class="esri-widget">
+    </div>
+          <div id="menu" class="esri-widget">
+            <input type="checkbox" id="opacityInput" unchecked />
+            <label for="opacityInput">See through ground</label>
+          </div>
+
+  </body>
+</html>
