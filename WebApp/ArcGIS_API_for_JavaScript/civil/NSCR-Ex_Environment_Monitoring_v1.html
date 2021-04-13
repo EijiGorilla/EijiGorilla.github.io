@@ -1,0 +1,1226 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
+  -->
+<title>Environment Monitoring</title>
+
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        background-color: black;       
+      }
+
+      #applicationDiv {
+        display: flex;
+        flex-wrap: wrap;
+        height: 90vh;
+        padding: 10px;
+        margin: 0 auto;
+        box-sizing: border-box;
+      }
+      
+      .container {
+        display: grid;
+          border: solid 2.5px gray;
+          flex-wrap: wrap;
+        height: 90vh;
+        width: 100%;
+        box-sizing: border-box;
+          grid-template-columns: 4fr 1fr;
+          border-right: 0;
+      }
+
+      #headerDiv {
+        font-weight: 400;
+        max-width: 2000px;
+        font-style: normal;
+        font-size: 25px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        color: white;
+        padding: 10px 0px 2px 12px;
+        border: solid 2.5px gray;
+        margin-bottom: 3px;
+        display: grid;
+        grid-template-columns: 40px 250fr 0fr 0fr;
+      }
+
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+        background-color: black;
+        flex: 1 1 auto;
+        order: 1;
+        overflow: hidden;
+      }
+
+      .boxA {
+        border: solid 2px gray;
+        display: flex; flex-direction: Column;
+        flex-wrap: wrap;
+        height: 100%;
+        box-sizing: border-box;
+        border-top: 0;
+        border-bottom: 0;
+      }
+
+      #chartTitleDiv {
+        font-weight: 200;
+        text-align: center;
+        font-style: normal;
+        font-size: 17px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        color: white;
+        margin-top: 10px;
+        padding: 10px;
+        background-color: rgb(0, 0, 0, 0.5);
+        opacity: 0.9;
+        line-height: 0.5;
+      }
+ 
+      #chartPanel {
+        background: rgb(0, 0, 0, 0);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-size: 17px;
+        padding: 5px;
+        width: 99%;
+        height: 70%;
+        flex-wrap: wrap;
+        box-sizing: border-box;
+        margin: 3px;
+      }
+
+      #chartdiv {
+          width: 100%;
+          height: 100%;
+          align-items: center;
+          }
+      
+      #cpButton {
+        margin:0;
+        width: 350px;
+        text-align: left;
+      }
+
+      .cpButtonClass {
+          font-style: normal;
+          width: 350px;
+          font-size: 12px;
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+          color: white;
+          text-align: center;
+          }
+
+      #dataTypeInput {
+        padding-top: 20px;
+      }
+
+      
+      p {
+        color: rgb(0, 197, 255);
+        text-align: center;
+        font-weight: bold;
+        font-size: 14px;
+        width: auto;
+        vertical-align: text-bottom;
+        padding: 3px;
+        margin-top: 10px;
+      }
+
+      h2 {
+        font-weight: 400;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-style: normal;
+        font-size: 23px;
+        color: white;
+        padding:3px;
+        margin: 0px;
+        width: 290px;
+        vertical-align: text-top;
+      }
+
+      img {
+        padding: 0;
+        margin: 0;
+      }
+
+      h4 {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: left;
+        font-weight: normal;
+        font-size: 14px;
+        padding-top: 20px;
+        margin: 0;
+        width: 160px;
+        vertical-align: text-bottom;
+      }
+
+      h5 {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: left;
+        font-weight: normal;
+        font-size: 14px;
+        padding: 0;
+        margin: 0;
+      }
+
+      br{content:' ';}
+      br:after{content:' ';}
+
+
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.18/esri/themes/dark/main.css"
+    />
+    <!-- Resources -->
+    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+    <script src="https://js.arcgis.com/4.18/"></script>
+
+    <script>
+      require([
+        "esri/Basemap",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/views/SceneView",
+        "esri/layers/FeatureLayer",
+        "esri/views/layers/support/FeatureFilter",
+        "esri/layers/SceneLayer",
+        "esri/layers/Layer",
+        "esri/layers/TileLayer",
+        "esri/layers/VectorTileLayer",
+        "esri/layers/support/LabelClass",
+        "esri/symbols/LabelSymbol3D",
+        "esri/WebMap",
+        "esri/WebScene",
+        "esri/portal/PortalItem",
+        "esri/portal/Portal",
+        "esri/widgets/Legend",
+        "esri/widgets/LayerList",
+        "esri/widgets/Fullscreen",
+        "esri/tasks/GeometryService",
+        "esri/tasks/support/Query",
+        "esri/tasks/QueryTask",
+        "esri/renderers/smartMapping/statistics/summaryStatistics",
+        "esri/tasks/support/StatisticDefinition",
+        "esri/symbols/WebStyleSymbol",
+        "esri/widgets/Expand",
+        "esri/widgets/Editor",
+        "esri/renderers/UniqueValueRenderer",
+        "esri/layers/support/Sublayer",
+        "esri/widgets/Search",
+        "esri/widgets/Compass"
+      ], function(Basemap, Map, MapView, SceneView, 
+                  FeatureLayer, FeatureFilter,
+                  SceneLayer, Layer, TileLayer, VectorTileLayer,
+                  LabelClass, LabelSymbol3D, WebMap,
+                  WebScene, PortalItem, Portal, Legend, LayerList, Fullscreen,
+                  GeometryService, Query, QueryTask, summaryStatistics,
+                  StatisticDefinition, WebStyleSymbol, Expand, Editor,
+                  UniqueValueRenderer, Sublayer, Search, Compass) {
+
+let chartLayerView;
+  const features = [];
+  
+//******************************//
+// Basemap and Scenview Setting //
+//******************************//
+        var basemap = new Basemap({
+        baseLayers: [
+          new VectorTileLayer({
+            portalItem: {
+              id: "8a9ef2a144e8423786f6139408ac3424" // 3a62040541b84f528da3ac7b80cf4a63
+            }
+          })
+        ]
+      });
+
+         var map = new Map({
+              basemap: basemap, // "streets-night-vector", 
+              ground: "world-elevation"
+        }); 
+        //map.ground.surfaceColor = "#FFFF";
+        //map.ground.opacity = 0.5;
+         
+        var view = new SceneView({
+            map: map,
+            container: "viewDiv",
+            viewingMode: "local",
+            camera: {
+                position: {
+                    x: 120.57930,
+                    y: 15.18,
+                    z: 500
+                    },
+                    tilt: 65
+                    },
+            environment: {
+                background: {
+                    type: "color", // autocasts as new ColorBackground()
+                    color: [0, 0, 0, 1]
+                    },
+                    // disable stars
+                    starsEnabled: false,
+                    //disable atmosphere
+                    atmosphereEnabled: false
+                    }
+        });
+
+        function shiftCamera(deg) {
+          var camera = view.camera.clone();
+          camera.position.longitude += deg;
+          return camera;
+        }
+
+        function catchAbortError(error) {
+          if (error.name != "AbortError") {
+            console.error(error);
+          }
+        }
+           // Setup UI
+        var chartTitleDiv = document.getElementById("chartTitleDiv");
+        var headerDiv = document.getElementById("headerDiv");
+        var headerTitleDiv = document.getElementById("headerTitleDiv");
+        var applicationDiv = document.getElementById("applicationDiv");
+
+
+//*******************************//
+// Label Class Property Settings //
+//*******************************//
+// Chainage Label
+var labelChainage = new LabelClass({
+  labelExpressionInfo: {expression: "$feature.KM_MAIN"},
+  symbol: {
+    type: "text",
+    color: [219,112,147,0.5],
+    size: 20
+  }
+});
+
+// Station Label
+var labelClass = new LabelClass({
+          symbol: {
+            type: "label-3d",// autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: {
+                  color: [0, 197, 255]
+                },
+                size: 10,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  //weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 40,
+              maxWorldLength: 100,
+              minWorldLength: 20
+            },
+
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: 'DefaultValue($feature.Station, "no data")'
+            //value: "{TEXTSTRING}"
+        }
+        });
+
+// Utility Point Label
+var labelMonitor = {
+  type: "label-3d", // autocasts as new LabelSymbol3D()
+  labelPlacement: "above-center",
+  labelExpressionInfo: {
+    value: "{Type}",
+  },
+  symbolLayers: [
+    {
+      type: "text", // autocasts as new TextSymbol3DLayer()
+      material: {
+        color: "black"
+      },
+      halo: {
+        color: [255, 255, 255, 0.7],
+        size: 2
+      },
+      size: 10
+    }
+  ],
+
+};
+
+//*****************************//
+// 3D Web Symbo Style Settings //
+//*****************************//
+/* Company and Utilty Relocation Status Symbols with Callout */
+var verticalOffsetExisting = {
+  screenLength: 10,
+  maxWorldLength: 10,
+  minWorldLength: 15
+};
+
+var verticalOffsetRelocation = {
+  screenLength: 10,
+  maxWorldLength: 30,
+  minWorldLength: 35
+};
+
+
+          // Function that automatically creates the symbol for the points of interest
+          function getUniqueValueSymbol(name, color, sizeS, util) {
+          // The point symbol is visualized with an icon symbol. To clearly see the location of the point
+          // we displace the icon vertically and add a callout line. The line connects the offseted symbol with the location
+          // of the point feature.
+          if (util == "Existing") {
+            return {
+            type: "point-3d", // autocasts as new PointSymbol3D()
+            symbolLayers: [
+              {
+                type: "icon", // autocasts as new IconSymbol3DLayer()
+                resource: {
+                  href: name
+                },
+                size: sizeS,
+                outline: {
+                  color: "white",
+                  size: 2
+                }
+              }
+            ],
+
+            verticalOffset: verticalOffsetExisting,
+
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: "grey",
+              size: 0.4,
+              border: {
+                color: "grey"
+              }
+            }
+          };
+          } else {
+            return {
+            type: "point-3d", // autocasts as new PointSymbol3D()
+            symbolLayers: [
+              {
+                type: "icon", // autocasts as new IconSymbol3DLayer()
+                resource: {
+                  href: name
+                },
+                size: sizeS,
+                outline: {
+                  color: "white",
+                  size: 2
+                }
+              }
+            ],
+
+            verticalOffset: verticalOffsetRelocation,
+
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: "grey",
+              size: 0.4,
+              border: {
+                color: "grey"
+              }
+            }
+          };
+          }
+
+        }
+
+
+//*****************************//
+//      Renderer Settings      //
+//*****************************//
+// Esri Icon Symbol
+function IconSymbol(name) {
+          return {
+            type: "web-style", // autocasts as new WebStyleSymbol()
+            name: name,
+            styleName: "EsriIconsStyle"//EsriRealisticTransportationStyle, EsriIconsStyle
+          };
+        }
+        
+// Chainage symbol
+var chainageRenderer = {
+    type: "simple",
+    symbol: {
+      type: "simple-marker",
+      size: 2,
+      color: [220,20,60,0.2],
+      outline: {
+        width: 0.2,
+        color: "black"
+      }
+    }
+  };
+
+// Station
+var stationsRenderer = {
+          type: "unique-value", // autocasts as new UniqueValueRenderer()
+          field: "Name",
+          defaultSymbol: IconSymbol("Train"),//Backhoe, Train
+        };
+
+
+/// Symbol for monitoring points color on the ground
+var monitorSymbolRenderer = {
+          type: "unique-value", // autocasts as new UniqueValueRenderer()
+          valueExpression: "When($feature.Type == 1, 'Noise', $feature.Status == 2, 'Vibration', $feature.Status == 3, 'Air Quality', \
+                                $feature.Type == 4, 'Soil Water', $feature.Type == 5, 'Groundwater', $feature.Type)",
+          //field: "Company",
+          uniqueValueInfos: [
+            {
+              value: "Noise",
+              symbol: {
+                  type: "simple-marker",
+                  color: "blue",
+                  size: 4,
+                  outline: {
+                      width: 0.2,
+                      color: "black"
+                  }
+              }
+            },
+            {
+              value: "Vibration",
+              symbol: {
+                  type: "simple-marker",
+                  color: "gray",
+                  size: 4,
+                  outline: {
+                      width: 0.2,
+                      color: "black"
+                  }
+              }
+            },
+            {
+              value: "Air Quality",
+              symbol: {
+                  type: "simple-marker",
+                  color: "gray",
+                  size: 4,
+                  outline: {
+                      width: 0.2,
+                      color: "black"
+                  }
+              }
+            },
+            {
+              value: "Soil Water",
+              symbol: {
+                  type: "simple-marker",
+                  color: "brown",
+                  size: 4,
+                  outline: {
+                      width: 0.2,
+                      color: "black"
+                  }
+              }
+            },
+            {
+              value: "Groundwater",
+              symbol: {
+                  type: "simple-marker",
+                  color: "purple",
+                  size: 4,
+                  outline: {
+                      width: 0.2,
+                      color: "black"
+                  }
+             }
+        }
+          ]
+        };
+
+/// Symbol for monitoring point symbols above ground
+var monitorStatusSymbolRenderer = {
+          type: "unique-value", // autocasts as new UniqueValueRenderer()
+          valueExpression: "When($feature.Status == 0, 'Normal', $feature.Status == 1, 'Exceeds', $feature.Status)",
+          //field: "Company",
+          uniqueValueInfos: [
+            {
+              value: "Normal",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/DemolishComplete_v2.png",
+                "#D13470",
+                20,
+                "Relocation" // this does not matter
+              )
+            },
+            {
+              value: "Exceeds",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/Demolished.png",
+                "#D13470",
+                25,
+                "Relocation"
+                )
+            }
+          ]
+        };
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+ //*****************************//
+//      Layer Import           //
+//*****************************//
+
+// Centerline and chainage
+var chainageLayer = new FeatureLayer ({
+  portalItem: {
+    id: "7e1812db542a4261b73787dfe5a5d438"
+  },
+  layerId: 0,
+  title: "Chainage",
+  elevationInfo: {
+    mode: "relative-to-ground"
+  },
+  labelingInfo: [labelChainage],
+  renderer: chainageRenderer,
+  outFields: ["*"],
+  popupEnabled: false
+
+});
+//chainageLayer.listMode = "hide";
+map.add(chainageLayer, 1);
+
+// ROW //
+var rowLayer = new FeatureLayer ({
+  portalItem: {
+    id: "878c49e145b34f269947f8584cd3512c"
+  },
+  title: "ROW",
+  popupEnabled: false
+});
+map.add(rowLayer,2);
+
+// Station
+var stationLayer = new SceneLayer({
+            portalItem: {
+                id: "24c2d2cea755430db6c713792a996d02",//68f16da494d941d482af09d6a4bd6468
+            },
+             labelingInfo: [labelClass],
+             renderer: stationsRenderer,
+             elevationInfo: {
+                 // this elevation mode will place points on top of
+                 // buildings or other SceneLayer 3D objects
+                 mode: "relative-to-ground"
+                 },
+             definitionExpression: "Extension = 'N2'"
+              //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
+        });
+        stationLayer.listMode = "hide";
+        map.add(stationLayer, 0);
+
+
+var monitorPt = new FeatureLayer({
+  portalItem: {
+    id: "467e98eee6f84b9790223e127da345b0"//
+  },
+  title: "Environment Monitoring Points",
+  elevationInfo: {
+     mode: "relative-to-scene",
+     unit: "meters"
+     //offset: 0
+   },
+   outFields: ["*"],
+   renderer: monitorSymbolRenderer,
+   popupTemplate: {
+     title: "<h5>{Type}</h5>",
+     lastEditInfoEnabled: false,
+     returnGeometry: true,
+     content: [
+       {
+         type: "fields",
+         fieldInfos: [
+           {
+             fieldName: "StationNo",
+             label: "Station No."
+           },
+           {
+             fieldName: "Location"
+           },
+           {
+             fieldName: "Status",
+             label: "<h5>Status</h5>"
+           },
+           {
+             fieldName: "Remarks"
+           }
+         ]
+       }
+     ]   }
+});
+monitorPt.listMode = "hide";
+map.add(monitorPt);
+
+var monitorPt1 = new FeatureLayer({
+  portalItem: {
+    id: "467e98eee6f84b9790223e127da345b0"//
+  },
+  title: "Environment Monitoring Points",
+  elevationInfo: {
+     mode: "relative-to-scene",
+     unit: "meters"
+     //offset: 0
+   },
+   outFields: ["*"],
+   renderer: monitorStatusSymbolRenderer,
+   labelingInfo: [labelMonitor],
+   popupTemplate: {
+     title: "<h5>{Type}</h5>",
+     lastEditInfoEnabled: false,
+     returnGeometry: true,
+     content: [
+       {
+         type: "fields",
+         fieldInfos: [
+           {
+             fieldName: "StationNo",
+             label: "Station No."
+           },
+           {
+             fieldName: "Location"
+           },
+           {
+             fieldName: "Status",
+             label: "<h5>Status</h5>"
+           },
+           {
+             fieldName: "Remarks"
+           }
+         ]
+       }
+     ]   }
+});
+monitorPt1.listMode = "hide";
+map.add(monitorPt1);
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+//*******************************//
+//      Progress Chart           //
+//*******************************//
+/* Function for zooming to selected layers */
+function zoomToLayer(layer) {
+  return layer.queryExtent().then(function(response) {
+    view.goTo(response.extent, { //response.extent
+      speedFactor: 2
+    }).catch(function(error) {
+      if (error.name != "AbortError") {
+        console.error(error);
+      }
+    });
+  });
+}
+
+//
+const seasonsNodes = document.querySelectorAll(`.test-item`);
+const testElement = document.getElementById("test-filter");
+const utilTypesButton = document.getElementById("dataTypeInput");
+const cpButtonElement = document.getElementById("cpButton");
+var highlightSelect;
+
+// Start of am4core
+am4core.ready(function() {
+am4core.useTheme(am4themes_animated);
+
+const chartTitleLabel = "Progress of Environment Monitoring (%)";
+
+
+
+
+// Start of "updateChart" function for Utility Point
+function updateChartPoint() {
+  // Define statistics
+  /* noise/CATV */
+  var total_noise_exceed = {
+    onStatisticField: "CASE WHEN (Type = 1 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_noise_exceed",
+    statisticType: "sum"
+  };
+
+  var total_noise_normal = {
+    onStatisticField: "CASE WHEN (Type = 1 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_noise_normal",
+    statisticType: "sum"  
+  };
+
+  /* vibration */
+  var total_vibration_exceed = {
+    onStatisticField: "CASE WHEN (Type = 2 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_vibration_exceed",
+    statisticType: "sum"
+  };
+
+  var total_vibration_normal = {
+    onStatisticField: "CASE WHEN (Type = 2 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_vibration_normal",
+    statisticType: "sum"  
+  };
+
+  /* airquality */
+  var total_airquality_exceed = {
+    onStatisticField: "CASE WHEN (Type = 3 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_airquality_exceed",
+    statisticType: "sum"
+  };
+
+  var total_airquality_normal = {
+    onStatisticField: "CASE WHEN (Type = 3 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_airquality_normal",
+    statisticType: "sum"  
+  };
+
+
+  /* soilwater */
+  var total_soilwater_exceed = {
+    onStatisticField: "CASE WHEN (Type = 4 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_soilwater_exceed",
+    statisticType: "sum"
+  };
+
+  var total_soilwater_normal = {
+    onStatisticField: "CASE WHEN (Type = 4 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_soilwater_normal",
+    statisticType: "sum"  
+  };
+
+/* Groundwater */
+    var total_groundwater_exceed = {
+    onStatisticField: "CASE WHEN (Type = 5 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_groundwater_exceed",
+    statisticType: "sum"
+  };
+
+  var total_groundwater_normal = {
+    onStatisticField: "CASE WHEN (Type = 5 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_groundwater_normal",
+    statisticType: "sum"  
+  };
+
+  // Start Query
+  var query = monitorPt.createQuery();
+  //query.where = "Stations = 'Tandang Sora'"; // Selected Stations
+  query.outStatistics = [total_noise_exceed, total_noise_normal,
+                        total_vibration_exceed, total_vibration_normal,
+                        total_airquality_exceed, total_airquality_normal,
+                        total_soilwater_exceed, total_soilwater_normal,
+                        total_groundwater_exceed, total_groundwater_normal];
+  query.returnGeometry = true;
+
+
+  monitorPt.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    /* noise */
+    const noise_exceed = stats.total_noise_exceed;
+    const noise_normal = stats.total_noise_normal;
+
+    /* vibration */
+    const vibration_exceed = stats.total_vibration_exceed;
+    const vibration_normal = stats.total_vibration_normal;
+
+     /* airquality */
+     const airquality_exceed = stats.total_airquality_exceed;
+    const airquality_normal = stats.total_airquality_normal;   
+
+    /* soilwater */
+    const soilwater_exceed = stats.total_soilwater_exceed;
+    const soilwater_normal = stats.total_soilwater_normal;
+
+    /* groundwater */
+    const groundwater_exceed = stats.total_groundwater_exceed;
+    const groundwater_normal = stats.total_groundwater_normal;
+
+// Chart //
+var chart = am4core.create("chartdiv", am4charts.XYChart);
+chart.hiddenState.properties.opacity = 0;
+
+chart.data = [
+  {
+    category: "Noise",
+    value1: noise_exceed,
+    value2: noise_normal
+  },
+  {
+    category: "Vibration",
+    value1: vibration_exceed,
+    value2: vibration_normal
+  },
+  {
+    category: "Air Quality",
+    value1: airquality_exceed,
+    value2: airquality_normal
+  },
+  {
+    category: "Soil Water",
+    value1: soilwater_exceed,
+    value2: soilwater_normal
+  },
+  {
+    category: "Groundwater",
+    value1: groundwater_exceed,
+    value2: groundwater_normal
+  },
+];
+
+chart.colors.step = 2;
+chart.padding(10, 10, 10, 10);
+chart.legend = new am4charts.Legend();
+chart.legend.position = "bottom";
+chart.legend.labels.template.fontSize = 10;
+chart.legend.labels.template.fill = "#ffffff";
+
+var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+categoryAxis.dataFields.category = "category";
+categoryAxis.renderer.grid.template.location = 0;
+categoryAxis.renderer.labels.template.fontSize = 11;
+categoryAxis.renderer.labels.template.fill = "#ffffff";
+categoryAxis.renderer.minGridDistance = 5; //can change label
+
+var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+valueAxis.min = 0;
+valueAxis.max = 100;
+valueAxis.strictMinMax = true;
+valueAxis.calculateTotals = true;
+valueAxis.renderer.minWidth = 50;
+valueAxis.renderer.labels.template.fontSize = 11;
+valueAxis.renderer.labels.template.fill = "#ffffff";
+
+let arrLviews = [];
+
+// Layerview and Expand
+function createSeries(field, name) {
+  var series = chart.series.push(new am4charts.ColumnSeries());
+  series.dataFields.valueX = field;
+  series.dataFields.categoryY = "category";
+  series.stacked = true;
+  series.dataFields.valueXShow = "totalPercent";
+  series.dataItems.template.locations.categoryY = 0.5;
+  series.name = name;
+  if (name == "Normal"){
+    series.fill = am4core.color("#32CD32");
+  } else {
+    series.fill = am4core.color("#b20000"); // Exceeds limit
+  }
+  series.columns.template.width = am4core.percent(60);
+  series.columns.template.tooltipText = "{name}: {valueX.totalPercent.formatNumber('#.')}%"
+
+  // Click chart and filter, update maps
+  const chartElement = document.getElementById("chartPanel");
+  series.columns.template.events.on("hit", filterByChart, this);
+  function filterByChart(ev) {
+    const selectedC = ev.target.dataItem.component.name;
+    const selectedP = ev.target.dataItem.categoryY;
+
+    // Layer
+      if (selectedP == "Noise" && selectedC == "Exceed") {
+      selectedLayer = 1;
+      selectedStatus = 1;
+    } else if (selectedP == "Noise" && selectedC == "Normal") {
+      selectedLayer = 1;
+      selectedStatus = 0;
+    } else if (selectedP == "Vibration" && selectedC == "Exceed") {
+      selectedLayer = 2;
+      selectedStatus = 1;
+    } else if (selectedP == "Vibration" && selectedC == "Normal") {
+      selectedLayer = 2;
+      selectedStatus = 0;
+    } else if (selectedP == "Air Quality" && selectedC == "Exceed") {
+      selectedLayer = 3;
+      selectedStatus = 1;
+    } else if (selectedP == "Air Quality" && selectedC == "Normal") {
+      selectedLayer = 3;
+      selectedStatus = 0;
+    } else if (selectedP == "Soil Water" && selectedC == "Exceed") {
+      selectedLayer = 4;
+      selectedStatus = 1;
+    } else if (selectedP == "Soil Water" && selectedC == "Normal") {
+      selectedLayer = 4;
+      selectedStatus = 0;
+    } else if (selectedP == "Groundwater" && selectedC == "Exceed") {
+      selectedLayer = 5;
+      selectedStatus = 1;
+    } else if (selectedP == "Groundwater" && selectedC == "Normal") {
+      selectedLayer = 5;
+      selectedStatus = 0;
+    } else {
+      selectedLayer = null;
+    }
+
+    view.when(function() {
+        view.whenLayerView(monitorPt1).then(function (layerView) {
+        chartLayerView = layerView;
+        arrLviews.push(layerView);
+        chartElement.style.visibility = "visible";
+        zoomToLayer(monitorPt1);
+
+        //monitorPt1.definitionExpression = sqlExpression;
+        monitorPt.queryFeatures().then(function(results) {
+            const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i < rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            if (highlightSelect) {
+                highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+
+            view.on("click", function() {
+            layerView.filter = null;
+            highlightSelect.remove();
+        });
+
+        }); // end of query features   
+}); // end of when layerview
+
+// Point: 2
+    view.whenLayerView(monitorPt).then(function (layerView) {
+        chartLayerView = layerView;
+        arrLviews.push(layerView);
+        chartElement.style.visibility = "visible";
+
+        view.on("click", function() {
+            layerView.filter = null;
+        });
+
+    }); // end of when layerview
+  }); // end of view.when
+    
+    for(var i = 0; i < arrLviews.length; i++) {
+      arrLviews[i].filter = {
+        where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+      }
+    }
+ 
+
+  } // End of filterByChart
+
+
+
+  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+  labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.value.formatNumber('#.')}";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 10;
+  labelBullet.locationX = 0.5;
+
+  // LayerView for point 2
+
+
+
+
+
+} // End of createSeries function
+// LayerView for point 1
+
+
+// End of LayerView
+// Run createSeries
+createSeries("value1", "Exceed");
+createSeries("value2", "Normal");
+
+}); // End of queryFeatures
+} // End of updateChartPoint function
+
+updateChartPoint();
+
+}); // End of am4core.ready
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+/*
+view.when(function () {
+          view.popup.autoOpenEnabled = true; //disable popups
+
+          // Create the Editor
+          let editor = new Editor({
+            view: view
+          });
+
+          // Add widget to top-right of the view
+          view.ui.add(editor, "bottom-right");
+        });
+        */
+// LayerList and Add legend to the LayerList
+        // On-off feature layer tab
+        var layerList = new LayerList({
+            view: view,
+            listItemCreatedFunction: function(event) {
+              const item = event.item;
+              if (item.layer.type != "group") {
+                item.panel = {
+                  content: "legend",
+                  open: false
+                };
+              }
+              if (item.title === "Chainage"){
+                item.visible = false
+              }
+            }
+          });
+/*
+          view.ui.add(layerList, {
+            position: "bottom-left"
+          });
+*/
+        var layerListExpand = new Expand ({
+            view: view,
+            content: layerList,
+            expandIconClass: "esri-icon-expand",
+            group: "bottom-left"
+        });
+        view.ui.add(layerListExpand, {
+            position: "bottom-left"
+        });
+        // End of LayerList
+
+        view.ui.empty("top-left");
+
+        // Compass
+        var compass = new Compass({
+          view: view});
+          // adds the compass to the top left corner of the MapView
+        view.ui.add(compass, "top-left");
+
+                // Full screen logo
+        view.ui.add(
+            new Fullscreen({
+                view: view,
+                element: applicationDiv
+            }),
+            "top-left"
+        );
+
+        // See-through-Ground        
+          view.when(function() {
+          // allow navigation above and below the ground
+          map.ground.navigationConstraint = {
+            type: "none"
+          };
+          // the webscene has no basemap, so set a surfaceColor on the ground
+          map.ground.surfaceColor = "#fff";
+          // to see through the ground, set the ground opacity to 0.4
+          map.ground.opacity = 0.9; //
+        });
+          
+
+        // See through Gound
+        document
+          .getElementById("opacityInput")
+          .addEventListener("change", function(event) {
+            //map.ground.opacity = event.target.checked ? 0.1 : 0.9;
+            map.ground.opacity = event.target.checked ? 0.1 : 0.6;
+          });
+
+        view.ui.add("menu", "bottom-left");
+
+
+//*****************************//
+//      Search Widget          //
+//*****************************//
+var searchWidget = new Search({
+  view: view,
+  locationEnabled: false,
+  allPlaceholder: "Chainage",
+  includeDefaultSources: false,
+  sources: [
+    {
+      layer: chainageLayer,
+      searchFields: ["KM_MAIN"],
+      displayField: "KM_MAIN",
+      exactMatch: false,
+      outFields: ["KM_MAIN"],
+      name: "Main KM",
+      placeholder: "example: 80+400"
+  }
+]
+});
+
+  const searchExpand = new Expand({
+    view: view,
+    content: searchWidget,
+    expandIconClass: "esri-icon-search",
+    group: "top-right"
+  });
+        view.ui.add(searchExpand, {
+          position: "top-right"
+        });
+searchExpand.watch("expanded", function() {
+    if(!searchExpand.expanded) {
+      searchWidget.searchTerm = null;
+    }
+  });
+
+      });
+    </script>
+  </head>
+  <body>
+    <div id="applicationDiv">
+      <div id="headerDiv">
+        <img src="https://EijiGorilla.github.io/Symbols/Environment_monitoring.png" width="30" height="30">
+        <div id="headerTitleDiv">
+          <h2>Environment Monitoring (N2)</h2>
+        </div>
+          <div class="dateDiv">
+              <h4>As of April 7, 2021</h4>
+          </div>
+      </div>
+      <div class="container">
+        <div class="boxB">
+            <div id="viewDiv"></div>
+                  <div id="menu" class="esri-widget">
+                <input type="checkbox" id="opacityInput" unchecked />
+                <label for="opacityInput">See through ground</label>
+              </div>
+          </div>
+        <div class="boxA">
+            <div id="chartPanel">
+              <div id="chartTitleDiv" class="esri-widget">Progress of Environment Monitoring (%)</div>
+              <div id="chartdiv"></div>
+          </div>
+      </div>
+      </div>
+    </div>
+  </body>
+</html>
