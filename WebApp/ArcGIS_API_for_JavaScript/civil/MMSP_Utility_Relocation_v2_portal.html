@@ -28,7 +28,7 @@
         margin: 0 auto;
         box-sizing: border-box;
       }
-      
+
       .container {
         display: grid;
           border: solid 2.5px gray;
@@ -104,16 +104,15 @@
       #chartdiv {
           width: 100%;
           height: 100%;
-          align-items: center;
           }
       
-      #cpButton {
+      #StationButton {
         margin:0;
         width: 350px;
         text-align: left;
       }
 
-      .cpButtonClass {
+      .StationButtonClass {
           font-style: normal;
           width: 350px;
           font-size: 12px;
@@ -121,10 +120,6 @@
           color: white;
           text-align: center;
           }
-
-      #dataTypeInput {
-        padding-top: 20px;
-      }
 
       
       p {
@@ -146,7 +141,7 @@
         color: white;
         padding:3px;
         margin: 0px;
-        width: 250px;
+        width: 290px;
         vertical-align: text-top;
       }
 
@@ -226,6 +221,8 @@
         "esri/renderers/UniqueValueRenderer",
         "esri/layers/support/Sublayer",
         "esri/widgets/Search",
+        "esri/layers/ElevationLayer",
+        "esri/Ground",
         "esri/widgets/Compass"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
@@ -234,40 +231,57 @@
                   WebScene, PortalItem, Portal, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol, Expand, Editor,
-                  UniqueValueRenderer, Sublayer, Search, Compass) {
+                  UniqueValueRenderer, Sublayer, Search, ElevationLayer, Ground, Compass) {
 
 let chartLayerView;
-  const features = [];
   
 //******************************//
 // Basemap and Scenview Setting //
 //******************************//
-        var basemap = new Basemap({
+
+var basemap = new Basemap({
         baseLayers: [
           new VectorTileLayer({
             portalItem: {
-              id: "8a9ef2a144e8423786f6139408ac3424" // 3a62040541b84f528da3ac7b80cf4a63
+              id: "3a62040541b84f528da3ac7b80cf4a63" 
             }
           })
         ]
       });
+      
+      // Add custom DEM to the default elevation layer of esri
+      const worldElevation = new ElevationLayer({
+        url: "//elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
+        });
+        
+      const dem = new ElevationLayer({
+          portalItem: {
+               id: "c6083f4fbfdb48198dc91f4d30ac835f",
+                portal: {
+                    url: "https://mmspgc-gis.mmspgc.local/portal"
+                }
+            }
+        });
 
-         var map = new Map({
-              basemap: basemap, // "streets-night-vector", 
-              ground: "world-elevation"
-        }); 
+        var map = new Map({
+              basemap: basemap, // "streets-night-vector", basemap, topo-vector
+              ground: new Ground({
+                layers: [worldElevation, dem]
+              })
+        });
         //map.ground.surfaceColor = "#FFFF";
-        //map.ground.opacity = 0.5;
+        //map.ground.opacity = 0.1;
          
-        var view = new SceneView({
+         
+        var view = new SceneView ({
             map: map,
             container: "viewDiv",
             viewingMode: "local",
             camera: {
                 position: {
-                    x: 120.57930,
-                    y: 15.18,
-                    z: 500
+                    x: 121.0322874,
+                    y: 14.6750462,
+                    z: 1000
                     },
                     tilt: 65
                     },
@@ -300,7 +314,6 @@ let chartLayerView;
         var headerTitleDiv = document.getElementById("headerTitleDiv");
         var applicationDiv = document.getElementById("applicationDiv");
 
-
 //*******************************//
 // Label Class Property Settings //
 //*******************************//
@@ -315,7 +328,7 @@ var labelChainage = new LabelClass({
 });
 
 // Station Label
-var labelClass = new LabelClass({
+var stationLabelClass = new LabelClass({
           symbol: {
             type: "label-3d",// autocasts as new LabelSymbol3D()
             symbolLayers: [
@@ -343,9 +356,8 @@ var labelClass = new LabelClass({
           },
           labelPlacement: "above-center",
           labelExpressionInfo: {
-            expression: 'DefaultValue($feature.Station, "no data")'
-            //value: "{TEXTSTRING}"
-        }
+            expression: 'DefaultValue($feature.Name, "no data")'
+          }
         });
 
 // Utility Point Label
@@ -408,6 +420,14 @@ var testLineLabelClass = {
           };
         }
 
+        function stationsSymbol(name) {
+          return {
+            type: "web-style", // autocasts as new WebStyleSymbol()
+            name: name,
+            styleName: "EsriIconsStyle"//EsriRealisticTransportationStyle, EsriIconsStyle
+          };
+        }
+
 // Utility Point Symbol
 /// https://developers.arcgis.com/javascript/latest/guide/esri-web-style-symbols-3d/
 function utilPtSymbolInfra(name) {
@@ -436,17 +456,13 @@ function utilPtSymbolIcons(name) {
 
 /* custom 3D Web Style for Utility Pole */
 // Choice: 3D_Electric_Pole, 3D_Drain_Box, 3D_Water_Valve, 3D_Telecom_BTS, 3D_TelecomCATV_Pole
-
 function customSymbol3D(name) {
   return {
     type: "web-style",
-
-    // IMPORTANT: Your browser needs to be able to open the following link. It will say insecure so need to go to advanced.
     styleUrl: "https://www.railway-sector.maps.arcgis.com/sharing/rest/content/items/7cc86329dd2e46229c52d292e660957b/data",
     name: name
   };
 }
-
 
 /* Company and Utilty Relocation Status Symbols with Callout */
 var verticalOffsetExisting = {
@@ -531,6 +547,15 @@ var verticalOffsetRelocation = {
 //*****************************//
 //      Renderer Settings      //
 //*****************************//
+var BoundaryFillSymbol = {
+  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+  color: "red",
+  style: "solid",
+  outline: {  // autocasts as new SimpleLineSymbol()
+    color: [153, 204, 255, 0.5],
+    width: 2
+  }
+};
 
 // Chainage symbol
 var chainageRenderer = {
@@ -546,11 +571,11 @@ var chainageRenderer = {
     }
   };
 
-// Station
+// Statin Renderer
 var stationsRenderer = {
           type: "unique-value", // autocasts as new UniqueValueRenderer()
           field: "Name",
-          defaultSymbol: IconSymbol("Train"),//Backhoe, Train
+          defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
         };
 
 // Utility Point
@@ -558,11 +583,11 @@ var stationsRenderer = {
 var utilTypePtRenderer = {
           type: "unique-value", //"unique-value", "simple"
           Field: "UtilType2",
-          //defaultSymbol: ,
           //valueExpression: "When($feature.UtilType == 1, 'Telecom', $feature.UtilType == 2, 'Water',$feature.UtilType == 3, 'Power', $feature.UtilType)",
           valueExpression: "When($feature.UtilType2 == 1, 'Telecom Pole (BTS)', $feature.UtilType2 == 2, 'Telecom Pole (CATV)', $feature.UtilType2 == 3, 'Water Meter', \
                                  $feature.UtilType2 == 4, 'Water Valve', $feature.UtilType2 == 5, 'Manhole', $feature.UtilType2 == 6, 'Drain Box', \
-                                 $feature.UtilType2 == 7, 'Electric Pole', $feature.UtilType2 == 8, 'Street Light', $feature.UtilType)",
+                                 $feature.UtilType2 == 7, 'Electric Pole', $feature.UtilType2 == 8, 'Street Light', \
+                                 $feature.UtilType2 == 10, 'Junction Box', $feature.UtilType)",
           uniqueValueInfos: [
             {
               value: "Telecom Pole (BTS)",
@@ -584,6 +609,14 @@ var utilTypePtRenderer = {
             {
               value: "Street Light",
               symbol: utilPtSymbolStreet("Overhanging_Street_and_Sidewalk_-_Light_on")
+            },
+            {
+              value: "Drain Box",
+              symbol: customSymbol3D("3D_Drain_Box")
+            },
+            {
+              value: "Junction Box",
+              symbol: customSymbol3D("3D_Drain_Box")
             }
           ],
           visualVariables: [
@@ -741,10 +774,100 @@ var utilReloSymbolRenderer = {
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/PLDT.png",
                 "#D13470",
+                30,
+                "Relocation"
+              )
+            },
+            {
+              value: 32, //"DPWH",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/DPWH.png",
+                "#D13470",
+                30,
+                "Relocation"
+              )
+            },
+            {
+              value: 33, //"Converge",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/Converge.png",
+                "#D13470",
+                30,
+                "Relocation"
+              )
+            },
+            {
+              value: 34, //"Eastern",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/Eastern.png",
+                "#D13470",
+                30,
+                "Relocation"
+              )
+            },
+            {
+              value: 35, //"Maynilad",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/MAYNILAD.png",
+                "#D13470",
                 35,
                 "Relocation"
               )
-            }
+            },
+            {
+              value: 36, //"VMMC",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/VMMC.png",
+                "#D13470",
+                30,
+                "Relocation"
+              )
+            },
+            {
+              value: 37, //"Smart",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/Smart2.png",
+                "#D13470",
+                30,
+                "Relocation"
+              )
+            },
+            {
+              value: 38, //"MMDA",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/MMDA.png",
+                "#D13470",
+                30,
+                "Relocation"
+              )
+            },
+            {
+              value: 39, //"LGU",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/LGU.png",
+                "#D13470",
+                30,
+                "Relocation"
+              )
+            },
+            {
+              value: 40, //"MWSS",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/MWSS.jpg",
+                "#D13470",
+                30,
+                "Relocation"
+              )
+            },
+            {
+              value: 40, //"Unknown",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/Unknown.png",
+                "#D13470",
+                30,
+                "Relocation"
+              )
+            },
           ]
         };
 
@@ -783,7 +906,9 @@ const colorsRelocation = {
     5: [105,105,105, 0.3], // Drainage
     6: [205,133,63, 0.3], // Canal
     7: [139,69,19, 0.3], // Creek
-    8: [211,211,211, 0.3] // Elecric Line
+    8: [211,211,211, 0.3], // Elecric Line
+    9: [230, 0, 169, 0.3], // Duct Bank
+    10: [0, 197, 255, 0.3] // Water Line
     };
 
     const colorsExisting = {
@@ -800,53 +925,40 @@ const colorsRelocation = {
  //*****************************//
 //      Layer Import           //
 //*****************************//
-
-// Centerline and chainage
-var chainageLayer = new FeatureLayer ({
+// Construction Boundary
+var constBoundary = new FeatureLayer({
   portalItem: {
-    id: "7e1812db542a4261b73787dfe5a5d438"
+    id: "4f155bc22b4d461fa3c09ea256b1e3a4"
   },
-  layerId: 0,
-  title: "Chainage",
+  layerId: 2,
+  //renderer: BoundaryFillSymbol,
   elevationInfo: {
-    mode: "relative-to-ground"
+    mode: "on-the-ground"
   },
-  labelingInfo: [labelChainage],
-  renderer: chainageRenderer,
-  outFields: ["*"],
-  popupEnabled: false
-
+  popupTemplate: {
+    defaultPopupTemplateEnabled: false
+  }
 });
-//chainageLayer.listMode = "hide";
-map.add(chainageLayer, 1);
+constBoundary.listMode = "hide";
+map.add(constBoundary);
 
-// ROW //
-var rowLayer = new FeatureLayer ({
-  portalItem: {
-    id: "878c49e145b34f269947f8584cd3512c"
-  },
-  title: "ROW",
-  popupEnabled: false
-});
-map.add(rowLayer,2);
 
-// Station
-var stationLayer = new SceneLayer({
-            portalItem: {
-                id: "24c2d2cea755430db6c713792a996d02",//68f16da494d941d482af09d6a4bd6468
-            },
-             labelingInfo: [labelClass],
+// Station Layer:-------------------
+        var stationLayer = new SceneLayer({
+          portalItem: {
+            id: "54d64cd84b064ab4ab276500c3582c53"
+          },
+             labelingInfo: [stationLabelClass],
              renderer: stationsRenderer,
              elevationInfo: {
                  // this elevation mode will place points on top of
                  // buildings or other SceneLayer 3D objects
                  mode: "relative-to-ground"
                  },
-             definitionExpression: "Extension = 'N2'"
               //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
         });
         stationLayer.listMode = "hide";
-        map.add(stationLayer, 0);
+        map.add(stationLayer);
 
 // Utility Point
 // To locate a symbol with callout on the ground, 
@@ -856,7 +968,7 @@ var stationLayer = new SceneLayer({
 
 var testUtilPt = new FeatureLayer({
   portalItem: {
-    id: "2a62d3fdaa684fa59c1591c6819ca010",
+    id: "ec34e5e1f30f45e5b34f0ad479e34d55",
     portal: {
         url: "https://mmspgc-gis.mmspgc.local/portal"
     }
@@ -864,10 +976,16 @@ var testUtilPt = new FeatureLayer({
   layerId: 1,
   title: "Relocation Plan (Point)",
    outFields: ["*"],
+   labelsVisible: false,
    renderer: utilTypePtRenderer,
    elevationInfo: {
-            mode: "on-the-ground"
-          },
+     mode: "relative-to-scene",
+     featureExpressionInfo: {
+       expression: "$feature.Height"
+  },
+  unit: "meters"
+     //offset: 0
+   },
    popupTemplate: {
      title: "<h5>{Comp_Agency}</h5>",
      lastEditInfoEnabled: false,
@@ -883,15 +1001,15 @@ var testUtilPt = new FeatureLayer({
          type: "fields",
          fieldInfos: [
            {
-             fieldName: "ID"
+             fieldName: "Id"
            },
            {
              fieldName: "UtilType",
-             label: "Utility Type"
+             Label: "Type"
            },
            {
              fieldName: "UtilType2",
-             label: "Utility Name"
+             Label: "Type2"
            },
            {
              fieldName: "LAYER",
@@ -902,7 +1020,7 @@ var testUtilPt = new FeatureLayer({
              label: "<h5>Status</h5>"
            },
            {
-             fieldName: "CP"
+             fieldName: "Station"
            },
            {
              fieldName: "Remarks"
@@ -913,7 +1031,7 @@ var testUtilPt = new FeatureLayer({
    }
 });
 
-map.add(testUtilPt, 3);
+map.add(testUtilPt);
 
 /* Symbols with callout */
 // To locate a symbol with callout on the ground, 
@@ -922,7 +1040,7 @@ map.add(testUtilPt, 3);
 
 var testUtilPt1 = new FeatureLayer({
     portalItem: {
-    id: "2a62d3fdaa684fa59c1591c6819ca010",
+    id: "ec34e5e1f30f45e5b34f0ad479e34d55",
     portal: {
         url: "https://mmspgc-gis.mmspgc.local/portal"
     }
@@ -931,14 +1049,17 @@ var testUtilPt1 = new FeatureLayer({
   title: "Utility 3D Render Test",
   elevationInfo: {
      mode: "relative-to-scene",
-     unit: "meters"
+     featureExpressionInfo: {
+       expression: "$feature.Height"
+  },
+  unit: "meters"
      //offset: 0
    },
    outFields: ["*"],
    renderer: utilReloSymbolRenderer,
    labelingInfo: [labelUtilPtSymbol],
    popupTemplate: {
-     title: "<h5>{comp_agency}</h5>",
+     title: "<h5>{Comp_Agency}</h5>",
      lastEditInfoEnabled: false,
      returnGeometry: true,
      actions: [
@@ -952,15 +1073,15 @@ var testUtilPt1 = new FeatureLayer({
          type: "fields",
          fieldInfos: [
            {
-             fieldName: "ID"
+             fieldName: "Id"
            },
            {
              fieldName: "UtilType",
-             label: "Utility Type"
+             Label: "Type"
            },
            {
-             fieldName: "UtilType2",
-             label: "Utility Name"
+            fieldName: "UtilType2",
+             Label: "Type2"
            },
            {
              fieldName: "LAYER",
@@ -971,7 +1092,7 @@ var testUtilPt1 = new FeatureLayer({
              label: "<h5>Status</h5>"
            },
            {
-             fieldName: "cp"
+             fieldName: "Station"
            },
            {
              fieldName: "Remarks"
@@ -989,24 +1110,24 @@ map.add(testUtilPt1);
 // Utility Line
  var testLine = new FeatureLayer({
     portalItem: {
-    id: "2a62d3fdaa684fa59c1591c6819ca010",
+    id: "ec34e5e1f30f45e5b34f0ad479e34d55",
     portal: {
         url: "https://mmspgc-gis.mmspgc.local/portal"
     }
   },
-  layerId: 2,
+   layerId: 2,
    title: "Relocation Plan (Line)",
    elevationInfo: {
      mode: "relative-to-scene",
      featureExpressionInfo: {
-       expression: "$feature.height"
+       expression: "$feature.Height"
   },
   unit: "meters"
      //offset: 0
    },
    outFields: ["*"],
    popupTemplate: {
-     title: "<h5>{comp_agency}</h5>",
+     title: "<h5>{Comp_Agency}</h5>",
      lastEditInfoEnabled: false,
      returnGeometry: true,
      actions: [
@@ -1020,29 +1141,29 @@ map.add(testUtilPt1);
          type: "fields",
          fieldInfos: [
            {
-             fieldName: "id"
+             fieldName: "Id"
            },
            {
-             fieldName: "utiltype",
-             label: "Utility Type"
+             fieldName: "UtilType",
+             Label: "Type"
            },
            {
-             fieldName: "utiltype2",
-             label: "Utility Name"
+             fieldName: "UtilType2",
+             Label: "Type2"
            },
            {
-             fieldName: "layer",
+             fieldName: "LAYER",
              label: "<h5>Action</h5>"
            },
            {
-             fieldName: "status",
+             fieldName: "Status",
              label: "<h5>Status</h5>"
            },
            {
-             fieldName: "cp"
+             fieldName: "Station"
            },
            {
-             fieldName: "remarks"
+             fieldName: "Remarks"
            }
          ]
        }
@@ -1074,7 +1195,7 @@ map.add(testUtilPt1);
 }
         function rendertestLine() {
           const renderer = new UniqueValueRenderer({
-            field: "utiltype2"
+            field: "UtilType2"
           });
 
           for (let property in colorsRelocation) { // For each utility type 2
@@ -1093,7 +1214,7 @@ map.add(testUtilPt1);
             } else if (property == 3) { // "Water Distributin Pipe"
                 renderer.addUniqueValueInfo({
                 value: property,
-                symbol: lineSizeShapeSymbolLayers("circle","none","miter", 2, 2, "all", property)
+                symbol: lineSizeShapeSymbolLayers("circle","none","miter", 0.5, 0.5, "all", property)
               });
   
             } else if (property == 4) { // "Sewerage"
@@ -1105,7 +1226,7 @@ map.add(testUtilPt1);
             } else if (property == 5) { // "Drainage"
                 renderer.addUniqueValueInfo({
                 value: property,
-                symbol: lineSizeShapeSymbolLayers("circle","none","miter", 1, 1,"all", property)
+                symbol: lineSizeShapeSymbolLayers("circle","none","miter", 0.5, 0.5,"all", property)
               });
             
             } else if (property == 6) { // "Canal"
@@ -1145,17 +1266,17 @@ map.add(testUtilPt1);
 /*Line for Symbols */
 var testLine1 = new FeatureLayer({
     portalItem: {
-    id: "2a62d3fdaa684fa59c1591c6819ca010",
+    id: "ec34e5e1f30f45e5b34f0ad479e34d55",
     portal: {
         url: "https://mmspgc-gis.mmspgc.local/portal"
     }
   },
-  layerId: 2,
+   layerId: 2,
    title: "testLine",
    elevationInfo: {
      mode: "relative-to-scene",
      featureExpressionInfo: {
-       expression: "$feature.height"
+       expression: "$feature.Height"
   },
   unit: "meters"
      //offset: 0
@@ -1164,7 +1285,7 @@ var testLine1 = new FeatureLayer({
    renderer: utilReloSymbolRenderer,
    labelingInfo: [testLineLabelClass],
    popupTemplate: {
-     title: "<h5>{comp_agency}</h5>",
+     title: "<h5>{Comp_Agency}</h5>",
      lastEditInfoEnabled: false,
      returnGeometry: true,
      actions: [
@@ -1178,29 +1299,29 @@ var testLine1 = new FeatureLayer({
          type: "fields",
          fieldInfos: [
            {
-             fieldName: "id"
+             fieldName: "Id"
            },
            {
-             fieldName: "utiltype",
-             label: "Utility Type"
+             fieldName: "UtilType",
+             Label: "Type"
            },
            {
-             fieldName: "utiltype2",
-             label: "Utility Name"
+             fieldName: "UtilType2",
+             Label: "Type2"
            },
            {
-             fieldName: "layer",
+             fieldName: "LAYER",
              label: "<h5>Action</h5>"
            },
            {
-             fieldName: "status",
+             fieldName: "Status",
              label: "<h5>Status</h5>"
            },
            {
-             fieldName: "cp"
+             fieldName: "Station"
            },
            {
-             fieldName: "remarks"
+             fieldName: "Remarks"
            }
          ]
        }
@@ -1384,9 +1505,9 @@ function zoomToLayer(layer) {
 const seasonsNodes = document.querySelectorAll(`.test-item`);
 const testElement = document.getElementById("test-filter");
 const utilTypesButton = document.getElementById("dataTypeInput");
-const cpButtonElement = document.getElementById("cpButton");
+const StationButtonElement = document.getElementById("StationButton");
 
-let cpArray = [];
+let stArray = [];
 let typeArray = [];
 
 // Start of am4core
@@ -1406,29 +1527,30 @@ if (document.getElementById("None").checked = true) {
 }
 
 //document.getElementsByTagName('input')[0].checked = true;
+var stationNames = ['EVS', 'Depot', 'Quirino Highway', 'Tandang Sora', 'North Avenue']
 
-document.querySelectorAll('.cpButtonClass').forEach(item => {
+document.querySelectorAll('.StationButtonClass').forEach(item => {
     item.addEventListener("change", filterByChartTypes);
     function filterByChartTypes(e) {
-        const selectedTypes = e.target.id; // e.g., "N-01"
-        const itemName = item.id; // e.g., "cpButton" class name
+        const selectedTypes = e.target.id; // e.g., 0 ("None"), 1 (EVS), 2 (Depot), 3 (Quirino Highway), 4 (Tandang Sora), 5 (North Avenue)
+        const itemName = item.id; // e.g., "StationButton" class name
 
         // Start Filtering:
-        if (itemName === "cpButton") {
-          cpArray.push(selectedTypes);
+        if (itemName === "StationButton") {
+          stArray.push(selectedTypes);
         } else {
           typeArray.push(selectedTypes);
         }
 
         // Always choose the newest ones
-        cpArrayConcat = cpArray[cpArray.length-1];
+        stArrayConcat = stArray[stArray.length-1];
         typeArrayConcat = typeArray[typeArray.length-1];
 
-        if ((cpArrayConcat === undefined && typeArrayConcat === "Point") || (cpArrayConcat === "None" && typeArrayConcat === "Point")) { // [undefined, "Point"] or ["None", "Point"]
+        if ((stArrayConcat === undefined && typeArrayConcat === "Point") || (stArrayConcat === "None" && typeArrayConcat === "Point")) { // [undefined, "Point"] or ["None", "Point"]
           testUtilPt.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testUtilPt1.definitionExpression = "Type = '" + typeArrayConcat + "'";
 
-          /* As points and table feature layers do not share the same information for 'Type' (unline CP)*/
+          /* As points and table feature layers do not share the same information for 'Type' (unline Station)*/
           /* We need to define expression such that lines are disappeard when 'Point' is selected*/
           testLine.definitionExpression = "Type = 'Point'";
           testLine1.definitionExpression = "Type = 'Point'";
@@ -1438,7 +1560,7 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           zoomToLayer(testUtilPt);
           updateChartPoint();
 
-        } else if ((cpArrayConcat === undefined && typeArrayConcat === "Line") || (cpArrayConcat === "None" && typeArrayConcat === "Line")) { // [undefined, "Line"] or ["None", "Line"]
+        } else if ((stArrayConcat === undefined && typeArrayConcat === "Line") || (stArrayConcat === "None" && typeArrayConcat === "Line")) { // [undefined, "Line"] or ["None", "Line"]
           testLine.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testLine1.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testUtilPt.definitionExpression = "Type = 'Line'";
@@ -1449,7 +1571,7 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
           zoomToLayer(testLine);
           updateChartLine();
 
-        } else if (cpArrayConcat === undefined && typeArrayConcat === "None") { // [undefined, "None"]
+        } else if (stArrayConcat === undefined && typeArrayConcat === "None") { // [undefined, "None"]
           testLine.definitionExpression = null;
           testLine1.definitionExpression = null;
           testUtilPt.definitionExpression = null;
@@ -1459,56 +1581,55 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
 
           updateChartCombine();
 
-        } else if (cpArrayConcat === "None" && typeArrayConcat === undefined) { // ["None", undefined]
-        testLine.definitionExpression = null;
+        } else if (stArrayConcat === "None" && typeArrayConcat === undefined) { // ["None", undefined]
+          testLine.definitionExpression = null;
           testLine1.definitionExpression = null;
           testUtilPt.definitionExpression = null;
           testUtilPt1.definitionExpression = null;
 
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
 
+          updateChartCombine();
+
+        } else if (typeArrayConcat === undefined) { // ["Depot", undefined]
+          testUtilPt.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testUtilPt1.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testLine.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testLine1.definitionExpression = "Station = '" + stArrayConcat + "'";
+
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stationNames[stArrayConcat-1] + "</p>";
+
           zoomToLayer(testUtilPt);
           updateChartCombine();
 
-        } else if (typeArrayConcat === undefined) { // ["N-01", undefined]
-          testUtilPt.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testUtilPt1.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testLine.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testLine1.definitionExpression = "CP = '" + cpArrayConcat + "'";
-
-          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + cpArrayConcat + "</p>";
-
-          zoomToLayer(testUtilPt);
-          updateChartCombine();
-
-        } else if (typeArrayConcat === "Point") { // ["N-01", "Point"]
-          testUtilPt.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testUtilPt1.definitionExpression = "CP = '" + cpArrayConcat + "'";
+        } else if (typeArrayConcat === "Point") { // ["Depot", "Point"]
+          testUtilPt.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testUtilPt1.definitionExpression = "Station = '" + stArrayConcat + "'";
 
           // For disappearing Line
           testLine.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testLine1.definitionExpression = "Type = '" + typeArrayConcat + "'";
 
-          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + cpArrayConcat + ", " + typeArrayConcat + "</p>";
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stationNames[stArrayConcat-1] + " ," + typeArrayConcat + "</p>";
 
           zoomToLayer(testUtilPt);;
           updateChartPoint();
 
-        } else if (typeArrayConcat === "Line") { // ["N-01", "Line"]
-          testLine.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testLine1.definitionExpression = "CP = '" + cpArrayConcat + "'";
+        } else if (typeArrayConcat === "Line") { // ["Depot", "Line"]
+          testLine.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testLine1.definitionExpression = "Station = '" + stArrayConcat + "'";
 
           // For disappearing Point
           testUtilPt.definitionExpression = "Type = '" + typeArrayConcat + "'";
           testUtilPt1.definitionExpression = "Type = '" + typeArrayConcat + "'";
 
-          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + cpArrayConcat + ", " + typeArrayConcat + "</p>";
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stationNames[stArrayConcat-1] + " ," + typeArrayConcat + "</p>";
 
           zoomToLayer(testLine); //CHECK
           updateChartLine();
 
           // "None" buttons
-        } else if (cpArrayConcat === "None" && typeArrayConcat === "None") { // ["None", "None"]
+        } else if (stArrayConcat === "None" && typeArrayConcat === "None") { // ["None", "None"]
           testLine.definitionExpression = null;
           testLine1.definitionExpression = null;
           testUtilPt.definitionExpression = null;
@@ -1516,17 +1637,16 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
 
           chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
 
-          zoomToLayer(testUtilPt);
           updateChartCombine();
         }
 
-        else if (typeArrayConcat === "None") { // ["N-01, "None"]
-          testLine.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testLine1.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testUtilPt.definitionExpression = "CP = '" + cpArrayConcat + "'";
-          testUtilPt1.definitionExpression = "CP = '" + cpArrayConcat + "'";
+        else if (typeArrayConcat === "None") { // ["Depot", "None"]
+          testLine.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testLine1.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testUtilPt.definitionExpression = "Station = '" + stArrayConcat + "'";
+          testUtilPt1.definitionExpression = "Station = '" + stArrayConcat + "'";
 
-          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + cpArrayConcat + "</p>";
+          chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + stationNames[stArrayConcat-1] + "</p>";
 
           zoomToLayer(testUtilPt);
           updateChartCombine();
@@ -1540,7 +1660,7 @@ document.querySelectorAll('.cpButtonClass').forEach(item => {
 // Click event handler for choices
 
 
-/* Create Expand widget for selecting CP and updating chart */
+/* Create Expand widget for selecting Station and updating chart */
 
 
 // Start of "updateChart" function for Utility Point
@@ -1659,7 +1779,7 @@ chart.colors.step = 2;
 chart.padding(10, 10, 10, 10);
 chart.legend = new am4charts.Legend();
 chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = 10;
+chart.legend.labels.template.fontSize = 12;
 chart.legend.labels.template.fill = "#ffffff";
 
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
@@ -1705,8 +1825,7 @@ function createSeries(field, name) {
     const selectedP = ev.target.dataItem.categoryY;
 
     // Layer
-
-      if (selectedP == "Telecom/CATV" && selectedC == "Incomplete") {
+    if (selectedP == "Telecom/CATV" && selectedC == "Incomplete") {
       selectedLayer = 1;
       selectedStatus = 0;
     } else if (selectedP == "Telecom/CATV" && selectedC == "Complete") {
@@ -1755,6 +1874,12 @@ function createSeries(field, name) {
                 objectIds: objID
             });
 
+            testUtilPt1.queryExtent(queryExt).then(function(result) {
+                if (result.extent) {
+                    view.goTo(result.extent)
+                }
+            });
+
             if (highlightSelect) {
                 highlightSelect.remove();
             }
@@ -1801,10 +1926,6 @@ function createSeries(field, name) {
   labelBullet.locationX = 0.5;
 
   // LayerView for point 2
-
-
-
-
 
 } // End of createSeries function
 // LayerView for point 1
@@ -1935,7 +2056,7 @@ chart.colors.step = 2;
 chart.padding(10, 10, 10, 10);
 chart.legend = new am4charts.Legend();
 chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = 10;
+chart.legend.labels.template.fontSize = 12;
 chart.legend.labels.template.fill = "#ffffff";
 
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
@@ -1981,8 +2102,7 @@ function createSeries(field, name) {
     const selectedP = ev.target.dataItem.categoryY;
 
     // Layer
-
-      if (selectedP == "Telecom/CATV" && selectedC == "Incomplete") {
+    if (selectedP == "Telecom/CATV" && selectedC == "Incomplete") {
       selectedLayer = 1;
       selectedStatus = 0;
     } else if (selectedP == "Telecom/CATV" && selectedC == "Complete") {
@@ -2056,14 +2176,8 @@ view.whenLayerView(testLine1).then(function (layerView) {
         arrLviews.push(layerView);
         chartElement.style.visibility = "visible";
 
-            if (highlightSelect) {
-                highlightSelect.remove();
-            }
-            highlightSelect = layerView.highlight(objID);
-
         view.on("click", function() {
             layerView.filter = null;
-            highlightSelect.remove();
         });
 
 }); // end of when layerview
@@ -2372,7 +2486,6 @@ function createSeriesCombine(field, name) {
     const selectedP = ev.target.dataItem.categoryY;
 
     // Layer
-
     if (selectedP == "Telecom/CATV" && selectedC == "Incomplete") {
       selectedLayer = 1;
       selectedStatus = 0;
@@ -2400,6 +2513,12 @@ function createSeriesCombine(field, name) {
     } else {
       selectedLayer = null;
     }
+
+    // If "selectedLayer" is number, the following chartLayerView does not work! Very puzzled
+    // If selectedLayer is text, it works. Does this have something to do with data type (integer vs double?)
+    // But selectedStatus is also integer..
+    // It seems that if both selectedLayer and selectedStatus are numbers in data types this fails for hosted feature layers.
+
 
     for (var i = 0; i < arrLviews.length; i++) {
       arrLviews[i].filter = {
@@ -2507,8 +2626,8 @@ view.when(function() {
       var info = attributes.Id;
       var infoObjId = attributes.OBJECTID; //1
 
-      view.whenLayerView(testUtilPt).then(function(layerView) {
-      testUtilPt.queryFeatures().then(function(results) {
+      view.whenLayerView(testUtilPt1).then(function(layerView) {
+      testUtilPt1.queryFeatures().then(function(results) {
           const ggg = results.features;
           const rowN = ggg.length; //7
           //var rrr = results.features[0].attributes.Id;
@@ -2569,8 +2688,8 @@ view.when(function() {
       var info = attributes.Id;
       var infoObjId = attributes.OBJECTID; //1
 
-      view.whenLayerView(testLine).then(function(layerView) {
-        testLine.queryFeatures().then(function(results) {
+      view.whenLayerView(testLine1).then(function(layerView) {
+        testLine1.queryFeatures().then(function(results) {
           const ggg = results.features;
           const rowN = ggg.length; //7
           //var rrr = results.features[0].attributes.Id;
@@ -2619,6 +2738,7 @@ view.when(function() {
 
 
 /////////////////////////////////////////////////////////////////////////////////////
+
 /*
 view.when(function () {
           view.popup.autoOpenEnabled = true; //disable popups
@@ -2631,7 +2751,7 @@ view.when(function () {
           // Add widget to top-right of the view
           view.ui.add(editor, "bottom-right");
         });
-*/
+    */
 // LayerList and Add legend to the LayerList
         // On-off feature layer tab
         var layerList = new LayerList({
@@ -2664,7 +2784,6 @@ view.when(function () {
             position: "bottom-left"
         });
         // End of LayerList
-
         view.ui.empty("top-left");
 
         // Compass
@@ -2694,7 +2813,8 @@ view.when(function () {
           map.ground.opacity = 0.9; //
         });
           
-
+        // Full screen logo
+        
         // See through Gound
         document
           .getElementById("opacityInput")
@@ -2705,10 +2825,14 @@ view.when(function () {
 
         view.ui.add("menu", "bottom-left");
 
-
+        // Search Widget
+        
 //*****************************//
 //      Search Widget          //
 //*****************************//
+
+
+
 var searchWidget = new Search({
   view: view,
   locationEnabled: false,
@@ -2768,20 +2892,20 @@ searchExpand.watch("expanded", function() {
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/UtilitySymbol_smartmap_v2.png" width="30" height="30">
         <div id="headerTitleDiv">
-          <h2>Utility Relocation (N2)</h2>
+          <h2>Utility Relocation (PO Section)</h2>
         </div>
           <div class="dateDiv">
-              <h4>As of April 16, 2021</h4>
+              <h4>As of March 31, 2021</h4>
           </div>
-          <div class="cpButtonBox">
-            <div id="cpButton" class="cpButtonClass">
-                <label for="cpButton">CP</label>
-                <input type="radio" id="None" name="cpButton"> None
-                <input type="radio" id="N-01" name="cpButton"> N-01
-                <input type="radio" id="N-02" name="cpButton"> N-02
-                <input type="radio" id="N-03" name="cpButton"> N-03
-                <input type="radio" id="N-04" name="cpButton"> N-04
-                <input type="radio" id="N-05" name="cpButton"> N-05
+          <div class="StationButtonBox">
+            <div id="StationButton" class="StationButtonClass">
+                <label for="StationButton">Station</label>
+                <input type="radio" id="None" name="StationButton"> All
+                <input type="radio" id=1 name="StationButton"> EVS            
+                <input type="radio" id=2 name="StationButton"> Depot
+                <input type="radio" id=3 name="StationButton"> QH
+                <input type="radio" id=4 name="StationButton"> TS
+                <input type="radio" id=5 name="StationButton"> NA
               </div>
           </div>
       </div>
@@ -2793,11 +2917,11 @@ searchExpand.watch("expanded", function() {
                 <label for="opacityInput">See through ground</label>
               </div>
           </div>
-        <div class="boxA">
+          <div class="boxA">
             <div id="chartPanel">
               <div id="chartTitleDiv" class="esri-widget">Progress of Utility Relocation (%)</div>
               <div id="chartdiv"></div>
-              <div id="dataTypeInput" class="cpButtonClass">
+              <div id="dataTypeInput" class="StationButtonClass">
                 <label for="dataTypeInput">Data Type</label>
                 <input type="radio" id="None" name="dataTypeInput" checked/> None
                 <input type="radio" id="Point" name="dataTypeInput"> Point
