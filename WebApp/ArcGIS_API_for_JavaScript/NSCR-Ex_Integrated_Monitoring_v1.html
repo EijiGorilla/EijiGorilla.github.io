@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>Utility Relocation (Sample)</title>
+<title>Integrated Monitoring (N2)</title>
 
     <style>
       html,
@@ -51,7 +51,7 @@
         border: solid 2.5px gray;
         margin-bottom: 3px;
         display: grid;
-        grid-template-columns: 40px 250fr 0fr 0fr;
+        grid-template-columns: 40px 270fr 0fr 0fr;
       }
 
       #viewDiv {
@@ -146,7 +146,7 @@
         color: white;
         padding:3px;
         margin: 0px;
-        width: 250px;
+        width: 290px;
         vertical-align: text-top;
       }
 
@@ -304,6 +304,8 @@ let chartLayerView;
 //*******************************//
 // Label Class Property Settings //
 //*******************************//
+
+
 // Chainage Label
 var labelChainage = new LabelClass({
   labelExpressionInfo: {expression: "$feature.KM_MAIN"},
@@ -355,7 +357,6 @@ var labelChainage = new LabelClass({
 //*****************************//
 // 3D Web Symbo Style Settings //
 //*****************************//
-
 // Esri Icon Symbol
         function IconSymbol(name) {
           return {
@@ -484,6 +485,52 @@ var verticalOffsetRelocation = {
 //*****************************//
 //      Renderer Settings      //
 //*****************************//
+// Priority Lot
+var priorityLotRenderer = {
+    type: "unique-value",
+    field: "Priority",
+    defaultSymbol: { type: "simple-fill" },
+    valueExpression: "When($feature.Priority == 0, 'Top', $feature.Priority == 1, 'First', $feature.Priority == 2, 'Second', $feature.Priority)",
+    uniqueValueInfos: [
+        {
+            value: "Top",
+            symbol: {
+                type: "simple-fill",
+                color: [0, 0, 0, 0],
+                style: "solid",
+                outline: {
+                    color: [255, 255, 0],
+                    width: 3
+                }
+            }
+        },
+        {
+            value: "First",
+            symbol: {
+                type: "simple-fill",
+                color: [0, 0, 0, 0],
+                style: "solid",
+                outline: {
+                    color: "green",
+                    width: 3
+                }
+            }
+        },
+        {
+            value: "Second",
+            symbol: {
+                type: "simple-fill",
+                color: [0, 0, 0, 0],
+                style: "solid",
+                outline: {
+                    color: "blue",
+                    width: 3
+                }
+            }
+        }
+    ]
+};
+
 // Tree
 function treeSymbol(name) {
           return {
@@ -508,23 +555,33 @@ function treeSymbol(name) {
             },
             {
               value: "Cut",
-              symbol: treeSymbol("unknown"),
+              symbol: treeSymbol("Stump"),
               label: "Cut"
             },
             {
                 value: "Earthballed",
-                symbol: treeSymbol("unknown")
+                symbol: treeSymbol("Stump")
             }
           ],
           visualVariables: [
             {
               type: "size",
+              valueExpression: "When($feature.State == 1 || $feature.State == 2, 0, 1)",
               axis: "height",
               field: "TH",
+              stops: [
+                  {value: 0, size: 1},
+                  {value: 1, size: 8}
+              ],
+              legendOptions: {
+                showLegend: false
+              },
               valueUnit: "meters"
             },
+
             ]
         };
+
 
 // Chainage symbol
 var chainageRenderer = {
@@ -752,6 +809,20 @@ const colorsRelocation = {
  //*****************************//
 //      Layer Import           //
 //*****************************//
+// Priority Lot
+var priorityLot = new FeatureLayer({
+    portalItem: {
+        id: "3e31d434ec9a4e7b978dec0d99059ee5"
+    },
+    elevationInfo: {
+        mode: "on-the-ground"
+    },
+    title: "Priority Lot",
+    renderer: priorityLotRenderer
+});
+map.add(priorityLot, 0);
+
+
 // Parcellary Lot
 var LotLayer = new FeatureLayer({
     portalItem: {
@@ -834,11 +905,24 @@ var treeLayer = new FeatureLayer({
     renderer: treeRenderer,
     title: "Tree Inventoried",
     popupTemplate: {
-        title: "{CommonName}",
-        content:
-        "<i>{ScientificName}</i><br>" +
-        "This tree is {State} and {Compensation} in the compensation status."
-    }
+     title: "<h5>{State}, {Compensation}</h5>",
+     lastEditInfoEnabled: false,
+     returnGeometry: true,
+     content: [
+       {
+         type: "fields",
+         fieldInfos: [
+           {
+             fieldName: "CommonName",
+             label: "Common Name"
+           },
+           {
+             fieldName: "CP"
+           }
+         ]
+       }
+     ]
+   },
 });
 map.add(treeLayer);
 
@@ -1242,1048 +1326,6 @@ let cpArray = [];
 let typeArray = [];
 
 // Start of am4core
-am4core.ready(function() {
-am4core.useTheme(am4themes_animated);
-
-let compileArrayPoint = [];
-let compileArrayLine = [];
-
-const chartTitleLabel = "Progress of Utility Relocation (%)";
-// Default label
-chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
-
-// As default, chart shows the progress of all the relocated layers (point + line)
-if (document.getElementById("None").checked = true) {
-  updateChartCombine();
-}
-
-//document.getElementsByTagName('input')[0].checked = true;
-
-cpButtonElement.addEventListener("change", filterByChartTypes);
-    function filterByChartTypes(e) {
-        const selectedTypes = e.target.id; // e.g., "N-01"
-        //const itemName = item.id; // e.g., "cpButton" class name
-
-        // Always choose the newest ones
-        if (selectedTypes === "N-01") { // [undefined, "Point"] or ["None", "Point"]
-          treeLayer.definitionExpression = "CP = '" + selectedTypes + "'";
-          LotLayer.definitionExpression = "CP = '" + selectedTypes + "'";
-          structureLayer.definitionExpression = "CP = '" + selectedTypes + "'";
-          testUtilPt.definitionExpression = "CP = '" + selectedTypes + "'";
-          testUtilPt1.definitionExpression = "CP = '" + selectedTypes + "'";
-          testLine.definitionExpression = "CP = '" + selectedTypes + "'";
-          testLine1.definitionExpression = "CP = '" + selectedTypes + "'";
-
-          updateChartCombine();
-
-        } else if (selectedTypes === "N-02") { // [undefined, "Point"] or ["None", "Point"]
-          treeLayer.definitionExpression = "CP = '" + selectedTypes + "'";
-          LotLayer.definitionExpression = "CP = '" + selectedTypes + "'";
-          structureLayer.definitionExpression = "CP = '" + selectedTypes + "'";
-          testUtilPt.definitionExpression = "CP = '" + selectedTypes + "'";
-          testUtilPt1.definitionExpression = "CP = '" + selectedTypes + "'";
-          testLine.definitionExpression = "CP = '" + selectedTypes + "'";
-          testLine1.definitionExpression = "CP = '" + selectedTypes + "'";
-
-          updateChartCombine();
-
-        } else if (selectedTypes === "N-03") { // [undefined, "Point"] or ["None", "Point"]
-          treeLayer.definitionExpression = "CP = '" + selectedTypes + "'";
-          LotLayer.definitionExpression = "CP = '" + selectedTypes + "'";
-          structureLayer.definitionExpression = "CP = '" + selectedTypes + "'";
-          testUtilPt.definitionExpression = "CP = '" + selectedTypes + "'";
-          testUtilPt1.definitionExpression = "CP = '" + selectedTypes + "'";
-          testLine.definitionExpression = "CP = '" + selectedTypes + "'";
-          testLine1.definitionExpression = "CP = '" + selectedTypes + "'";
-
-          updateChartCombine();
-
-        } else if (selectedTypes === "N-04") { // [undefined, "Point"] or ["None", "Point"]
-          treeLayer.definitionExpression = "CP = '" + selectedTypes + "'";
-          LotLayer.definitionExpression = "CP = '" + selectedTypes + "'";
-          structureLayer.definitionExpression = "CP = '" + selectedTypes + "'";
-          testUtilPt.definitionExpression = "CP = '" + selectedTypes + "'";
-          testUtilPt1.definitionExpression = "CP = '" + selectedTypes + "'";
-          testLine.definitionExpression = "CP = '" + selectedTypes + "'";
-          testLine1.definitionExpression = "CP = '" + selectedTypes + "'";
-
-          updateChartCombine();
-
-        } else if (selectedTypes === "N-05") { // [undefined, "Point"] or ["None", "Point"]
-          treeLayer.definitionExpression = "CP = '" + selectedTypes + "'";
-          LotLayer.definitionExpression = "CP = '" + selectedTypes + "'";
-          structureLayer.definitionExpression = "CP = '" + selectedTypes + "'";
-          testUtilPt.definitionExpression = "CP = '" + selectedTypes + "'";
-          testUtilPt1.definitionExpression = "CP = '" + selectedTypes + "'";
-          testLine.definitionExpression = "CP = '" + selectedTypes + "'";
-          testLine1.definitionExpression = "CP = '" + selectedTypes + "'";
-
-          updateChartCombine();
-
-        } else if (selectedTypes === "None") { // [undefined, "Point"] or ["None", "Point"]
-          treeLayer.definitionExpression = null;
-          LotLayer.definitionExpression = null;
-          structureLayer.definitionExpression = null;
-          testUtilPt.definitionExpression = null;
-          testUtilPt1.definitionExpression = null;
-          testLine.definitionExpression = null;
-          testLine1.definitionExpression = null;
-
-          updateChartCombine();
-      }
-
-// Click event handler for choices
-
-
-/* Create Expand widget for selecting CP and updating chart */
-
-
-// Start of "updateChart" function for Utility Point
-async function updateChartPoint() {
-  // Define statistics
-  /* Tree */
-  var total_tree_incomp = {
-    onStatisticField: "CASE WHEN State = 0 THEN 1 ELSE 0 END", // Uncut
-    outStatisticFieldName: "total_tree_incomp",
-    statisticType: "sum"
-  };
-
-  var total_tree_comp = {
-    onStatisticField: "CASE WHEN (State = 1 or State = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tree_comp",
-    statisticType: "sum"  
-  };
-
-  /* Lot */
-  var total_lot_incomp = {
-    onStatisticField: "CASE WHEN (StatusLA >=2 or StatusLA = None) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_lot_incomp",
-    statisticType: "sum"
-  };
-
-  var total_lot_comp = {
-    onStatisticField: "CASE WHEN StatusLA = 1 THEN 1 ELSE 0 END", // Paid
-    outStatisticFieldName: "total_lot_comp",
-    statisticType: "sum"  
-  };
-
-  /* Structure */
-  var total_structure_incomp = {
-    onStatisticField: "CASE WHEN (StatusStruc >=2 or StatusStruc = None) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_structure_incomp",
-    statisticType: "sum"
-  };
-
-  var total_structure_comp = {
-    onStatisticField: "CASE WHEN StatusStruc = 1 THEN 1 ELSE 0 END", // Paid
-    outStatisticFieldName: "total_structure_comp",
-    statisticType: "sum"  
-  };
-
-
-  /* Utility */
-  var total_power_incomp = {
-    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 0) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_power_incomp",
-    statisticType: "sum"
-  };
-
-  var total_power_comp = {
-    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_power_comp",
-    statisticType: "sum"  
-  };
-
-  // Start Query
-  var query = testUtilPt.createQuery();
-  //query.where = "Stations = 'Tandang Sora'"; // Selected Stations
-  query.outStatistics = [total_telecom_incomp, total_telecom_comp,
-                        total_water_incomp, total_water_comp,
-                        total_sewage_incomp, total_sewage_comp,
-                        total_power_incomp, total_power_comp];
-  query.returnGeometry = true;
-
-
-  testUtilPt.queryFeatures(query).then(function(response) {
-    var stats = response.features[0].attributes;
-
-    /* Telecom */
-    const telecom_incomp = stats.total_telecom_incomp;
-    const telecom_comp = stats.total_telecom_comp;
-
-    /* Water */
-    const water_incomp = stats.total_water_incomp;
-    const water_comp = stats.total_water_comp;
-
-     /* Sewage */
-     const sewage_incomp = stats.total_sewage_incomp;
-    const sewage_comp = stats.total_sewage_comp;   
-
-    /* Power */
-    const power_incomp = stats.total_power_incomp;
-    const power_comp = stats.total_power_comp;
-
-// Chart //
-var chart = am4core.create("chartdiv", am4charts.XYChart);
-chart.hiddenState.properties.opacity = 0;
-
-chart.data = [
-  {
-    category: "Telecom/CATV",
-    value1: telecom_incomp,
-    value2: telecom_comp
-  },
-  {
-    category: "Water",
-    value1: water_incomp,
-    value2: water_comp
-  },
-  {
-    category: "Sewage",
-    value1: sewage_incomp,
-    value2: sewage_comp
-  },
-  {
-    category: "Power",
-    value1: power_incomp,
-    value2: power_comp
-  }
-];
-
-chart.colors.step = 2;
-chart.padding(10, 10, 10, 10);
-chart.legend = new am4charts.Legend();
-chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = 10;
-chart.legend.labels.template.fill = "#ffffff";
-
-var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-categoryAxis.dataFields.category = "category";
-categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 11;
-categoryAxis.renderer.labels.template.fill = "#ffffff";
-categoryAxis.renderer.minGridDistance = 5; //can change label
-
-var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
-valueAxis.min = 0;
-valueAxis.max = 100;
-valueAxis.strictMinMax = true;
-valueAxis.calculateTotals = true;
-valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 11;
-valueAxis.renderer.labels.template.fill = "#ffffff";
-
-let arrLviews = [];
-
-// Layerview and Expand
-function createSeries(field, name) {
-  var series = chart.series.push(new am4charts.ColumnSeries());
-  series.dataFields.valueX = field;
-  series.dataFields.categoryY = "category";
-  series.stacked = true;
-  series.dataFields.valueXShow = "totalPercent";
-  series.dataItems.template.locations.categoryY = 0.5;
-  series.name = name;
-  if (name == "Incomplete"){
-    series.fill = am4core.color("#707070");
-  } else {
-    series.fill = am4core.color("#0070ff"); // Completed
-  }
-  series.columns.template.width = am4core.percent(60);
-  series.columns.template.tooltipText = "{name}: {valueX.totalPercent.formatNumber('#.')}%"
-
-  // Click chart and filter, update maps
-  const chartElement = document.getElementById("chartPanel");
-  series.columns.template.events.on("hit", filterByChart, this);
-  function filterByChart(ev) {
-    const selectedC = ev.target.dataItem.component.name;
-    const selectedP = ev.target.dataItem.categoryY;
-
-    // Layer
-
-      if (selectedP == "Telecom/CATV" && selectedC == "Incomplete") {
-      selectedLayer = 1;
-      selectedStatus = 0;
-    } else if (selectedP == "Telecom/CATV" && selectedC == "Complete") {
-      selectedLayer = 1;
-      selectedStatus = 1;
-    } else if (selectedP == "Water" && selectedC == "Incomplete") {
-      selectedLayer = 2;
-      selectedStatus = 0;
-    } else if (selectedP == "Water" && selectedC == "Complete") {
-      selectedLayer = 2;
-      selectedStatus = 1;
-    } else if (selectedP == "Sewage" && selectedC == "Incomplete") {
-      selectedLayer = 3;
-      selectedStatus = 0;
-    } else if (selectedP == "Sewage" && selectedC == "Complete") {
-      selectedLayer = 3;
-      selectedStatus = 1;
-    } else if (selectedP == "Power" && selectedC == "Incomplete") {
-      selectedLayer = 4;
-      selectedStatus = 0;
-    } else if (selectedP == "Power" && selectedC == "Complete") {
-      selectedLayer = 4;
-      selectedStatus = 1;
-    } else {
-      selectedLayer = null;
-    }
-
-    view.when(function() {
-        view.whenLayerView(testUtilPt1).then(function (layerView) {
-        chartLayerView = layerView;
-        arrLviews.push(layerView);
-        chartElement.style.visibility = "visible";
-
-        //testUtilPt1.definitionExpression = sqlExpression;
-        testUtilPt1.queryFeatures().then(function(results) {
-            const ggg = results.features;
-            const rowN = ggg.length;
-
-            let objID = [];
-            for (var i=0; i < rowN; i++) {
-                var obj = results.features[i].attributes.OBJECTID;
-                objID.push(obj);
-            }
-
-            var queryExt = new Query({
-                objectIds: objID
-            });
-
-            testUtilPt1.queryExtent(queryExt).then(function(result) {
-                if (result.extent) {
-                    view.goTo(result.extent)
-                }
-            });
-
-            if (highlightSelect) {
-                highlightSelect.remove();
-            }
-            highlightSelect = layerView.highlight(objID);
-
-            view.on("click", function() {
-            layerView.filter = null;
-            highlightSelect.remove();
-        });
-
-        }); // end of query features   
-}); // end of when layerview
-
-// Point: 2
-    view.whenLayerView(testUtilPt).then(function (layerView) {
-        chartLayerView = layerView;
-        arrLviews.push(layerView);
-        chartElement.style.visibility = "visible";
-
-        view.on("click", function() {
-            layerView.filter = null;
-        });
-
-    }); // end of when layerview
-  }); // end of view.when
-    
-    for(var i = 0; i < arrLviews.length; i++) {
-      arrLviews[i].filter = {
-        where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
-      }
-    }
- 
-
-  } // End of filterByChart
-
-
-
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-  labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.value.formatNumber('#.')}";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 10;
-  labelBullet.locationX = 0.5;
-
-  // LayerView for point 2
-
-
-
-
-
-} // End of createSeries function
-// LayerView for point 1
-
-
-// End of LayerView
-// Run createSeries
-createSeries("value1", "Incomplete");
-createSeries("value2", "Complete");
-
-}); // End of queryFeatures
-} // End of updateChartPoint function
-
-
-////////////////////////////
-// UpdateChart for LINE
-// Start of "updateChart" function for Utility Point
-async function updateChartLine() {
-  // Define statistics
-  /* Telecom/CATV */
-  var total_telecom_incomp = {
-    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 0) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_telecom_incomp",
-    statisticType: "sum"
-  };
-
-  var total_telecom_comp = {
-    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_telecom_comp",
-    statisticType: "sum"  
-  };
-
-  /* Water */
-  var total_water_incomp = {
-    onStatisticField: "CASE WHEN (UtilType = 2 and Status = 0) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_water_incomp",
-    statisticType: "sum"
-  };
-
-  var total_water_comp = {
-    onStatisticField: "CASE WHEN (UtilType = 2 and Status = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_water_comp",
-    statisticType: "sum"  
-  };
-
-    /* Sewage */
-    var total_sewage_incomp = {
-    onStatisticField: "CASE WHEN (UtilType = 3 and Status = 0) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_sewage_incomp",
-    statisticType: "sum"
-  };
-
-  var total_sewage_comp = {
-    onStatisticField: "CASE WHEN (UtilType = 3 and Status = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_sewage_comp",
-    statisticType: "sum"  
-  };
-
-  /* Power */
-  var total_power_incomp = {
-    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 0) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_power_incomp",
-    statisticType: "sum"
-  };
-
-  var total_power_comp = {
-    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_power_comp",
-    statisticType: "sum"  
-  };
-
-  // Start Query
-  var query = testLine.createQuery();
-  //query.where = "Stations = 'Tandang Sora'"; // Selected Stations
-  query.outStatistics = [total_telecom_incomp, total_telecom_comp,
-                        total_water_incomp, total_water_comp,
-                        total_sewage_incomp, total_sewage_comp,
-                        total_power_incomp, total_power_comp];
-  query.returnGeometry = true;
-
- testLine.queryFeatures(query).then(function(response) {
-    var stats = response.features[0].attributes;
-
-    /* Telecom */
-    const telecom_incomp = stats.total_telecom_incomp;
-    const telecom_comp = stats.total_telecom_comp;
-
-    /* Water */
-    const water_incomp = stats.total_water_incomp;
-    const water_comp = stats.total_water_comp;
-
-    /* Sewage */
-    const sewage_incomp = stats.total_sewage_incomp;
-    const sewage_comp = stats.total_sewage_comp;   
-
-    /* Power */
-    const power_incomp = stats.total_power_incomp;
-    const power_comp = stats.total_power_comp;
-
-// Chart //
-var chart = am4core.create("chartdiv", am4charts.XYChart);
-chart.hiddenState.properties.opacity = 0;
-
-chart.data = [
-  {
-    category: "Telecom/CATV",
-    value1: telecom_incomp,
-    value2: telecom_comp
-  },
-  {
-    category: "Water",
-    value1: water_incomp,
-    value2: water_comp
-  },
-  {
-    category: "Sewage",
-    value1: sewage_incomp,
-    value2: sewage_comp
-  },
-  {
-    category: "Power",
-    value1: power_incomp,
-    value2: power_comp
-  }
-];
-
-chart.colors.step = 2;
-chart.padding(10, 10, 10, 10);
-chart.legend = new am4charts.Legend();
-chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = 10;
-chart.legend.labels.template.fill = "#ffffff";
-
-var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-categoryAxis.dataFields.category = "category";
-categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 11;
-categoryAxis.renderer.labels.template.fill = "#ffffff";
-categoryAxis.renderer.minGridDistance = 5; //can change label
-
-var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
-valueAxis.min = 0;
-valueAxis.max = 100;
-valueAxis.strictMinMax = true;
-valueAxis.calculateTotals = true;
-valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 11;
-valueAxis.renderer.labels.template.fill = "#ffffff";
-
-let arrLviews = [];
-
-// Layerview and Expand
-function createSeries(field, name) {
-  var series = chart.series.push(new am4charts.ColumnSeries());
-  series.dataFields.valueX = field;
-  series.dataFields.categoryY = "category";
-  series.stacked = true;
-  series.dataFields.valueXShow = "totalPercent";
-  series.dataItems.template.locations.categoryY = 0.5;
-  series.name = name;
-  if (name == "Incomplete"){
-    series.fill = am4core.color("#707070");
-  } else {
-    series.fill = am4core.color("#0070ff"); // Completed
-  }
-  series.columns.template.width = am4core.percent(60);
-  series.columns.template.tooltipText = "{name}: {valueX.totalPercent.formatNumber('#.')}%"
-
-  // Click chart and filter, update maps
-  const chartElement = document.getElementById("chartPanel");
-  series.columns.template.events.on("hit", filterByChart, this);
-  function filterByChart(ev) {
-    const selectedC = ev.target.dataItem.component.name;
-    const selectedP = ev.target.dataItem.categoryY;
-
-    // Layer
-
-      if (selectedP == "Telecom/CATV" && selectedC == "Incomplete") {
-      selectedLayer = 1;
-      selectedStatus = 0;
-    } else if (selectedP == "Telecom/CATV" && selectedC == "Complete") {
-      selectedLayer = 1;
-      selectedStatus = 1;
-    } else if (selectedP == "Water" && selectedC == "Incomplete") {
-      selectedLayer = 2;
-      selectedStatus = 0;
-    } else if (selectedP == "Water" && selectedC == "Complete") {
-      selectedLayer = 2;
-      selectedStatus = 1;
-    } else if (selectedP == "Sewage" && selectedC == "Incomplete") {
-      selectedLayer = 3;
-      selectedStatus = 0;
-    } else if (selectedP == "Sewage" && selectedC == "Complete") {
-      selectedLayer = 3;
-      selectedStatus = 1;
-    } else if (selectedP == "Power" && selectedC == "Incomplete") {
-      selectedLayer = 4;
-      selectedStatus = 0;
-    } else if (selectedP == "Power" && selectedC == "Complete") {
-      selectedLayer = 4;
-      selectedStatus = 1;
-    } else {
-      selectedLayer = null;
-    }
-
-    view.when(function() {
-        view.whenLayerView(testLine1).then(function (layerView) {
-        chartLayerView = layerView;
-        arrLviews.push(layerView);
-        chartElement.style.visibility = "visible";
-
-        //testLine1.definitionExpression = sqlExpression;
-        testLine1.queryFeatures().then(function(results) {
-            const ggg = results.features;
-            const rowN = ggg.length;
-
-            let objID = [];
-            for (var i=0; i < rowN; i++) {
-                var obj = results.features[i].attributes.OBJECTID;
-                objID.push(obj);
-            }
-
-            var queryExt = new Query({
-                objectIds: objID
-            });
-
-            testLine1.queryExtent(queryExt).then(function(result) {
-                if (result.extent) {
-                    view.goTo(result.extent)
-                }
-            });
-
-            if (highlightSelect) {
-                highlightSelect.remove();
-            }
-            highlightSelect = layerView.highlight(objID);
-
-            view.on("click", function() {
-            layerView.filter = null;
-            highlightSelect.remove();
-        });
-
-        }); // end of query features   
-}); // end of when layerview
-
-// Point: 2
-view.whenLayerView(testLine).then(function (layerView) {
-        chartLayerView = layerView;
-        arrLviews.push(layerView);
-        chartElement.style.visibility = "visible";
-
-        view.on("click", function() {
-            layerView.filter = null;
-        });
-
-}); // end of when layerview
-    }); // end of view.when
-
-    for(var i = 0; i < arrLviews.length; i++) {
-      arrLviews[i].filter = {
-        where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
-      }
-    }
-
-  } // End of filterByChart
-
-// End of LayerView
-
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-  labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.value.formatNumber('#.')}";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 10;
-  labelBullet.locationX = 0.5;
-
-
-
-} // End of createSeries function
-
-// Run createSeries
-createSeries("value1", "Incomplete");
-createSeries("value2", "Complete");
-
-}); // End of queryFeatures
-} // End of updateChartLine function
-
-////////////////////////////////////////////////////////////////////////////////////
-// Chart combinging both Points and Lines
-//////////////////////////////////////////////////////////////////////////////////
-function testUtilPtForCombineChart() {
-
-    var total_telecom_incomp1 = {
-    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 0) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_telecom_incomp1",
-    statisticType: "sum"
-  };
-
-  var total_telecom_comp1 = {
-    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_telecom_comp1",
-    statisticType: "sum"  
-  };
-
-  /* Water */
-  var total_water_incomp1 = {
-    onStatisticField: "CASE WHEN (UtilType = 2 and Status = 0) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_water_incomp1",
-    statisticType: "sum"
-  };
-
-  var total_water_comp1 = {
-    onStatisticField: "CASE WHEN (UtilType = 2 and Status = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_water_comp1",
-    statisticType: "sum"  
-  };
-
-    /* Sewage */
-    var total_sewage_incomp1 = {
-    onStatisticField: "CASE WHEN (UtilType = 3 and Status = 0) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_sewage_incomp1",
-    statisticType: "sum"
-  };
-
-  var total_sewage_comp1 = {
-    onStatisticField: "CASE WHEN (UtilType = 3 and Status = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_sewage_comp1",
-    statisticType: "sum"  
-  };
-
-  /* Power */
-  var total_power_incomp1 = {
-    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 0) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_power_incomp1",
-    statisticType: "sum"
-  };
-
-  var total_power_comp1 = {
-    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_power_comp1",
-    statisticType: "sum"  
-  };
-
-  // Start Query
-  var query = testUtilPt.createQuery();
-  query.outStatistics = [total_telecom_incomp1, total_telecom_comp1,
-                        total_water_incomp1, total_water_comp1,
-                        total_sewage_incomp1, total_sewage_comp1,
-                        total_power_incomp1, total_power_comp1];
-  query.returnGeometry = true;
-
-  return testUtilPt.queryFeatures(query).then(function(response) {
-    var stats = response.features[0].attributes;
-
-    /* Telecom */
-    const telecom_incomp1 = stats.total_telecom_incomp1;
-    const telecom_comp1 = stats.total_telecom_comp1;
-
-    /* Water */
-    const water_incomp1 = stats.total_water_incomp1;
-    const water_comp1 = stats.total_water_comp1;
-
-    /* Sewage */
-    const sewage_incomp1 = stats.total_sewage_incomp1;
-    const sewage_comp1 = stats.total_sewage_comp1;   
-
-    /* Power */
-    const power_incomp1 = stats.total_power_incomp1;
-    const power_comp1 = stats.total_power_comp1;
-
-    var compileArrayPoint = [telecom_incomp1, water_incomp1, sewage_incomp1 ,power_incomp1, // Incomplete
-                             telecom_comp1, water_comp1, sewage_comp1, power_comp1]; // Complete
-
-    return compileArrayPoint;
-  });
-}
-
-////////////////////////////////////////////////////////////////////////////////////////
-  // Define statistics
-  /* Telecom/CATV */
-  function testLineForCombineChart(compileArrayPoint) {
-
-     var total_telecom_incomp = {
-    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 0) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_telecom_incomp",
-    statisticType: "sum"
-  };
-
-  var total_telecom_comp = {
-    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_telecom_comp",
-    statisticType: "sum"  
-  };
-
-  /* Water */
-  var total_water_incomp = {
-    onStatisticField: "CASE WHEN (UtilType = 2 and Status = 0) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_water_incomp",
-    statisticType: "sum"
-  };
-
-  var total_water_comp = {
-    onStatisticField: "CASE WHEN (UtilType = 2 and Status = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_water_comp",
-    statisticType: "sum"  
-  };
-
-  /* Sewage */
-    var total_sewage_incomp = {
-    onStatisticField: "CASE WHEN (UtilType = 3 and Status = 0) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_sewage_incomp",
-    statisticType: "sum"
-  };
-
-  var total_sewage_comp = {
-    onStatisticField: "CASE WHEN (UtilType = 3 and Status = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_sewage_comp",
-    statisticType: "sum"  
-  };
-
-  /* Power */
-  var total_power_incomp = {
-    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 0) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_power_incomp",
-    statisticType: "sum"
-  };
-
-  var total_power_comp = {
-    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_power_comp",
-    statisticType: "sum"  
-  };
-
-  // Start Query
-  var query = testLine.createQuery();
-  //query.where = "Stations = 'Tandang Sora'"; // Selected Stations
-  query.outStatistics = [total_telecom_incomp, total_telecom_comp,
-                        total_water_incomp, total_water_comp,
-                        total_sewage_incomp, total_sewage_comp,
-                        total_power_incomp, total_power_comp];
-query.returnGeometry = true;
-
- return testLine.queryFeatures(query).then(function(response) {
-  var stats = response.features[0].attributes;
-  /* Telecom */
-  const telecom_incomp = stats.total_telecom_incomp;
-  const telecom_comp = stats.total_telecom_comp;
-
-  /* Water */
-  const water_incomp = stats.total_water_incomp;
-  const water_comp = stats.total_water_comp;
-
-  /* Sewage */
-  const sewage_incomp = stats.total_sewage_incomp;
-  const sewage_comp = stats.total_sewage_comp;   
-
-  /* Power */
-  const power_incomp = stats.total_power_incomp;
-  const power_comp = stats.total_power_comp;
-
-  /* Calculate total values for points and lines */
-  const telecomIncompTotal = telecom_incomp + compileArrayPoint[0];
-  const telecomCompTotal = telecom_comp + compileArrayPoint[4];
-
-  const waterIncompTotal = water_incomp + compileArrayPoint[1];
-  const waterCompTotal = water_comp + compileArrayPoint[5];
-
-  const sewageIncompTotal = sewage_incomp + compileArrayPoint[2];
-  const sewageCompTotal = sewage_comp + compileArrayPoint[6];
-
-  const powerIncompTotal = power_incomp + compileArrayPoint[3];
-  const powerCompTotal = power_comp + compileArrayPoint[7];
-
-    var totalValues = [telecomIncompTotal, telecomCompTotal, // Telecom
-                       waterIncompTotal, waterCompTotal, // Water
-                       sewageIncompTotal, sewageCompTotal, // Sewage
-                       powerIncompTotal, powerCompTotal]; // Power
-
-    return totalValues;
- });
-
-}
-
-function displayCombineChart (totalValues) {
- // headerTitleDiv.innerHTML = totalValues;
-    var chart = am4core.create("chartdiv", am4charts.XYChart);
-chart.hiddenState.properties.opacity = 0;
-
-chart.data = [
-  {
-    category: "Telecom/CATV",
-    value1: totalValues[0],
-    value2: totalValues[1]
-  },
-  {
-    category: "Water",
-    value1: totalValues[2],
-    value2: totalValues[3]
-  },
-  {
-    category: "Sewage",
-    value1: totalValues[4],
-    value2: totalValues[5]
-  },  
-  {
-    category: "Power",
-    value1: totalValues[6],
-    value2: totalValues[7]
-  }
-];
-
-chart.colors.step = 2;
-chart.padding(10, 10, 10, 10);
-chart.legend = new am4charts.Legend();
-chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = 12;
-chart.legend.labels.template.fill = "#ffffff";
-
-var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-categoryAxis.dataFields.category = "category";
-categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 11;
-categoryAxis.renderer.labels.template.fill = "#ffffff";
-categoryAxis.renderer.minGridDistance = 5; //can change label
-
-var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
-valueAxis.min = 0;
-valueAxis.max = 100;
-valueAxis.strictMinMax = true;
-valueAxis.calculateTotals = true;
-valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 11;
-valueAxis.renderer.labels.template.fill = "#ffffff";
-
-let arrLviews = [];
-
-// Layerview and Expand
-function createSeriesCombine(field, name) {
-  var series = chart.series.push(new am4charts.ColumnSeries());
-  series.dataFields.valueX = field;
-  series.dataFields.categoryY = "category";
-  series.stacked = true;
-  series.dataFields.valueXShow = "totalPercent";
-  series.dataItems.template.locations.categoryY = 0.5;
-  series.name = name;
-  if (name == "Incomplete"){
-    series.fill = am4core.color("#707070");
-  } else {
-    series.fill = am4core.color("#0070ff"); // Completed
-  }
-  series.columns.template.width = am4core.percent(60);
-  series.columns.template.tooltipText = "{name}: {valueX.totalPercent.formatNumber('#.')}%"
-
-    // Click chart and filter, update maps
-    const chartElement = document.getElementById("chartPanel");
-  series.columns.template.events.on("hit", filterByChart, this);
-  function filterByChart(ev) {
-    const selectedC = ev.target.dataItem.component.name;
-    const selectedP = ev.target.dataItem.categoryY;
-
-    // Layer
-
-    if (selectedP == "Telecom/CATV" && selectedC == "Incomplete") {
-      selectedLayer = 1;
-      selectedStatus = 0;
-    } else if (selectedP == "Telecom/CATV" && selectedC == "Complete") {
-      selectedLayer = 1;
-      selectedStatus = 1;
-    } else if (selectedP == "Water" && selectedC == "Incomplete") {
-      selectedLayer = 2;
-      selectedStatus = 0;
-    } else if (selectedP == "Water" && selectedC == "Complete") {
-      selectedLayer = 2;
-      selectedStatus = 1;
-    } else if (selectedP == "Sewage" && selectedC == "Incomplete") {
-      selectedLayer = 3;
-      selectedStatus = 0;
-    } else if (selectedP == "Sewage" && selectedC == "Complete") {
-      selectedLayer = 3;
-      selectedStatus = 1;
-    } else if (selectedP == "Power" && selectedC == "Incomplete") {
-      selectedLayer = 4;
-      selectedStatus = 0;
-    } else if (selectedP == "Power" && selectedC == "Complete") {
-      selectedLayer = 4;
-      selectedStatus = 1;
-    } else {
-      selectedLayer = null;
-    }
-
-    for (var i = 0; i < arrLviews.length; i++) {
-      arrLviews[i].filter = {
-        where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
-      }
-    }
-  
-  } // End of filterByChart
-
-// End of LayerView
-
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-  labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.value.formatNumber('#.')}";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 10;
-  labelBullet.locationX = 0.5;
-
-
-    // LayerView for point 2
-    view.whenLayerView(testLine1).then(function (layerView) {
-  chartLayerView = layerView;
-  arrLviews.push(layerView);
-  
-  chartElement.style.visibility = "visible";
-
-  
-view.on("click", function() {
-  layerView.filter = null;
-});
-
-});
-
-  view.whenLayerView(testLine).then(function (layerView) {
-  chartLayerView = layerView;
-  arrLviews.push(layerView);
-  
-  chartElement.style.visibility = "visible";
-
-  
-view.on("click", function() {
-  layerView.filter = null;
-});
-});
-
-view.whenLayerView(testUtilPt).then(function (layerView) {
-  chartLayerView = layerView;
-  arrLviews.push(layerView);
-  
-  chartElement.style.visibility = "visible";
-
-  
-view.on("click", function() {
-  layerView.filter = null;
-});
-
-});
-
-  view.whenLayerView(testUtilPt1).then(function (layerView) {
-  chartLayerView = layerView;
-  arrLviews.push(layerView);
-  
-  chartElement.style.visibility = "visible";
-
-  
-view.on("click", function() {
-  layerView.filter = null;
-});
-});
-
-} // End of createSeries function
-
-
-// Run createSeries
-createSeriesCombine("value1", "Incomplete");
-createSeriesCombine("value2", "Complete");
-}
-
-// Combined Chart (Utility Point + Utility Line)
-async function updateChartCombine() {
-
-testUtilPtForCombineChart() // Promise
-    .then(testLineForCombineChart)
-    .then(displayCombineChart);
-} // End of Combined Chart function
-
-}); // End of am4core.ready
-
 
 
 
@@ -2439,7 +1481,7 @@ view.when(function () {
                   open: false
                 };
               }
-              if (item.title === "Chainage" || item.title === "Existing Points" || item.title === "Existing Line" || item.title === "ROW"){
+              if (item.title === "Chainage" || item.title === "Existing Points" || item.title === "Existing Line"){
                 item.visible = false
               }
             }
