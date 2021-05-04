@@ -207,6 +207,68 @@
           padding: 0px 0px 10px 0px;
           }
 
+      #relocationOwnerList {
+        background-color: rgb(0, 0, 0);
+      }
+      .panel-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          background-color: rgb(0, 0, 0, 0.5);
+      }
+
+      .panel-side {
+      padding: 0px;
+      box-sizing: border-box;
+      width: 150px;
+      height: auto;
+      position: absolute;
+      top: 0;
+      right: 0;
+      color: #fff;
+      background-color: rgb(0, 0, 0, 0.5);
+      overflow: auto;
+      z-index: 60;
+    }
+
+    .panel-side h2 {
+        padding: 5 5px;
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+        color: rgb(0, 197, 255);
+        background-color: black;
+      }
+
+      .panel-side ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-weight: 100;
+        color: white;
+        background-color: rgb(0, 0, 0, 0.5);
+      }
+
+      .panel-side li {
+        list-style: none;
+        padding: 3px 10px;
+        background-color: rgb(0, 0, 0, 0.5);
+      }
+
+      .panel-result {
+        cursor: pointer;
+        margin: 0px 0;
+        background-color: rgb(0, 0, 0, 0.5);
+      }
+
+      .panel-result:hover,
+      .panel-result:focus,
+      .panel-result.selected {
+        background-color: rgb(0, 0, 0, 0.5);
+      }      
+
+
     </style>
 
 <link
@@ -328,6 +390,7 @@ var basemap = new Basemap({
         const utilTypesButton = document.getElementById("dataTypeInput");
 
 
+
 //*******************************//
 // Label Class Property Settings //
 //*******************************//
@@ -399,43 +462,48 @@ map.add(relocationPtLayer);
 
 
 // Related Records
-const objectIds = [1,2,7,8];
-const query = new RelationshipQuery({
-  outFields: ["Municipality", "StatusRC"],
+//const objectIds = [1,2,3,4,5,6,7,8];
+const queryRelation = new RelationshipQuery({
+  outFields: ["Municipality", "Barangay", "StrucID", "Name", "Status", "StatusRC"],
   relationshipId: 0,
-  objectIds: objectIds
+  //objectIds: objID
 });
 
-var relatedArray = [];
-relocationPtLayer.queryRelatedFeatures(query).then(function (result) {
-  objectIds.forEach(function(objectId) {
-    if (result[objectId]) {
-      result[objectId].features.forEach(function (feature) {
-      relatedArray.push(feature.attributes.StatusRC);
-      headerTitleDiv.innerHTML = relatedArray;
-      });
-    } else {
-      headerTitleDiv.innerHTML = "Failed";
-    }
-  });
-  });
+
+// 
+const lotStrucReloTypeButton = document.getElementById("dataTypeInput");
+
+function updateFigure() {
+// Total progress //
+var total_complete = {
+  onStatisticField: "CASE WHEN (StatusLA = 4) THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_complete",
+  statisticType: "sum"
+};
+
+var total_obs = {
+  onStatisticField: "Municipality",
+  outStatisticFieldName: "total_obs",
+  statisticType: "count"
+};
+var query = lotLayer.createQuery();
+query.outStatistics = [total_complete, total_obs];
+query.returnGeometry = true;
+lotLayer.queryFeatures(query).then(function(response) {
+  var stats = response.features[0].attributes;
+
+  const total_complete = stats.total_complete;
+  const total_obs = stats.total_obs;
+  //headerTitleDiv.innerHTML = ((total_complete/total_obs)*100).toFixed(1) + " %";
+});
+}
 
 
+// Progress Chart //
+am4core.ready(function() {
+am4core.useTheme(am4themes_animated);
 
-      function queryFeatureLayer(sqlExpression) {
-        var query = lotLayer.createQuery();
-        query.where = sqlExpression;
-        query.outSpatialReference = view.spatialReference;
-        // var query = {
-        //   spatialReference: view.spatialReference,
-        //   outFields: ["*"],
-        //   returnGeometry: true,
-        //   where: sqlExpression
-        // };
-        lotLayer.queryFeatures(query).then(function (result) {
-          addGraphics(result, true);
-        });
-      }
+
 //*******************************//
 //      Progress Chart           //
 //*******************************//
@@ -451,10 +519,61 @@ function zoomToLayer(layer) {
     });
   });
 }
-zoomToLayer(lotLayer);
+
 var municipalSelect = document.getElementById("valSelect");
 var barangaySelect = document.getElementById("barangaySelect");
 
+
+////////////////////////// Structure Point (Relocation point) //////////////////////////////////////
+// Query all features from the structure layer
+view.when(function() {
+    return relocationPtLayer.when(function() {
+        var query = relocationPtLayer.createQuery();
+        return relocationPtLayer.queryFeatures(query);
+    });
+})
+
+// Set the definition expression on the lot layer
+// to reflect the selecction of the user
+function setRelocationPointMunicipalExpression(newValuePt) {
+  if (newValuePt == 'None') {
+    relocationPtLayer.definitionExpression = null;
+  } else {
+    relocationPtLayer.definitionExpression = "Municipality = '" + newValuePt + "'";
+  }
+    if (!relocationPtLayer.visible) {
+      relocationPtLayer.visible = true;
+    }
+    return queryForRelocationPointGeometries();
+}
+
+function setRelocationPointDefinitionExpression(newValue1Pt, newValue2Pt){
+  if(newValue2Pt == undefined || newValue2Pt == 'None'){
+    relocationPtLayer.definitionExpression = "Municipality = '" + newValue1Pt + "'";
+  } else {
+    relocationPtLayer.definitionExpression = "Municipality = '" + newValue1Pt + "'" + " AND " + "Barangay = '" + newValue2Pt + "'";
+  }
+  if(!relocationPtLayer.visible){
+    relocationPtLayer.visible = true;
+  }
+  return queryForRelocationPointGeometries();
+}
+
+function queryForRelocationPointGeometries() {
+    var relocationPointQuery = relocationPtLayer.createQuery();
+
+    return relocationPtLayer.queryFeatures(relocationPointQuery).then(function(response) {
+      relocationPtGeometries = response.features.map(function(feature) {
+            return feature.geometry;
+        });
+        return relocationPtGeometries;
+    });
+}
+
+
+
+
+///////////////////////// Structure Polygon ////////////////////////////////////////
 // Query all features from the structure layer
 view.when(function() {
     return structureLayer.when(function() {
@@ -586,14 +705,92 @@ function queryForLotGeometries() {
 }
 
 
+var ownerContainer = document.getElementById("relocationOwnerList");
+var highlightSelect;
+// Obtain a list of Owner's names and status
+function relocationObjectID(layer) {
+    view.whenLayerView(layer).then(function(layerView) {
+
+  // Extract OBJECTID numbers from the filtered 'RelocationPtLayer'
+  layer.queryFeatures().then(function(results) {
+    const ggg = results.features;
+    const rowN = ggg.length;
+
+    let objID = [];
+    for (var i=0; i < rowN; i++) {
+      var obj = results.features[i].attributes.OBJECTID;
+      objID.push(obj);
+    }
+    queryRelation.objectIds = objID;
+
+    ownerContainer.innerHTML = "";
+
+    var relatedStrucID = [];
+    var relatedName = [];
+
+    // Using the OBJECTID, get information from the related table
+    layer.queryRelatedFeatures(queryRelation).then(function (resultRelo) {
+      objID.forEach(function(objectId) {
+    if (resultRelo[objectId]) {
+      resultRelo[objectId].features.forEach(function (feature) {
+        relatedStrucID.push(feature.attributes.StrucID);
+        relatedName.push(feature.attributes.Name);
+
+        // Pubsh the information to a list
+      var li = document.createElement("li");
+                    li.setAttribute("class", "panel-result");
+                    li.innerHTML = feature.attributes.StrucID + "<br>"+feature.attributes.Name + "</br>" + "<br>" + feature.attributes.StatusRC + "</br>";
+      
+      const queryRelocationPoint = layer.createQuery();
+      li.addEventListener("click", function(eventT) {
+        var target = eventT.target;
+        var strucid = feature.attributes.StrucID;
+
+        // Obtain ObjectIds of relocationPtLayer corresponding to the clicked strucIDs from Relocation table
+        // First, query the point layer to highligh selected observation
+        queryRelocationPoint.where = "StrucID = '" + strucid + "'";
+        layer.queryFeatures(queryRelocationPoint).then(function(results) {
+          if (highlightSelect) {
+            highlightSelect.remove();
+          }
+          const feature = results.features[0];
+          highlightSelect = layerView.highlight(feature.attributes["OBJECTID"]);
+        });
+
+        // Second, run a new query for Zoom to
+        const queryR = new Query();
+        queryR.where = "StrucID = '" + strucid + "'";
+        layer.queryExtent(queryR).then(function(results) {
+            view.goTo(results.extent.expand(20));
+        });
+
+      });
+      ownerContainer.appendChild(li);
+      });
+
+    } else {
+      headerTitleDiv.innerHTML = "Failed";
+    }
+  });
+  });
+
+  });
+}); // End of view.whenLayerView
+  return relatedArray;
+}
+
 municipalSelect.addEventListener("change", function() {
     var type = event.target.value;
+    var target = event.target;
     setLotMunicipalExpression(type);
     setStructureMunicipalExpression(type);
-    filterLotMunicipality();
-    zoomToLayer(lotLayer);
-    updateFigure();
+    setRelocationPointMunicipalExpression(type);
+     filterLotMunicipality();
     updateChartLot();
+    zoomToLayer(lotLayer);
+
+    relocationObjectID(relocationPtLayer);
+    updateFigure();
     updateChartStructure();
     updateChartRelocation();
 
@@ -647,6 +844,8 @@ barangaySelect.addEventListener("click", function() {
   var type = event.target.value;
   setLotDefinitionExpression(municipalSelect.value, type);
   setStructureDefinitionExpression(municipalSelect.value, type);
+  setRelocationPointDefinitionExpression(municipalSelect.value, type);
+
   zoomToLayer(structureLayer);
   updateFigure();
   updateChartLot();
@@ -655,39 +854,10 @@ barangaySelect.addEventListener("click", function() {
 
 });
 
-// 
-const lotStrucReloTypeButton = document.getElementById("dataTypeInput");
-
-function updateFigure() {
-// Total progress //
-var total_complete = {
-  onStatisticField: "CASE WHEN (StatusLA = 4) THEN 1 ELSE 0 END",
-  outStatisticFieldName: "total_complete",
-  statisticType: "sum"
-};
-
-var total_obs = {
-  onStatisticField: "Municipality",
-  outStatisticFieldName: "total_obs",
-  statisticType: "count"
-};
-var query = lotLayer.createQuery();
-query.outStatistics = [total_complete, total_obs];
-query.returnGeometry = true;
-lotLayer.queryFeatures(query).then(function(response) {
-  var stats = response.features[0].attributes;
-
-  const total_complete = stats.total_complete;
-  const total_obs = stats.total_obs;
-  //headerTitleDiv.innerHTML = ((total_complete/total_obs)*100).toFixed(1) + " %";
-});
-}
 
 
-// Progress Chart //
-am4core.ready(function() {
-am4core.useTheme(am4themes_animated);
 
+//////
 const chartTitleLabel = "Progress of Land Acquisition (%)";
 
 // Defaul Label
@@ -756,27 +926,33 @@ function updateChartLot() {
 
     var chart = am4core.create("chartdiv", am4charts.PieChart);
 
+
     // Add data
     chart.data = [
       {
         "StatusLA": "Paid",
         "status": paid,
+        "color": am4core.color("#70AD47")
       },
       {
         "StatusLA": "For Payment Processing",
-        "status": payp,       
+        "status": payp,
+        "color": am4core.color("#0070FF")   
       },
       {
         "StatusLA": "For Legal Pass",
-        "status": legalpass,         
+        "status": legalpass,
+        "color": am4core.color("#FFFF00") 
       },
       {
         "StatusLA": "For Appraisal/Offer to Buy",
-        "status": otb, 
+        "status": otb,
+        "color": am4core.color("#FFAA00")
       },
       {
         "StatusLA": "For Expro",
-        "status": expro,         
+        "status": expro,
+        "color": am4core.color("#FF0000")    
       }
   ];
 chartTitleDiv.innerHTML = otb;
@@ -787,18 +963,89 @@ chartTitleDiv.innerHTML = otb;
   var pieSeries = chart.series.push(new am4charts.PieSeries());
   pieSeries.dataFields.value = "status";
   pieSeries.dataFields.category = "StatusLA";
+
+  pieSeries.slices.template.propertyFields.fill = "color";
   pieSeries.slices.template.stroke = am4core.color("#fff");
-  pieSeries.slices.template.strokeWidth = 2;
+  pieSeries.slices.template.strokeWidth = 1;
   pieSeries.slices.template.strokeOpacity = 1;
 
+  pieSeries.slices.template
+  // change the cursor on hover to make it apparent the object can be interacted with
+  .cursorOverStyle = [
+    {
+      "property": "cursor",
+      "value": "pointer"
+    }
+  ];
+
+  
+  // Hover setting
+  pieSeries.tooltip.label.fontSize = 9;
+
+  // Pie
+//pieSeries.alignLabels = false;
+//pieSeries.labels.template.bent = false;
+pieSeries.labels.template.disabled = true;
+pieSeries.labels.template.radius = 3;
+pieSeries.labels.template.padding(0,0,0,0);
+pieSeries.labels.template.fontSize = 9;
+pieSeries.labels.template.fill = "#ffffff";
+
+// Ticks (a straight line)
+//pieSeries.ticks.template.disabled = true;
+pieSeries.ticks.template.fill = "#ffff00";
+
+// Create a base filter effect (as if it's not there) for the hover to return to
+var shadow = pieSeries.slices.template.filters.push(new am4core.DropShadowFilter);
+shadow.opacity = 0;
+
+
+
+// Create hover state
+var hoverState = pieSeries.slices.template.states.getKey("hover"); // normally we have to create the hover state, in this case it already exists
+
+// Slightly shift the shadow and make it more prominent on hover
+var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
+hoverShadow.opacity = 0.7;
+hoverShadow.blur = 5;
+
+
+  // Add a legend
+  const LegendFontSizze = 10;
+  chart.legend = new am4charts.Legend();
+
+  chart.legend.valueLabels.template.align = "right"
+  chart.legend.valueLabels.template.textAlign = "end";  
+  
+  //chart.legend.position = "bottom";
+  chart.legend.labels.template.fontSize = LegendFontSizze;
+  chart.legend.labels.template.fill = "#ffffff";
+  chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+  chart.legend.valueLabels.template.fontSize = LegendFontSizze; 
+  pieSeries.legendSettings.valueText = "{value.percent}% ({value})";
+  //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+
+
+
+  var marker = chart.legend.markers.template.children.getIndex(0);
+  var markerTemplate = chart.legend.markers.template;
+marker.cornerRadius(12, 12, 12, 12);
+marker.strokeWidth = 1;
+marker.strokeOpacity = 1;
+marker.stroke = am4core.color("#ccc");
+
+// Change size of legend marker
+markerTemplate.width = 18;
+markerTemplate.height = 18;
 // This creates initial animation
-pieSeries.hiddenState.properties.opacity = 1;
-pieSeries.hiddenState.properties.endAngle = -90;
-pieSeries.hiddenState.properties.startAngle = -90;
+//pieSeries.hiddenState.properties.opacity = 1;
+//pieSeries.hiddenState.properties.endAngle = -90;
+//pieSeries.hiddenState.properties.startAngle = -90;
     
   });                   
 } // End of updateChartLot()
 
+updateChartLot();
 
 }); // End of am4core.ready
 
@@ -892,7 +1139,12 @@ pieSeries.hiddenState.properties.startAngle = -90;
       </div>
       <div class="container">
         <div class="boxB">
-          <div id="viewDiv">
+          <div id="viewDiv"></div>
+          <div class="panel-side esri-widget">
+            <h2>Owner</h2>
+            <ul id="relocationOwnerList">
+              <li>Loading&hellip;</li>
+            </ul>
           </div>
         </div>
         <div class="boxA">
