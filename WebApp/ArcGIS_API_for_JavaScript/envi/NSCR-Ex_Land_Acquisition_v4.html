@@ -763,7 +763,7 @@ function relocationObjectID(layer) {
         layer.queryExtent(queryR).then(function(results) {
             view.goTo({
               target: results.extent,
-              zoom: 15});
+              zoom: 17});
         });
 
       });
@@ -771,7 +771,7 @@ function relocationObjectID(layer) {
       });
 
     } else {
-      headerTitleDiv.innerHTML = "Failed";
+      headerTitleDiv.innerHTML = "Land Acquisition (N2)";
     }
   });
   });
@@ -787,11 +787,13 @@ municipalSelect.addEventListener("change", function() {
     setLotMunicipalExpression(type);
     setStructureMunicipalExpression(type);
     setRelocationPointMunicipalExpression(type);
-     filterLotMunicipality();
+    filterLotMunicipality();
     updateChartLot();
     zoomToLayer(lotLayer);
 
     relocationObjectID(relocationPtLayer);
+
+
     updateFigure();
     updateChartStructure();
     updateChartRelocation();
@@ -849,6 +851,8 @@ barangaySelect.addEventListener("click", function() {
   setRelocationPointDefinitionExpression(municipalSelect.value, type);
 
   zoomToLayer(structureLayer);
+  relocationObjectID(relocationPtLayer);
+
   updateFigure();
   updateChartLot();
   updateChartStructure();
@@ -1043,10 +1047,63 @@ markerTemplate.height = 18;
 //pieSeries.hiddenState.properties.opacity = 1;
 //pieSeries.hiddenState.properties.endAngle = -90;
 //pieSeries.hiddenState.properties.startAngle = -90;
-    
-  });                   
-} // End of updateChartLot()
 
+// Click chart and filter, update maps
+const chartElement = document.getElementById("chartPanel");
+pieSeries.slices.template.events.on("hit", filterByChart, this);
+function filterByChart(ev) {
+  const selectedD = ev.target.dataItem.value;
+  headerTitleDiv.innerHTML = selectedD;
+
+  view.when(function() {
+    view.whenLayerView(lotLayer).then(function (layerView) {
+      chartLayerView = layerView;
+      chartElement.style.visibility = "visible";
+
+      lotLayer.queryFeatures().then(function(results) {
+        const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i < rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            lotLayer.queryExtent(queryExt).then(function(result) {
+                if (result.extent) {
+                    view.goTo(result.extent)
+                }
+            });
+
+            if (highlightSelect) {
+                highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+
+            view.on("click", function() {
+            layerView.filter = null;
+            highlightSelect.remove();
+            });
+      }); // End of queryFeatures
+
+    }); // End of view.whenLayerView
+
+  }); // End of view.when
+
+  layerView.filter = {
+    where: "StatusLA = " + selectedD
+  }
+
+} // End of filterByChart
+
+
+});                   
+} // End of updateChartLot()
 updateChartLot();
 
 }); // End of am4core.ready
