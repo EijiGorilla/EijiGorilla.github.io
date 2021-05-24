@@ -111,6 +111,7 @@
         margin:0;
         width: 350px;
         text-align: left;
+        padding: 10px;
       }
 
       .cpButtonClass {
@@ -124,6 +125,7 @@
 
       #dataTypeInput {
         padding-top: 20px;
+        font-size: 14px;
       }
 
       
@@ -226,9 +228,7 @@
         "esri/renderers/UniqueValueRenderer",
         "esri/layers/support/Sublayer",
         "esri/widgets/Search",
-        "esri/widgets/Compass",
-        "esri/identity/OAuthInfo",
-      "esri/identity/IdentityManager"
+        "esri/widgets/Compass"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -236,10 +236,8 @@
                   WebScene, PortalItem, Portal, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol, Expand, Editor,
-                  UniqueValueRenderer, Sublayer, Search, Compass, OAuthInfo, IdentityManager) {
-// OAutho Setting
+                  UniqueValueRenderer, Sublayer, Search, Compass) {
 
-//
 let chartLayerView;
   const features = [];
   
@@ -313,8 +311,8 @@ var labelChainage = new LabelClass({
   labelExpressionInfo: {expression: "$feature.KM_MAIN"},
   symbol: {
     type: "text",
-    color: [219,112,147,0.5],
-    size: 20
+    color: [85, 255, 0],
+    size: 25
   }
 });
 
@@ -444,9 +442,10 @@ function utilPtSymbolIcons(name) {
 function customSymbol3D(name) {
   return {
     type: "web-style",
+    portal: "https://www.maps.arcgis.com",
 
     // IMPORTANT: Your browser needs to be able to open the following link. It will say insecure so need to go to advanced.
-    styleUrl: "https://www.railway-sector.maps.arcgis.com/sharing/rest/content/items/7cc86329dd2e46229c52d292e660957b/data",
+    styleUrl: "https://www.maps.arcgis.com/sharing/rest/content/items/7cc86329dd2e46229c52d292e660957b/data",
     name: name
   };
 }
@@ -541,8 +540,8 @@ var chainageRenderer = {
     type: "simple",
     symbol: {
       type: "simple-marker",
-      size: 2,
-      color: [220,20,60,0.2],
+      size: 5,
+      color: [255, 255, 255, 0.9],
       outline: {
         width: 0.2,
         color: "black"
@@ -869,9 +868,6 @@ var stationLayer = new SceneLayer({
 // If basemap elevatio layer is off, use "absolute-height"
 /* 3D Web Style */
 
-
-      // send users to arcgis.com to login
-
 var testUtilPt = new FeatureLayer({
   portalItem: {
     id: "4c889516500442dfb6692315ea474ded"// 
@@ -1060,7 +1056,6 @@ map.add(testUtilPt1);
  });
  map.add(testLine, 4);
 
-
  /* Utility Line rendnerer*/
  function lineSizeShapeSymbolLayers(profile, cap, join, width, height, profileRotation, property){
     return {
@@ -1103,7 +1098,7 @@ map.add(testUtilPt1);
             } else if (property == 3) { // "Water Distributin Pipe"
                 renderer.addUniqueValueInfo({
                 value: property,
-                symbol: lineSizeShapeSymbolLayers("circle","none","miter", 2, 2, "all", property)
+                symbol: lineSizeShapeSymbolLayers("circle","none","miter", 1, 1, "all", property)
               });
   
             } else if (property == 4) { // "Sewerage"
@@ -1121,25 +1116,25 @@ map.add(testUtilPt1);
             } else if (property == 6) { // "Canal"
                 renderer.addUniqueValueInfo({
                 value: property,
-                symbol: lineSizeShapeSymbolLayers("quad","none","miter", 2, 2,"all", property)
+                symbol: lineSizeShapeSymbolLayers("quad","none","miter", 1, 1,"all", property)
               });
 
             } else if (property == 7) { // "Creek"
                 renderer.addUniqueValueInfo({
                 value: property,
-                symbol: lineSizeShapeSymbolLayers("circle","none","miter", 0.5, 0.5,"all", property)
+                symbol: lineSizeShapeSymbolLayers("circle","none","miter", 1, 1,"all", property)
               });
 
             } else if (property == 8) { // "Electric Line"
                 renderer.addUniqueValueInfo({
                 value: property,
-                symbol: lineSizeShapeSymbolLayers("circle","none","miter", 0.2, 0.2,"all", property)
+                symbol: lineSizeShapeSymbolLayers("circle","none","miter", 0.3, 0.3,"all", property)
               });
 
             } else {// end of 'property == '1'
               renderer.addUniqueValueInfo({
                 value: property,
-                symbol: lineSizeShapeSymbolLayers("quad","none","miter", 0.5, 0.5,"all", property)
+                symbol: lineSizeShapeSymbolLayers("quad","none","miter", 0.3, 0.3,"all", property)
 
               });
             }
@@ -1216,7 +1211,6 @@ var testLine1 = new FeatureLayer({
  });
  testLine1.listMode = "hide";
  map.add(testLine1);
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FOR EXPERIMENT
@@ -2627,7 +2621,19 @@ view.when(function() {
 
 
 /////////////////////////////////////////////////////////////////////////////////////
-      
+
+view.when(function () {
+          view.popup.autoOpenEnabled = true; //disable popups
+
+          // Create the Editor
+          let editor = new Editor({
+            view: view
+          });
+
+          // Add widget to top-right of the view
+          view.ui.add(editor, "bottom-right");
+        });
+ 
 // LayerList and Add legend to the LayerList
         // On-off feature layer tab
         var layerList = new LayerList({
@@ -2650,20 +2656,6 @@ view.when(function() {
             position: "bottom-left"
           });
 */
-
-// Editor //
-view.when(function () {
-          view.popup.autoOpenEnabled = true; //disable popups
-
-          // Create the Editor
-          let editor = new Editor({
-            view: view
-          });
-
-          // Add widget to top-right of the view
-          view.ui.add(editor, "bottom-right");
-        });
-//
         var layerListExpand = new Expand ({
             view: view,
             content: layerList,

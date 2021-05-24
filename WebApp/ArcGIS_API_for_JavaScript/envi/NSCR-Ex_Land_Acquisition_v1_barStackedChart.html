@@ -1,0 +1,598 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
+  -->
+<title>Land Acquisition (N2)</title>
+
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        background-color: black;       
+      }
+
+ 
+      #chartdiv {
+          width: 100%;
+          height: 100%;
+          align-items: center;
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+
+          }
+
+      #chartTitleDiv {
+        font-weight: 200;
+        text-align: center;
+        font-style: normal;
+        font-size: 17px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        color: white;
+        margin-top: 5px;
+        padding: 5px;
+        background-color: rgb(0, 0, 0, 0.5);
+        opacity: 0.9;
+        line-height: 0.5;
+      }
+
+      p {
+        color: rgb(0, 197, 255);
+        text-align: left;
+        font-weight: bold;
+        font-size: 14px;
+        width: auto;
+        vertical-align: text-bottom;
+        padding: 0;
+        margin-top: 0;
+      }
+
+      h2 {
+        font-weight: 400;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-style: normal;
+        font-size: 23px;
+        color: white;
+        padding:3px;
+        margin: 0px;
+        width: 450px;
+        vertical-align: text-top;
+      }
+
+
+      h3 {
+        color: white;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: center;
+        font-weight: bold;
+        font-size: 14px;
+        padding: 10;
+        width: 100%;
+
+      }
+
+      h4 {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: left;
+        font-weight: normal;
+        font-size: 14px;
+        padding-top: 20px;
+        margin: 0;
+        width: 160px;
+        vertical-align: text-bottom;
+      }
+
+      h5 {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: center;
+        font-weight: bold;
+        font-size: 14px;
+        padding: 3;
+        margin: 10;
+      }
+
+      h6 {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: center;
+        font-weight: normal;
+        font-size: 45px;
+        margin-top: 30px;
+        padding: 0px 0px 5px 0px;
+        }
+
+
+    </style>
+
+<link
+rel="stylesheet"
+href="https://js.arcgis.com/4.19/esri/themes/dark/main.css"
+/>
+<!-- Resources -->
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<script src="https://js.arcgis.com/4.19/"></script>
+
+    <script>
+      require([
+        "esri/Basemap",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/views/SceneView",
+        "esri/layers/FeatureLayer",
+        "esri/views/layers/support/FeatureFilter",
+        "esri/layers/SceneLayer",
+        "esri/layers/Layer",
+        "esri/layers/TileLayer",
+        "esri/layers/VectorTileLayer",
+        "esri/layers/support/LabelClass",
+        "esri/symbols/LabelSymbol3D",
+        "esri/WebMap",
+        "esri/WebScene",
+        "esri/portal/PortalItem",
+        "esri/portal/Portal",
+        "esri/widgets/TimeSlider",
+        "esri/widgets/Legend",
+        "esri/widgets/LayerList",
+        "esri/widgets/Fullscreen",
+        "esri/tasks/GeometryService",
+        "esri/tasks/support/Query",
+        "esri/tasks/QueryTask",
+        "esri/renderers/smartMapping/statistics/summaryStatistics",
+        "esri/tasks/support/StatisticDefinition",
+        "esri/symbols/WebStyleSymbol",
+        "esri/TimeExtent",
+        "esri/widgets/Expand",
+        "esri/widgets/Editor",
+        "esri/renderers/UniqueValueRenderer",
+        "esri/widgets/support/DatePicker",
+        "esri/widgets/FeatureTable",
+        "esri/widgets/paypass",
+        "esri/layers/ElevationLayer",
+        "esri/Ground",
+        "esri/tasks/support/RelationshipQuery",
+        "esri/layers/GraphicsLayer",
+        "esri/widgets/Search",
+      ], function(Basemap, Map, MapView, SceneView, 
+                  FeatureLayer, FeatureFilter,
+                  SceneLayer, Layer, TileLayer, VectorTileLayer,
+                  LabelClass, LabelSymbol3D, WebMap,
+                  WebScene, PortalItem, Portal,
+                  TimeSlider, Legend, LayerList, Fullscreen,
+                  GeometryService, Query, QueryTask, summaryStatistics,
+                  StatisticDefinition, WebStyleSymbol,
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
+                  FeatureTable, paypass, ElevationLayer, Ground, RelationshipQuery,
+                  GraphicsLayer, Search) {
+
+
+// Land 
+
+var lotLayer = new FeatureLayer({
+    portalItem: {
+    id: "3e31d434ec9a4e7b978dec0d99059ee5"
+  },
+        outFields: ["*"],
+        layerId: 1
+});
+
+const chartTitleDiv = document.getElementById("chartTitleDiv");
+// Progress Chart //
+am4core.ready(function() {
+am4core.useTheme(am4themes_animated);
+
+//////
+const chartTitleLabel = "Progress of Land Acquisition (%)";
+
+chartTitleDiv.innerHTML = "TEST";
+async function updateChart() {
+  // Define statistics
+  /* Mabalacat */
+  var total_mabala_paid = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Mabalacat' and StatusLA = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_mabala_paid",
+    statisticType: "sum"
+  };
+
+  var total_mabala_payp = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 1 and StatusLA = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_mabala_payp",
+    statisticType: "sum"  
+  };
+
+  var total_mabala_legalpass = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 1 and StatusLA = 3) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_mabala_legalpass",
+    statisticType: "sum"  
+  };
+
+  var total_mabala_otb = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 1 and StatusLA = 4) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_mabala_otb",
+    statisticType: "sum"  
+  };
+
+  var total_mabala_expro = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 1 and StatusLA = 5) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_mabala_expro",
+    statisticType: "sum"  
+  };
+
+
+  /* Angeles */
+  var total_angels_paid = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'angelscat' and StatusLA = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_angels_paid",
+    statisticType: "sum"
+  };
+
+  var total_angels_payp = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 1 and StatusLA = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_angels_payp",
+    statisticType: "sum"  
+  };
+
+  var total_angels_legalpass = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 1 and StatusLA = 3) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_angels_legalpass",
+    statisticType: "sum"  
+  };
+
+  var total_angels_otb = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 1 and StatusLA = 4) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_angels_otb",
+    statisticType: "sum"  
+  };
+
+  var total_angels_expro = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 1 and StatusLA = 5) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_angels_expro",
+    statisticType: "sum"  
+  };
+
+  /* Apalit */
+  var total_apalit_paid = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Apalit' and StatusLA = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_apalit_paid",
+    statisticType: "sum"
+  };
+
+  var total_apalit_payp = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Apalit' and StatusLA = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_apalit_payp",
+    statisticType: "sum"  
+  };
+
+  var total_apalit_legalpass = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Apalit' and StatusLA = 3) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_apalit_legalpass",
+    statisticType: "sum"  
+  };
+
+  var total_apalit_otb = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Apalit' and StatusLA = 4) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_apalit_otb",
+    statisticType: "sum"  
+  };
+
+  var total_apalit_expro = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Apalit' and StatusLA = 5) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_apalit_expro",
+    statisticType: "sum"  
+  };
+
+
+   /* Minalin */
+   var total_minalin_paid = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Minalin' and StatusLA = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_minalin_paid",
+    statisticType: "sum"
+  };
+
+  var total_minalin_payp = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Minalin' and StatusLA = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_minalin_payp",
+    statisticType: "sum"  
+  };
+
+  var total_minalin_legalpass = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Minalin' and StatusLA = 3) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_minalin_legalpass",
+    statisticType: "sum"  
+  };
+
+  var total_minalin_otb = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Minalin' and StatusLA = 4) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_minalin_otb",
+    statisticType: "sum"  
+  };
+
+  var total_minalin_expro = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Minalin' and StatusLA = 5) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_minalin_expro",
+    statisticType: "sum"  
+  };
+
+  /* Sto. Tomas */
+  var total_stotomas_paid = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Sto. Tomas' and StatusLA = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_stotomas_paid",
+    statisticType: "sum"
+  };
+
+  var total_stotomas_payp = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Sto. Tomas' and StatusLA = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_stotomas_payp",
+    statisticType: "sum"  
+  };
+
+  var total_stotomas_legalpass = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Sto. Tomas' and StatusLA = 3) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_stotomas_legalpass",
+    statisticType: "sum"  
+  };
+
+  var total_stotomas_otb = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Sto. Tomas' and StatusLA = 4) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_stotomas_otb",
+    statisticType: "sum"  
+  };
+
+  var total_stotomas_expro = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Sto. Tomas' and StatusLA = 5) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_stotomas_expro",
+    statisticType: "sum"  
+  };
+
+
+  /* Malolos */
+  var total_malolos_paid = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Malolos' and StatusLA = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_malolos_paid",
+    statisticType: "sum"
+  };
+
+  var total_malolos_payp = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Malolos' and StatusLA = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_malolos_payp",
+    statisticType: "sum"  
+  };
+
+  var total_malolos_legalpass = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Malolos' and StatusLA = 3) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_malolos_legalpass",
+    statisticType: "sum"  
+  };
+
+  var total_malolos_otb = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Malolos' and StatusLA = 4) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_malolos_otb",
+    statisticType: "sum"  
+  };
+
+  var total_malolos_expro = {
+    onStatisticField: "CASE WHEN (Municipality_1 = 'Malolos' and StatusLA = 5) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_malolos_expro",
+    statisticType: "sum"  
+  };
+
+  // Start Query
+  var query = lotLayer.createQuery();
+  //query.where = "Stations = 'Tandang Sora'"; // Selected Stations
+  query.outStatistics = [total_mabala_paid, total_mabala_payp, total_mabala_legalpass, total_mabala_otb, total_mabala_expro,
+                        total_angels_paid, total_angels_payp, total_angels_legalpass, total_angels_otb, total_angels_expro,
+                        total_sanfer_paid, total_sanfer_payp, total_sanfer_legalpass, total_sanfer_otb, total_sanfer_expro,
+                        total_apalit_paid, total_apalit_payp, total_apalit_legalpass, total_apalit_otb, total_apalit_expro,
+                        total_minalin_paid, total_minalin_payp, total_minalin_legalpass, total_minalin_otb, total_minalin_expro,
+                        total_stotomas_paid, total_stotomas_payp, total_stotomas_legalpass, total_stotomas_otb, total_stotomas_expro,
+                        total_malolos_paid, total_malolos_payp, total_malolos_legalpass, total_malolos_otb, total_malolos_expro];
+  query.returnGeometry = true;
+
+  lotLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    /* Mabalacat*/
+    const mabala_paid = stats.total_mabala_paid;
+    const mabala_payp = stats.total_mabala_payp;
+    const mabala_legalpass = stats.total_mabala_legalpass;
+    const mabala_otb = stats.total_mabala_otb;
+    const mabala_expro = stats.total_mabala_expro;
+
+    /* Angeles */
+    const angels_paid = stats.total_angels_paid;
+    const angels_payp = stats.total_angels_payp;
+    const angels_legalpass = stats.total_angels_legalpass;
+    const angels_otb = stats.total_angels_otb;
+    const angels_expro = stats.total_angels_expro;
+
+     /* San Fernanoo */
+     const sanfer_paid = stats.total_sanfer_paid;
+    const sanfer_payp = stats.total_sanfer_payp;
+    const sanfer_legalpass = stats.total_sanfer_legalpass;
+    const sanfer_otb = stats.total_sanfer_otb;
+    const sanfer_expro = stats.total_sanfer_expro;
+
+    chartTitleDiv.innerHTML = 100;
+
+    /* Apalit */
+    const apalit_paid = stats.total_apalit_paid;
+    const apalit_payp = stats.total_apalit_payp;
+    const apalit_legalpass = stats.total_apalit_legalpass;
+    const apalit_otb = stats.total_apalit_otb;
+    const apalit_expro = stats.total_apalit_expro;
+
+    /* Minalin */
+    const minalin_paid = stats.total_minalin_paid;
+    const minalin_payp = stats.total_minalin_payp;
+    const minalin_legalpass = stats.total_minalin_legalpass;
+    const minalin_otb = stats.total_minalin_otb;
+    const minalin_expro = stats.total_minalin_expro;
+
+    /* Sto. Tomas */
+    const stotomas_paid = stats.total_stotomas_paid;
+    const stotomas_payp = stats.total_stotomas_payp;
+    const stotomas_legalpass = stats.total_stotomas_legalpass;
+    const stotomas_otb = stats.total_stotomas_otb;
+    const stotomas_expro = stats.total_stotomas_expro;
+
+    /* Malolos */
+     const malolos_paid = stats.total_malolos_paid;
+    const malolos_payp = stats.total_malolos_payp;
+    const malolos_legalpass = stats.total_malolos_legalpass;
+    const malolos_otb = stats.total_malolos_otb;
+    const malolos_expro = stats.total_malolos_expro;
+
+// Chart //
+var chart = am4core.create("chartdiv", am4charts.XYChart);
+chart.hiddenState.properties.opacity = 0;
+
+chart.data = [
+  {
+    category: "Mabalacat",
+    value1: mabala_paid,
+    value2: mabala_payp,
+    value3: mabala_legalpass,
+    value4: mabala_otb,
+    value5: mabala_expro
+  },
+  {
+    category: "Angeles",
+    value1: angels_paid,
+    value2: angels_payp,
+    value3: angels_legalpass,
+    value4: angels_otb,
+    value5: angels_expro
+  },
+  {
+    category: "San Fernando",
+    value1: sanfer_paid,
+    value2: sanfer_payp,
+    value3: sanfer_legalpass,
+    value4: sanfer_otb,
+    value5: sanfer_expro
+  },
+  {
+    category: "Apalit",
+    value1: apalit_paid,
+    value2: apalit_payp,
+    value3: apalit_legalpass,
+    value4: apalit_otb,
+    value5: apalit_expro
+  },
+  {
+    category: "Minalin",
+    value1: minalin_paid,
+    value2: minalin_payp,
+    value3: minalin_legalpass,
+    value4: minalin_otb,
+    value5: minalin_expro
+  },
+  {
+    category: "Sto. Tomas",
+    value1: stotomas_paid,
+    value2: stotomas_payp,
+    value3: stotomas_legalpass,
+    value4: stotomas_otb,
+    value5: stotomas_expro
+  },
+  {
+    category: "Malolos",
+    value1: malolos_paid,
+    value2: malolos_payp,
+    value3: malolos_legalpass,
+    value4: malolos_otb,
+    value5: malolos_expro
+  }
+];
+
+chart.colors.step = 2;
+chart.padding(10, 10, 10, 10);
+chart.legend = new am4charts.Legend();
+chart.legend.position = "bottom";
+chart.legend.labels.template.fontSize = 10;
+chart.legend.labels.template.fill = "#ffffff";
+
+var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+categoryAxis.dataFields.category = "category";
+categoryAxis.renderer.grid.template.location = 0;
+categoryAxis.renderer.labels.template.fontSize = 11;
+categoryAxis.renderer.labels.template.fill = "#ffffff";
+categoryAxis.renderer.minGridDistance = 5; //can change label
+
+var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+valueAxis.min = 0;
+valueAxis.max = 100;
+valueAxis.strictMinMax = true;
+valueAxis.calculateTotals = true;
+valueAxis.renderer.minWidth = 50;
+valueAxis.renderer.labels.template.fontSize = 11;
+valueAxis.renderer.labels.template.fill = "#ffffff";
+
+// Layerview and Expand
+function createSeries(field, name) {
+  var series = chart.series.push(new am4charts.ColumnSeries());
+  series.dataFields.valueX = field;
+  series.dataFields.categoryY = "category";
+  series.stacked = true;
+  series.dataFields.valueXShow = "totalPercent";
+  series.dataItems.template.locations.categoryY = 0.5;
+  series.name = name;
+  if (name == "Paid"){
+    series.fill = am4core.color("#70AD47");
+  } else if (name == "For Payment Processing") {
+    series.fill = am4core.color("#0070FF")
+  } else if (name == "For Legal Pass") {
+    series.fill = am4core.color("#FFFF00")
+  } else if (name == "For Appraisal/Offer to Buy") {
+    series.fill = am4core.color("#FFAA00")
+  } else if (name == "For Expro") {
+    series.fill = am4core.color("#FF0000")     
+  }
+  series.columns.template.width = am4core.percent(60);
+  series.columns.template.tooltipText = "{name}: {valueX.totalPercent.formatNumber('#.')}%"
+
+  // Click chart and filter, update maps
+
+  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+  labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.value.formatNumber('#.')}";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 10;
+  labelBullet.locationX = 0.5;
+
+} // End of createSeries function
+
+createSeries("value1", "Paid");
+createSeries("value2", "For Payment Processing");
+createSeries("value3", "For Legal Pass");
+createSeries("value4", "For Appraisal/Offer to Buy");
+createSeries("value5", "For Expro");
+
+}); // End of queryFeatures
+} // End of updateChartPoint function
+
+updateChart();
+}); // End of am4core.ready
+
+
+      });
+    </script>
+  </head>
+
+  <body>
+<div id="chartTitleDiv" class="esri-widget">Progress of Land Acquisition (%)</div>
+<div id="chartdiv"></div>
+  </body>
+</html>
