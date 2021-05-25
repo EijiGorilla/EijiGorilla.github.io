@@ -89,9 +89,11 @@
 
       #chartdiv {
           width: 100%;
-          flex: 0 0 350px;
+          height: 65vh;
           align-items: center;
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+          margin: 0;
+          padding: 0;
           }
 
       #chartTitleDiv {
@@ -113,6 +115,8 @@
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         font-size: 17px;
         display: flex; flex-direction: column;
+        margin: 0;
+        padding: 0;
       }
       
       #optionsDiv {
@@ -667,7 +671,7 @@ const DropdownValue = document.getElementById("valSelect");
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
-const chartTitleLabel = "Progress of Station Structure (%)";
+const chartTitleLabel = "Progress Depot Building Structure (%)";
 
 // Default selection = 'None'
 chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
@@ -1136,14 +1140,14 @@ chart.data = [
     value4: parapet_delayed
   },
   {
-    category: "Mechanical & Electrical Space",
+    category: "Mecha & Electirc Space",
     value1: mef_tobeC,
     value2: mef_underC,
     value3: mef_done,
     value4: mef_delayed
   },
   {
-    category: "Mechanical Equip Foundation",
+    category: "Mecha Equip Foundation",
     value1: mef_tobeC,
     value2: mef_underC,
     value3: mef_done,
@@ -1181,12 +1185,32 @@ chart.data = [
 
 chart.colors.step = 2;
 chart.padding(10, 10, 10, 10);
+
+// Legend
+const LegendFontSizze = 12;
 chart.legend = new am4charts.Legend();
+
+chart.legend.valueLabels.template.align = "right"
+  chart.legend.valueLabels.template.textAlign = "end";  
+
 chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = 11.5;
+chart.legend.labels.template.fontSize = LegendFontSizze;
 chart.legend.labels.template.fill = "#ffffff";
+chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+chart.legend.valueLabels.template.fontSize = LegendFontSizze;
 
+var marker = chart.legend.markers.template.children.getIndex(0);
+var markerTemplate = chart.legend.markers.template;
+marker.cornerRadius(12, 12, 12, 12);
+marker.strokeWidth = 1;
+marker.strokeOpacity = 1;
+marker.stroke = am4core.color("#ccc");
 
+// Change size of legend marker
+markerTemplate.width = 16;
+markerTemplate.height = 16;
+
+// Category Axis
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
 categoryAxis.dataFields.category = "category";
 categoryAxis.renderer.grid.template.location = 0;
@@ -1194,6 +1218,7 @@ categoryAxis.renderer.labels.template.fontSize = 11;
 categoryAxis.renderer.labels.template.fill = "#ffffff";
 categoryAxis.renderer.minGridDistance = 5; //can change label
 
+// Value Axis
 var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
 valueAxis.min = 0;
 valueAxis.max = 100;
@@ -1203,13 +1228,18 @@ valueAxis.renderer.minWidth = 50;
 valueAxis.renderer.labels.template.fontSize = 10;
 valueAxis.renderer.labels.template.fill = "#ffffff";
 
+//
+
+
 function createSeries(field, name) {
   var series = chart.series.push(new am4charts.ColumnSeries());
+  series.calculatePercent = true;
   series.dataFields.valueX = field;
   series.dataFields.categoryY = "category";
   series.stacked = true;
   series.dataFields.valueXShow = "totalPercent";
   series.dataItems.template.locations.categoryY = 0.5;
+
   series.name = name;
   if (name == "To be Constructed"){
     series.fill = am4core.color("#707070");
@@ -1221,7 +1251,8 @@ function createSeries(field, name) {
     series.fill = am4core.color("#ff0000"); // delayed
   }
   series.columns.template.width = am4core.percent(60);
-  series.columns.template.tooltipText = "{name}: {valueX.totalPercent.formatNumber('#.')}%"
+  series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
+  //labelBullet.label.text = "{valueX.value.formatNumber('#.')}";
 
   // Click chart and filter, update maps
   const chartElement = document.getElementById("chartPanel");
@@ -1287,31 +1318,31 @@ function createSeries(field, name) {
       selectedLayer = 4;
       selectedStatus = 7;
 
-    // Mechanical Equip Foundation
-    } else if (selectedP == "Mechanical Equip Foundation" && selectedC == "To be Constructed") {
+    // Mecha Equip Foundation
+    } else if (selectedP == "Mecha Equip Foundation" && selectedC == "To be Constructed") {
       selectedLayer = 5;
       selectedStatus = 1;
-    } else if (selectedP == "Mechanical Equip Foundation" && selectedC == "Under Construction") {
+    } else if (selectedP == "Mecha Equip Foundation" && selectedC == "Under Construction") {
       selectedLayer = 5;
       selectedStatus = 2;
-    } else if (selectedP == "Mechanical Equip Foundation" && selectedC == "Delayed") {
+    } else if (selectedP == "Mecha Equip Foundation" && selectedC == "Delayed") {
       selectedLayer = 5;
       selectedStatus = 3;
-    } else if (selectedP == "Mechanical Equip Foundation" && selectedC == "Completed") {
+    } else if (selectedP == "Mecha Equip Foundation" && selectedC == "Completed") {
       selectedLayer = 5;
       selectedStatus = 8;
 
-    // Mechanical & Electrical Space
-    } else if (selectedP == "Mechanical & Electrical Space" && selectedC == "To be Constructed") {
+    // Mecha & Electirc Space
+    } else if (selectedP == "Mecha & Electirc Space" && selectedC == "To be Constructed") {
       selectedLayer = 6;
       selectedStatus = 1;
-    } else if (selectedP == "Mechanical & Electrical Space" && selectedC == "Under Construction") {
+    } else if (selectedP == "Mecha & Electirc Space" && selectedC == "Under Construction") {
       selectedLayer = 6;
       selectedStatus = 2;
-    } else if (selectedP == "Mechanical & Electrical Space" && selectedC == "Delayed") {
+    } else if (selectedP == "Mecha & Electirc Space" && selectedC == "Delayed") {
       selectedLayer = 6;
       selectedStatus = 3;
-    } else if (selectedP == "Mechanical & Electrical Space" && selectedC == "Completed") {
+    } else if (selectedP == "Mecha & Electirc Space" && selectedC == "Completed") {
       selectedLayer = 6;
       selectedStatus = 9;
 
@@ -1437,7 +1468,7 @@ view.on("click", function() {
 
   var labelBullet = series.bullets.push(new am4charts.LabelBullet());
   labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.value.formatNumber('#.')}";
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
   labelBullet.label.fill = am4core.color("#ffffff");
   labelBullet.interactionsEnabled = false;
   labelBullet.label.fontSize = 10;
@@ -1546,7 +1577,7 @@ createSeries("value4", "Delayed");
         </div>
         <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">Building:</label>
-            <select class="esri-widget" id="valSelect">
+            <select class="esri-widget" id="valSelect" width="120" style="width: 120px">
                 <option value="None">None</option>
                 <option value="PRI">PRI</option>
               </select>
@@ -1563,7 +1594,7 @@ createSeries("value4", "Delayed");
         </div>
         <div class="boxA">
           <div id="chartPanel">
-            <div id="chartTitleDiv" class="esri-widget">Progress of Station Structure (%)</div>
+            <div id="chartTitleDiv" class="esri-widget">Progress of Depot Building Structure (%)</div>
             <div id="chartdiv"></div>
               <div id="optionsDiv" class="esri-widget">
                 <div><b>Total Progress (%)</b></div>
