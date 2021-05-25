@@ -82,8 +82,8 @@
         font-size: 17px;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         color: white;
-        margin-top: 10px;
-        padding: 10px;
+        margin-top: 5px;
+        padding-top: 5px;
         background-color: rgb(0, 0, 0, 0.5);
         opacity: 0.9;
         line-height: 0.5;
@@ -109,16 +109,17 @@
       #cpButton {
         margin:0;
         width: 350px;
-        text-align: left;
+        text-align: center;
       }
 
       .cpButtonClass {
           font-style: normal;
-          width: 350px;
-          font-size: 12px;
+          width: 300px;
+          font-size: 14px;
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
           color: white;
           text-align: center;
+          padding-top: 7px;
           }
 
       #optionsDiv {
@@ -844,10 +845,29 @@ chart.data = [
  
 chart.colors.step = 2;
 chart.padding(10, 10, 10, 10);
+// Legend
+const LegendFontSizze = 12;
 chart.legend = new am4charts.Legend();
+
+chart.legend.valueLabels.template.align = "right"
+  chart.legend.valueLabels.template.textAlign = "end";  
+
 chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = 10;
+chart.legend.labels.template.fontSize = LegendFontSizze;
 chart.legend.labels.template.fill = "#ffffff";
+chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+chart.legend.valueLabels.template.fontSize = LegendFontSizze;
+
+var marker = chart.legend.markers.template.children.getIndex(0);
+var markerTemplate = chart.legend.markers.template;
+marker.cornerRadius(12, 12, 12, 12);
+marker.strokeWidth = 1;
+marker.strokeOpacity = 1;
+marker.stroke = am4core.color("#ccc");
+
+// Change size of legend marker
+markerTemplate.width = 16;
+markerTemplate.height = 16;
 
 
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
@@ -869,6 +889,7 @@ valueAxis.renderer.labels.template.fill = "#ffffff";
 
 function createSeries(field, name) {
   var series = chart.series.push(new am4charts.ColumnSeries());
+  series.calculatePercent = true;
   series.dataFields.valueX = field;
   series.dataFields.categoryY = "category";
   series.stacked = true;
@@ -885,8 +906,8 @@ function createSeries(field, name) {
     series.fill = am4core.color("#ff0000"); // delayed
   }
   series.columns.template.width = am4core.percent(60);
-  series.columns.template.tooltipText = "{name}: {valueX.totalPercent.formatNumber('#.')}%"
-
+  series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
+ 
   // Click chart and filter, update maps
   const chartElement = document.getElementById("chartPanel");
   series.columns.template.events.on("hit", filterByChart, this);
@@ -1002,7 +1023,7 @@ function createSeries(field, name) {
 
   var labelBullet = series.bullets.push(new am4charts.LabelBullet());
   labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.value.formatNumber('#.')}";
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
   labelBullet.label.fill = am4core.color("#ffffff");
   labelBullet.interactionsEnabled = false;
   labelBullet.label.fontSize = 10;
