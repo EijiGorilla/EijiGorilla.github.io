@@ -465,7 +465,7 @@ let treeCuttingRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[1], // the first two letters dictate transparency.
+      color: colorsCut[6], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -507,7 +507,7 @@ let treeCuttingRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[4], // the first two letters dictate transparency.
+      color: colorsCut[1], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -535,7 +535,7 @@ let treeCuttingRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[6], // the first two letters dictate transparency.
+      color: colorsCut[4], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -560,7 +560,7 @@ let treeTree_CompeRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[0], // the first two letters dictate transparency.
+      color: colorsCut[2], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -588,7 +588,7 @@ let treeTree_CompeRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[2], // the first two letters dictate transparency.
+      color: colorsCut[5], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -616,7 +616,7 @@ let treeTree_CompeRenderer = {
       symbol: {
       type: "simple-marker",
       size: 4,
-      color: colorsCut[4], // the first two letters dictate transparency.
+      color: colorsCut[0], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -630,7 +630,7 @@ let treeTree_CompeRenderer = {
       symbol: {
       type: "simple-marker",
       size: 4,
-      color: colorsCut[5], // the first two letters dictate transparency.
+      color: colorsCut[4], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -1260,17 +1260,17 @@ function createSeriesCutting(field, name) {
   if (name == "For TCP Application"){
     series.fill = am4core.color(colorsNoClear[0]);
   } else if (name == "Submitted to DENR") {
-    series.fill = am4core.color(colorsNoClear[1]);
+    series.fill = am4core.color(colorsNoClear[6]);
   } else if (name == "With Permit-Not Yet Cut") {
     series.fill = am4core.color(colorsNoClear[2]);
   } else if (name == "With Permit-Not Yet Earthballed") {
     series.fill = am4core.color(colorsNoClear[3]);
   } else if (name == "Cut") {
-    series.fill = am4core.color(colorsNoClear[4]);
+    series.fill = am4core.color(colorsNoClear[1]);
   }  else if (name == "Earthballed") {
     series.fill = am4core.color(colorsNoClear[5]);
   }  else if (name == "TCP Expired") {
-    series.fill = am4core.color(colorsNoClear[6]);
+    series.fill = am4core.color(colorsNoClear[4]);
   }
 
 
@@ -1738,17 +1738,17 @@ function createSeriesCompensation(field, name) {
   series.dataItems.template.locations.categoryY = 0.5;
   series.name = name;
   if (name == "For Appraisal/OtC"){
-    series.fill = am4core.color(colorsNoClear[0]);
-  } else if (name == "For Legal Pass") {
     series.fill = am4core.color(colorsNoClear[1]);
-  } else if (name == "For Payment Processing") {
+  } else if (name == "For Legal Pass") {
     series.fill = am4core.color(colorsNoClear[2]);
+  } else if (name == "For Payment Processing") {
+    series.fill = am4core.color(colorsNoClear[5]);
   } else if (name == "For Check Issuance") {
     series.fill = am4core.color(colorsNoClear[3]);
   } else if (name == "Paid") {
-    series.fill = am4core.color(colorsNoClear[4]);
+    series.fill = am4core.color(colorsNoClear[0]);
   }  else if (name == "No Compensation") {
-    series.fill = am4core.color(colorsNoClear[5]);
+    series.fill = am4core.color(colorsNoClear[4]);
   }  else if (name == "For Donation") {
     series.fill = am4core.color(colorsNoClear[6]);
   }
@@ -2119,17 +2119,36 @@ searchExpand.watch("expanded", function() {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.layer.type != "group") {
-                item.panel = {
-                  content: "legend",
-                  open: false
-                };
-              }
               if (item.title === "Chainage") {
                 item.visible = false
               }    
             }
           });
+
+          var legend = new Legend({
+  view: view,
+  container: document.getElementById("legendDiv"),
+  layerInfos: [
+    {
+      layer: treeCuttingLayer,
+      title: "Status of Tree Cutting"
+    },
+    {
+      layer: compensationLayer,
+      title: "Status of Tree Compensation"
+    }
+  ]
+});
+
+var legendExpand = new Expand({
+    view: view,
+    content: legend,
+    expandIconClass: "esri-icon-legend",
+    group: "bottom-right"
+});
+view.ui.add(legendExpand, {
+    position: "bottom-right"
+});
 
         var layerListExpand = new Expand ({
             view: view,
