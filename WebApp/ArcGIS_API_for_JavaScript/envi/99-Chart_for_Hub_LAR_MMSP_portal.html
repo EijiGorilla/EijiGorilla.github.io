@@ -164,24 +164,7 @@
       br{content:' ';}
       br:after{content:' ';}
 
-      .esri-layer-list__item-toggle-icon,
-     .esri-layer-list__item-title {
-      color: white;
-     }
 
-
-      .sassy-theme .esri-menu,
-      .sassy-theme .esri-popup__main-container,
-      .sassy-theme .esri-popup .esri-popup__pointer-direction,
-      .sassy-theme .esri-popup .esri-popup__button,
-      .sassy-theme .esri-button,
-      .sassy-theme .esri-input,
-      .sassy-theme .esri-legend,
-      .sassy-theme .esri-layer-list,
-      .sassy-theme .esri-widget a {
-        background-color: rgb(0, 0, 0, 0.7);
-        color: #fff;
-      }
 
 
     </style>
@@ -294,568 +277,22 @@ var basemap = new Basemap({
         var headerDiv = document.getElementById("headerDiv");
         var headerTitleDiv = document.getElementById("headerTitleDiv");
         var applicationDiv = document.getElementById("applicationDiv");
-        const treeTCP_ProcesTypeButton = document.getElementById("dataTypeInput");
-        var commentDiv = document.getElementById("commentDiv");
-
-
-///// Renderer ///
-// Boundary
-let defaultLotSymbolBoundary = {
-                type: "simple-fill",
-                color: [0, 0, 0, 0],
-                style: "solid",
-                outline: {
-                    style: "dash",
-                color: [215, 215, 158],
-                width: 1.5
-            }
-};
-
-let BoundaryFillSymbol = {
-    type: "unique-value",
-    field: "StatusNVS3",
-    defaultSymbol: defaultLotSymbolBoundary,
-}
-
-// Lot
-let defaultLotSymbol = {
-                type: "simple-fill",
-                color: [0, 0, 0, 0],
-                style: "solid",
-                outline: {
-                color: [225, 225, 225],
-                width: 0.7
-            }
-};
-
-let lotRenderer = {
-    type: "unique-value",
-    field: "StatusNVS3",
-    defaultSymbol: defaultLotSymbol,
-    uniqueValueInfos: [
-        {
-            value: 1,
-            symbol: {
-                type: "simple-fill",
-                color: [0, 0, 0, 0],
-                style: "solid",
-                outline: {
-                color: [225, 225, 225],
-                width: 0.7
-            }
-            }
-        },
-        {
-            value: 2,
-            symbol: {
-                type: "simple-fill",
-                color: [0, 0, 0, 0],
-                style: "solid",
-                outline: {
-                color: [225, 225, 225],
-                width: 0.7
-            }
-            }
-        },
-        {
-            value: 3,
-            symbol: {
-                type: "simple-fill",
-                color: [0, 0, 0, 0],
-                style: "solid",
-                outline: {
-                color: [225, 225, 225],
-                width: 0.7
-            }
-            }
-        },
-        {
-            value: 4,
-            symbol: {
-                type: "simple-fill",
-                color: [0, 0, 0, 0],
-                style: "solid",
-                outline: {
-                color: [225, 225, 225],
-                width: 0.7
-            }
-            }
-        },
-        {
-            value: 5,
-            symbol: {
-                type: "simple-fill",
-                color: [0, 0, 0, 0],
-                style: "solid",
-                outline: {
-                color: [225, 225, 225],
-                width: 0.7
-            }
-            }
-        },
-        {
-            value: 6,
-            symbol: {
-                type: "simple-fill",
-                color: [0, 0, 0, 0],
-                style: "solid",
-                outline: {
-                color: [225, 225, 225],
-                width: 0.7
-            }
-            }
-        }
-    ]
-};
-//
-const colorsCut = ["#3371AB48", "#330073FF", "#33FFFF00", "#33FFAA00", "#33FF0000", "#333288BD", "#335E4FA2"];
-const colorsNoClear = ["#71AB48", "#0073FF", "#FFFF00", "#FFAA00", "#FF0000", "#3288BD", "#5E4FA2"];
-
-const outlineColor = "gray";
-
-let treeCuttingRenderer = {
-  type: "unique-value",
-  valueExpression: "When($feature.TCP_Proces == 1, 'tcpapp', $feature.TCP_Proces == 2, 'denr', \
-                         $feature.TCP_Proces == 3, 'permitcut', $feature.TCP_Proces == 4, 'permitearthb', \
-                         $feature.TCP_Proces == 5, 'cut', $feature.TCP_Proces == 6, 'earthb', \
-                         $feature.TCP_Proces == 7, 'tcpexp', $feature.TCP_Proces)",
-  uniqueValueInfos: [
-    {
-      value: "tcpapp",
-      label: "For TCP Application",
-      type: "simple",
-      symbol: {
-      type: "simple-marker",
-      size: 5,
-      color: colorsCut[0], // the first two letters dictate transparency.
-      outline: {
-        width: 0.5,
-        color: outlineColor
-      }
-      }
-    },
-    {
-      value: "denr",
-      label: "Submitted to DENR",
-      type: "simple",
-      symbol: {
-      type: "simple-marker",
-      size: 5,
-      color: colorsCut[6], // the first two letters dictate transparency.
-      outline: {
-        width: 0.5,
-        color: outlineColor
-      }
-      }
-    },
-    {
-      value: "permitcut",
-      label: "With Permit-Not Yet Cut",
-      type: "simple",
-      symbol: {
-      type: "simple-marker",
-      size: 5,
-      color: colorsCut[2], // the first two letters dictate transparency.
-      outline: {
-        width: 0.5,
-        color: outlineColor
-      }
-      }
-    },
-    {
-      value: "permitearthb",
-      label: "With Permit-Not Yet Earthballed",
-      type: "simple",
-      symbol: {
-      type: "simple-marker",
-      size: 4,
-      color: colorsCut[3], // the first two letters dictate transparency.
-      outline: {
-        width: 0.5,
-        color: outlineColor
-      }
-      }
-    },
-    {
-      value: "cut",
-      label: "Cut",
-      type: "simple",
-      symbol: {
-      type: "simple-marker",
-      size: 5,
-      color: colorsCut[1], // the first two letters dictate transparency.
-      outline: {
-        width: 0.5,
-        color: outlineColor
-      }
-      }
-    },
-    {
-      value: "earthb",
-      label: "Earthballed",
-      type: "simple",
-      symbol: {
-      type: "simple-marker",
-      size: 5,
-      color: colorsCut[5], // the first two letters dictate transparency.
-      outline: {
-        width: 0.5,
-        color: outlineColor
-      }
-      }
-    },
-    {
-      value: "tcpexp",
-      label: "TCP Expired",
-      type: "simple",
-      symbol: {
-      type: "simple-marker",
-      size: 5,
-      color: colorsCut[4], // the first two letters dictate transparency.
-      outline: {
-        width: 0.5,
-        color: outlineColor
-      }
-      }
-    }
-  ]
-};
-
-
-let treeTree_CompeRenderer = {
-  type: "unique-value",
-  valueExpression: "When($feature.Tree_Compe == 1, 'otc', $feature.Tree_Compe == 2, 'legalpass', \
-                         $feature.Tree_Compe == 3, 'payp', $feature.Tree_Compe == 4, 'checkissue', \
-                         $feature.Tree_Compe == 5, 'paid', $feature.Tree_Compe == 6, 'nocomp', \
-                         $feature.Tree_Compe == 7, 'donate', $feature.Tree_Compe)",
-  uniqueValueInfos: [
-    {
-      value: "otc",
-      label: "For Appraisal/OtC",
-      type: "simple",
-      symbol: {
-      type: "simple-marker",
-      size: 5,
-      color: colorsCut[2], // the first two letters dictate transparency.
-      outline: {
-        width: 0.5,
-        color: outlineColor
-      }
-      }
-    },
-    {
-      value: "legalpass",
-      label: "For Legal Pass",
-      type: "simple",
-      symbol: {
-      type: "simple-marker",
-      size: 5,
-      color: colorsCut[1], // the first two letters dictate transparency.
-      outline: {
-        width: 0.5,
-        color: outlineColor
-      }
-      }
-    },
-    {
-      value: "payp",
-      label: "For Payment Processing",
-      type: "simple",
-      symbol: {
-      type: "simple-marker",
-      size: 5,
-      color: colorsCut[5], // the first two letters dictate transparency.
-      outline: {
-        width: 0.5,
-        color: outlineColor
-      }
-      }
-    },
-    {
-      value: "checkissue",
-      label: "For Check Issuance",
-      type: "simple",
-      symbol: {
-      type: "simple-marker",
-      size: 4,
-      color: colorsCut[3], // the first two letters dictate transparency.
-      outline: {
-        width: 0.5,
-        color: outlineColor
-      }
-      }
-    },
-    {
-      value: "paid",
-      label: "Paid",
-      type: "simple",
-      symbol: {
-      type: "simple-marker",
-      size: 4,
-      color: colorsCut[0], // the first two letters dictate transparency.
-      outline: {
-        width: 0.5,
-        color: outlineColor
-      }
-      }
-    },
-    {
-      value: "nocomp",
-      label: "No Compensation",
-      type: "simple",
-      symbol: {
-      type: "simple-marker",
-      size: 4,
-      color: colorsCut[4], // the first two letters dictate transparency.
-      outline: {
-        width: 0.5,
-        color: outlineColor
-      }
-      }
-    },
-    {
-      value: "donate",
-      label: "For Donation",
-      type: "simple",
-      symbol: {
-      type: "simple-marker",
-      size: 4,
-      color: colorsCut[6], // the first two letters dictate transparency.
-      outline: {
-        width: 0.5,
-        color: outlineColor
-      }
-      }
-    }
-  ]
-};
-
-
 
 //*******************************//
 // Import Layers                 //
 //*******************************//
-var constBoundary = new FeatureLayer({
-  portalItem: {
-    id: "4f155bc22b4d461fa3c09ea256b1e3a4"
-  },
-  layerId: 2,
-  renderer: BoundaryFillSymbol,
-  elevationInfo: {
-    mode: "on-the-ground"
-  },
-  title: "Construction Boundary",
-  popupEnabled: false
-});
-constBoundary.listMode = "hide";
-map.add(constBoundary);
-
-// Status of LA
-// Lot
-
 var lotLayer = new FeatureLayer({
     portalItem: {
-        id: "b0cc73d4c9a44850b96cdf01c35c48b9",
+        id: "3dc08b6b0e3b4b52995b193a478460be",
         portal: {
             url: "https://mmspgc-gis.mmspgc.local/portal"
         }
-    },
-    layerId: 1,
-    title: "Status of Land Acquisition",
-    renderer: lotRenderer,
-    popupTemplate: {
-            // autocasts as new PopupTemplate()
-            title: "<h5>CN: {CN}</h5>",
-            lastEditInfoEnabled: false,
-            returnGeometry: true,
-            actions: [
-       {
-        id: "find-trees",
-        title: "Trees"
-       }
-     ],
-            // Set content elements in the order to display.
-            // The first element displayed here is the fieldInfos.
-            content: [
-              {
-                // It is also possible to set the fieldInfos outside of the content
-                // directly in the popupTemplate. If no fieldInfos is specifically set
-                // in the content, it defaults to whatever may be set within the popupTemplate.
-                type: "fields", // FieldsContentElement
-                fieldInfos: [
-                  {
-                    fieldName: "relationships/0/TCP_Proces",
-                    visible: false,
-                    label: "Total number of trees",
-                    format: {
-                      places: 0,
-                      digitSeparator: true
-                    },
-                    statisticType: "count"
-                  },
-                  {
-                    fieldName: "CN",
-                    visible: false,
-                    label: "Lot No."
-                  },
-                  {
-                      fieldName: "StatusNVS3",
-                      label: "Status of Land Acquisition"
-                  },
-                  {
-                    fieldName: "Station"
-                  },
-                  {
-                    fieldName: "Priority"
-                  },
-                  {
-                    fieldName: "HandOverDate",
-                    label: "Hand-Over Date"
-                  }
-                ]
-              },
-              {
-                // You can also set a descriptive text element. This element
-                // uses an attribute from the featurelayer which displays a
-                // sentence giving the total amount of trees value within a
-                // specified census block. Text elements can only be set within the content.
-                type: "text", // TextContentElement
-                text: "<h5>There are {relationships/0/TCP_Proces} trees within this Lot.</h5>"
-              }
-             ]
-          },
-          outFields: ["*"]
-        });
-        lotLayer.listMode = "hide";
-        map.add(lotLayer);
-
-// Tree Cutting
-var treeCuttingLayer = new FeatureLayer ({
-    portalItem: {
-    id: "b0cc73d4c9a44850b96cdf01c35c48b9",
-    portal: {
-        url: "https://mmspgc-gis.mmspgc.local/portal"
-    }
-  },
-  elevationInfo: {
-            mode: "on-the-ground"
-          },
-  layerId: 0,
-  outFields: ["*"],
-  title: "Status of Tree Cutting",
-  renderer: treeCuttingRenderer,
-  popupTemplate: {
-    title: "<h5>{TCP_Proces}</h5>",
-    lastEditInfoEnabled: false,
-    returnGeometry: true,
-    actions: [
-       {
-        id: "find-lot",
-        title: "Lot"
-       }
-     ],
-    content: [
-      {
-        type: "fields",
-        fieldInfos: [
-          {
-            fieldName: "ID_1",
-            label: "CN"
-          },
-          {
-            fieldName: "Scientific",
-            label: "Scientific Name"
-          },
-          {
-            fieldName: "Common_Nam",
-            label: "Common Name"
-          },
-          {
-            fieldName: "TreeStatus",
-            label: "Tree Status"
-          },
-          {
-            fieldName: "Recom",
-            label: "Recommendation"
-          },
-          {
-            fieldName: "City"
-          },
-          {
-            fieldName: "ID",
-            label: "Tree ID"
-          },
-          {
-            fieldName: "Tree_Compe",
-            label: "Tree Compensation"
-          }
-        ]
-      }
-    ]
-  }
+      },
+        outFields: ["*"],
+        layerId: 8,
+        title: "Status of Land Acquisition"
 });
-map.add(treeCuttingLayer);
-
-// Tree Tree_Compe
-var compensationLayer = new FeatureLayer ({
-    portalItem: {
-    id: "b0cc73d4c9a44850b96cdf01c35c48b9",
-    portal: {
-        url: "https://mmspgc-gis.mmspgc.local/portal"
-    }
-  },
-  outFields: ["*"],
-  layerId: 0,
-  title: "Status of Tree Compensation",
-  renderer: treeTree_CompeRenderer,
-  popupTemplate: {
-    title: "<h5>{Tree_Compe}</h5>",
-    lastEditInfoEnabled: false,
-    returnGeometry: true,
-    actions: [
-       {
-        id: "find-lot",
-        title: "Lot"
-       }
-     ],
-    content: [
-      {
-        type: "fields",
-        fieldInfos: [
-          {
-            fieldName: "Scientific",
-            label: "Scientific Name"
-          },
-          {
-            fieldName: "Common_Nam",
-            label: "Common Name"
-          },
-          {
-            fieldName: "TreeStatus",
-            label: "Tree Status"
-          },
-          {
-            fieldName: "Recom",
-            label: "Recommendation"
-          },
-          {
-            fieldName: "City"
-          },
-          {
-            fieldName: "ID",
-            label: "Tree ID"
-          },
-          {
-            fieldName: "TCP_Proces",
-            label: "Tree Cutting"
-          }
-        ]
-      }
-    ]
-  }
-});
-map.add(compensationLayer);
-
+map.add(lotLayer);
 
 /////////////////////////////////////////////////////////////////////////////////////
 //*******************************//
@@ -879,7 +316,7 @@ am4core.useTheme(am4themes_animated);
 
 // Defaul Label
 const chartTitleLabel = "Progress of ";
-chartTitleDiv.innerHTML = chartTitleLabel + "Tree Cutting (%)";
+chartTitleDiv.innerHTML = chartTitleLabel + "Land Acquisition (%)";
 
 
 
@@ -922,163 +359,157 @@ function updateChartCutting() {
   };
 
     // Quirino Highway
-  var total_quirino_tcpapp = {
-    onStatisticField: "CASE WHEN (Station = 3 and TCP_Proces = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_tcpapp",
+    var total_quirino_paid = {
+    onStatisticField: "CASE WHEN (Station = 'Quirino Highway' and StatusNVS3 = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_quirino_paid",
     statisticType: "sum"
   };
 
-  var total_quirino_denr = {
-    onStatisticField: "CASE WHEN (Station = 3 and TCP_Proces = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_denr",
+  var total_quirino_payp = {
+    onStatisticField: "CASE WHEN (Station = 'Quirino Highway' and StatusNVS3 = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_quirino_payp",
     statisticType: "sum"
   };
 
-  var total_quirino_permitcut = {
-    onStatisticField: "CASE WHEN (Station = 3 and TCP_Proces = 3) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_permitcut",
+  var total_quirino_legalpass = {
+    onStatisticField: "CASE WHEN (Station = 'Quirino Highway' and StatusNVS3 = 3) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_quirino_legalpass",
     statisticType: "sum"
   };
 
-  var total_quirino_permitearthb = {
-    onStatisticField: "CASE WHEN (Station = 3 and TCP_Proces = 4) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_permitearthb",
+  var total_quirino_otb = {
+    onStatisticField: "CASE WHEN (Station = 'Quirino Highway' and StatusNVS3 = 4) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_quirino_otb",
     statisticType: "sum"
   };
 
-  var total_quirino_cut = {
-    onStatisticField: "CASE WHEN (Station = 3 and TCP_Proces = 5) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_cut",
+  var total_quirino_expro = {
+    onStatisticField: "CASE WHEN (Station = 'Quirino Highway' and StatusNVS3 = 5) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_quirino_expro",
     statisticType: "sum"
   };
 
-  var total_quirino_earthb = {
-    onStatisticField: "CASE WHEN (Station = 3 and TCP_Proces = 6) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_earthb",
+  var total_quirino_dismissal = {
+    onStatisticField: "CASE WHEN (Station = 'Quirino Highway' and StatusNVS3 = 6) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_quirino_dismissal",
     statisticType: "sum"
   };
-
 
   // Tandang Sora
-  var total_tandang_tcpapp = {
-    onStatisticField: "CASE WHEN (Station = 4 and TCP_Proces = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_tcpapp",
+  var total_tandang_paid = {
+    onStatisticField: "CASE WHEN (Station = 'Tandang Sora' and StatusNVS3 = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_tandang_paid",
     statisticType: "sum"
   };
 
-  var total_tandang_denr = {
-    onStatisticField: "CASE WHEN (Station = 4 and TCP_Proces = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_denr",
+  var total_tandang_payp = {
+    onStatisticField: "CASE WHEN (Station = 'Tandang Sora' and StatusNVS3 = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_tandang_payp",
     statisticType: "sum"
   };
 
-  var total_tandang_permitcut = {
-    onStatisticField: "CASE WHEN (Station = 4 and TCP_Proces = 3) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_permitcut",
+  var total_tandang_legalpass = {
+    onStatisticField: "CASE WHEN (Station = 'Tandang Sora' and StatusNVS3 = 3) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_tandang_legalpass",
     statisticType: "sum"
   };
 
-  var total_tandang_permitearthb = {
-    onStatisticField: "CASE WHEN (Station = 4 and TCP_Proces = 4) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_permitearthb",
+  var total_tandang_otb = {
+    onStatisticField: "CASE WHEN (Station = 'Tandang Sora' and StatusNVS3 = 4) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_tandang_otb",
     statisticType: "sum"
   };
 
-  var total_tandang_cut = {
-    onStatisticField: "CASE WHEN (Station = 4 and TCP_Proces = 5) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_cut",
+  var total_tandang_expro = {
+    onStatisticField: "CASE WHEN (Station = 'Tandang Sora' and StatusNVS3 = 5) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_tandang_expro",
     statisticType: "sum"
   };
 
-  var total_tandang_earthb = {
-    onStatisticField: "CASE WHEN (Station = 4 and TCP_Proces = 6) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_earthb",
+  var total_tandang_dismissal = {
+    onStatisticField: "CASE WHEN (Station = 'Tandang Sora' and StatusNVS3 = 6) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_tandang_dismissal",
     statisticType: "sum"
   };
 
     // North Avenue
-  var total_northave_tcpapp = {
-    onStatisticField: "CASE WHEN (Station = 5 and TCP_Proces = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_tcpapp",
+    var total_northave_paid = {
+    onStatisticField: "CASE WHEN (Station = 'North Avenue' and StatusNVS3 = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_northave_paid",
     statisticType: "sum"
   };
 
-  var total_northave_denr = {
-    onStatisticField: "CASE WHEN (Station = 5 and TCP_Proces = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_denr",
+  var total_northave_payp = {
+    onStatisticField: "CASE WHEN (Station = 'North Avenue' and StatusNVS3 = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_northave_payp",
     statisticType: "sum"
   };
 
-  var total_northave_permitcut = {
-    onStatisticField: "CASE WHEN (Station = 5 and TCP_Proces = 3) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_permitcut",
+  var total_northave_legalpass = {
+    onStatisticField: "CASE WHEN (Station = 'North Avenue' and StatusNVS3 = 3) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_northave_legalpass",
     statisticType: "sum"
   };
 
-  var total_northave_permitearthb = {
-    onStatisticField: "CASE WHEN (Station = 5 and TCP_Proces = 4) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_permitearthb",
+  var total_northave_otb = {
+    onStatisticField: "CASE WHEN (Station = 'North Avenue' and StatusNVS3 = 4) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_northave_otb",
     statisticType: "sum"
   };
 
-  var total_northave_cut = {
-    onStatisticField: "CASE WHEN (Station = 5 and TCP_Proces = 5) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_cut",
+  var total_northave_expro = {
+    onStatisticField: "CASE WHEN (Station = 'North Avenue' and StatusNVS3 = 5) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_northave_expro",
     statisticType: "sum"
   };
 
-  var total_northave_earthb = {
-    onStatisticField: "CASE WHEN (Station = 5 and TCP_Proces = 6) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_earthb",
+  var total_northave_dismissal = {
+    onStatisticField: "CASE WHEN (Station = 'North Avenue' and StatusNVS3 = 6) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_northave_dismissal",
     statisticType: "sum"
   };
 
-  var query = treeCuttingLayer.createQuery();
-  query.outStatistics = [total_depot_tcpapp, total_depot_denr, total_depot_permitcut, total_depot_permitearthb, total_depot_cut, total_depot_earthb, total_depot_tcpexp,
-                         total_quirino_tcpapp, total_quirino_denr, total_quirino_permitcut, total_quirino_permitearthb, total_quirino_cut, total_quirino_earthb, total_quirino_tcpexp,
-                         total_tandang_tcpapp, total_tandang_denr, total_tandang_permitcut, total_tandang_permitearthb, total_tandang_cut, total_tandang_earthb, total_tandang_tcpexp,
-                         total_northave_tcpapp, total_northave_denr, total_northave_permitcut, total_northave_permitearthb, total_northave_cut, total_northave_earthb, total_northave_tcpexp];
+  var query = lotLayer.createQuery();
+  query.outStatistics = [total_depot_paid, total_depot_payp, total_depot_legalpass, total_depot_otb, total_depot_expro, total_depot_dismissal,
+                         total_quirino_paid, total_quirino_payp, total_quirino_legalpass, total_quirino_otb, total_quirino_expro, total_quirino_dismissal,
+                         total_tandang_paid, total_tandang_payp, total_tandang_legalpass, total_tandang_otb, total_tandang_expro, total_tandang_dismissal,
+                         total_northave_paid, total_northave_payp, total_northave_legalpass, total_northave_otb, total_northave_expro, total_northave_dismissal];
   query.returnGeometry = true;
 
-  treeCuttingLayer.queryFeatures(query).then(function(response) {
+  lotLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
     /* Depot */
-    const depot_tcpapp = stats.total_depot_tcpapp;
-    const depot_denr = stats.total_depot_denr;
-    const depot_permitcut = stats.total_depot_permitcut;
-    const depot_permitearthb = stats.total_depot_permitearthb;
-    const depot_cut = stats.total_depot_cut;
-    const depot_earthb = stats.total_depot_earthb;
-    const depot_tcpexp = stats.total_depot_tcpexp;
-
+    const depot_paid = stats.total_depot_paid;
+    const depot_payp = stats.total_depot_payp;
+    const depot_legalpass = stats.total_depot_legalpass;
+    const depot_otb = stats.total_depot_otb;
+    const depot_expro = stats.total_depot_expro;
+    const depot_dismissal = stats.total_depot_dismissal;
 
     /* Quirino Highway */
-    const quirino_tcpapp = stats.total_quirino_tcpapp;
-    const quirino_denr = stats.total_quirino_denr;
-    const quirino_permitcut = stats.total_quirino_permitcut;
-    const quirino_permitearthb = stats.total_quirino_permitearthb;
-    const quirino_cut = stats.total_quirino_cut;
-    const quirino_earthb = stats.total_quirino_earthb;
-    const quirino_tcpexp = stats.total_quirino_tcpexp;
+    const quirino_paid = stats.total_quirino_paid;
+    const quirino_payp = stats.total_quirino_payp;
+    const quirino_legalpass = stats.total_quirino_legalpass;
+    const quirino_otb = stats.total_quirino_otb;
+    const quirino_expro = stats.total_quirino_expro;
+    const quirino_dismissal = stats.total_quirino_dismissal;
 
     /* Tandang Sora */
-    const tandang_tcpapp = stats.total_tandang_tcpapp;
-    const tandang_denr = stats.total_tandang_denr;
-    const tandang_permitcut = stats.total_tandang_permitcut;
-    const tandang_permitearthb = stats.total_tandang_permitearthb;
-    const tandang_cut = stats.total_tandang_cut;
-    const tandang_earthb = stats.total_tandang_earthb;
-    const tandang_tcpexp = stats.total_tandang_tcpexp;
+    const tandang_paid = stats.total_tandang_paid;
+    const tandang_payp = stats.total_tandang_payp;
+    const tandang_legalpass = stats.total_tandang_legalpass;
+    const tandang_otb = stats.total_tandang_otb;
+    const tandang_expro = stats.total_tandang_expro;
+    const tandang_dismissal = stats.total_tandang_dismissal;
 
     /* North Avenue */
-    const northave_tcpapp = stats.total_northave_tcpapp;
-    const northave_denr = stats.total_northave_denr;
-    const northave_permitcut = stats.total_northave_permitcut;
-    const northave_permitearthb = stats.total_northave_permitearthb;
-    const northave_cut = stats.total_northave_cut;
-    const northave_earthb = stats.total_northave_earthb;
-    const northave_tcpexp = stats.total_northave_tcpexp;
+    const northave_paid = stats.total_northave_paid;
+    const northave_payp = stats.total_northave_payp;
+    const northave_legalpass = stats.total_northave_legalpass;
+    const northave_otb = stats.total_northave_otb;
+    const northave_expro = stats.total_northave_expro;
+    const northave_dismissal = stats.total_northave_dismissal;
 
     var chart = am4core.create("chartdiv", am4charts.XYChart);
     chart.hiddenState.properties.opacity = 0;
@@ -1087,43 +518,39 @@ function updateChartCutting() {
     chart.data = [
     {
     category: "North Avenue",
-    value1: northave_tcpapp,
-    value2: northave_denr,
-    value3: northave_permitcut,
-    value4: northave_permitearthb,
-    value5: northave_cut,
-    value6: northave_earthb,
-    value7: northave_tcpexp
+    value1: northave_paid,
+    value2: northave_payp,
+    value3: northave_legalpass,
+    value4: northave_otb,
+    value5: northave_expro,
+    value6: northave_dismissal
   },
   {
     category: "Tandang Sora",
-    value1: tandang_tcpapp,
-    value2: tandang_denr,
-    value3: tandang_permitcut,
-    value4: tandang_permitearthb,
-    value5: tandang_cut,
-    value6: tandang_earthb,
-    value7: tandang_tcpexp
+    value1: tandang_paid,
+    value2: tandang_payp,
+    value3: tandang_legalpass,
+    value4: tandang_otb,
+    value5: tandang_expro,
+    value6: tandang_dismissal
   },
   {
     category: "Quirino Highway",
-    value1: quirino_tcpapp,
-    value2: quirino_denr,
-    value3: quirino_permitcut,
-    value4: quirino_permitearthb,
-    value5: quirino_cut,
-    value6: quirino_earthb,
-    value7: quirino_tcpexp
+    value1: quirino_paid,
+    value2: quirino_payp,
+    value3: quirino_legalpass,
+    value4: quirino_otb,
+    value5: quirino_expro,
+    value6: quirino_dismissal
   },
   {
     category: "Depot",
-    value1: depot_tcpapp,
-    value2: depot_denr,
-    value3: depot_permitcut,
-    value4: depot_permitearthb,
-    value5: depot_cut,
-    value6: depot_earthb,
-    value7: depot_tcpexp
+    value1: depot_paid,
+    value2: depot_payp,
+    value3: depot_legalpass,
+    value4: depot_otb,
+    value5: depot_expro,
+    value6: depot_dismissal
   }
 ];
 
@@ -1171,6 +598,8 @@ valueAxis.renderer.minWidth = 50;
 valueAxis.renderer.labels.template.fontSize = 11;
 valueAxis.renderer.labels.template.fill = "#ffffff";
 
+const colors = ["#70AD47", "#0070FF", "#FFFF00", "#FFAA00", "#FF0000", "#00734C"]
+
 function createSeriesCutting(field, name) {
   var series = chart.series.push(new am4charts.ColumnSeries());
   series.calculatePercent = true;
@@ -1181,22 +610,19 @@ function createSeriesCutting(field, name) {
   series.dataFields.valueYShow = "totalPercent";
   series.dataItems.template.locations.categoryY = 0.5;
   series.name = name;
-  if (name == "For TCP Application"){
-    series.fill = am4core.color(colorsNoClear[0]);
-  } else if (name == "Submitted to DENR") {
-    series.fill = am4core.color(colorsNoClear[6]);
-  } else if (name == "With Permit-Not Yet Cut") {
-    series.fill = am4core.color(colorsNoClear[2]);
-  } else if (name == "With Permit-Not Yet Earthballed") {
-    series.fill = am4core.color(colorsNoClear[3]);
-  } else if (name == "Cut") {
-    series.fill = am4core.color(colorsNoClear[1]);
-  }  else if (name == "Earthballed") {
-    series.fill = am4core.color(colorsNoClear[5]);
-  }  else if (name == "TCP Expired") {
-    series.fill = am4core.color(colorsNoClear[4]);
+  if (name == "Paid"){
+    series.fill = am4core.color(colors[0]);
+  } else if (name == "For Payment Processing") {
+    series.fill = am4core.color(colors[1]);
+  } else if (name == "For Legal Pass") {
+    series.fill = am4core.color(colors[2]);
+  } else if (name == "For Appraisal/Offer to Buy") {
+    series.fill = am4core.color(colors[3]);
+  } else if (name == "For Expro") {
+    series.fill = am4core.color(colors[4]);
+  }  else if (name == "For Dimissal") {
+    series.fill = am4core.color(colors[5]);
   }
-
 
   series.columns.template.width = am4core.percent(100);
   series.columns.template.tooltipText = "[font-size:12px]{name}: {valueY.value.formatNumber('#.')}"
@@ -1217,20 +643,17 @@ function createSeriesCutting(field, name) {
 } // End of createSeries function
 
 // Run createSeries
-createSeriesCutting("value1", "For TCP Application");
-createSeriesCutting("value2", "Submitted to DENR");
-createSeriesCutting("value3", "With Permit-Not Yet Cut");
-createSeriesCutting("value4", "With Permit-Not Yet Earthballed");
-createSeriesCutting("value5", "Cut");
-createSeriesCutting("value6", "Earthballed");
-createSeriesCutting("value7", "TCP Expired");
+createSeriesCutting("value1", "Paid");
+createSeriesCutting("value2", "For Payment Processing");
+createSeriesCutting("value3", "For Legal Pass");
+createSeriesCutting("value4", "For Appraisal/Offer to Buy");
+createSeriesCutting("value5", "For Expro");
+createSeriesCutting("value6", "For Dismissal");
 
   }); // End of queryFeatures
 } // End of updateChartCutting function
 
 updateChartCutting();
-
-
 
 }); // End of am4core.ready
 
