@@ -654,6 +654,7 @@ let treeTree_CompeRenderer = {
   ]
 };
 
+
 let treePermitRenderer = {
   type: "unique-value",
   valueExpression: "When($feature.Remarks2 == 1, 'withPermit', $feature.Remarks2 == 2, 'noPermit', $feature.Remarks2)",
@@ -674,12 +675,12 @@ let treePermitRenderer = {
     },
     {
       value: "noPermit",
-      label: "For Legal Pass",
+      label: "Without Permit",
       type: "simple",
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[6], // the first two letters dictate transparency.
+      color: colorsCut[4], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -688,7 +689,6 @@ let treePermitRenderer = {
     }
   ]
 };
-
 
 //*******************************//
 // Import Layers                 //
@@ -850,8 +850,8 @@ var treeCuttingLayer = new FeatureLayer ({
             label: "Tree Compensation"
           },
           {
-            fieldName: "Remarks2",
-            label: "Permit"
+              fieldName: "Remarks2",
+              label: "Tree Permit"
           }
         ]
       }
@@ -914,8 +914,8 @@ var compensationLayer = new FeatureLayer ({
             label: "Tree Cutting"
           },
           {
-            fieldName: "Remarks2",
-            label: "Permit"
+              fieldName: "Remarks2",
+              label: "Tree Permit"
           }
         ]
       }
@@ -923,6 +923,7 @@ var compensationLayer = new FeatureLayer ({
   }
 });
 map.add(compensationLayer);
+
 
 // Tree Tree_Compe
 var permitLayer = new FeatureLayer ({
@@ -1013,6 +1014,7 @@ chartTitleDiv.innerHTML = chartTitleLabel + "Tree Cutting (%)";
 
 if (document.getElementById("Tree Cutting").checked = true) {
   compensationLayer.visible = false;
+  permitLayer.visible = false;
     treeCuttingLayer.visible = true;
   updateChartCutting();
   
@@ -1041,18 +1043,19 @@ function filterByType(e) {
     testFunction(selectedType);
 
   } else if (selectedType == "Permit") {
-    permitLayer.visible = true;
     compensationLayer.visible = false;
     treeCuttingLayer.visible = false;
+    permitLayer.visible = true;
     chartTitleDiv.innerHTML = chartTitleLabel + "Tree Permit (%)";
 
     updateChartPermit();
     testFunction(selectedType);
+
   }
 
 }
 
-function updateChartCutting() {
+async function updateChartCutting() {
       // Depot
   var total_depot_tcpapp = {
     onStatisticField: "CASE WHEN (Station = 2 and TCP_Proces = 1) THEN 1 ELSE 0 END",
@@ -1532,7 +1535,7 @@ createSeriesCutting("value7", "TCP Expired");
 
 
 
-function updateChartTreeComp() {
+async function updateChartTreeComp() {
       // Depot
   var total_depot_otc = {
     onStatisticField: "CASE WHEN (Station = 2 and Tree_Compe = 1) THEN 1 ELSE 0 END",
@@ -2010,8 +2013,7 @@ createSeriesCompensation("value7", "For Donation");
   }); // End of queryFeatures
 } // End of updateChartCutting function
 
-
-function updateChartPermit() {
+async function updateChartPermit() {
       // Depot
   var total_depot_permit = {
     onStatisticField: "CASE WHEN (Station = 2 and Remarks2 = 1) THEN 1 ELSE 0 END",
@@ -2024,6 +2026,7 @@ function updateChartPermit() {
     outStatisticFieldName: "total_depot_nopermit",
     statisticType: "sum"
   };
+
 
     // Quirino Highway
   var total_quirino_permit = {
@@ -2066,9 +2069,8 @@ function updateChartPermit() {
     statisticType: "sum"
   };
 
-
   var query = permitLayer.createQuery();
-  query.outStatistics = [total_depot_permit, total_depot_nopermit,,
+  query.outStatistics = [total_depot_permit, total_depot_nopermit,
                          total_quirino_permit, total_quirino_nopermit,
                          total_tandang_permit, total_tandang_nopermit,
                          total_northave_permit, total_northave_nopermit];
@@ -2162,7 +2164,7 @@ valueAxis.renderer.minWidth = 50;
 valueAxis.renderer.labels.template.fontSize = 11;
 valueAxis.renderer.labels.template.fill = "#ffffff";
 
-function createSeriesCutting(field, name) {
+function createSeriesPermit(field, name) {
   var series = chart.series.push(new am4charts.ColumnSeries());
   series.calculatePercent = true;
   series.tooltip.label.fontSize = 14;
@@ -2175,7 +2177,7 @@ function createSeriesCutting(field, name) {
   if (name == "With Permit"){
     series.fill = am4core.color(colorsNoClear[0]);
   } else if (name == "Without Permit") {
-    series.fill = am4core.color(colorsNoClear[6]);
+    series.fill = am4core.color(colorsNoClear[4]);
   }
 
   series.columns.template.width = am4core.percent(60);
@@ -2191,38 +2193,38 @@ function createSeriesCutting(field, name) {
     
     if (selectedP == "Depot" && selectedC == "With Permit") {
       selectedStation = 2;
-      selectedRemarks2 = 1;
+      selectedRemarks = 1;
     } else if (selectedP == "Depot" && selectedC == "Without Permit") {
       selectedStation = 2;
-      selectedRemarks2 = 2;
+      selectedRemarks = 2;
 
     } else if (selectedP == "Quirino Highway" && selectedC == "With Permit") {
       selectedStation = 3;
-      selectedRemarks2 = 1;
+      selectedRemarks = 1;
     } else if (selectedP == "Quirino Highway" && selectedC == "Without Permit") {
       selectedStation = 3;
-      selectedRemarks2 = 2;
+      selectedRemarks = 2;
 
     } else if (selectedP == "Tandang Sora" && selectedC == "With Permit") {
       selectedStation = 4;
-      selectedRemarks2 = 1;
+      selectedRemarks = 1;
     } else if (selectedP == "Tandang Sora" && selectedC == "Without Permit") {
       selectedStation = 4;
-      selectedRemarks2 = 2;
+      selectedRemarks = 2;
 
     } else if (selectedP == "North Avenue" && selectedC == "With Permit") {
       selectedStation = 5;
-      selectedRemarks2 = 1;
+      selectedRemarks = 1;
     } else if (selectedP == "North Avenue" && selectedC == "Without Permit") {
       selectedStation = 5;
-      selectedRemarks2 = 2;
+      selectedRemarks = 2;
 
     } else {
         selectedStation = null;
-        selectedRemarks2 = null;
+        selectedRemarks = null;
     }
 
-    permitLayer.definitionExpression = "Station = " + selectedStation + " AND " + "Remarks2 = " + selectedRemarks2;
+    permitLayer.definitionExpression = "Station = " + selectedStation + " AND " + "Remarks2 = " + selectedRemarks;
     zoomToLayer(permitLayer);
 
     view.on("click", function() {
@@ -2247,8 +2249,8 @@ function createSeriesCutting(field, name) {
 } // End of createSeries function
 
 // Run createSeries
-createSeriesCutting("value1", "With Permit");
-createSeriesCutting("value2", "Without Permit");
+createSeriesPermit("value1", "With Permit");
+createSeriesPermit("value2", "Without Permit");
 
   }); // End of queryFeatures
 } // End of updateChartPermit function
@@ -2320,7 +2322,7 @@ view.when(function() {
     } // End of if (event.action.id...)
   });
 }); // End of view.when()
-} else {
+} else if (selectedType == "Tree Compensation") {
   view.when(function() {
   var popup = view.popup;
   popup.viewModel.on("trigger-action", function(event) {
@@ -2331,6 +2333,61 @@ view.when(function() {
 
       view.whenLayerView(compensationLayer).then(function(layerView) {
         compensationLayer.queryFeatures().then(function(results) {
+          const ggg = results.features;
+          const rowN = ggg.length; //7
+
+          //var rrr = results.features[0].attributes.Id;
+          //var rrr = results.features[6].attributes.Id; // return Id of 7th row
+          
+          var i;
+          let objID = [];
+            for (i=0; i < rowN; i++) {
+              if (results.features[i].attributes.ID_1 == infoObjId) {
+                  if (results.features[i].attributes.OBJECTID == infoObjId) {
+                      continue;
+                  }
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
+                }
+            }
+
+      var queryExt = new Query({
+        //objectIds: [1,2,3,4,5]
+        //objectIds: objID
+        objectIds: objID
+      });
+
+      treeCuttingLayer.queryExtent(queryExt).then(function(result) {
+        if (result.extent) {
+          view.goTo(result.extent)
+        }
+      });
+
+      if (highlightSelect) {
+        highlightSelect.remove();
+      }
+      highlightSelect = layerView.highlight(objID);
+
+      view.on("click", function() {
+        highlightSelect.remove();
+});
+    }); // End of queryFeatures()
+}); // End of layerView
+
+    } // End of if (event.action.id...)
+  });
+}); // End of view.when()
+} else {
+    view.when(function() {
+  var popup = view.popup;
+  popup.viewModel.on("trigger-action", function(event) {
+    if (event.action.id == "find-trees") {
+      var attributes = popup.viewModel.selectedFeature.attributes;
+      var info = attributes.Id; //
+      var infoObjId = attributes.ID; //1
+
+      view.whenLayerView(permitLayer).then(function(layerView) {
+        permitLayer.queryFeatures().then(function(results) {
           const ggg = results.features;
           const rowN = ggg.length; //7
 
@@ -2494,7 +2551,11 @@ searchExpand.watch("expanded", function() {
     {
       layer: compensationLayer,
       title: "Status of Tree Compensation"
-    }
+    },
+    {
+      layer: permitLayer,
+      title: "Status of Tree Permit"
+    },
   ]
 });
 
