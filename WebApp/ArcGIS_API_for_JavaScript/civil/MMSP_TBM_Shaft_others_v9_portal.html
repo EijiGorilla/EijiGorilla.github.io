@@ -579,7 +579,7 @@ const colorP = ["#FFE1E1E1", "#80FF0000", "#4D", "#4D", "#80", "#80", "#80", "#8
           4: [116, 169, 207, 0.8], // 50 - >75%
           5: [43, 140, 190, 0.8], // 75%<
           6: [4, 90, 141, 0.8], // 100% (Completed)
-          7: [255, 0, 0, 0.8], // Delayed
+          7: [255, 0, 0, 0.5], // Delayed
         };
         
 //*******************************//
@@ -645,13 +645,13 @@ map.add(constBoundary);
           title: "Excavation Spot"
         });
         excaSpot.listMode = "hide";
-        view.map.add(excaSpot);
+        //view.map.add(excaSpot);
 
 
 // Structure Layer
         var structureLayer = new SceneLayer({ //structureLayer
           portalItem: {
-            id: "763ad2ef78f54cb2a87162417f948702",
+            id: "25c3b9508214472aa4fc170a7da6c612",
             portal: {
               url: "https://mmspgc-gis.mmspgc.local/portal"
             }
@@ -714,7 +714,8 @@ map.add(constBoundary);
                       },
                       edges: {
                         type: "solid", // autocasts as new SolidEdges3D()
-                        color: [225, 225, 225, 0.3]
+                        color: [0, 0, 0, 0.3], //225, 225, 225, 0.3
+                        size: 1
                         }
                     }
                   ]
@@ -817,6 +818,7 @@ var ccLayer = new SceneLayer({
 
 
 // TBM Shaft/Cut and Cover Progress layer of Construction process
+/*
 var progressLayer = new FeatureLayer({
     portalItem: {
         id: "32109a10777d4324ac00c4dea7c9d9b8",
@@ -826,7 +828,7 @@ var progressLayer = new FeatureLayer({
     }
 });
 map.add(progressLayer);
-
+*/
 
 
 // TBM Alignment reference line:--------------
@@ -934,7 +936,7 @@ function filterByTest(event) {
 }
 
 // Make sure that the attribute table has Type in the following order:
-// Bottom Slab, Retaining Wall, Inner Wal, Top Slab, and Pump Pit
+// Inner Wall, Retaining Wall, Bottom Slab, Top Slab, and Pump Pit
 
 function percentProgressValues() {
     var query = structureLayer.createQuery();
@@ -964,16 +966,16 @@ percentProgressValues().then(showValue);
 
 function updateChartShaft(progArray) {
 // Completed
-const botslab_done = progArray[0];
+const botslab_done = progArray[2];
 const rewall_done = progArray[1];
-const inwall_done = progArray[2];
+const inwall_done = progArray[0];
 const topslab_done = progArray[3];
 const pumpit_done = progArray[4];
 
 // Non-Completed
-const botslab_none = 100 - progArray[0];
+const botslab_none = 100 - progArray[2];
 const rewall_none = 100 - progArray[1];
-const inwall_none = 100 - progArray[2];
+const inwall_none = 100 - progArray[0];
 const topslab_none = 100 - progArray[3];
 const pumpit_none = 100 - progArray[4];
 
@@ -984,29 +986,29 @@ chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
 
 chart.data = [
 {
-    category: "Bottom Slab",
-    value1: botslab_none,
-    value3: botslab_done
-  },
-{
-    category: "Retaining Wall",
-    value1: rewall_none,
-    value3: rewall_done
-  },
-  {
-    category: "Inner Wall",
-    value1: inwall_none,
-    value3: inwall_done
+    category: "Pump Pit",
+    value1: pumpit_done,
+    value2: pumpit_none
   },
   {
     category: "Top Slab",
-    value1: topslab_none,
-    value3: topslab_done
+    value1: topslab_done,
+    value2: topslab_none
+  },
+  {
+    category: "Inner Wall",
+    value1: inwall_done,
+    value2: inwall_none
+  },
+  {
+    category: "Retaining Wall",
+    value1: rewall_done,
+    value2: rewall_none
   },
 {
-    category: "Pump Pit",
-    value1: pumpit_none,
-    value3: pumpit_done
+    category: "Bottom Slab",
+    value1: botslab_done,
+    value2: botslab_none
   }
 ]; // End of chart
 
@@ -1065,10 +1067,27 @@ function createSeries(field, name) {
 
 
   series.name = name;
+  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
   if (name == "Incomplete"){
-    series.fill = am4core.color("#707070");
+    series.fill = am4core.color("#000000");
+    
+  labelBullet.locationX = 0.5;
+  labelBullet.label.text = "";
+  labelBullet.label.fill = am4core.color("#00FFFFFF");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 10;
+  labelBullet.locationX = 0.5;
+
   } else if (name == "Completed"){
     series.fill = am4core.color("#045A8D"); //00C5FF
+    
+  labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 12;
+  labelBullet.locationX = 0.5;
+
   }
   series.columns.template.width = am4core.percent(60);
   series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
@@ -1077,18 +1096,12 @@ function createSeries(field, name) {
   const chartElement = document.getElementById("chartPanel");
 
 
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-  labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 10;
-  labelBullet.locationX = 0.5;
+
 
 } // End of createSeries function
 
-createSeries("value1", "Incomplete");
-createSeries("value3", "Completed");
+createSeries("value1", "Completed");
+createSeries("value2", "Incomplete");
 
 
  } // End of updateChartShaft()
