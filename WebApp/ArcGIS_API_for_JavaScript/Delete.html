@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>TBM Shaft (PO Section)</title>
+<title>Station Structure (PO Section)</title>
 
     <style>
       html,
@@ -77,30 +77,15 @@
         overflow: hidden;
       }
 
-      #infoDiv {
-        background-color: rgb(0, 0, 0, 0.5);
-        padding: 10px;
-        max-height: 375px;
-        overflow: auto;
-        font-size: 14px;
-      }
-
       .boxA {
         border: solid 2px gray;
-        display: flex; flex-direction: Bottom Slab;
+        display: flex; flex-direction: Column;
         flex-wrap: wrap;
         height: 100%;
         box-sizing: border-box;
         border-top: 0;
         border-bottom: 0;
       }
-
-      #chartdiv {
-          width: 100%;
-          height: 55vh;
-          align-items: center;
-          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-          }
 
       #chartTitleDiv {
         font-weight: 200;
@@ -120,9 +105,18 @@
         background: rgb(0, 0, 0, 0);
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         font-size: 17px;
-        display: flex; flex-direction: column;
-        width: 100%;
+        padding: 0px;
+        width: 99%;
+        height: 70%;
+        flex-wrap: wrap;
+        box-sizing: border-box;
+        margin: 3px;
       }
+
+      #chartdiv {
+          width: 100%;
+          height: 100%;
+          }
       
       #optionsDiv {
         font-size: 20px;
@@ -179,11 +173,11 @@
       h5 {
         color: rgb(0, 197, 255);
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-        text-align: left;
+        text-align: center;
         font-weight: bold;
         font-size: 14px;
-        padding: 0;
-        margin: 0;
+        padding: 3;
+        margin: 10;
       }
 
       h6 {
@@ -215,30 +209,6 @@
           margin: 30px 0px 20px 0px;
           padding: 0px 0px 10px 0px;
           }
-          
-    .label {
-      vertical-align: text-top;
-      padding: 5px;
-      font-size: 12px;
-    }
-          .esri-layer-list__item-toggle-icon,
-     .esri-layer-list__item-title {
-      color: white;
-     }
-
-
-      .sassy-theme .esri-menu,
-      .sassy-theme .esri-popup__main-container,
-      .sassy-theme .esri-popup .esri-popup__pointer-direction,
-      .sassy-theme .esri-popup .esri-popup__button,
-      .sassy-theme .esri-button,
-      .sassy-theme .esri-input,
-      .sassy-theme .esri-legend,
-      .sassy-theme .esri-layer-list,
-      .sassy-theme .esri-widget a {
-        background-color: rgb(0, 0, 0, 0.7);
-        color: #fff;
-      }
 
     </style>
 
@@ -289,11 +259,7 @@ href="https://js.arcgis.com/4.18/esri/themes/dark/main.css"
         "esri/widgets/FeatureTable",
         "esri/widgets/Compass",
         "esri/layers/ElevationLayer",
-        "esri/Ground",
-        "esri/identity/OAuthInfo",
-        "esri/identity/IdentityManager",
-        "esri/portal/PortalQueryParams",
-        "esri/core/urlUtils"
+        "esri/Ground"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -303,13 +269,12 @@ href="https://js.arcgis.com/4.18/esri/themes/dark/main.css"
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol,
                   TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
-                  FeatureTable, Compass, ElevationLayer, Ground,
-                  OAuthInfo, IdentityManager, PortalQueryParams, urlUtils) {
-
-
+                  FeatureTable, Compass, ElevationLayer, Ground) {
 
 let chartLayerView;
 ////////////////////////////////////////////////////
+
+
 var basemap = new Basemap({
         baseLayers: [
           new VectorTileLayer({
@@ -324,16 +289,11 @@ var basemap = new Basemap({
       const worldElevation = new ElevationLayer({
         url: "//elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
         });
-        
 
         var map = new Map({
-              basemap: basemap, // "streets-night-vector", basemap, topo-vector
-              ground: new Ground({
-                layers: worldElevation
-              })
-        });
-        //map.ground.surfaceColor = "#FFFF";
-        //map.ground.opacity = 0.1;
+              basemap: basemap, // "streets-night-vector", 
+              ground: "world-elevation"
+        }); 
          
         var view = new SceneView({
             map: map,
@@ -341,9 +301,9 @@ var basemap = new Basemap({
             viewingMode: "local",
             camera: {
                 position: {
-                    x: 121.0173144,
-                    y: 14.6871275,
-                    z: 700
+                    x: 120.57930,
+                    y: 15.18,
+                    z: 500
                     },
                     tilt: 65
                     },
@@ -379,11 +339,22 @@ var basemap = new Basemap({
         var applicationDiv = document.getElementById("applicationDiv");
         const utilTypesButton = document.getElementById("dataTypeInput");
 
+
 //*******************************//
 // Label Class Property Settings //
 //*******************************//
-        // Station labels
-        var labelClass = new LabelClass({
+ // Chainage Label
+var labelChainage = new LabelClass({
+  labelExpressionInfo: {expression: "$feature.KM_MAIN"},
+  symbol: {
+    type: "text",
+    color: [219,112,147,0.5],
+    size: 20
+  }
+});
+
+// Station Label
+var labelClass = new LabelClass({
           symbol: {
             type: "label-3d",// autocasts as new LabelSymbol3D()
             symbolLayers: [
@@ -392,13 +363,13 @@ var basemap = new Basemap({
                 material: {
                   color: "white"
                 },
-                size: 12,
+                size: 10,
                 color: "black",
                 haloColor: "black",
                 haloSize: 1,
                 font: {
                   family: "Ubuntu Mono",
-                  weight: "bold"
+                  //weight: "bold"
                 },
               }
             ],
@@ -412,180 +383,192 @@ var basemap = new Basemap({
           labelPlacement: "above-center",
           labelExpressionInfo: {
             expression: 'DefaultValue($feature.Station, "no data")'
-          }
+            //value: "{TEXTSTRING}"
+        }
         });
 
-        // Excavation SPot Label
-        var excaspotlabelClass = new LabelClass({
-          symbol: {
-            type: "label-3d",// autocasts as new LabelSymbol3D()
-            symbolLayers: [
-              {
-                type: "text", // autocasts as new TextSymbol3DLayer()
-                material: {
-                  color: "#98E600"
-                },
-                size: 10,
-                halo: {
-                      size: 0.8,
-                      color: "black"
-                    },
-                font: {
-                  family: "Ubuntu Mono",
-                  weight: "bold"
-                },
-              }
-            ],
-            verticalOffset: {
-              screenLength: 100,
-              maxWorldLength: 200,
-              minWorldLength: 30
-            },
-            callout: {
-              type: "line",
-              size: 0.5,
-              color: [0, 0, 0],
-              border: {
-                color: [255, 255, 255, 0.7]
-              }
-            }
-
-          },
-          labelPlacement: "above-center",
-          labelExpressionInfo: {
-            value: "Excavating"
-          }
-        });
 //*****************************//
 //      Renderer Settings      //
 //*****************************// 
-// Boundary
-let defaultLotSymbolBoundary = {
-                type: "simple-fill",
-                color: [0, 0, 0, 0],
-                style: "solid",
-                outline: {
-                    style: "dash",
-                color: [215, 215, 158],
-                width: 1.5
-            }
-};
+// Chainage symbol
+var chainageRenderer = {
+    type: "simple",
+    symbol: {
+      type: "simple-marker",
+      size: 2,
+      color: [220,20,60,0.2],
+      outline: {
+        width: 0.2,
+        color: "black"
+      }
+    }
+  };
 
-let BoundaryFillSymbol = {
-    type: "unique-value",
-    field: "StatusNVS3",
-    defaultSymbol: defaultLotSymbolBoundary,
-}
-
-// TBM Alignment line
-let defaultTBMAlign = {
-                type: "simple-line",
-                color: [211, 211, 211, 0.5],
-                style: "solid",
-                width: 0.5
-};
-
-let tbmAlignRenderer = {
-    type: "unique-value",
-    field: "LAYER",
-    defaultSymbol: defaultTBMAlign
-};
-
-
-
-// Station Symbol
+ // Station Symbol
         function stationsSymbol(name) {
           return {
             type: "web-style", // autocasts as new WebStyleSymbol()
             name: name,
-            styleName: "EsriIconsStyle",//EsriRealisticTransportationStyle, EsriIconsStyle
+            styleName: "EsriIconsStyle"//EsriRealisticTransportationStyle, EsriIconsStyle
           };
         }
 
-
-// Excavation Spot Symbol
-        function excaspotSymbol(name) { // Excavation Spot 
-          return {
-            type: "web-style",
-            name: name,
-            styleName: "EsriRealisticTransportationStyle"
-          };
-        }
-
-// Station Renderer
+        // Station Renderer
         var stationsRenderer = {
           type: "unique-value", // autocasts as new UniqueValueRenderer()
-          field: "Name",
+          field: "Station",
           defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
         };
 
-// Excavatin Spot Renderer
-var excaspotRenderer = {
-          type: "unique-value",
-          field: "OBJECTID",
-          defaultSymbol: excaspotSymbol("Backhoe"),
-          visualVariables: [
-            {
-              type: "size",
-              axis: "height",
-              field: "SIZE",
-              minDateValue: 0,
-              maxDataValue: 10,
-              minSize: 8,
-              maxSize: 8
-            },{
-              type: "rotation",
-              field: "ROTATION",
-            }
-          ]
+
+// Legend Color for Structure Layer
+// 0.1: more transparent, 0.9: not transparent 
+        const colors = {
+          1: [225, 225, 225, 0.1], // To be Constructed (white)
+          2: [130, 130, 130, 0.5], // Under Construction
+          3: [255, 0, 0, 1], // Delayed
+          4: [168, 168, 0, 1], // Pile/Pile Cap
+          5: [0, 132, 168, 1], // Beam
+          6: [115, 38, 0, 1], // Column
+          7: [0, 92, 230, 1], // Slab
+          8: [56, 168, 0, 1], // Roof
         };
 
-const colorP = ["#FFE1E1E1", "#80FF0000", "#4D", "#4D", "#80", "#80", "#80", "#80"]
-// Legend Color for Structure Layer        
-        const colors = {
-          1: [225, 225, 225, 0], // To be Constructed (white)
-          2: [255, 0, 0, 0.5], // Delayed
-          3: [0, 0, 0, 0], // Excavation/shotcreet
-          4: [0, 112, 255, 0.5], // Waterproofing
-          5: [255, 140, 0, 0.5], // Rebar/form works
-          6: [225, 225, 225, 0.5], // Concrete
-          7: [0, 0, 0, 0], // Backfilling
-          8: [34, 139, 34, 0.5] // Complete
-        };
-        
 //*******************************//
 // Import Layers                 //
 //*******************************//
-// Construction boundary
+// Centerline and chainage
+var chainageLayer = new FeatureLayer ({
+  portalItem: {
+    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    portal: {
+                  url: "https://gis.railway-sector.com/portal"
+                } 
+  },
+  layerId: 3,
+  title: "Chainage",
+  elevationInfo: {
+    mode: "relative-to-ground"
+  },
+  labelingInfo: [labelChainage],
+  renderer: chainageRenderer,
+  outFields: ["*"],
+  popupEnabled: false
+
+});
+//chainageLayer.listMode = "hide";
+map.add(chainageLayer, 1);
+
+// ROW //
+var rowLayer = new FeatureLayer ({
+  portalItem: {
+    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    portal: {
+                  url: "https://gis.railway-sector.com/portal"
+                }   
+  },
+  layerId: 1,
+  title: "ROW",
+  popupEnabled: false
+});
+map.add(rowLayer,2);
+
+// Station
+var stationLayer = new SceneLayer({
+  portalItem: {
+                id: "779c5943699d45df8dfe240619b3ae62",
+                portal: {
+                  url: "https://gis.railway-sector.com/portal"
+                }
+            },
+             labelingInfo: [labelClass],
+             renderer: stationsRenderer,
+             elevationInfo: {
+                 // this elevation mode will place points on top of
+                 // buildings or other SceneLayer 3D objects
+                 mode: "relative-to-ground"
+                 },
+             definitionExpression: "Extension = 'N2'"
+              //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
+        });
+        stationLayer.listMode = "hide";
+        map.add(stationLayer, 0);
 
 
-
-// Station point feature
-
-
-
-// Excavation machine
-        var excaSpot = new FeatureLayer({
+// Station structures
+        var structureLayer = new SceneLayer({ //structureLayer
           portalItem: {
-            id: "d0be1b0257e94d7b88ffc1de824270df",
+            id: "4cd35622d4da438199fdf64309e4ad34",
             portal: {
-              url: "https://mmspgc-gis.mmspgc.local/portal"
+              url: "https://gis.railway-sector.com/portal"
             }
           },
-          labelingInfo: [excaspotlabelClass],
-          renderer: excaspotRenderer,
-          screenSizePerspectiveEnabled: false,
-          title: "Excavation Spot"
+          popupTemplate: {
+     title: "<h5>{Status}</h5>",
+     lastEditInfoEnabled: false,
+     returnGeometry: true,
+     content: [
+       {
+         type: "fields",
+         fieldInfos: [
+           {
+             fieldName: "Type",
+             label: "Type of Structure"
+           },
+           {
+             fieldName: "SubType",
+             label: "Subtype of Structure",
+           }
+         ]
+       }
+     ]
+   },
+            elevationInfo: {
+                mode: "absolute-height",
+                offset: 0
+            },
+            title: "Station Structure"
+            // when filter using date, example below. use this format
+            //definitionExpression: "EndDate = date'2020-6-3'"
         });
-        excaSpot.listMode = "hide";
-        view.map.add(excaSpot);
+        map.add(structureLayer, 1);
 
+        function renderStructureLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "Status"
+          });
 
+          for (let property in colors) {
+            if (colors.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "mesh-3d",
+                  symbolLayers: [
+                    {
+                      type: "fill",
+                      material: {
+                        color: colors[property],
+                        colorMixMode: "replace"
+                      },
+                      edges: {
+                        type: "solid", // autocasts as new SolidEdges3D()
+                        color: [225, 225, 225, 0.3]
+                        }
+                    }
+                  ]
+                 }
+              });
+            }
+          }
 
+          structureLayer.renderer = renderer;
+        }
+
+        renderStructureLayer();
 
 // Radio Button Selection //        
-// Selection of 'Retaining Wall' or 'Station Box' only for visualization (not chart)
-let structureLayerView;
+// Selection of 'D-Wall' or 'Station Box' only for visualization (not chart)
 
 //*******************************//
 //      Progress Chart           //
@@ -593,7 +576,7 @@ let structureLayerView;
 
 // Total progress //
 var total_complete = {
-  onStatisticField: "CASE WHEN Status = 6 THEN 1 ELSE 0 END",
+  onStatisticField: "CASE WHEN (Status = 4 or Status = 5 or Status = 6 or Status = 7 or Status = 8) THEN 1 ELSE 0 END",
   outStatisticFieldName: "total_complete",
   statisticType: "sum"
 };
@@ -628,20 +611,24 @@ function zoomToLayer(layer) {
 }
 
 
+
 const DropdownValue = document.getElementById("valSelect");
-const chartTitleLabel = "Progress by Components (%)";
-
-// Default selection = 'None'
-
-
 
 // Create Bar chart to show progress of station structure
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
-structureLayer.definitionExpression = "Station = 2";
+const chartTitleLabel = "Progress of Station Structure (%)";
+
+// Default selection = 'CIA'
+
+chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "CIA" + "</p>";
+structureLayer.definitionExpression = "Station = 3";
 zoomToLayer(structureLayer);
 updateChart();
+
+
+
 
 
 // click event handler for choices
@@ -655,204 +642,196 @@ function filterByTest(event) {
     zoomToLayer(structureLayer);
     updateChart();
 
-  } else if (selectedID === "Quirino Highway") {
+  } else if (selectedID === "CIA") {
     structureLayer.definitionExpression = "Station = 3";
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(structureLayer);
     updateChart();
 
-  } else if (selectedID === "Tandang Sora") {
+  } else if (selectedID === "Clark") {
     structureLayer.definitionExpression = "Station = 4";
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(structureLayer);
     updateChart();
 
-  } else if (selectedID === "North Avenue") {
+  } else if (selectedID === "Angeles") {
     structureLayer.definitionExpression = "Station = 5";
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(structureLayer);
-    updateChart(); 
-    
-} else if (selectedID === "None") {
-    structureLayer.definitionExpression = null;
-    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
+    updateChart();
+
+  } else if (selectedID === "San Fernando") {
+    structureLayer.definitionExpression = "Station = 6";
+    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(structureLayer);
-    updateChart(); 
+    updateChart();
+
+  } else if (selectedID === "Apalit") {
+    structureLayer.definitionExpression = "Station = 7";
+    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
+    zoomToLayer(structureLayer);
+    updateChart();
+    
 }
 } // End of filterByTest
 
+ // Pile and Pile Cap 
  function updateChart() {
-// Bottom Slab
-var total_botslab_tobeC = {
-    onStatisticField: "CASE WHEN (Type = 1 and Status = 1) THEN 1 ELSE 0 END",  // Bottom Slab and to be Constructed
-    outStatisticFieldName: "total_botslab_tobeC",
+  var total_pileandcap_tobeC = {
+    onStatisticField: "CASE WHEN (SubType = 1 and Status = 1) THEN 1 ELSE 0 END",  // Pile & Pile Cap and to be Constructed
+    outStatisticFieldName: "total_pileandcap_tobeC",
     statisticType: "sum"
     };
 
-var total_botslab_underC = {
-    onStatisticField: "CASE WHEN (Type = 1 and (Status = 4 or Status = 5 or Status = 6 or Status = 6)) THEN 1 ELSE 0 END",  // Bottom Slab and Under construction
-    outStatisticFieldName: "total_botslab_underC",
+var total_pileandcap_underC = {
+    onStatisticField: "CASE WHEN (SubType = 1 and Status = 2) THEN 1 ELSE 0 END",  // Pile & Pile Cap and Under construction
+    outStatisticFieldName: "total_pileandcap_underC",
+    statisticType: "sum"
+    };
+var total_pileandcap_done = {
+    onStatisticField: "CASE WHEN (SubType = 1 and Status = 4) THEN 1 ELSE 0 END",  // Pile & Pile Cap and Complete
+    outStatisticFieldName: "total_pileandcap_done",
+    statisticType: "sum"
+    };   
+var total_pileandcap_delayed = {
+    onStatisticField: "CASE WHEN (SubType = 1 and Status = 3) THEN 1 ELSE 0 END",  // Pile & Pile Cap and Delayed
+    outStatisticFieldName: "total_pileandcap_delayed",
     statisticType: "sum"
     };
 
-var total_botslab_done = {
-    onStatisticField: "CASE WHEN (Type = 1 and Status = 6) THEN 1 ELSE 0 END",  // Bottom Slab and Complete
-    outStatisticFieldName: "total_botslab_done",
-    statisticType: "sum"
-    };
-      
-var total_botslab_delayed = {
-    onStatisticField: "CASE WHEN (Type = 1 and Status = 2) THEN 1 ELSE 0 END",  // Bottom Slab and Delayed
-    outStatisticFieldName: "total_botslab_delayed",
+// Beam
+var total_beam_tobeC = {
+    onStatisticField: "CASE WHEN (SubType = 2 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
+    outStatisticFieldName: "total_beam_tobeC",
     statisticType: "sum"
     };
 
-    // Retaining Wall
-var total_wall_tobeC = {
-    onStatisticField: "CASE WHEN (Type = 2 and Status = 1) THEN 1 ELSE 0 END",  // Retaining Wall and to be Constructed
-    outStatisticFieldName: "total_wall_tobeC",
+var total_beam_underC = {
+    onStatisticField: "CASE WHEN (SubType = 2 and Status = 2) THEN 1 ELSE 0 END",  // D-Wall and Under construction
+    outStatisticFieldName: "total_beam_underC",
+    statisticType: "sum"
+    };
+var total_beam_done = {
+    onStatisticField: "CASE WHEN (SubType = 2 and Status = 5) THEN 1 ELSE 0 END",  // D-Wall and Complete
+    outStatisticFieldName: "total_beam_done",
+    statisticType: "sum"
+    };   
+var total_beam_delayed = {
+    onStatisticField: "CASE WHEN (SubType = 2 and Status = 3) THEN 1 ELSE 0 END",  // D-Wall and Delayed
+    outStatisticFieldName: "total_beam_delayed",
     statisticType: "sum"
     };
 
-var total_wall_underC = {
-    onStatisticField: "CASE WHEN (Type = 2 and (Status = 4 or Status = 5 or Status = 6)) THEN 1 ELSE 0 END",  // Retaining Wall and Under construction
-    outStatisticFieldName: "total_wall_underC",
-    statisticType: "sum"
-    };
-
-var total_wall_done = {
-    onStatisticField: "CASE WHEN (Type = 2 and Status = 6) THEN 1 ELSE 0 END",  // Retaining Wall and Complete
-    outStatisticFieldName: "total_wall_done",
-    statisticType: "sum"
-    };
-
-var total_wall_delayed = {
-    onStatisticField: "CASE WHEN (Type = 2 and Status = 2) THEN 1 ELSE 0 END",  // Retaining Wall and Delayed
-    outStatisticFieldName: "total_wall_delayed",
-    statisticType: "sum"
-    };
-
-    // Inner Wall
-    var total_inwall_tobeC = {
-    onStatisticField: "CASE WHEN (Type = 3 and Status = 1) THEN 1 ELSE 0 END",  // Inner Wall and to be Constructed
-    outStatisticFieldName: "total_inwall_tobeC",
-    statisticType: "sum"
-    };
-
-    var total_inwall_underC = {
-    onStatisticField: "CASE WHEN (Type = 3 and (Status = 4 or Status = 5 or Status = 6)) THEN 1 ELSE 0 END",  // Inner Wall and Under construction
-    outStatisticFieldName: "total_inwall_underC",
-    statisticType: "sum"
-    };
-
-var total_inwall_done = {
-    onStatisticField: "CASE WHEN (Type = 3 and Status = 6) THEN 1 ELSE 0 END",  // Inner Wall and Complete
-    outStatisticFieldName: "total_inwall_done",
-    statisticType: "sum"
-    };
-
-var total_inwall_delayed = {
-    onStatisticField: "CASE WHEN (Type = 3 and Status = 2) THEN 1 ELSE 0 END",  // Inner Wall and Delayed
-    outStatisticFieldName: "total_inwall_delayed",
-    statisticType: "sum"
-    };
-
-
-// Top Slab
-  var total_slab_tobeC = {
-    onStatisticField: "CASE WHEN (Type = 4 and Status = 1) THEN 1 ELSE 0 END",  // Top Slab and to be Constructed
+// Slab
+var total_slab_tobeC = {
+    onStatisticField: "CASE WHEN (SubType = 3 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
     outStatisticFieldName: "total_slab_tobeC",
     statisticType: "sum"
     };
 
 var total_slab_underC = {
-    onStatisticField: "CASE WHEN (Type = 4 and (Status = 4 or Status = 5 or Status = 6)) THEN 1 ELSE 0 END",  // Top Slab and Under construction
+    onStatisticField: "CASE WHEN (SubType = 3 and Status = 2) THEN 1 ELSE 0 END",  // D-Wall and Under construction
     outStatisticFieldName: "total_slab_underC",
     statisticType: "sum"
     };
-
 var total_slab_done = {
-    onStatisticField: "CASE WHEN (Type = 4 and Status = 6) THEN 1 ELSE 0 END",  // Top Slab and Complete
+    onStatisticField: "CASE WHEN (SubType = 3 and Status = 7) THEN 1 ELSE 0 END",  // D-Wall and Complete
     outStatisticFieldName: "total_slab_done",
     statisticType: "sum"
-    };
-
+    };   
 var total_slab_delayed = {
-    onStatisticField: "CASE WHEN (Type = 4 and Status = 2) THEN 1 ELSE 0 END",  // Top Slab and Delayed
+    onStatisticField: "CASE WHEN (SubType = 3 and Status = 3) THEN 1 ELSE 0 END",  // D-Wall and Delayed
     outStatisticFieldName: "total_slab_delayed",
     statisticType: "sum"
     };
 
- // Pump Pit
-  var total_pumpit_tobeC = {
-    onStatisticField: "CASE WHEN (Type = 5 and Status = 1) THEN 1 ELSE 0 END",  // Pump Pit and to be Constructed
-    outStatisticFieldName: "total_pumpit_tobeC",
+// Column
+var total_column_tobeC = {
+    onStatisticField: "CASE WHEN (SubType = 4 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
+    outStatisticFieldName: "total_column_tobeC",
     statisticType: "sum"
     };
 
-var total_pumpit_underC = {
-    onStatisticField: "CASE WHEN (Type = 5 and (Status = 4 or Status = 5 or Status = 6)) THEN 1 ELSE 0 END",  // Pump Pit and Under construction
-    outStatisticFieldName: "total_pumpit_underC",
+var total_column_underC = {
+    onStatisticField: "CASE WHEN (SubType = 4 and Status = 2) THEN 1 ELSE 0 END",  // D-Wall and Under construction
+    outStatisticFieldName: "total_column_underC",
+    statisticType: "sum"
+    };
+var total_column_done = {
+    onStatisticField: "CASE WHEN (SubType = 4 and Status = 6) THEN 1 ELSE 0 END",  // D-Wall and Complete
+    outStatisticFieldName: "total_column_done",
+    statisticType: "sum"
+    };   
+var total_column_delayed = {
+    onStatisticField: "CASE WHEN (SubType = 4 and Status = 3) THEN 1 ELSE 0 END",  // D-Wall and Delayed
+    outStatisticFieldName: "total_column_delayed",
     statisticType: "sum"
     };
 
-var total_pumpit_done = {
-    onStatisticField: "CASE WHEN (Type = 5 and Status = 6) THEN 1 ELSE 0 END",  // Pump Pit and Complete
-    outStatisticFieldName: "total_pumpit_done",
-    statisticType: "sum"
-    };  
-
-var total_pumpit_delayed = {
-    onStatisticField: "CASE WHEN (Type = 5 and Status = 2) THEN 1 ELSE 0 END",  // Pump Pit and Delayed
-    outStatisticFieldName: "total_pumpit_delayed",
+// Roof
+var total_roof_tobeC = {
+    onStatisticField: "CASE WHEN (SubType = 5 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
+    outStatisticFieldName: "total_roof_tobeC",
     statisticType: "sum"
     };
 
+var total_roof_underC = {
+    onStatisticField: "CASE WHEN (SubType = 5 and Status = 2) THEN 1 ELSE 0 END",  // D-Wall and Under construction
+    outStatisticFieldName: "total_roof_underC",
+    statisticType: "sum"
+    };
+var total_roof_done = {
+    onStatisticField: "CASE WHEN (SubType = 5 and Status = 8) THEN 1 ELSE 0 END",  // D-Wall and Complete
+    outStatisticFieldName: "total_roof_done",
+    statisticType: "sum"
+    };   
+var total_roof_delayed = {
+    onStatisticField: "CASE WHEN (SubType = 5 and Status = 3) THEN 1 ELSE 0 END",  // D-Wall and Delayed
+    outStatisticFieldName: "total_roof_delayed",
+    statisticType: "sum"
+    };
 
 
 var query = structureLayer.createQuery();
-query.outStatistics = [total_botslab_tobeC, total_botslab_underC, total_botslab_done, total_botslab_delayed,
-                       total_wall_tobeC, total_wall_underC, total_wall_done, total_wall_delayed,
-                       total_inwall_tobeC, total_inwall_underC, total_inwall_done, total_inwall_delayed,
+query.outStatistics = [total_pileandcap_tobeC, total_pileandcap_underC, total_pileandcap_done, total_pileandcap_delayed,
+                       total_beam_tobeC, total_beam_underC, total_beam_done, total_beam_delayed,
                        total_slab_tobeC, total_slab_underC, total_slab_done, total_slab_delayed,
-                       total_pumpit_tobeC, total_pumpit_underC, total_pumpit_done, total_pumpit_delayed];
+                       total_column_tobeC, total_column_underC, total_column_done, total_column_delayed,
+                       total_roof_tobeC, total_roof_underC, total_roof_done, total_roof_delayed];
 query.returnGeometry = true;
 
 structureLayer.queryFeatures(query).then(function(response) {
   var stats = response.features[0].attributes;
 
-  
-  // Bottom Slab
-  const botslab_tobeC = stats.total_botslab_tobeC;
-  const botslab_underC = stats.total_botslab_underC;
-  const botslab_done = stats.total_botslab_done;
-  const botslab_delayed = stats.total_botslab_delayed;
+  // Pile and Pile Cap
+  const pileandcap_tobeC = stats.total_pileandcap_tobeC;
+  const pileandcap_underC = stats.total_pileandcap_underC;
+  const pileandcap_done = stats.total_pileandcap_done;
+  const pileandcap_delayed = stats.total_pileandcap_delayed;
 
-  // Retaining Wall
-  const wall_tobeC = stats.total_wall_tobeC;
-  const wall_underC = stats.total_wall_underC;
-  const wall_done = stats.total_wall_done;
-  const wall_delayed = stats.total_wall_delayed;
+  // Beam
+  const beam_tobeC = stats.total_beam_tobeC;
+  const beam_underC = stats.total_beam_underC;
+  const beam_done = stats.total_beam_done;
+  const beam_delayed = stats.total_beam_delayed;
 
-  // Inner Wall
-  const inwall_tobeC = stats.total_inwall_tobeC;
-  const inwall_underC = stats.total_inwall_underC;
-  const inwall_done = stats.total_inwall_done;
-  const inwall_delayed = stats.total_inwall_delayed;
-
-    // Top Slab
+  // Slab (Floor)
   const slab_tobeC = stats.total_slab_tobeC;
   const slab_underC = stats.total_slab_underC;
   const slab_done = stats.total_slab_done;
   const slab_delayed = stats.total_slab_delayed;
 
-// Pump Pit
-  const pumpit_tobeC = stats.total_pumpit_tobeC;
-  const pumpit_underC = stats.total_pumpit_underC;
-  const pumpit_done = stats.total_pumpit_done;
-  const pumpit_delayed = stats.total_pumpit_delayed;
+  // column
+  const column_tobeC = stats.total_column_tobeC;
+  const column_underC = stats.total_column_underC;
+  const column_done = stats.total_column_done;
+  const column_delayed = stats.total_column_delayed;
 
-
+  // Roof
+  const roof_tobeC = stats.total_roof_tobeC;
+  const roof_underC = stats.total_roof_underC;
+  const roof_done = stats.total_roof_done;
+  const roof_delayed = stats.total_roof_delayed;
 
  // Chart //
  var chart = am4core.create("chartdiv", am4charts.XYChart);
@@ -860,39 +839,39 @@ chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
 
 chart.data = [
 {
-    category: "Bottom Slab",
-    value1: botslab_tobeC,
-    value2: botslab_underC,
-    value3: botslab_done,
-    value4: botslab_delayed
-  },
-{
-    category: "Retaining Wall",
-    value1: wall_tobeC,
-    value2: wall_underC,
-    value3: wall_done,
-    value4: wall_delayed
+    category: "Pile-and-PileCap",
+    value1: pileandcap_tobeC,
+    value2: pileandcap_underC,
+    value3: pileandcap_done,
+    value4: pileandcap_delayed
   },
   {
-    category: "Inner Wall",
-    value1: inwall_tobeC,
-    value2: inwall_underC,
-    value3: inwall_done,
-    value4: inwall_delayed
+    category: "Beam",
+    value1: beam_tobeC,
+    value2: beam_underC,
+    value3: beam_done,
+    value4: beam_delayed
   },
   {
-    category: "Top Slab",
+    category: "Floor",
     value1: slab_tobeC,
     value2: slab_underC,
     value3: slab_done,
     value4: slab_delayed
   },
-{
-    category: "Pump Pit",
-    value1: pumpit_tobeC,
-    value2: pumpit_underC,
-    value3: pumpit_done,
-    value4: pumpit_delayed
+  {
+    category: "Column",
+    value1: beam_tobeC,
+    value2: beam_underC,
+    value3: beam_done,
+    value4: beam_delayed
+  },
+  {
+    category: "Roof",
+    value1: roof_tobeC,
+    value2: roof_underC,
+    value3: roof_done,
+    value4: roof_delayed
   }
 ]; // End of chart
 
@@ -923,7 +902,6 @@ marker.stroke = am4core.color("#ccc");
 markerTemplate.width = 16;
 markerTemplate.height = 16;
 
-// Category Axis
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
 categoryAxis.dataFields.category = "category";
 categoryAxis.renderer.grid.template.location = 0;
@@ -942,18 +920,16 @@ valueAxis.renderer.labels.template.fill = "#ffffff";
 
 function createSeries(field, name) {
   var series = chart.series.push(new am4charts.ColumnSeries());
-  series.calculatePercent = true;
+  series.calculatePercen = true;
   series.dataFields.valueX = field;
   series.dataFields.categoryY = "category";
   series.stacked = true;
   series.dataFields.valueXShow = "totalPercent";
   series.dataItems.template.locations.categoryY = 0.5;
-
-
   series.name = name;
   if (name == "To be Constructed"){
     series.fill = am4core.color("#707070");
-  } else if (name == "Under Construction (waterproofing, Rebar/form, Concrete)"){
+  } else if (name == "Under Construction"){
     series.fill = am4core.color("#c2c2c2");
   } else if (name == "Completed"){
     series.fill = am4core.color("#0070ff");
@@ -971,103 +947,82 @@ function createSeries(field, name) {
     const selectedC = ev.target.dataItem.component.name;
     const selectedP = ev.target.dataItem.categoryY;
 
-    // Retaining Wall
-    // 'Under Construction' = Excavation + Rebar
-        // Bottom Slab
-    if (selectedP == "Bottom Slab" && selectedC == "To be Constructed") {
+    // Pile and Pile Cap
+    if (selectedP == "Pile-and-PileCap" && selectedC == "To be Constructed") {
       selectedLayer = 1;
       selectedStatus = 1;
-    } else if (selectedP == "Bottom Slab" && selectedC == "Under Construction (waterproofing, Rebar/form, Concrete)") {
-      selectedLayer = 1;
-      selectedStatus = 4;
-      selectedStatus1 = 5;
-    } else if (selectedP == "Bottom Slab" && selectedC == "Delayed") {
+    } else if (selectedP == "Pile-and-PileCap" && selectedC == "Under Construction") {
       selectedLayer = 1;
       selectedStatus = 2;
-      selectedStatus1 = null;
-    } else if (selectedP == "Bottom Slab" && selectedC == "Completed") {
+    } else if (selectedP == "Pile-and-PileCap" && selectedC == "Delayed") {
       selectedLayer = 1;
-      selectedStatus = 6;
-      selectedStatus1 = null;
+      selectedStatus = 3;
+    } else if (selectedP == "Pile-and-PileCap" && selectedC == "Completed") {
+      selectedLayer = 1;
+      selectedStatus = 4;
 
-      // Retaining Wall
-    } else if (selectedP == "Retaining Wall" && selectedC == "To be Constructed") {
+    // Beam
+    } else if (selectedP == "Beam" && selectedC == "To be Constructed") {
       selectedLayer = 2;
       selectedStatus = 1;
-      selectedStatus1 = null;
-    } else if (selectedP == "Retaining Wall" && selectedC == "Under Construction (waterproofing, Rebar/form, Concrete)") {
-      selectedLayer = 2;
-      selectedStatus = 4;
-      selectedStatus1 = 5;
-    } else if (selectedP == "Retaining Wall" && selectedC == "Delayed") {
+    } else if (selectedP == "Beam" && selectedC == "Under Construction") {
       selectedLayer = 2;
       selectedStatus = 2;
-      selectedStatus1 = null;
-    } else if (selectedP == "Retaining Wall" && selectedC == "Completed") {
+    } else if (selectedP == "Beam" && selectedC == "Delayed") {
       selectedLayer = 2;
-      selectedStatus = 6;
-      selectedStatus1 = null;
+      selectedStatus = 3;
+    } else if (selectedP == "Beam" && selectedC == "Completed") {
+      selectedLayer = 2;
+      selectedStatus = 5;
 
-    // Inner Wall
-    } else if (selectedP == "Inner Wall" && selectedC == "To be Constructed") {
+    // Floor
+    } else if (selectedP == "Floor" && selectedC == "To be Constructed") {
       selectedLayer = 3;
       selectedStatus = 1;
-      selectedStatus1 = null;
-    } else if (selectedP == "Inner Wall" && selectedC == "Under Construction (waterproofing, Rebar/form, Concrete)") {
-      selectedLayer = 3;
-      selectedStatus = 4;
-      selectedStatus1 = 5;
-    } else if (selectedP == "Inner Wall" && selectedC == "Delayed") {
+    } else if (selectedP == "Floor" && selectedC == "Under Construction") {
       selectedLayer = 3;
       selectedStatus = 2;
-      selectedStatus1 = null;
-    } else if (selectedP == "Inner Wall" && selectedC == "Completed") {
+    } else if (selectedP == "Floor" && selectedC == "Delayed") {
       selectedLayer = 3;
-      selectedStatus = 6;
-      selectedStatus1 = null;
+      selectedStatus = 3;
+    } else if (selectedP == "Floor" && selectedC == "Completed") {
+      selectedLayer = 3;
+      selectedStatus = 7;
 
-    // Top Slab
-} else if (selectedP == "Top Slab" && selectedC == "To be Constructed") {
+    // Column
+    } else if (selectedP == "Column" && selectedC == "To be Constructed") {
       selectedLayer = 4;
       selectedStatus = 1;
-      selectedStatus1 = null;
-    } else if (selectedP == "Top Slab" && selectedC == "Under Construction (waterproofing, Rebar/form, Concrete)") {
-      selectedLayer = 4;
-      selectedStatus = 4;
-      selectedStatus1 = 5;
-    } else if (selectedP == "Top Slab" && selectedC == "Delayed") {
+    } else if (selectedP == "Column" && selectedC == "Under Construction") {
       selectedLayer = 4;
       selectedStatus = 2;
-      selectedStatus1 = null;
-    } else if (selectedP == "Top Slab" && selectedC == "Completed") {
+    } else if (selectedP == "Column" && selectedC == "Delayed") {
+      selectedLayer = 4;
+      selectedStatus = 3;
+    } else if (selectedP == "Column" && selectedC == "Completed") {
       selectedLayer = 4;
       selectedStatus = 6;
-      selectedStatus1 = null;
 
-    // Pump Pit
-    } else if (selectedP == "Pump Pit" && selectedC == "To be Constructed") {
+    // Roof
+    } else if (selectedP == "Roof" && selectedC == "To be Constructed") {
       selectedLayer = 5;
       selectedStatus = 1;
-      selectedStatus1 = null;
-    } else if (selectedP == "Pump Pit" && selectedC == "Under Construction (waterproofing, Rebar/form, Concrete)") {
-      selectedLayer = 5;
-      selectedStatus = 4;
-      selectedStatus1 = 5;
-    } else if (selectedP == "Pump Pit" && selectedC == "Delayed") {
+    } else if (selectedP == "Roof" && selectedC == "Under Construction") {
       selectedLayer = 5;
       selectedStatus = 2;
-      selectedStatus1 = null;
-    } else if (selectedP == "Pump Pit" && selectedC == "Completed") {
+    } else if (selectedP == "Roof" && selectedC == "Delayed") {
       selectedLayer = 5;
-      selectedStatus = 6;
-      selectedStatus1 = null;
+      selectedStatus = 3;
+    } else if (selectedP == "Roof" && selectedC == "Completed") {
+      selectedLayer = 5;
+      selectedStatus = 8;
 
     } else {
       selectedLayer = null;
     }
 
     chartLayerView.filter = {
-      where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus + " OR " + "Status = " + selectedStatus1
+      where: "SubType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
     //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
     };
 
@@ -1095,31 +1050,18 @@ view.on("click", function() {
 } // End of createSeries function
 
 createSeries("value1", "To be Constructed");
-createSeries("value2", "Under Construction (waterproofing, Rebar/form, Concrete)");
+createSeries("value2", "Under Construction");
 createSeries("value3", "Completed");
 createSeries("value4", "Delayed");
 
 }); // End of queryFeatures function
  }
 
-
+ updateChart();
 
 }); // End of am4Core.ready()
 
-// Editor
-/*
-view.when(function () {
-          view.popup.autoOpenEnabled = true; //disable popups
 
-          // Create the Editor
-          let editor = new Editor({
-            view: view
-          });
-
-          // Add widget to top-right of the view
-          view.ui.add(editor, "bottom-right");
-        });
-*/
 ///////////////////////////////////////////////
 // LayerList and Add legend to the LayerList
         // On-off feature layer tab
@@ -1127,39 +1069,26 @@ view.when(function () {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
+              if (item.layer.type != "group") {
+                item.panel = {
+                  content: "legend",
+                  open: false
+                };
+              }
               if (item.title === "Chainage" || item.title === "ROW"){
                 item.visible = false
               }
             }
           });
-
-var legend = new Legend({
-  view: view,
-  container: document.getElementById("legendDiv"),
-  layerInfos: [
-    {
-      layer: structureLayer,
-      title: "Construction Status"
-    }
-  ]
-});
-       
 /*
-var legendExpand = new Expand({
-    view: view,
-    content: legend,
-    expandIconClass: "esri-icon-legend",
-    group: "bottom-right"
-});
-view.ui.add(legendExpand, {
-    position: "bottom-right"
-});
+          view.ui.add(layerList, {
+            position: "bottom-left"
+          });
 */
-
         var layerListExpand = new Expand ({
             view: view,
             content: layerList,
-            expandIconClass: "esri-icon-visible",
+            expandIconClass: "esri-icon-expand",
             group: "bottom-left"
         });
         view.ui.add(layerListExpand, {
@@ -1168,7 +1097,7 @@ view.ui.add(legendExpand, {
         // End of LayerList
 
         view.ui.empty("top-left");
-        view.ui.add("infoDiv", "top-left");
+
         // Compass
         var compass = new Compass({
           view: view});
@@ -1206,51 +1135,36 @@ view.ui.add(legendExpand, {
         view.ui.add("menu", "bottom-left");
 
       });
+
+
     </script>
   </head>
 
-  <body class="sassy-theme">
+  <body>
     <div id="applicationDiv">
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
         <div id="headerTitleDiv">
-            <h2>TBM Shaft/Cut & Cover (PO)</h2>
+            <h2>Station Structures (N2)</h2>
         </div>
         <div class="dateDiv">
-            <h4>As of May 31, 2021</h4>
+            <h4>As of May 22, 2021</h4>
         </div>
         <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">Station:</label>
             <select class="esri-widget" id="valSelect">
-                <option value="Depot">Depot</option>  
-                <option value="Quirino Highway">Quirino Highway</option>
-                <option value="Tandang Sora">Tandang Sora</option>
-                <option value="North Avenue">North Avenue</option>
+                <option value="CIA">CIA</option>
+                <option value="Depot">Depot</option>
+                <option value="Clark">Clark</option>
+                <option value="Angeles">Angeles</option>
+                <option value="San Fernando">San Fernando</option>
+                <option value="Apalit">Apalit</option>
               </select>
         </div>
       </div>
       <div class="container">
         <div class="boxB">
           <div id="viewDiv">
-          </div>
-          <div id="infoDiv" class="esri-widget"><b>Construction Process (% Progress)</b><br>
-            <img src="https://EijiGorilla.github.io/Symbols/To_be_Constructed.png" width="15" height="15">
-            <span class="label">To be Constructed</span><br>
-            <img src="https://EijiGorilla.github.io/Symbols/Delayed.png" width="15" height="15">
-            <span class="label">Delayed</span><br>
-            <img src="https://EijiGorilla.github.io/Symbols/Backhoe.png" width="15" height="15">
-            <span class="label">Excavation/Shotcrete <b style="color:rgb(0, 197, 255)">(20%)</b></span><br>
-            <img src="https://EijiGorilla.github.io/Symbols/Waterproofing_works.png" width="15" height="15">
-            <span class="label">Waterproofing <b style="color:rgb(0, 197, 255)">(20%)</b></span><br>
-            <img src="https://EijiGorilla.github.io/Symbols/Rebar_Form_works.png" width="15" height="15">
-            <span class="label">Rebar/Form <b style="color:rgb(0, 197, 255)">(20%)</b></span><br>
-            <img src="https://EijiGorilla.github.io/Symbols/Concrete.png" width="15" height="15">
-            <span class="label">Concrete <b style="color:rgb(0, 197, 255)">(20%)</b></span><br>
-            <img src="https://EijiGorilla.github.io/Symbols/Backhoe.png" width="15" height="15">
-            <span class="label">Backfilling <b style="color:rgb(0, 197, 255)">(20%)</b></span><br>
-            <img src="https://EijiGorilla.github.io/Symbols/Completed_construction.png" width="15" height="15">
-            <span class="label">Complete</span><br>
-            <span class="label"><b style="color:rgb(185, 180, 180);font-size:16px">Total Progress <b style="color:rgb(0, 197, 255)">(20%)</b></b></span><br>
           </div>
           <div id="menu" class="esri-widget">
             <input type="checkbox" id="opacityInput" unchecked />
@@ -1259,13 +1173,8 @@ view.ui.add(legendExpand, {
         </div>
         <div class="boxA">
           <div id="chartPanel">
-            <div id="chartTitleDiv" class="esri-widget">Progress by Components (%)</div>
+            <div id="chartTitleDiv" class="esri-widget">Progress of Station Structure (%)</div>
             <div id="chartdiv"></div>
-            <div id="dataTypeInput" class="cpButtonClass">
-                <label for="dataTypeInput">Type</label>
-                <input type="radio" id="TBM Shaft" name="dataTypeInput" checked/> TBM Shaft
-                <input type="radio" id="Cut & Cover" name="dataTypeInput"> Cut & Cover
-              </div>
               <div id="optionsDiv" class="esri-widget">
                 <div><b>Total Progress (%)</b></div>
                 <h6 id="totalProgress"></h6>
