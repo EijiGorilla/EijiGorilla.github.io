@@ -597,6 +597,16 @@ let reloStatusLayerRenderer = {
   }
 };
 
+// Fill symbol color for Structure Layer (Status of Structure)
+const colors = {
+          1: [225, 225, 225, 0.1], // To be Constructed (white)
+          2: [130, 130, 130, 0.5], // Under Construction
+          3: [255, 0, 0, 1], // Delayed
+          4: [158, 127, 255, 1], // Bored Pile
+          5: [168, 168, 0, 1] // For Expropriation
+        };
+
+
 //*******************************//
 // Import Layers                 //
 //*******************************//
@@ -800,6 +810,34 @@ var structureLayer = new FeatureLayer({
         }
 });
 map.add(structureLayer);
+
+
+function renderStructureLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "StatusStruc"
+          });
+
+          for (let property in colors) {
+            if (colors.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "simple-fill",
+                  color: colors[property]
+                 }
+              });
+            }
+          }
+
+          structureLayer.renderer = renderer;
+        }
+
+        renderStructureLayer();
+
+
+
+
+
 
 
 // Structure
