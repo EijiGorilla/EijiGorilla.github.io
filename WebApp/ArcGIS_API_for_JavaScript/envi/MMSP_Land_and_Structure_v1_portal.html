@@ -51,7 +51,7 @@
         border: solid 2.5px gray;
         margin-bottom: 3px;
         display: grid;
-        grid-template-columns: 40px 110fr 0fr 60fr;
+        grid-template-columns: 40px 200fr 0fr 60fr;
       }
 
 
@@ -239,6 +239,7 @@
         margin-top: 0;
       }
 
+
       h2 {
         font-weight: 400;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
@@ -257,14 +258,12 @@
       }
 
       h3 {
-        color: white;
+        color: rgb(8, 161, 8);
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-        text-align: center;
+        text-align: left;
         font-weight: bold;
-        font-size: 14px;
-        padding: 10;
-        width: 100%;
-
+        font-size: 13px;
+        padding: 0px;
       }
 
       h4 {
@@ -374,6 +373,11 @@
         font-size: 10pt;
         background-color: rgb(0, 0, 0);
       }
+
+      .panel-side li b{
+  color: red;
+  font-size: 12px;
+}
 
       .panel-result {
         cursor: pointer;
@@ -505,8 +509,8 @@ var basemap = new Basemap({
          
         var view = new MapView({
             map: map,
-            center: [120.57930, 15.18],
-            zoom: 10,
+            center: [121.0194387, 14.6972616],
+            zoom: 14,
             container: "viewDiv",
             environment: {
                 background: {
@@ -577,36 +581,54 @@ var labelChainage = new LabelClass({
   }
 });
 */
+const labelClass = {
+  // autocasts as new LabelClass()
+  symbol: {
+    type: "text",  // autocasts as new TextSymbol()
+    color: "black",
+    font: {  // autocast as new Font()
+      family: "Gill Sans",
+      size: 8
+    }
+  },
+  labelPlacement: "above-center",
+  labelExpressionInfo: {
+    expression: "$feature.CN"
+  }
+};
+
+
 //*****************************//
 //      Renderer Settings      //
-//*****************************// 
-// Chainage symbol
-/*
-var chainageRenderer = {
-    type: "simple",
+//*****************************//
+// Priority Layer
+let priorityLotRenderer = {
+    field: "Priority3",
     symbol: {
-      type: "simple-marker",
-      size: 2,
-      color: [220,20,60,0.2],
-      outline: {
-        width: 0.2,
-        color: "black"
-      }
+        type: "simple-fill",
+        color: [0, 0, 0, 0],
+        outline: {
+            width: 1,
+            color: [255, 0, 0]
+        }
+
     }
-  };
-*/
+
+};
+
+
 
 // Station Box
-let stationBoxRenderer = {
+let poSectionBoxRenderer = {
   type: "unique-value",
   field: "Layer",
   defaultSymbol: { type: "simple-fill"},
   uniqueValueInfos: [
     {
-      value: "00_Platform",
+      value: "U-Shape Retaining Wall",
       symbol: {
         type: "simple-fill",
-        color: [160, 160, 160],
+        color: [104, 104, 104],
         style: "backward-diagonal",
         outline: {
           width: 1,
@@ -615,70 +637,65 @@ let stationBoxRenderer = {
       }
     },
     {
-      value: "00_Platform 10car",
+      value: "Cut & Cover Box",
       symbol: {
         type: "simple-fill",
         color: [104, 104, 104],
-        style: "cross",
+        style: "backward-diagonal",
         outline: {
           width: 1,
-          color: "black",
-          style: "short-dash"
+          color: "black"
         }
       }
     },
     {
-      value: "00_Station",
+      value: "TBM Shaft",
+      symbol: {
+        type: "simple-fill",
+        color: [104, 104, 104],
+        style: "backward-diagonal",
+        outline: {
+          width: 1,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "TBM",
+      symbol: {
+        type: "simple-fill",
+        color: [178, 178, 178],
+        style: "backward-diagonal",
+        outline: {
+          width: 0.5,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "Station Platform",
+      symbol: {
+        type: "simple-fill",
+        color: [240, 204, 230],
+        style: "backward-diagonal",
+        outline: {
+          width: 0.4,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "Station Box",
       symbol: {
         type: "simple-fill",
         color: [0, 0, 0, 0],
         outline: {
           width: 2,
-          color: [115, 0, 0]
+          color: "red"
         }
       }
     }
   ]
-};
-
-// Pier Heand Pier Column
-let pierHeadColRenderer = {
-  type: "unique-value",
-  field: "Layer",
-  defaultSymbol: { type: "simple-fill" },  // autocasts as new SimpleFillSymbol()
-  uniqueValueInfos: [
-    {
-    // All features with value of "North" will be blue
-    value: "Pier_Column",
-    symbol: {
-      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-      color: [78, 78, 78, 0.5],
-    }
-  },
-  {
-    // All features with value of "North" will be blue
-    value: "Pier_Head",
-    symbol: {
-      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-      color: [169, 169, 169, 0.7]
-    }
-  }
-]
-};
-
-
-  // Standalone status of relocation table
-let reloStatusLayerRenderer = {
-  type: "simple",  // autocasts as new SimpleRenderer()
-  symbol: {
-    type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
-    size: 4,
-    color: [0, 0, 0, 0],
-    outline: {  // autocasts as new SimpleLineSymbol()
-      width: 0.4,
-      color: "#A8A800"
-    }
-  }
 };
 
 // Fill symbol color for Structure Layer (Status of Structure)
@@ -697,92 +714,143 @@ const colors = {
 //*******************************//
 // Import Layers                 //
 //*******************************//
-// Pier head and column
-var pierHeadColumnLayerLayer = new FeatureLayer ({
+// Segment DPWH
+var dpwhSegmentLayer = new FeatureLayer ({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  layerId: 4,
-  title: "Pier Head/Column",
-  outFields: ["*"],
-  renderer: pierHeadColRenderer,
-  popupEnabled: false
-});
-pierHeadColumnLayerLayer.listMode = "hide";
-map.add(pierHeadColumnLayerLayer, 1);
-
-var chainageLayer = new FeatureLayer ({
-  portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "89491eef43454fec87f53151e4bc8a6c",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
   layerId: 3,
-  title: "Chainage",
-  elevationInfo: {
-    mode: "relative-to-ground"
-  },
+  title: "DPWH Segment",
   outFields: ["*"],
   popupEnabled: false
-
 });
+map.add(dpwhSegmentLayer);
 
-//chainageLayer.listMode = "hide";
-map.add(chainageLayer, 1);
-
-// Pier No. (point feature)
-var PierNoLayer = new FeatureLayer ({
+// BSS Boundary
+var bssDepotLayer = new FeatureLayer ({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "89491eef43454fec87f53151e4bc8a6c",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 6,
-  title: "Pier No.",
+  layerId: 4,
+  title: "BSS Boundary",
   outFields: ["*"],
   popupEnabled: false
-
 });
+map.add(bssDepotLayer);
 
+// Construction boundary for North Av
+var naBoundaryLayer = new FeatureLayer ({
+  portalItem: {
+    id: "89491eef43454fec87f53151e4bc8a6c",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 5,
+  title: "Construction Boundary (NA)",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(naBoundaryLayer);
+
+// Creek Diversion
+var creekDivLayer = new FeatureLayer ({
+  portalItem: {
+    id: "89491eef43454fec87f53151e4bc8a6c",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 8,
+  title: "Creek Diversion",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(creekDivLayer);
+
+// Depot Building
+var depotBuildingLayer = new FeatureLayer ({
+  portalItem: {
+    id: "89491eef43454fec87f53151e4bc8a6c",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 9,
+  title: "Depot Building",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(depotBuildingLayer);
+
+// BSS Building
+var bssDepotBuildingLayer = new FeatureLayer ({
+  portalItem: {
+    id: "89491eef43454fec87f53151e4bc8a6c",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 10,
+  title: "BSS Building",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(bssDepotBuildingLayer);
+
+// East Valenzuela
+var evsLayer = new FeatureLayer ({
+  portalItem: {
+    id: "89491eef43454fec87f53151e4bc8a6c",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 11,
+  title: "East Valenzuela",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(evsLayer);
+
+// NNC Construction boundary (Senate)
+var senateBoundaryLayer = new FeatureLayer ({
+  portalItem: {
+    id: "89491eef43454fec87f53151e4bc8a6c",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 12,
+  title: "Construction Boundary (Senate)",
+  outFields: ["*"],
+  popupEnabled: false
+});
+senateBoundaryLayer.list = "hide";
+map.add(senateBoundaryLayer);
 
 // Station box
-var stationBoxLayer = new FeatureLayer ({
+var poSectionBoxLayer = new FeatureLayer ({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "89491eef43454fec87f53151e4bc8a6c",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 2,
-  renderer: stationBoxRenderer,
-  title: "Station Box",
+  layerId: 7,
+  renderer: poSectionBoxRenderer,
+  title: "PO Section",
   outFields: ["*"],
   popupEnabled: false
 });
-stationBoxLayer.listMode = "hide";
-map.add(stationBoxLayer);
+map.add(poSectionBoxLayer);
 
-//chainageLayer.listMode = "hide";
-map.add(PierNoLayer, 1);
-
-// ROW //
-var rowLayer = new FeatureLayer ({
-  portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  layerId: 1,
-  title: "ROW",
-  popupEnabled: false
-});
-map.add(rowLayer,2);
 
 // Station point feature
 var stationLayer = new FeatureLayer({
@@ -792,7 +860,7 @@ var stationLayer = new FeatureLayer({
       url: "https://gis.railway-sector.com/portal"
     }
   },
-             definitionExpression: "Extension = 'N2'"
+             definitionExpression: "Project = 'MMSP'"
               //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
         });
         stationLayer.listMode = "hide";
@@ -801,30 +869,19 @@ var stationLayer = new FeatureLayer({
 // Priority Lot
 var priorityLayer = new FeatureLayer ({
     portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  layerId: 1,
-  title: "Priority Lot",
-  popupEnabled: false
-});
-map.add(priorityLayer,2);
-
-// Free and Clear Lot //
-var fncLayer = new FeatureLayer ({
-  portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
+    id: "89491eef43454fec87f53151e4bc8a6c",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
   layerId: 2,
-  title: "Free and Clear",
+  definitionExpression: "Priority3 = 1",
+  renderer: priorityLotRenderer,
+  title: "Priority Lot",
   popupEnabled: false
 });
-map.add(fncLayer,2);
+map.add(priorityLayer,0);
+
 
 // Relocation Status point layer
 
@@ -832,17 +889,18 @@ map.add(fncLayer,2);
 // Land 
 var lotLayer = new FeatureLayer({
   portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
+    id: "89491eef43454fec87f53151e4bc8a6c",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 7,
+  layerId: 2,
         outFields: ["*"],
         title: "Status of Land Acquisition",
-        labelsVisible: false,
+        //labelsVisible: false,
+        labelingInfo: [labelClass],
         popupTemplate: {
-          title: "<p>{LotID}</p>",
+          title: "<p>{Id}</p>",
           lastEditInfoEnabled: false,
           returnGeometry: true,
           content: [
@@ -850,19 +908,24 @@ var lotLayer = new FeatureLayer({
               type: "fields",
               fieldInfos: [
                 {
-                  fieldName: "LandOwner",
+                  fieldName: "OWNER",
                   label: "Land Owner"
                 },
                 {
-                  fieldName: "Municipality"
+                  fieldName: "Station"
                 },
                 {
-                  fieldName: "Barangay"
-                },
-                {
-                  fieldName: "StatusLA",
+                  fieldName: "StatusNVS3",
                   label: "<p>Status of Land Acquisition</p>"
-                }
+                },
+                {
+                    fieldName: "Priority3",
+                    label: "Priority"
+                },
+                {
+                    fieldName: "StrucStatus",
+                    label: "<p>Status of Structure</p>"
+                },
               ]
             }
           ]
@@ -870,174 +933,6 @@ var lotLayer = new FeatureLayer({
 });
 map.add(lotLayer, 1);
 
-// Structure
-var structureLayer = new FeatureLayer({
-  portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  layerId: 6,
-        title: "Status of Structure",
-        outFields: ["*"],
-        popupTemplate: {
-          title: "<p>{StrucID}</p>",
-          lastEditInfoEnabled: false,
-          returnGeometry: true,
-          content: [
-            {
-              type: "fields",
-              fieldInfos: [
-                {
-                  fieldName: "StrucOwner",
-                  label: "Structure Owner"
-                },
-                {
-                  fieldName: "StatusStruc",
-                  label: "<p>Status of Structure</p>"
-                },               
-                {
-                  fieldName: "LotID",
-                  label: "Lot ID"
-                },
-                {
-                  fieldName: "Municipality"
-                },
-                {
-                  fieldName: "Barangay"
-                }
-              ]
-            }
-          ]
-        }
-});
-map.add(structureLayer);
-
-
-function renderStructureLayer() {
-          const renderer = new UniqueValueRenderer({
-            field: "StatusStruc"
-          });
-
-          for (let property in colors) {
-            if (colors.hasOwnProperty(property)) {
-              renderer.addUniqueValueInfo({
-                value: property,
-                symbol: {
-                  type: "simple-fill",
-                  color: colors[property],
-                  style: "backward-diagonal",
-                  outline: {
-                    color: "#6E6E6E",
-                    width: 0.7
-                  }
-                 }
-              });
-            }
-          }
-
-          structureLayer.renderer = renderer;
-        }
-
-        renderStructureLayer();
-
-// Structure (NLO/LO)
-let NLOLORenderer = {
-  type: "unique-value",
-  field: "Status",
-  uniqueValueInfos:[
-    {
-      value: 1,
-      symbol: {
-      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-      style: "forward-diagonal",
-      color: [128, 128, 128, 0.8],
-      outline: {
-        color: "#6E6E6E",
-        width: 0.3
-      }
-    }
-    },
-    {
-      value: 2,
-      symbol: {
-      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-      style: "vertical",
-      color: [128, 128, 128, 0.8],
-      outline: {
-        color: "#6E6E6E",
-        width: 0.3
-      }
-    }
-    }
-  ]
-};
-
-
-var structureNLOLOLayer = new FeatureLayer({
-  portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  renderer: NLOLORenderer,
-  layerId: 3,
-        title: "Structure (NLO/LO)",
-        outFields: ["*"],
-        popupEnabled: false
-});
-structureNLOLOLayer.listMode = "hide";
-map.add(structureNLOLOLayer);
-
-
-// Status of Relocation (Occupancy)
-var relocationPtLayer = new FeatureLayer({
-  portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  layerId: 5,
-        outFields: ["*"],
-        title: "Relocation (Occupancy)",
-        popupTemplate: {
-          title: "<p>{StrucID}</p>",
-          lastEditInfoEnabled: false,
-          returnGeometry: true,
-          content: [
-            {
-              type: "fields",
-              fieldInfos: [
-                {
-                  fieldName: "StrucOwner",
-                  label: "Structure Owner"
-                },
-                {
-                  fieldName: "Municipality"
-                },
-                {
-                  fieldName: "Barangay"
-                },
-                {
-                  fieldName: "Occupancy",
-                  label: "<p>Status for Relocation(structure)</p>"
-                },
-                {
-                  fieldName: "Name",
-                },
-                {
-                  fieldName: "Status",
-                  label: "Status of NLO/LO"
-                }
-              ]
-            }
-          ]
-        }
-});
-map.add(relocationPtLayer);
 
 
 // 
@@ -1050,7 +945,7 @@ am4core.useTheme(am4themes_animated);
 
 // Default
 updateChartLot().then(totalNumberOfLots);
-updateChartStructure().then(totalNumberOfStructures);
+updateChartStructure();
 // Click event handler for Lot, Structure, and Relocation
 
 
@@ -1090,26 +985,6 @@ function pteNumberLot(){
 } 
 pteNumberLot();
 
-// Total number of PTE for Structure
-function pteNumberStructure() {
-  var total_pte_structure = {
-    onStatisticField: "CASE WHEN PTE = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_pte_structure",
-    statisticType: "sum"
-  };
-  var query = structureLayer.createQuery();
-  query.outStatistics = [total_pte_structure];
-  query.returnGeometry = true;
-
-  structureLayer.queryFeatures(query).then(function(response) {
-    var stats = response.features[0].attributes;
-
-    const pte = stats.total_pte_structure;
-    structurePteDiv.innerHTML = pte;
-  })
-}
-pteNumberStructure();
-
 // Thousand separators function
 function thousands_separators(num)
   {
@@ -1119,8 +994,7 @@ function thousands_separators(num)
   }
 
 // Define 
-var municipalSelect = document.getElementById("valSelect");
-var barangaySelect = document.getElementById("barangaySelect");
+var stationSelect = document.getElementById("valSelect");
 
 
 ////////////////////////////////////////////////
@@ -1140,7 +1014,7 @@ view.when(function() {
 function getValues(response) {
     var features = response.features;
     var values = features.map(function(feature) {
-        return feature.attributes.Municipality;
+        return feature.attributes.Station;
     });
     return values;
 }
@@ -1165,9 +1039,9 @@ function addToSelect(values) {
     values.forEach(function(value) {
         var option = document.createElement("option");
         option.text = value;
-        municipalSelect.add(option);
+        stationSelect.add(option);
     });
-   return setLotMunicipalExpression(municipalSelect.value);
+   return setLotMunicipalExpression(stationSelect.value);
 }
 
 // Set the definition expression on the lot layer
@@ -1175,52 +1049,19 @@ function addToSelect(values) {
 function setLotMunicipalExpression(newValue) {
   if (newValue == 'None') {
     lotLayer.definitionExpression = null;
-    structureLayer.definitionExpression = null;
-    relocationPtLayer.definitionExpression = null;
     priorityLayer.definitionExpression = null;
 
   } else {
-    lotLayer.definitionExpression = "Municipality = '" + newValue + "'";
-    structureLayer.definitionExpression = "Municipality = '" + newValue + "'";
-    relocationPtLayer.definitionExpression = "Municipality = '" + newValue + "'";
-    priorityLayer.definitionExpression = "Municipality = '" + newValue + "'";
+    lotLayer.definitionExpression = "Station = '" + newValue + "'";
+    priorityLayer.definitionExpression = "Station = '" + newValue + "'";
   }
-  
-  /*
-    if (!lotLayer.visible || !structureLayer.visible || !reloISFLayer.visible || !relocationPtLayer.visible) {
+   
+    if (!lotLayer.visible || !priorityLayer.visible) {
         lotLayer.visible = true;
-        structureLayer.visible = true;
-        reloISFLayer.visible = true;
-        relocationPtLayer.visible = true;
+        priorityLayer.visible = true;
     }
-    */
+    
     return queryForLotGeometries();
-}
-
-function setLotDefinitionExpression(newValue1, newValue2){
-  if(newValue2 == undefined || newValue2 == 'None'){
-    lotLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
-    structureLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
-    relocationPtLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
-    priorityLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
-
-  } else {
-    lotLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
-    lotLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
-    structureLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
-    relocationPtLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
-    priorityLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
-  }
-  /*
-  if(!lotLayer.visible || !structureLayer.visible || !reloISFLayer.visible || !relocationPtLayer.visible){
-    lotLayer.visible = true;
-    structureLayer.visible = true;
-        reloISFLayer.visible = true;
-        relocationPtLayer.visible = true;
-  }
-  */
-
-  return queryForLotGeometries();
 }
 
 function queryForLotGeometries() {
@@ -1233,98 +1074,23 @@ function queryForLotGeometries() {
         return lotGeometries;
     });
 
-    var structureQuery = structureLayer.createQuery();
-
-return structureLayer.queryFeatures(structureQuery).then(function(response) {
-    structureGeometries = response.features.map(function(feature) {
-        return feature.geometry;
-    });
-    return structureGeometries;
-  });
 }
 
 
-    municipalSelect.addEventListener("change", function() {
+    stationSelect.addEventListener("change", function() {
     var type = event.target.value;
     var target = event.target;
 
     setLotMunicipalExpression(type);
-    filterLotMunicipality();
-
-
     updateChartLot().then(totalNumberOfLots);
-    updateChartStructure().then(totalNumberOfStructures);
+    updateChartStructure();
     updateMoaChartLot();
     updateMoaChartStructure();
     pteNumberLot();
-    pteNumberStructure();
 
     zoomToLayer(lotLayer);
 
 });
-
-
-
-function filterLotMunicipality() {
-  var query2 = lotLayer.createQuery();
-  query2.where = lotLayer.definitionExpression; // use filtered municipality. is this correct?
-
-  lotLayer.queryFeatures(query2)
-    .then(getQuery2Values)
-    .then(getUniqueValues2)
-    .then(addToSelectQuery2);
-}
-
-function getQuery2Values(response) {
-  var featuresQuery2 = response.features;
-  var query2Values = featuresQuery2.map(function(feature) {
-    return feature.attributes.Barangay;
-  });
-  return query2Values;
-}
-
-function getUniqueValues2(values2) {
-  var uniqueValues2 = [];
-    values2.forEach(function(item, i) {
-        if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
-            uniqueValues2.push(item);
-        }
-    });
-    return uniqueValues2;
-}
-
-// Add the unique values to the second select element (Barangay)
-function addToSelectQuery2(query2Values) {
-    barangaySelect.options.length = 0;
-  query2Values.sort();
-  query2Values.unshift('None');
-    query2Values.forEach(function(value) {
-    var option = document.createElement("option");
-      option.text = value;
-      barangaySelect.add(option);
-  });
-
-  return setLotBarangayExpression(barangaySelect.value);
-}
-
-
-barangaySelect.addEventListener("click", function() {
-  var type = event.target.value;
-  setLotDefinitionExpression(municipalSelect.value, type);
-
-  updateChartLot().then(totalNumberOfLots);
-  updateChartStructure().then(totalNumberOfStructures);
-  updateMoaChartLot();
-  updateMoaChartStructure();
-  pteNumberLot();
-  pteNumberStructure();
-
-
-  zoomToLayer(lotLayer);
-  //relocationObjectID(reloStatusLayer);
-
-});
-
 
 
 view.when(function() {
@@ -1338,7 +1104,7 @@ var ownerContainer = document.getElementById("relocationOwnerList");
       exprolayerView.watch("updating", function(val) {
         if (!val) {
           var query = new Query();
-          query.where = "StatusLA = 5";
+          query.where = "StatusNVS3 = 5";
           exprolayerView.queryFeatures(query).then(function(result) {
             ownerContainer.innerHTML = "";
             result.features.forEach(function(feature) {
@@ -1346,12 +1112,12 @@ var ownerContainer = document.getElementById("relocationOwnerList");
               var li = document.createElement("li");
               li.setAttribute("class", "panel-result");
 
-              const status = attributes.StatusLA;
+              const status = attributes.StatusNVS3;
               if (status == 5) {
                 statusla = "Expropriation"
               }
 
-              li.innerHTML = "Lot ID: " + "<b>" + attributes.LotID + "</b>" + "<br>" + attributes.LandOwner + "</br>" + "<p>" + statusla + "</p>";
+              li.innerHTML = "<b>" + attributes.ID + "</b>" + "<br>" + attributes.OWNER + "</br>";
               li.addEventListener("click", function(event) {
                 var target = event.target;
 
@@ -1407,38 +1173,44 @@ var structureTotalNumberDiv = document.getElementById("structureTotalNumberDiv")
 // Lot Chart
 async function updateChartLot() {
   var total_paid_lot = {
-    onStatisticField: "CASE WHEN StatusLA = 1 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN StatusNVS3 = 1 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_paid_lot",
     statisticType: "sum"
   };
 
   var total_payp_lot = {
-    onStatisticField: "CASE WHEN StatusLA = 2 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN StatusNVS3 = 2 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_payp_lot",
     statisticType: "sum"
   };
 
   var total_legalpass_lot = {
-    onStatisticField: "CASE WHEN StatusLA = 3 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN StatusNVS3 = 3 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_legalpass_lot",
     statisticType: "sum"
   };
 
   var total_otb_lot = {
-    onStatisticField: "CASE WHEN StatusLA = 4 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN StatusNVS3 = 4 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_otb_lot",
     statisticType: "sum"
   };
 
   var total_expro_lot = {
-    onStatisticField: "CASE WHEN StatusLA = 5 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN StatusNVS3 = 5 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_expro_lot",
+    statisticType: "sum"
+  };
+
+  var total_dismissal_lot = {
+    onStatisticField: "CASE WHEN StatusNVS3 = 6 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_dismissal_lot",
     statisticType: "sum"
   };
 
   var query = lotLayer.createQuery();
   query.outStatistics = [total_paid_lot, total_payp_lot, total_legalpass_lot,
-                         total_otb_lot, total_expro_lot];
+                         total_otb_lot, total_expro_lot, total_dismissal_lot];
   query.returnGeometry = true;
 
   return lotLayer.queryFeatures(query).then(function(response) {
@@ -1449,8 +1221,9 @@ async function updateChartLot() {
     const legalpass = stats.total_legalpass_lot;
     const otb = stats.total_otb_lot;
     const expro = stats.total_expro_lot;
+    const dismissal = stats.total_dismissal_lot;
 
-    const totalNumberLots = paid + payp + legalpass + otb + expro;
+    const totalNumberLots = paid + payp + legalpass + otb + expro + dismissal;
 
     var chart = am4core.create("chartdiv", am4charts.PieChart);
 
@@ -1458,29 +1231,34 @@ async function updateChartLot() {
     // Add data
     chart.data = [
       {
-        "StatusLA": "Paid",
+        "StatusNVS3": "Paid",
         "status": paid,
         "color": am4core.color("#70AD47")
       },
       {
-        "StatusLA": "For Payment Processing",
+        "StatusNVS3": "For Payment Processing",
         "status": payp,
         "color": am4core.color("#0070FF")   
       },
       {
-        "StatusLA": "For Legal Pass",
+        "StatusNVS3": "For Legal Pass",
         "status": legalpass,
         "color": am4core.color("#FFFF00") 
       },
       {
-        "StatusLA": "For Appraisal/Offer to Buy",
+        "StatusNVS3": "For Appraisal/Offer to Buy",
         "status": otb,
         "color": am4core.color("#FFAA00")
       },
       {
-        "StatusLA": "For Expro",
+        "StatusNVS3": "For Expro",
         "status": expro,
         "color": am4core.color("#FF0000")    
+      },
+      {
+        "StatusNVS3": "For Dismissal",
+        "status": dismissal,
+        "color": am4core.color("#00734C")    
       }
   ];
 
@@ -1588,8 +1366,10 @@ function filterByChart(ev) {
     selectedStatus = 4;
   } else if (selectedD == "For Expro") {
     selectedStatus = 5;
+  } else if (selectedD == "For Dismissal") {
+    selectedStatus = 6;
   } else {
-    selectedStatus = null;
+      selectedStatus = null;
   }
 
   view.when(function() {
@@ -1628,7 +1408,7 @@ function filterByChart(ev) {
             });
       }); // End of queryFeatures
       layerView.filter = {
-    where: "StatusLA = " + selectedStatus
+    where: "StatusNVS3 = " + selectedStatus
   }
     }); // End of view.whenLayerView
 
@@ -1637,7 +1417,7 @@ function filterByChart(ev) {
 
 } // End of createSlices function
 
-createSlices("status", "StatusLA");
+createSlices("status", "StatusNVS3");
 
 return totalNumberLots;
 
@@ -1651,58 +1431,34 @@ function totalNumberOfLots(totalNumberLots) {
 
 // Structure Chart
 async function updateChartStructure() {
-  var total_clear_lot = {
-    onStatisticField: "CASE WHEN StatusStruc = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_clear_lot",
-    statisticType: "sum"
-  };
-
-  var total_paid_lot = {
-    onStatisticField: "CASE WHEN StatusStruc = 2 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_paid_lot",
-    statisticType: "sum"
-  };
-
-  var total_payp_lot = {
-    onStatisticField: "CASE WHEN StatusStruc = 3 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_payp_lot",
-    statisticType: "sum"
-  };
-
-  var total_legalpass_lot = {
-    onStatisticField: "CASE WHEN StatusStruc = 4 THEN 1 ELSE 0 END",
+    var total_legalpass_lot = {
+    onStatisticField: "CASE WHEN StrucStatus = 1 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_legalpass_lot",
     statisticType: "sum"
   };
 
-  var total_otc_lot = {
-    onStatisticField: "CASE WHEN StatusStruc = 5 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_otc_lot",
+  var total_payp_lot = {
+    onStatisticField: "CASE WHEN StrucStatus = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_payp_lot",
     statisticType: "sum"
   };
 
-  var total_lbp_lot = {
-    onStatisticField: "CASE WHEN StatusStruc = 6 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_lbp_lot",
+  var total_paid_lot = {
+    onStatisticField: "CASE WHEN StrucStatus = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_paid_lot",
     statisticType: "sum"
-  };  
+  };
 
-  var query = structureLayer.createQuery();
-  query.outStatistics = [total_clear_lot, total_paid_lot, total_payp_lot,
-                         total_legalpass_lot, total_otc_lot, total_lbp_lot];
+  var query = lotLayer.createQuery();
+  query.outStatistics = [total_paid_lot, total_payp_lot, total_legalpass_lot];
   query.returnGeometry = true;
 
-  return structureLayer.queryFeatures(query).then(function(response) {
+  return lotLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
-    const clear = stats.total_clear_lot;
     const paid = stats.total_paid_lot;
     const payp = stats.total_payp_lot;
     const legalpass = stats.total_legalpass_lot;
-    const otc = stats.total_otc_lot;
-    const lbp = stats.total_lbp_lot;
-
-    const totalNumberStructures = clear + paid + payp + legalpass + otc + lbp;
 
     var chart = am4core.create("structureChartDiv", am4charts.PieChart);
 
@@ -1710,35 +1466,20 @@ async function updateChartStructure() {
     // Add data
     chart.data = [
       {
-        "StatusStruc": "Dismantling/Clearing",
-        "status": clear,
-        "color": am4core.color("#FF00C5")
-      },
-      {
-        "StatusStruc": "Paid",
-        "status": paid,
-        "color": am4core.color("#70AD47")   
-      },
-      {
-        "StatusStruc": "For Payment Processing",
-        "status": payp,
-        "color": am4core.color("#0070FF") 
-      },
-      {
-        "StatusStruc": "For Legal Pass",
+        "StrucStatus": "Legal Pass",
         "status": legalpass,
         "color": am4core.color("#FFFF00")
       },
       {
-        "StatusStruc": "For Appraisal/Offer to Compensate",
-        "status": otc,
-        "color": am4core.color("#FFAA00")    
+        "StrucStatus": "Process For Payment",
+        "status": payp,
+        "color": am4core.color("#0070FF") 
       },
       {
-        "StatusStruc": "LBP Account Opening",
-        "status": lbp,
-        "color": am4core.color("#FF0000")    
-      }
+        "StrucStatus": "Paid",
+        "status": paid,
+        "color": am4core.color("#70AD47")   
+      },
   ];
 
   // Set inner radius
@@ -1850,28 +1591,22 @@ pieSeries.slices.template.events.on("hit", filterByChart, this);
 function filterByChart(ev) {
   const selectedD = ev.target.dataItem.category;
 
-  if (selectedD == "Dismantling/Clearing") {
+  if (selectedD == "Legal Pass") {
       selectedStatus = 1;
-  } else if (selectedD == "Paid") {
+  } else if (selectedD == "Process For Payment") {
     selectedStatus = 2;
-  } else if (selectedD == "For Payment Processing") {
+  } else if (selectedD == "Paid") {
     selectedStatus = 3;
-  } else if (selectedD == "For Legal Pass") {
-    selectedStatus = 4;
-  } else if (selectedD == "For Appraisal/Offer to Compensate") {
-    selectedStatus = 5;
-  } else if (selectedD == "LBP Account Opening") {
-    selectedStatus = 6;
   } else {
     selectedStatus = null;
   }
 
   view.when(function() {
-    view.whenLayerView(structureLayer).then(function (layerView) {
+    view.whenLayerView(lotLayer).then(function (layerView) {
       chartLayerView = layerView;
       chartElementStructure.style.visibility = "visible";
 
-      structureLayer.queryFeatures().then(function(results) {
+      lotLayer.queryFeatures().then(function(results) {
         const ggg = results.features;
             const rowN = ggg.length;
 
@@ -1885,7 +1620,7 @@ function filterByChart(ev) {
                 objectIds: objID
             });
 
-            structureLayer.queryExtent(queryExt).then(function(result) {
+            lotLayer.queryExtent(queryExt).then(function(result) {
                 if (result.extent) {
                     view.goTo(result.extent)
                 }
@@ -1903,7 +1638,7 @@ function filterByChart(ev) {
 
       }); // End of queryFeatures
       layerView.filter = {
-    where: "StatusStruc = " + selectedStatus
+    where: "StrucStatus = " + selectedStatus
   }
 
     }); // End of view.whenLayerView
@@ -1914,63 +1649,45 @@ function filterByChart(ev) {
 } // End of filterByChart
 } // End of createSlices function
 
-createSlices("status", "StatusStruc");
+createSlices("status", "StrucStatus");
 
 return totalNumberStructures;
 
 });  // End of queryFeature                 
 } // End of updateChartStructure()
 
-function totalNumberOfStructures(totalNumberStructures) {
-    structureTotalNumberDiv.innerHTML = thousands_separators(totalNumberStructures);
-}
 
 //////////////////// Bar Chart for MOA ///////////////////////////////////////////////////
 // Lot
 async function updateMoaChartLot() {
-  var total_nego_lot = {
-    onStatisticField: "CASE WHEN MoA = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_nego_lot",
+  var total_nvs_lot = {
+    onStatisticField: "CASE WHEN MOA = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_nvs_lot",
     statisticType: "sum"
   };
 
   var total_expro_lot = {
-    onStatisticField: "CASE WHEN MoA = 2 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN MOA = 2 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_expro_lot",
     statisticType: "sum"
   };
 
-  var total_donate_lot = {
-    onStatisticField: "CASE WHEN MoA = 3 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_donate_lot",
-    statisticType: "sum"
-  };
-
-  var total_ca141_lot = {
-    onStatisticField: "CASE WHEN MoA = 4 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_ca141_lot",
-    statisticType: "sum"
-  };
-
-  var total_noneed_lot = {
-    onStatisticField: "CASE WHEN MoA = 5 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_noneed_lot",
+  var total_rowua_lot = {
+    onStatisticField: "CASE WHEN MOA = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_rowua_lot",
     statisticType: "sum"
   };
 
 var query = lotLayer.createQuery();
-query.outStatistics = [total_nego_lot, total_expro_lot, total_donate_lot, total_ca141_lot, total_noneed_lot];
+query.outStatistics = [total_nvs_lot, total_expro_lot, total_rowua_lot];
 query.returnGeometry = true;
 
 lotLayer.queryFeatures(query).then(function(response) {
   var stats = response.features[0].attributes;
 
-  const nego = stats.total_nego_lot;
+  const nvs = stats.total_nvs_lot;
   const expro = stats.total_expro_lot;
-  const donate = stats.total_donate_lot;
-  const ca141 = stats.total_ca141_lot;
-  const noneed = stats.total_noneed_lot;
-
+  const rowua = stats.total_rowua_lot;
 
   var chart = am4core.create("lotMoaChartDiv", am4charts.XYChart);
   chart.hiddenState.properties.opacity = 0;
@@ -2037,79 +1754,56 @@ series.columns.template.adapter.add("fill", function(fill, target){
 });
 
   chart.data = [
-  {
-      category: "No Need to Acquire",
-      value: noneed
-    },
     {
-      category: "CA 141",
-      value: ca141
-    },
-    {
-      category: "Donation",
-      value: donate
+      category: "ROWUA",
+      value: rowua
     },
     {
       category: "Expropriation",
       value: expro
     },
     {
-      category: "For Negotiation",
-      value: nego
+      category: "NVS",
+      value: nvs
     }
   ]; // End of chart
 
 
 }); // End of queryFeatures
 
-} // End of updateMoaChartLot
+} // End of updateMOAChartLot
 updateMoaChartLot();
 
 // Lot
 async function updateMoaChartStructure() {
-  var total_nego_lot = {
-    onStatisticField: "CASE WHEN MoA = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_nego_lot",
+  var total_nvs_lot = {
+    onStatisticField: "CASE WHEN S_MOA = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_nvs_lot",
     statisticType: "sum"
   };
 
   var total_expro_lot = {
-    onStatisticField: "CASE WHEN MoA = 2 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN S_MOA = 2 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_expro_lot",
     statisticType: "sum"
   };
 
-  var total_donate_lot = {
-    onStatisticField: "CASE WHEN MoA = 3 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_donate_lot",
+  var total_rowua_lot = {
+    onStatisticField: "CASE WHEN S_MOA = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_rowua_lot",
     statisticType: "sum"
   };
 
-  var total_ca141_lot = {
-    onStatisticField: "CASE WHEN MoA = 4 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_ca141_lot",
-    statisticType: "sum"
-  };
-
-  var total_noneed_lot = {
-    onStatisticField: "CASE WHEN MoA = 5 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_noneed_lot",
-    statisticType: "sum"
-  };
-
-var query = structureLayer.createQuery();
-query.outStatistics = [total_nego_lot, total_expro_lot, total_donate_lot, total_ca141_lot, total_noneed_lot];
+var query = lotLayer.createQuery();
+query.outStatistics = [total_nvs_lot, total_expro_lot, total_rowua_lot];
 query.returnGeometry = true;
 
-structureLayer.queryFeatures(query).then(function(response) {
+lotLayer.queryFeatures(query).then(function(response) {
   var stats = response.features[0].attributes;
 
-  const nego = stats.total_nego_lot;
+  const nvs = stats.total_nvs_lot;
   const expro = stats.total_expro_lot;
-  const donate = stats.total_donate_lot;
-  const ca141 = stats.total_ca141_lot;
-  const noneed = stats.total_noneed_lot;
-
+  const rowua = stats.total_rowua_lot;
 
   var chart = am4core.create("structureMoaChartDiv", am4charts.XYChart);
   chart.hiddenState.properties.opacity = 0;
@@ -2176,32 +1870,24 @@ series.columns.template.adapter.add("fill", function(fill, target){
 });
 
   chart.data = [
-  {
-      category: "No Need to Acquire",
-      value: noneed
-    },
     {
-      category: "CA 141",
-      value: ca141
-    },
-    {
-      category: "Donation",
-      value: donate
+      category: "ROWUA",
+      value: rowua
     },
     {
       category: "Expropriation",
       value: expro
     },
     {
-      category: "For Negotiation",
-      value: nego
+      category: "NVS",
+      value: nvs
     }
   ]; // End of chart
 
 
 }); // End of queryFeatures
 
-} // End of updateMoaChartStructure
+} // End of updateS_MOAChartStructure
 updateMoaChartStructure();
 
 }); // End of am4core.ready
@@ -2219,41 +1905,12 @@ var searchWidget = new Search({
   sources: [
     {
       layer: lotLayer,
-      searchFields: ["LotID"],
-      displayField: "LotID",
+      searchFields: ["ID"],
+      displayField: "ID",
       exactMatch: false,
-      outFields: ["LotID"],
-      name: "Lot ID",
-      placeholder: "example: 10083"
-  },
-  {
-      layer: structureLayer,
-      searchFields: ["StrucID"],
-      displayField: "StrucID",
-      exactMatch: false,
-      outFields: ["StrucID"],
-      name: "Structure ID",
-      placeholder: "example: MCRP-01-02-ML022"
-  },
-  {
-    layer: chainageLayer,
-      searchFields: ["KmSpot"],
-      displayField: "KmSpot",
-      exactMatch: false,
-      outFields: ["*"],
-      zoomScale: 1000,
-      name: "Main KM",
-      placeholder: "example: 80+400"
-  },
-  {
-    layer: PierNoLayer,
-      searchFields: ["PIER"],
-      displayField: "PIER",
-      exactMatch: false,
-      outFields: ["PIER"],
-      name: "Pier No",
-      zoomScale: 1000,
-      placeholder: "example: P-288"
+      outFields: ["ID"],
+      name: "Lot No",
+      placeholder: "example: DP89"
   }
 ]
 });
@@ -2284,7 +1941,7 @@ searchExpand.watch("expanded", function() {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.title === "Chainage" || item.title === "ROW" || item.title === "Pier No." || item.title === "Free and Clear"){
+              if (item.title === "BSS Boundary" || item.title === "BSS Building" || item.title === "Depot Building"){
                 item.visible = false
               }
             }
@@ -2295,34 +1952,45 @@ var legend = new Legend({
   view: view,
   container: legendDiv,
   layerInfos: [
-  {
-      layer: pierHeadColumnLayerLayer,
-      title: "Pier Head/Column"
-
-    },
     {
       layer: lotLayer,
       title: "Status of Parcellary"
     },
     {
-      layer: structureLayer,
-      title: "Status of Structure"
+        layer: poSectionBoxLayer,
+        title: "PO Section"
     },
     {
-      layer: structureNLOLOLayer,
-      title: "Structure (NLO/LO)"
+        layer: dpwhSegmentLayer,
+        title: "DPWH Segment"
     },
     {
-      layer: relocationPtLayer,
-      title: "Occupancy"
+        layer: bssDepotLayer,
+        title: "BSS Boundary"
     },
     {
-      layer: priorityLayer,
-      title: "Priority Lot"
+        layer: bssDepotBuildingLayer,
+        title: "BSS Building"
     },
     {
-      layer: stationBoxLayer,
-      title: "Station Box"
+        layer: naBoundaryLayer,
+        title: "Construction Boundary (NA)"
+    },
+    {
+        layer: senateBoundaryLayer,
+        title: "Construction (Senate)"
+    },
+    {
+        layer: creekDivLayer,
+        title: "Creek Diversion"
+    },
+    {
+        layer: depotBuildingLayer,
+        title: "Depot Building"
+    },
+    {
+        layer: evsLayer,
+        title: "East Valenzuela"
     }
   ]
 });
@@ -2389,16 +2057,14 @@ view.ui.add(legendExpand, {
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
         <div id="headerTitleDiv">
-            <h2>Land Acquisition (N2)</h2>
+            <h2>Land Acquisition (MMSP)</h2>
         </div>
         <div class="dateDiv">
-            <h4>As of May 26, 2021</h4>
+            <h4>As of July 20, 2021</h4>
         </div>
         <div class="esri-widget" id="dropdownDiv">
-            <label for="sel-options">Municipality:</label>
-            <select id="valSelect" class="esri-widget"></select>
-            <label for="sel-options">Barangay:</label>
-            <select id="barangaySelect" class="esri-widget" width="150" style="width: 150px"></select>
+            <label for="sel-options">Station:</label>
+            <select id="valSelect" class="esri-widget" width="150" style="width: 150px"></select>
         </div>
       </div>
       <div class="container">
@@ -2407,7 +2073,7 @@ view.ui.add(legendExpand, {
           </div>
           <div class="boxB">
             <div class="panel-side esri-widget">
-                <h2>Lots For Expro</h2>
+                <h2>Lots of <b style="color:rgb(255, 0, 0)">Expro Case</b></h2>
                 <ul id="relocationOwnerList">
                   <li>Loading&hellip;</li>
                 </ul>
@@ -2418,7 +2084,7 @@ view.ui.add(legendExpand, {
         </div>
         <div class="boxD">
             <div id="chartPanel">
-                <div id="chartTitleDiv" class="esri-widget">Progress of Land Acquisition (%)</div>
+                <div id="chartTitleDiv" class="esri-widget">Progress of Land Acquisition</div>
                 <div id="chartdiv"></div>
                   <div id="optionsDiv" class="esri-widget">
                     <div><b>Number of Lot</b></div>
@@ -2433,17 +2099,9 @@ view.ui.add(legendExpand, {
         </div>
         <div class="boxE">
             <div id="structureChartPanel">
-                <div id="structureChartTitleDiv" class="esri-widget">Progress of Structure (%)</div>
+                <div id="structureChartTitleDiv" class="esri-widget">Progress of Structure</div>
                 <div id="structureChartDiv"></div>
-                <div id="optionsDiv" class="esri-widget">
-                    <div><b>Number of Structure</b></div>
-                    <h6 id="structureTotalNumberDiv"></h6>
-                  </div>
                   <div id="structureMoaChartDiv"></div>
-                  <div id="optionsDiv" class="esri-widget">
-                    <div><p class="h7"><b>Number of PTE</b></p></div>
-                    <h6 id="structurePteDiv"></h6>
-                  </div>
             </div>
         </div>
         </div>
