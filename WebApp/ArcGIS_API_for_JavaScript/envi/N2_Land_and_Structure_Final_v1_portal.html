@@ -596,6 +596,51 @@ var chainageRenderer = {
   };
 */
 
+// Station Box
+let stationBoxRenderer = {
+  type: "unique-value",
+  field: "Layer",
+  defaultSymbol: { type: "simple-fill"},
+  uniqueValueInfos: [
+    {
+      value: "00_Platform",
+      symbol: {
+        type: "simple-fill",
+        color: [160, 160, 160],
+        style: "backward-diagonal",
+        outline: {
+          width: 1,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "00_Platform 10car",
+      symbol: {
+        type: "simple-fill",
+        color: [104, 104, 104],
+        style: "cross",
+        outline: {
+          width: 1,
+          color: "black",
+          style: "short-dash"
+        }
+      }
+    },
+    {
+      value: "00_Station",
+      symbol: {
+        type: "simple-fill",
+        color: [0, 0, 0, 0],
+        outline: {
+          width: 2,
+          color: [115, 0, 0]
+        }
+      }
+    }
+  ]
+};
+
 // Pier Heand Pier Column
 let pierHeadColRenderer = {
   type: "unique-value",
@@ -615,8 +660,7 @@ let pierHeadColRenderer = {
     value: "Pier_Head",
     symbol: {
       type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-      color: [168, 168, 168, 0.7],
-      style: "diagonal-cross"
+      color: [169, 169, 169, 0.7]
     }
   }
 ]
@@ -653,6 +697,23 @@ const colors = {
 //*******************************//
 // Import Layers                 //
 //*******************************//
+// Pier head and column
+var pierHeadColumnLayerLayer = new FeatureLayer ({
+  portalItem: {
+    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 4,
+  title: "Pier Head/Column",
+  outFields: ["*"],
+  renderer: pierHeadColRenderer,
+  popupEnabled: false
+});
+pierHeadColumnLayerLayer.listMode = "hide";
+map.add(pierHeadColumnLayerLayer, 1);
+
 var chainageLayer = new FeatureLayer ({
   portalItem: {
     id: "da39a50629b54e6e9abf6ddbebf10b37",
@@ -688,22 +749,6 @@ var PierNoLayer = new FeatureLayer ({
 
 });
 
-// Pier head and column
-var pierHeadColumnLayerLayer = new FeatureLayer ({
-  portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  layerId: 4,
-  title: "Pier Head/Column",
-  outFields: ["*"],
-  renderer: pierHeadColRenderer,
-  popupEnabled: false
-});
-pierHeadColumnLayerLayer.listMode = "hide";
-map.add(pierHeadColumnLayerLayer);
 
 // Station box
 var stationBoxLayer = new FeatureLayer ({
@@ -714,6 +759,7 @@ var stationBoxLayer = new FeatureLayer ({
     }
   },
   layerId: 2,
+  renderer: stationBoxRenderer,
   title: "Station Box",
   outFields: ["*"],
   popupEnabled: false
@@ -781,53 +827,7 @@ var fncLayer = new FeatureLayer ({
 map.add(fncLayer,2);
 
 // Relocation Status point layer
-var reloStatusLayer = new FeatureLayer({
-  portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  layerId: 4,
-        outFields: ["*"],
-        title: "Status for Relocation (ISF)",
-        renderer: reloStatusLayerRenderer,
-        popupTemplate: {
-          title: "<p>{StrucID}</p>",
-          lastEditInfoEnabled: false,
-          returnGeometry: true,
-          content: [
-            {
-              type: "fields",
-              fieldInfos: [
-                {
-                  fieldName: "StrucOwner",
-                  label: "Structure Owner"
-                },
-                {
-                  fieldName: "Municipality"
-                },
-                {
-                  fieldName: "Barangay"
-                },
-                {
-                  fieldName: "StatusRC",
-                  label: "<p>Status for Relocation(NLO/LO)</p>"
-                },
-                {
-                  fieldName: "Name",
-                },
-                {
-                  fieldName: "Status",
-                  label: "Status of NLO/LO"
-                }
-              ]
-            }
-          ]
-        }
-});
-reloStatusLayer.listMode = "hide";
-map.add(reloStatusLayer);
+
 
 // Land 
 var lotLayer = new FeatureLayer({
@@ -868,7 +868,7 @@ var lotLayer = new FeatureLayer({
           ]
         }
 });
-map.add(lotLayer);
+map.add(lotLayer, 1);
 
 // Structure
 var structureLayer = new FeatureLayer({
@@ -1122,130 +1122,8 @@ function thousands_separators(num)
 var municipalSelect = document.getElementById("valSelect");
 var barangaySelect = document.getElementById("barangaySelect");
 
-////////////////////////// Status for Relocation (Converted to xy Point layer) //////////////////////////////////////
-// Query all features from the structure layer
-// Set the definition expression on the lot layer
-// to reflect the selecction of the user
-function setRelocationStatusPointMunicipalExpression(newValuePt) {
-  if (newValuePt == 'None') {
-    reloStatusLayer.definitionExpression = null;
-  } else {
-    reloStatusLayer.definitionExpression = "Municipality = '" + newValuePt + "'";
-  }
-    if (!relocationPtLayer.visible) {
-      reloStatusLayer.visible = true;
-    }
-    return queryForRelocationStatusPointGeometries();
-}
 
-function setRelocationStatusPointDefinitionExpression(newValue1Pt, newValue2Pt){
-  if(newValue2Pt == undefined || newValue2Pt == 'None'){
-    reloStatusLayer.definitionExpression = "Municipality = '" + newValue1Pt + "'";
-  } else {
-    reloStatusLayer.definitionExpression = "Municipality = '" + newValue1Pt + "'" + " AND " + "Barangay = '" + newValue2Pt + "'";
-  }
-  if(!reloStatusLayer.visible){
-    reloStatusLayer.visible = true;
-  }
-  return queryForRelocationStatusPointGeometries();
-}
-
-function queryForRelocationStatusPointGeometries() {
-    var relocationStatusPointQuery = reloStatusLayer.createQuery();
-
-    return reloStatusLayer.queryFeatures(relocationStatusPointQuery).then(function(response) {
-      relocationStatusPtGeometries = response.features.map(function(feature) {
-            return feature.geometry;
-        });
-        return relocationStatusPtGeometries;
-    });
-}
-
-
-////////////////////////// Statsu of Relocation (Occupancy) //////////////////////////////////////
-// Query all features from the structure layer
-// Set the definition expression on the lot layer
-// to reflect the selecction of the user
-function setRelocationPointMunicipalExpression(newValuePt) {
-  if (newValuePt == 'None') {
-    relocationPtLayer.definitionExpression = null;
-  } else {
-    relocationPtLayer.definitionExpression = "Municipality = '" + newValuePt + "'";
-  }
-    if (!relocationPtLayer.visible) {
-      relocationPtLayer.visible = true;
-    }
-    return queryForRelocationPointGeometries();
-}
-
-function setRelocationPointDefinitionExpression(newValue1Pt, newValue2Pt){
-  if(newValue2Pt == undefined || newValue2Pt == 'None'){
-    relocationPtLayer.definitionExpression = "Municipality = '" + newValue1Pt + "'";
-  } else {
-    relocationPtLayer.definitionExpression = "Municipality = '" + newValue1Pt + "'" + " AND " + "Barangay = '" + newValue2Pt + "'";
-  }
-  if(!relocationPtLayer.visible){
-    relocationPtLayer.visible = true;
-  }
-  return queryForRelocationPointGeometries();
-}
-
-function queryForRelocationPointGeometries() {
-    var relocationPointQuery = relocationPtLayer.createQuery();
-
-    return relocationPtLayer.queryFeatures(relocationPointQuery).then(function(response) {
-      relocationPtGeometries = response.features.map(function(feature) {
-            return feature.geometry;
-        });
-        return relocationPtGeometries;
-    });
-}
-
-
-
-
-///////////////////////// Structure Polygon ////////////////////////////////////////
-// Query all features from the structure layer
-// Set the definition expression on the lot layer
-// to reflect the selecction of the user
-
-function setStructureMunicipalExpression(newValueStruc) {
-  if (newValueStruc == 'None') {
-    structureLayer.definitionExpression = null;
-  } else {
-    structureLayer.definitionExpression = "Municipality = '" + newValueStruc + "'";
-  }
-    if (!structureLayer.visible) {
-      structureLayer.visible = true;
-    }
-    return queryForStructureGeometries();
-}
-
-function setStructureDefinitionExpression(newValue1Struc, newValue2Struc){
-  if(newValue2Struc == undefined || newValue2Struc == 'None'){
-    structureLayer.definitionExpression = "Municipality = '" + newValue1Struc + "'";
-  } else {
-    structureLayer.definitionExpression = "Municipality = '" + newValue1Struc + "'" + " AND " + "Barangay = '" + newValue2Struc + "'";
-  }
-  if(!structureLayer.visible){
-    structureLayer.visible = true;
-  }
-  return queryForStructureGeometries();
-}
-
-function queryForStructureGeometries() {
-    var structureQuery = structureLayer.createQuery();
-
-    return structureLayer.queryFeatures(structureQuery).then(function(response) {
-        structureGeometries = response.features.map(function(feature) {
-            return feature.geometry;
-        });
-        return structureGeometries;
-    });
-}
-
-
-////////////////////// LOT //////////////////////////
+////////////////////////////////////////////////
 // Return an array of unique values in the 'Brangay' field of the lot Layer
 // Query all features from the lot layer
 view.when(function() {
@@ -1297,24 +1175,51 @@ function addToSelect(values) {
 function setLotMunicipalExpression(newValue) {
   if (newValue == 'None') {
     lotLayer.definitionExpression = null;
+    structureLayer.definitionExpression = null;
+    relocationPtLayer.definitionExpression = null;
+    priorityLayer.definitionExpression = null;
+
   } else {
     lotLayer.definitionExpression = "Municipality = '" + newValue + "'";
+    structureLayer.definitionExpression = "Municipality = '" + newValue + "'";
+    relocationPtLayer.definitionExpression = "Municipality = '" + newValue + "'";
+    priorityLayer.definitionExpression = "Municipality = '" + newValue + "'";
   }
-    if (!lotLayer.visible) {
+  
+  /*
+    if (!lotLayer.visible || !structureLayer.visible || !reloISFLayer.visible || !relocationPtLayer.visible) {
         lotLayer.visible = true;
+        structureLayer.visible = true;
+        reloISFLayer.visible = true;
+        relocationPtLayer.visible = true;
     }
+    */
     return queryForLotGeometries();
 }
 
 function setLotDefinitionExpression(newValue1, newValue2){
   if(newValue2 == undefined || newValue2 == 'None'){
     lotLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
+    structureLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
+    relocationPtLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
+    priorityLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
+
   } else {
     lotLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
+    lotLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
+    structureLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
+    relocationPtLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
+    priorityLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
   }
-  if(!lotLayer.visible){
+  /*
+  if(!lotLayer.visible || !structureLayer.visible || !reloISFLayer.visible || !relocationPtLayer.visible){
     lotLayer.visible = true;
+    structureLayer.visible = true;
+        reloISFLayer.visible = true;
+        relocationPtLayer.visible = true;
   }
+  */
+
   return queryForLotGeometries();
 }
 
@@ -1327,37 +1232,23 @@ function queryForLotGeometries() {
         });
         return lotGeometries;
     });
+
+    var structureQuery = structureLayer.createQuery();
+
+return structureLayer.queryFeatures(structureQuery).then(function(response) {
+    structureGeometries = response.features.map(function(feature) {
+        return feature.geometry;
+    });
+    return structureGeometries;
+  });
 }
 
-/*
-lotStrucReloTypeButton.addEventListener("change", filterByType);
-function filterByType(e) {
-  const selectedType = e.target.id;
-  if(selectedType == "Lot") {
-    updateChartLot()
-    .then(totalNumberOfLots);
-    selectedButton.innerHTML = "Lot";
-  } else if (selectedType == "Structure") {
-    updateChartStructure()
-    .then(totalNumberOfStructures);
-    selectedButton.innerHTML = "Structure";
-  } else if (selectedType == "Relocation") {
-    updateChartRelocation()
-    .then(totalNumberOfRelo);
-    selectedButton.innerHTML = "NLO/LO";
-  }
-
-}
-*/
 
     municipalSelect.addEventListener("change", function() {
     var type = event.target.value;
     var target = event.target;
 
     setLotMunicipalExpression(type);
-    setStructureMunicipalExpression(type);
-    setRelocationPointMunicipalExpression(type);
-    setRelocationStatusPointMunicipalExpression(type);
     filterLotMunicipality();
 
 
@@ -1420,6 +1311,7 @@ function addToSelectQuery2(query2Values) {
 barangaySelect.addEventListener("click", function() {
   var type = event.target.value;
   setLotDefinitionExpression(municipalSelect.value, type);
+
   updateChartLot().then(totalNumberOfLots);
   updateChartStructure().then(totalNumberOfStructures);
   updateMoaChartLot();
@@ -1427,14 +1319,10 @@ barangaySelect.addEventListener("click", function() {
   pteNumberLot();
   pteNumberStructure();
 
-  setStructureDefinitionExpression(municipalSelect.value, type);
-  setRelocationPointDefinitionExpression(municipalSelect.value, type);
-  setRelocationStatusPointDefinitionExpression(municipalSelect.value, type);
 
-  zoomToLayer(structureLayer);
+  zoomToLayer(lotLayer);
   //relocationObjectID(reloStatusLayer);
 
-  updateFigure();
 });
 
 
@@ -2407,6 +2295,11 @@ var legend = new Legend({
   view: view,
   container: legendDiv,
   layerInfos: [
+  {
+      layer: pierHeadColumnLayerLayer,
+      title: "Pier Head/Column"
+
+    },
     {
       layer: lotLayer,
       title: "Status of Parcellary"
@@ -2424,17 +2317,12 @@ var legend = new Legend({
       title: "Occupancy"
     },
     {
-      layer: reloStatusLayer,
-      title: "Status for Relocation (NLO/LO)"
-    },
-    {
       layer: priorityLayer,
       title: "Priority Lot"
     },
     {
-      layer: pierHeadColumnLayerLayer,
-      title: "Pier Head/Column"
-
+      layer: stationBoxLayer,
+      title: "Station Box"
     }
   ]
 });
