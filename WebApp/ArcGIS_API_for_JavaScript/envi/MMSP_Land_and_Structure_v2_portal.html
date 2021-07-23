@@ -1051,8 +1051,24 @@ function addToSelect(values) {
 
 // Set the definition expression on the lot layer
 // to reflect the selecction of the user
-function setLotMunicipalExpression(newValue) {
-  if (newValue == 'None') {
+
+function setLotMunicipalExpression(newValue, newValue2) {
+    // newValue: station names
+    // newValue2: priority 
+    if (newValue2 == undefined && newValue == 'None') {
+        lotLayer.definitionExpression = null;
+    } else if (newValue2 == 'None' && newValue == 'None') {
+        lotLayer.definitionExpression = null;
+    } else if (newValue2 == 'None' && newValue !== 'None') {
+        lotLayer.definitionExpression = "Station = '" + newValue + "'";
+    } else if (newValue2 == 'Priority1' && newValue == 'None') {
+        lotLayer.definitionExpression = "Priority3 = 1";
+    } else if (newValue2 == 'Priority1' && newValue !== 'None') {
+        lotLayer.definitionExpression = "Station = '" + newValue + "'" + " AND " + "Priority3 = 1";
+    }
+
+    /*
+    if (newValue == 'None') {
     lotLayer.definitionExpression = null;
     priorityLayer.definitionExpression = null;
 
@@ -1060,13 +1076,34 @@ function setLotMunicipalExpression(newValue) {
     lotLayer.definitionExpression = "Station = '" + newValue + "'";
     priorityLayer.definitionExpression = "Station = '" + newValue + "'";
   }
-   
-    if (!lotLayer.visible || !priorityLayer.visible) {
+   */
+    if (!lotLayer.visible) {
         lotLayer.visible = true;
-        priorityLayer.visible = true;
     }
     
     return queryForLotGeometries();
+}
+
+
+
+function setLotDefinitionExpression(newValue1, newValue2){
+    // newValue1 = staion names
+    // newValue2 = 1st Priority (1)
+
+    //headerTitleDiv.innerHTML = newValue1 + ", " + newValue2;
+  if(newValue1 == 'None' && newValue2 == 1){
+    lotLayer.definitionExpression = "Priority3 = " + newValue2;
+  } else if (newValue1 == 'None' && newValue2 == 0){
+    lotLayer.definitionExpression = null;
+  } else if (newValue1 !== 'None' && newValue2 == 1) {
+    lotLayer.definitionExpression = "Station = '" + newValue1 + "'" + " AND " + "Priority3 = " + newValue2;    
+  } else if (newValue1 !== 'None' && newValue2 == 0) {
+    lotLayer.definitionExpression = "Station = '" + newValue1 + "'";
+  }
+   if(!lotLayer.visible){
+    lotLayer.visible = true;
+  }
+  return queryForLotGeometries();
 }
 
 function queryForLotGeometries() {
@@ -1081,14 +1118,12 @@ function queryForLotGeometries() {
 
 }
 
-
-    stationSelect.addEventListener("change", function() {
+function testFunction(priorityValue) {
+ stationSelect.addEventListener("change", function() {
     var type = event.target.value;
     var target = event.target;
 
-    //headerTitleDiv.innerHTML = type;
-
-    setLotMunicipalExpression(type);
+    setLotMunicipalExpression(type, priorityValue);
     updateChartLot().then(totalNumberOfLots);
     updateChartStructure();
     updateMoaChartLot();
@@ -1099,6 +1134,8 @@ function queryForLotGeometries() {
 
     zoomToLayer(lotLayer);
 });
+};
+
 
 function filterLotStation() {
   var query2 = lotLayer.createQuery();
@@ -1107,20 +1144,23 @@ function filterLotStation() {
 }
 
 priorityButton.addEventListener("change", function(event) {
-    const type = event.target.id;
-   if (event.target.checked) {
-     if (stationSelect.value == 'None') {
-      lotLayer.definitionExpression = "Priority3 = 1";
-     } else if (stationSelect.value !== 'None') {
-      lotLayer.definitionExpression = "Station = '" + stationSelect.value + "'" + " AND " + "Priority3 = 1";
-     }
-   } else {
-     if (stationSelect.value == 'None') {
-      lotLayer.definitionExpression = null;
-     } else if (stationSelect.value !== 'None') {
-      lotLayer.definitionExpression = "Station = '" + stationSelect.value + "'";
-     }
-   }
+    const typeS = event.target.id;
+
+    if (typeS == "Priority1") {
+        const priorityValue = 1;
+        setLotDefinitionExpression(stationSelect.value, priorityValue);
+    } else {
+        const priorityValue = 0;
+        setLotDefinitionExpression(stationSelect.value, priorityValue);
+    }
+    updateChartLot().then(totalNumberOfLots);
+    updateChartStructure();
+    updateMoaChartLot();
+    updateMoaChartStructure();
+    pteNumberLot();
+
+    return testFunction(typeS);
+    
   });
 
 
@@ -2140,7 +2180,8 @@ view.ui.add(legendExpand, {
                 <div id="structureChartDiv"></div>
                   <div id="structureMoaChartDiv"></div>
                   <div id="dataTypeInput" class="cpButtonClass">
-                    <input type="checkbox" id="Priority1" unchecked/> 1st Priority
+                    <input type="radio" id="None" name="dataTypeInput" checked/> None
+                    <input type="radio" id="Priority1" name="dataTypeInput"> 1st Priority
                   </div>
             </div>
         </div>
