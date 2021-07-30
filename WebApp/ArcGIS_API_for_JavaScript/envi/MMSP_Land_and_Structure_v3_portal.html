@@ -1892,6 +1892,58 @@ series.dataFields.valueX = "value";
 series.tooltipText = "{valueX.value}"
 series.columns.template.strokeOpacity = 0;
 
+// Click chart and filer 
+const chartElement = document.getElementById("chartPanel");
+  series.columns.template.events.on("hit", filterByChart, this);
+  function filterByChart(ev) {
+    const selectedP = ev.target.dataItem.categoryY;
+
+    if (selectedP == "1-NVS") {
+        selectedStatus = 1;
+    } else if (selectedP == "2-Expropriation") {
+        selectedStatus = 2;
+    } else if (selectedP == "3-ROWUA") {
+        selectedStatus = 3;
+    }
+    view.whenLayerView(lotLayer).then(function (layerView) {
+        chartLayerView = layerView;
+        chartElement.style.visibility = "visible";
+
+        lotLayer.queryFeatures().then(function(results) {
+            const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i< rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            if (highlightSelect) {
+                highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+
+            view.on("click", function() {
+                layerView.filter = null;
+                highlightSelect.remove();
+            });
+        });
+
+
+    }); // End of whenLayerView
+
+    chartLayerView.filter = {
+      where: "MOA = " + selectedStatus
+    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+    };
+  }; // End of filterByChart
+ 
+
 var labelBullet = series.bullets.push(new am4charts.LabelBullet())
 labelBullet.label.horizontalCenter = "left";
 labelBullet.label.text = "{values.valueX.workingValue.formatNumber('#')}"; //#.0as for 17k
@@ -2009,6 +2061,57 @@ series.dataFields.valueX = "value";
 series.tooltipText = "{valueX.value}"
 series.columns.template.strokeOpacity = 0;
 
+// Click chart and filer 
+const chartElement = document.getElementById("chartPanel");
+  series.columns.template.events.on("hit", filterByChart, this);
+  function filterByChart(ev) {
+    const selectedP = ev.target.dataItem.categoryY;
+
+    if (selectedP == "1-NVS") {
+        selectedStatus = 1;
+    } else if (selectedP == "2-Expropriation") {
+        selectedStatus = 2;
+    }
+
+    view.whenLayerView(lotLayer).then(function (layerView) {
+        chartLayerView = layerView;
+        chartElement.style.visibility = "visible";
+
+        lotLayer.queryFeatures().then(function(results) {
+            const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i< rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            if (highlightSelect) {
+                highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+
+            view.on("click", function() {
+                layerView.filter = null;
+                highlightSelect.remove();
+            });
+        });
+
+
+    }); // End of whenLayerView
+
+    chartLayerView.filter = {
+      where: "S_MOA = " + selectedStatus
+    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+    };
+  }; // End of filterByChart
+
+  
 var labelBullet = series.bullets.push(new am4charts.LabelBullet())
 labelBullet.label.horizontalCenter = "left";
 labelBullet.label.text = "{values.valueX.workingValue.formatNumber('#')}"; //#.0as for 17k
