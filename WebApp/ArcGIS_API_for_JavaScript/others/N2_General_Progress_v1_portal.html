@@ -474,7 +474,7 @@ var basemap = new Basemap({
       });
 
          var map = new Map({
-              basemap: "gray-vector", // "streets-night-vector", basemap
+              basemap: basemap, //"gray-vector", // "streets-night-vector", basemap
               ground: "world-elevation"
         }); 
         //map.ground.surfaceColor = "#FFFF";
@@ -754,6 +754,7 @@ var stationLayer = new FeatureLayer({
         map.add(stationLayer, 0);
 
 // Priority Lot
+/*
 var priorityLayer = new FeatureLayer ({
     portalItem: {
     id: "95d98d2775ec47ad81140bf7e3717a28",
@@ -780,7 +781,7 @@ var fncLayer = new FeatureLayer ({
   popupEnabled: false
 });
 map.add(fncLayer,2);
-
+*/
 // Relocation Status point layer
 
 
@@ -981,6 +982,7 @@ var treePointRenderer = {
   ]
 };
 
+
 var treeLayer = new FeatureLayer ({
     portalItem: {
     id: "1e2bc86a044a4bcdae25b5ea8ebee6ef",
@@ -999,6 +1001,33 @@ var treeLayer = new FeatureLayer ({
 map.add(treeLayer);
 
 // Utility Relocation (Point)
+var utilPointRenderer = {
+  type: "unique-value",
+  valueExpression: "When($feature.Status == 1 && $feature.LAYER == 1, 'Demolished', \
+                         $feature.Status == 1 && $feature.LAYER == 2, 'Relocated', $feature.Status)",
+  uniqueValueInfos: [
+    {
+      value: "Demolished",
+      symbol: {
+        type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
+        url: "https://EijiGorilla.github.io/Symbols/DemolishComplete_v2.png",
+        width: "25px",
+        height: "25px"
+      }
+    },
+    {
+      value: "Relocated",
+      symbol: {
+        type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
+        url: "https://EijiGorilla.github.io/Symbols/EijiGorilla.github.io/Symbols/RelocatedComplete_v1.png",
+        width: "25px",
+        height: "25px"
+      }
+    }
+  ]                     
+
+};
+
 var utilPointLayer = new FeatureLayer({
   portalItem: {
     id: "3345eb3a597c42e680ca2113b0f28163",
@@ -1007,6 +1036,7 @@ var utilPointLayer = new FeatureLayer({
     }
   },
   layerId: 1,
+  renderer: utilPointRenderer,
   title: "Utility Point",
    outFields: ["*"],
    elevationInfo: {
@@ -1017,6 +1047,36 @@ var utilPointLayer = new FeatureLayer({
 map.add(utilPointLayer);
 
 // Utility Relocation (Line)
+const utilLineColors = {
+  1: [0, 112, 255], // Relocated
+  2: [112, 173, 71] // Demolished
+}
+var utilLineRenderer = {
+  type: "unique-value",
+  valueExpression: "When($feature.Status == 1 && $feature.LAYER == 1, 'Demolished', \
+                         $feature.Status == 1 && $feature.LAYER == 2, 'Relocated', $feature.Status)",
+  uniqueValueInfos: [
+    {
+      value: "Demolished",
+      symbol: {
+        type: "simple-line",  // autocasts as new PictureMarkerSymbol()
+        color: utilLineColors[2],
+        width: "2px",
+        style: "short-dot"
+      }
+    },
+    {
+      value: "Relocated",
+      symbol: {
+        type: "simple-line",  // autocasts as new PictureMarkerSymbol()
+        color: utilLineColors[1],
+        width: "2px"
+      }
+    }
+  ]                     
+
+};
+
 var utilLineLayer = new FeatureLayer({
     portalItem: {
     id: "3345eb3a597c42e680ca2113b0f28163",
@@ -1025,6 +1085,7 @@ var utilLineLayer = new FeatureLayer({
     }
   },
   layerId: 2,
+  renderer: utilLineRenderer,
    title: "Utility Line",
    elevationInfo: {
      mode: "relative-to-scene",
@@ -1449,7 +1510,7 @@ searchExpand.watch("expanded", function() {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.title === "Chainage" || item.title === "ROW" || item.title === "Pier No." || item.title === "Free and Clear"){
+              if (item.title === "Chainage" || item.title === "Pier No."){
                 item.visible = false
               }
             }
