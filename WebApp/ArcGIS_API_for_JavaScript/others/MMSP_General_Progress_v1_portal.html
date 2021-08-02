@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>Land Acquisition (N2)</title>
+<title>Land Acquisition (MMSP)</title>
 
     <style>
       html,
@@ -350,27 +350,17 @@
           padding: 0px 0px 10px 0px;
           }
 
-
       .sassy-theme .esri-menu,
       .sassy-theme .esri-popup__main-container,
       .sassy-theme .esri-popup .esri-popup__pointer-direction,
       .sassy-theme .esri-popup .esri-popup__button,
       .sassy-theme .esri-button,
       .sassy-theme .esri-input,
+      .sassy-theme .esri-legend,
       .sassy-theme .esri-layer-list,
       .sassy-theme .esri-widget a {
         background-color: rgb(0, 0, 0, 0.7);
         color: #fff;
-      }
-
-      #legendDiv {
-        background-color: black;
-      }
-
-      .sassy-theme .esri-legend .esri-legend__layer-cell--info {
-        background-color: black;
-        color: white;
-        font-size: 10px;
       }
 
       .sassy-theme .esri-legend__layer-caption {
@@ -873,7 +863,7 @@ var lotBoundary = new FeatureLayer({
   },
   layerId: 19,
         outFields: ["*"],
-        title: "Status of Land Acquisition",
+        title: "Lot Boundary",
         labelsVisible: false,
         labelingInfo: [labelClass]
 });
@@ -888,7 +878,7 @@ const strucColors = {
 var strucFillRenderer = {
   type: "unique-value",
   valueExpression: "When($feature.S_HandedOver == 1, 'S_Handover', \
-                         $feature.StatusStruc == 2, 'S_Paid', $feature.StrucStatus)",
+                         $feature.StrucStatus == 2, 'S_Paid', $feature.StrucStatus)",
   uniqueValueInfos: [
     {
       value: "S_Handover",
@@ -1010,7 +1000,7 @@ var utilPointRenderer = {
       value: "Relocated",
       symbol: {
         type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-        url: "https://EijiGorilla.github.io/Symbols/EijiGorilla.github.io/Symbols/RelocatedComplete_v1.png",
+        url: "https://EijiGorilla.github.io/Symbols/RelocatedComplete_v1.png",
         width: "25px",
         height: "25px"
       }
@@ -1465,13 +1455,50 @@ searchExpand.watch("expanded", function() {
   });
 
 ///////////////////////////////////////////////
+var legend = new Legend({
+  view: view,
+  container: document.getElementById("legendDiv"),
+  layerInfos: [
+    {
+      layer: lotLayer,
+      title: "Land Acquisition"
+    },
+    {
+      layer: structureLayer,
+      title: "Structure Acquisition"
+    },
+    {
+      layer: treeLayer,
+      title: "Tree"
+    },
+    {
+      layer: utilPointLayer,
+      title: "Utility Relocation (point)"
+    },
+    {
+      layer: utilLineLayer,
+      title: "Utility Relocation (line)"
+    },
+  ]
+});
+
+var legendExpand = new Expand({
+    view: view,
+    content: legend,
+    expandIconClass: "esri-icon-legend",
+    group: "bottom-right"
+});
+view.ui.add(legendExpand, {
+    position: "bottom-right"
+});
+
 // LayerList and Add legend to the LayerList
         // On-off feature layer tab
         var layerList = new LayerList({
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.title === "Chainage" || item.title === "Pier No."){
+              if (item.title === "PO Section" || item.title === "BSS Building" || item.title == "Depot Building"){
                 item.visible = false
               }
             }
