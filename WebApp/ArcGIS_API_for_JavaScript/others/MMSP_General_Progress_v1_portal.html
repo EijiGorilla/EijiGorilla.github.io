@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>Land Acquisition (N2)</title>
+<title>Land Acquisition (MMSP)</title>
 
     <style>
       html,
@@ -350,8 +350,7 @@
           padding: 0px 0px 10px 0px;
           }
 
-
-          .sassy-theme .esri-menu,
+      .sassy-theme .esri-menu,
       .sassy-theme .esri-popup__main-container,
       .sassy-theme .esri-popup .esri-popup__pointer-direction,
       .sassy-theme .esri-popup .esri-popup__button,
@@ -453,8 +452,8 @@ var basemap = new Basemap({
          
         var view = new MapView({
             map: map,
-            center: [120.57930, 15.18],
-            zoom: 10,
+            center: [121.0194387, 14.6972616],
+            zoom: 14,
             container: "viewDiv",
             environment: {
                 background: {
@@ -520,92 +519,6 @@ var chainageRenderer = {
     }
   };
 */
-
-// Station Box
-let stationBoxRenderer = {
-  type: "unique-value",
-  field: "Layer",
-  defaultSymbol: { type: "simple-fill"},
-  uniqueValueInfos: [
-    {
-      value: "00_Platform",
-      symbol: {
-        type: "simple-fill",
-        color: [160, 160, 160],
-        style: "backward-diagonal",
-        outline: {
-          width: 1,
-          color: "black"
-        }
-      }
-    },
-    {
-      value: "00_Platform 10car",
-      symbol: {
-        type: "simple-fill",
-        color: [104, 104, 104],
-        style: "cross",
-        outline: {
-          width: 1,
-          color: "black",
-          style: "short-dash"
-        }
-      }
-    },
-    {
-      value: "00_Station",
-      symbol: {
-        type: "simple-fill",
-        color: [0, 0, 0, 0],
-        outline: {
-          width: 2,
-          color: [115, 0, 0]
-        }
-      }
-    }
-  ]
-};
-
-// Pier Heand Pier Column
-let pierHeadColRenderer = {
-  type: "unique-value",
-  field: "Layer",
-  defaultSymbol: { type: "simple-fill" },  // autocasts as new SimpleFillSymbol()
-  uniqueValueInfos: [
-    {
-    // All features with value of "North" will be blue
-    value: "Pier_Column",
-    symbol: {
-      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-      color: [78, 78, 78, 0.5],
-    }
-  },
-  {
-    // All features with value of "North" will be blue
-    value: "Pier_Head",
-    symbol: {
-      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-      color: [169, 169, 169, 0.7]
-    }
-  }
-]
-};
-
-
-  // Standalone status of relocation table
-let reloStatusLayerRenderer = {
-  type: "simple",  // autocasts as new SimpleRenderer()
-  symbol: {
-    type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
-    size: 4,
-    color: [0, 0, 0, 0],
-    outline: {  // autocasts as new SimpleLineSymbol()
-      width: 0.4,
-      color: "#A8A800"
-    }
-  }
-};
-
 // Fill symbol color for Structure Layer (Status of Structure)
 const colors = {
           1: [255, 0, 197], // Dismantling/Clearing
@@ -616,99 +529,76 @@ const colors = {
           6: [255, 0, 0] //LBP Account Opening
         };
 
-// Fill symbol color for Structure Layer (NLO/LO)
-
 
 //*******************************//
 // Import Layers                 //
 //*******************************//
-// Pier head and column
-var pierHeadColumnLayerLayer = new FeatureLayer ({
+// Construction Boundary
+let defaultLotSymbolBoundary = {
+                type: "simple-fill",
+                color: [0, 0, 0, 0],
+                style: "solid",
+                outline: {
+                    style: "short-dash",
+                color: [215, 215, 158],
+                width: 1.5
+            }
+};
+
+let BoundaryFillSymbol = {
+    type: "unique-value",
+    field: "StatusNVS3",
+    defaultSymbol: defaultLotSymbolBoundary,
+}
+
+
+var constBoundary = new FeatureLayer({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  layerId: 4,
-  title: "Pier Head/Column",
-  outFields: ["*"],
-  renderer: pierHeadColRenderer,
-  popupEnabled: false
-});
-
-pierHeadColumnLayerLayer.listMode = "hide";
-map.add(pierHeadColumnLayerLayer, 1);
-
-var chainageLayer = new FeatureLayer ({
-  portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  layerId: 3,
-  title: "Chainage",
-  elevationInfo: {
-    mode: "relative-to-ground"
-  },
-  outFields: ["*"],
-  popupEnabled: false
-
-});
-
-//chainageLayer.listMode = "hide";
-map.add(chainageLayer, 1);
-
-// Pier No. (point feature)
-var PierNoLayer = new FeatureLayer ({
-  portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "89491eef43454fec87f53151e4bc8a6c",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
   layerId: 6,
-  title: "Pier No.",
-  outFields: ["*"],
+  renderer: BoundaryFillSymbol,
+  elevationInfo: {
+    mode: "on-the-ground"
+  },
+  title: "Construction Boundary",
   popupEnabled: false
-
 });
+constBoundary.listMode = "hide";
+map.add(constBoundary);
 
-
-// Station box
-var stationBoxLayer = new FeatureLayer ({
+// Depot Building
+var depotBuildingLayer = new FeatureLayer ({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "89491eef43454fec87f53151e4bc8a6c",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 2,
-  renderer: stationBoxRenderer,
-  title: "Station Box",
+  layerId: 9,
+  title: "Depot Building",
   outFields: ["*"],
   popupEnabled: false
 });
-stationBoxLayer.listMode = "hide";
-map.add(stationBoxLayer);
+map.add(depotBuildingLayer);
 
-//chainageLayer.listMode = "hide";
-map.add(PierNoLayer, 1);
-
-// ROW //
-var rowLayer = new FeatureLayer ({
+// BSS Building
+var bssDepotBuildingLayer = new FeatureLayer ({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "89491eef43454fec87f53151e4bc8a6c",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 1,
-  title: "ROW",
+  layerId: 10,
+  title: "BSS Building",
+  outFields: ["*"],
   popupEnabled: false
 });
-map.add(rowLayer,2);
+map.add(bssDepotBuildingLayer);
 
 // Station point feature
 var stationLayer = new FeatureLayer({
@@ -718,42 +608,182 @@ var stationLayer = new FeatureLayer({
       url: "https://gis.railway-sector.com/portal"
     }
   },
-             definitionExpression: "Extension = 'N2'"
+             definitionExpression: "Project = 'MMSP'"
               //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
         });
         stationLayer.listMode = "hide";
         map.add(stationLayer, 0);
 
 // Priority Lot
-/*
+let priorityLotRenderer = {
+    field: "Priority3",
+    symbol: {
+        type: "simple-fill",
+        color: [0, 0, 0, 0],
+        outline: {
+            width: 1,
+            color: [255, 0, 0]
+        }
+
+    }
+
+};
+
 var priorityLayer = new FeatureLayer ({
     portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
+    id: "89491eef43454fec87f53151e4bc8a6c",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 1,
+  layerId: 15,
+  definitionExpression: "Priority3 = 1",
+  //renderer: priorityLotRenderer,
   title: "Priority Lot",
   popupEnabled: false
 });
-map.add(priorityLayer,2);
+map.add(priorityLayer, 0);
 
-// Free and Clear Lot //
-var fncLayer = new FeatureLayer ({
+// Construction boundary for North Av
+var naBoundaryLayer = new FeatureLayer ({
   portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
+    id: "89491eef43454fec87f53151e4bc8a6c",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 2,
-  title: "Free and Clear",
+  layerId: 5,
+  title: "Construction Boundary (NA)",
+  outFields: ["*"],
   popupEnabled: false
 });
-map.add(fncLayer,2);
-*/
-// Relocation Status point layer
+map.add(naBoundaryLayer);
+
+// East Valenzuela
+var evsLayer = new FeatureLayer ({
+  portalItem: {
+    id: "89491eef43454fec87f53151e4bc8a6c",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 11,
+  title: "East Valenzuela",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(evsLayer);
+
+// NNC Construction boundary (Senate)
+var senateBoundaryLayer = new FeatureLayer ({
+  portalItem: {
+    id: "89491eef43454fec87f53151e4bc8a6c",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 12,
+  title: "Construction Boundary (Senate)",
+  outFields: ["*"],
+  popupEnabled: false
+});
+senateBoundaryLayer.list = "hide";
+map.add(senateBoundaryLayer);
+
+// Station box
+let poSectionBoxRenderer = {
+  type: "unique-value",
+  field: "Layer",
+  defaultSymbol: { type: "simple-fill"},
+  uniqueValueInfos: [
+    {
+      value: "U-Shape Retaining Wall",
+      symbol: {
+        type: "simple-fill",
+        color: [104, 104, 104],
+        style: "backward-diagonal",
+        outline: {
+          width: 1,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "Cut & Cover Box",
+      symbol: {
+        type: "simple-fill",
+        color: [104, 104, 104],
+        style: "backward-diagonal",
+        outline: {
+          width: 1,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "TBM Shaft",
+      symbol: {
+        type: "simple-fill",
+        color: [104, 104, 104],
+        style: "backward-diagonal",
+        outline: {
+          width: 1,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "TBM",
+      symbol: {
+        type: "simple-fill",
+        color: [178, 178, 178],
+        style: "backward-diagonal",
+        outline: {
+          width: 0.5,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "Station Platform",
+      symbol: {
+        type: "simple-fill",
+        color: [240, 204, 230],
+        style: "backward-diagonal",
+        outline: {
+          width: 0.4,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "Station Box",
+      symbol: {
+        type: "simple-fill",
+        color: [0, 0, 0, 0],
+        outline: {
+          width: 2,
+          color: "red"
+        }
+      }
+    }
+  ]
+};
+
+var poSectionBoxLayer = new FeatureLayer ({
+  portalItem: {
+    id: "89491eef43454fec87f53151e4bc8a6c",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 7,
+  renderer: poSectionBoxRenderer,
+  title: "PO Section",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(poSectionBoxLayer);
 
 
 // Land
@@ -764,8 +794,8 @@ const laColors = {
 
 var laFillRenderer = {
   type: "unique-value",
-  valueExpression: "When($feature.HandOver == 1, 'Handover', \
-                         $feature.StatusLA == 1, 'Paid', $feature.StatusLA)",
+  valueExpression: "When($feature.HandedOver == 1, 'Handover', \
+                         $feature.StatusNVS3 == 1, 'Paid', $feature.StatusNVS3)",
   uniqueValueInfos: [
     {
       value: "Handover",
@@ -794,18 +824,50 @@ var laFillRenderer = {
 
 var lotLayer = new FeatureLayer({
   portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
+    id: "89491eef43454fec87f53151e4bc8a6c",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 7,
+  layerId: 2,
   renderer: laFillRenderer,
         outFields: ["*"],
-        title: "Status of Land Acquisition",
-        labelsVisible: false,
+        title: "Status of Land Acquisition"
+        //labelsVisible: false,
 });
-map.add(lotLayer, 1);
+map.add(lotLayer, 0);
+
+// Lot Boundary
+const labelClass = {
+  // autocasts as new LabelClass()
+  symbol: {
+    type: "text",  // autocasts as new TextSymbol()
+    color: "black",
+    font: {  // autocast as new Font()
+      family: "Gill Sans",
+      size: 8
+    }
+  },
+  labelPlacement: "above-center",
+  labelExpressionInfo: {
+    expression: "$feature.CN"
+  }
+};
+
+var lotBoundary = new FeatureLayer({
+  portalItem: {
+    id: "89491eef43454fec87f53151e4bc8a6c",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 19,
+        outFields: ["*"],
+        title: "Lot Boundary",
+        labelsVisible: false,
+        labelingInfo: [labelClass]
+});
+map.add(lotBoundary, 0);
 
 // Structure
 const strucColors = {
@@ -815,11 +877,11 @@ const strucColors = {
 
 var strucFillRenderer = {
   type: "unique-value",
-  valueExpression: "When($feature.HandOver == 1, 'Handover', \
-                         $feature.StatusStruc == 2, 'Paid', $feature.StatusStruc)",
+  valueExpression: "When($feature.S_HandedOver == 1, 'S_Handover', \
+                         $feature.StrucStatus == 2, 'S_Paid', $feature.StrucStatus)",
   uniqueValueInfos: [
     {
-      value: "Handover",
+      value: "S_Handover",
       symbol: {
                   type: "simple-fill",
                   color: strucColors[1],
@@ -831,7 +893,7 @@ var strucFillRenderer = {
                  }
     },
     {
-      value: "Paid",
+      value: "S_Paid",
       symbol: {
                   type: "simple-fill",
                   color: strucColors[2],
@@ -845,73 +907,20 @@ var strucFillRenderer = {
   ]
 };
 
+// Note that this layer is lot layer, as there are no structuer layers
 var structureLayer = new FeatureLayer({
   portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
+    id: "89491eef43454fec87f53151e4bc8a6c",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 6,
+  layerId: 2,
   renderer: strucFillRenderer,
         title: "Status of Structure",
         outFields: ["*"]
 });
 map.add(structureLayer);
-
-// Relocation Status point layer
-const isfColors = {
-  1: [0, 112, 255], // Relocated
-  2: [112, 173, 71] // Paid
-};
-
-var isfPointRenderer = {
-  type: "unique-value",
-  valueExpression: "When($feature.StatusRC == 1, 'Relocated', \
-                         $feature.StatusRC == 2, 'Paid', $feature.StatusRC)",
-  uniqueValueInfos: [
-    {
-      value: "Relocated",
-      symbol: {
-    type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
-    size: 4,
-    color: isfColors[1],
-    outline: {  // autocasts as new SimpleLineSymbol()
-      width: 0.4,
-      color: "#A8A800"
-    }
-  }
-    },
-    {
-      value: "Paid",
-      symbol: {
-    type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
-    size: 4,
-    color: isfColors[2],
-    outline: {  // autocasts as new SimpleLineSymbol()
-      width: 0.4,
-      color: "#A8A800"
-    }
-  }
-    }
-  ]
-};
-
-var reloISFLayer = new FeatureLayer({
-  portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  layerId: 4,
-  renderer: isfPointRenderer,
-        outFields: ["*"],
-        title: "Status for Relocation (ISF)"
-});
-//reloISFLayer.listMode = "hide";
-map.add(reloISFLayer);
-
 
 // Tree Cutting
 const treeColors = {
@@ -921,8 +930,8 @@ const treeColors = {
 
 var treePointRenderer = {
   type: "unique-value",
-  valueExpression: "When($feature.Status == 1 || $feature.Status == 2, 'Cut_Earthballed', \
-                         $feature.Compensation == 1, 'Paid', $feature.Status)",
+  valueExpression: "When($feature.TCP_Proces == 5 || $feature.TCP_Proces == 6, 'Cut_Earthballed', \
+                         $feature.Tree_Compe == 5, 'Paid', $feature.Status)",
   uniqueValueInfos: [
     {
       value: "Cut_Earthballed",
@@ -956,11 +965,12 @@ var treePointRenderer = {
 
 var treeLayer = new FeatureLayer ({
     portalItem: {
-    id: "1e2bc86a044a4bcdae25b5ea8ebee6ef",
+    id: "e0f4e409780444388f375609bffa4713",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
   },
+  layerId: 0,
   elevationInfo: {
             mode: "on-the-ground"
           },
@@ -1001,7 +1011,7 @@ var utilPointRenderer = {
 
 var utilPointLayer = new FeatureLayer({
   portalItem: {
-    id: "3345eb3a597c42e680ca2113b0f28163",
+    id: "f2f3036918354a029ed30272e56a568a",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
@@ -1050,7 +1060,7 @@ var utilLineRenderer = {
 
 var utilLineLayer = new FeatureLayer({
     portalItem: {
-    id: "3345eb3a597c42e680ca2113b0f28163",
+    id: "f2f3036918354a029ed30272e56a568a",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
@@ -1060,9 +1070,6 @@ var utilLineLayer = new FeatureLayer({
    title: "Utility Line",
    elevationInfo: {
      mode: "relative-to-scene",
-     featureExpressionInfo: {
-       expression: "$feature.height"
-  },
   unit: "meters"
      //offset: 0
    },
@@ -1097,19 +1104,19 @@ var paidLabelDiv = document.getElementById("paidLabelDiv");
 
 function laFigureLot() {
     var total_number_lot = {
-    onStatisticField: "LotID",
+    onStatisticField: "ID",
     outStatisticFieldName: "total_number_lot",
     statisticType: "count"
   };
 
   var total_handover_lot = {
-    onStatisticField: "CASE WHEN HandOver = 1 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN HandedOver = 1 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_handover_lot",
     statisticType: "sum"
   };
 
   var total_paidd_lot = {
-    onStatisticField: "CASE WHEN StatusLA = 1 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN StatusNVS3 = 1 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_paidd_lot",
     statisticType: "sum"
   };
@@ -1150,19 +1157,19 @@ laFigureLot();
 
 function laFigureStruc() {
     var total_number_struc = {
-    onStatisticField: "StrucID",
+    onStatisticField: "ID",
     outStatisticFieldName: "total_number_struc",
     statisticType: "count"
   };
 
   var total_handover_struc = {
-    onStatisticField: "CASE WHEN HandOver = 1 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN S_HandedOver = 1 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_handover_struc",
     statisticType: "sum"
   };
 
   var total_paidd_struc = {
-    onStatisticField: "CASE WHEN StatusStruc = 2 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN StrucStatus = 3 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_paidd_struc",
     statisticType: "sum"
   };
@@ -1178,8 +1185,8 @@ function laFigureStruc() {
     const handoverStruc = stats.total_handover_struc;
     const paiddStruc = stats.total_paidd_struc;
 
-    totalStrucDiv.innerHTML = "<b>" + "(" + "</b>" + thousands_separators(totalnumberStruc) + "<b>" + ")" + "</b>";
-    totalStrucDiv1.innerHTML = "<b>" + "(" + "</b>" + thousands_separators(totalnumberStruc) + "<b>" + ")" + "</b>";
+    totalStrucDiv.innerHTML = "<b>" + "(" + "</b>" + "-" + "<b>" + ")" + "</b>";
+    totalStrucDiv1.innerHTML = "<b>" + "(" + "</b>" + "-" + "<b>" + ")" + "</b>";
     
     totalHandoverStrucDiv.innerHTML = ((handoverStruc/totalnumberStruc)*100).toFixed(0) + "<b>" + "%" + "</b>";
     totalPaidStrucDiv.innerHTML = ((paiddStruc/totalnumberStruc)*100).toFixed(0) + "<b>" + "%" + "</b>";
@@ -1204,39 +1211,41 @@ laFigureStruc();
 
 function IsfFigure() {
   var total_number_isf = {
-    onStatisticField: "StrucID",
+    onStatisticField: "ID",
     outStatisticFieldName: "total_number_isf",
     statisticType: "count"
   };
 
+  // Note that these total_relocated_isf and total_paidd_isf are not 
+  // available as of August 2. so just replace when the information becomes available.
   var total_relocated_isf = {
-    onStatisticField: "CASE WHEN StatusRC = 1 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN StatusNVS3 = 1 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_relocated_isf",
     statisticType: "sum"
   };
 
   var total_paidd_isf = {
-    onStatisticField: "CASE WHEN StatusRC = 2 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN StatusNVS3 = 2 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_paidd_isf",
     statisticType: "sum"
   };
 
-  var query = reloISFLayer.createQuery();
+  var query = lotLayer.createQuery();
   query.outStatistics = [total_number_isf, total_relocated_isf, total_paidd_isf];
   query.returnGeometry = true;
 
-  reloISFLayer.queryFeatures(query).then(function(response) {
+  lotLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
     const totalnumberIsf = stats.total_number_isf;
     const relocatedIsf = stats.total_relocated_isf;
     const paiddIsf = stats.total_paidd_isf;
 
-    totalIsfDiv.innerHTML = "<b>" + "(" + "</b>" + thousands_separators(totalnumberIsf) + "<b>" + ")" + "</b>";
-    totalIsfDiv1.innerHTML = "<b>" + "(" + "</b>" + thousands_separators(totalnumberIsf) + "<b>" + ")" + "</b>";
+    totalIsfDiv.innerHTML = "<b>" + "(" + "</b>" + "-" + "<b>" + ")" + "</b>";
+    totalIsfDiv1.innerHTML = "<b>" + "(" + "</b>" + "-" + "<b>" + ")" + "</b>";
     
-    totalRelocatedIsfDiv.innerHTML = ((relocatedIsf/totalnumberIsf)*100).toFixed(0) + "<b>" + "%" + "</b>";
-    totalPaidIsfDiv.innerHTML = ((paiddIsf/totalnumberIsf)*100).toFixed(0) + "<b>" + "%" + "</b>";
+    totalRelocatedIsfDiv.innerHTML = "<b>" + "(" + "</b>" + "-" + "<b>" + ")" + "</b>";
+    totalPaidIsfDiv.innerHTML = "<b>" + "(" + "</b>" + "-" + "<b>" + ")" + "</b>";
 
     relocatedIsfLabelDiv.innerHTML = "RELOCATED";
     paidIsfLabelDiv.innerHTML = "PAID";
@@ -1256,19 +1265,19 @@ var totalTreeDiv = document.getElementById("totalTreeDiv")
 
 function treeFigure() {
   var total_number_tree = {
-    onStatisticField: "TreeNo",
+    onStatisticField: "ID",
     outStatisticFieldName: "total_number_tree",
     statisticType: "count"
   };
 
   var total_cutearthballed_tree = {
-    onStatisticField: "CASE WHEN (Status = 1 or Status = 2) THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN (TCP_Proces = 5 or TCP_Proces = 6) THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_cutearthballed_tree",
     statisticType: "sum"
   };
 
   var total_paidd_tree = {
-    onStatisticField: "CASE WHEN Compensation = 1 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN Tree_Compe = 5 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_paidd_tree",
     statisticType: "sum"
   };
@@ -1420,41 +1429,12 @@ var searchWidget = new Search({
   sources: [
     {
       layer: lotLayer,
-      searchFields: ["LotID"],
-      displayField: "LotID",
+      searchFields: ["ID"],
+      displayField: "ID",
       exactMatch: false,
-      outFields: ["LotID"],
+      outFields: ["ID"],
       name: "Lot ID",
-      placeholder: "example: 10083"
-  },
-  {
-      layer: structureLayer,
-      searchFields: ["StrucID"],
-      displayField: "StrucID",
-      exactMatch: false,
-      outFields: ["StrucID"],
-      name: "Structure ID",
-      placeholder: "example: MCRP-01-02-ML022"
-  },
-  {
-    layer: chainageLayer,
-      searchFields: ["KmSpot"],
-      displayField: "KmSpot",
-      exactMatch: false,
-      outFields: ["*"],
-      zoomScale: 1000,
-      name: "Main KM",
-      placeholder: "example: 80+400"
-  },
-  {
-    layer: PierNoLayer,
-      searchFields: ["PIER"],
-      displayField: "PIER",
-      exactMatch: false,
-      outFields: ["PIER"],
-      name: "Pier No",
-      zoomScale: 1000,
-      placeholder: "example: P-288"
+      placeholder: "example: DP87"
   }
 ]
 });
@@ -1488,11 +1468,6 @@ var legend = new Legend({
       title: "Structure Acquisition"
     },
     {
-      layer: reloISFLayer,
-      title: "Relocation (ISF)"
-
-    },
-    {
       layer: treeLayer,
       title: "Tree"
     },
@@ -1523,7 +1498,7 @@ view.ui.add(legendExpand, {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.title === "Chainage" || item.title === "Pier No."){
+              if (item.title === "PO Section" || item.title === "BSS Building" || item.title == "Depot Building"){
                 item.visible = false
               }
             }
@@ -1580,7 +1555,7 @@ view.ui.add(legendExpand, {
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
         <div id="headerTitleDiv">
-            <h2>General Progress (N2)</h2>
+            <h2>General Progress (MMSP)</h2>
         </div>
         <div class="dateDiv">
             <h4>As of June 4, 2021</h4>
