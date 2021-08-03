@@ -208,6 +208,24 @@
       br{content:' ';}
       br:after{content:' ';}
 
+      .esri-layer-list__item-toggle-icon,
+     .esri-layer-list__item-title {
+      color: white;
+     }
+
+      .sassy-theme .esri-menu,
+      .sassy-theme .esri-popup__main-container,
+      .sassy-theme .esri-popup .esri-popup__pointer-direction,
+      .sassy-theme .esri-popup .esri-popup__button,
+      .sassy-theme .esri-button,
+      .sassy-theme .esri-input,
+      .sassy-theme .esri-legend,
+      .sassy-theme .esri-layer-list,
+      .sassy-theme .esri-widget a {
+        background-color: rgb(0, 0, 0, 0.7);
+        color: #fff;
+      }
+
     </style>
 
     <link
@@ -419,15 +437,15 @@ var chainageRenderer = {
 const colors = {
           1: [225, 225, 225, 0.1], // To be Constructed (white)
           2: [130, 130, 130, 0.5], // Under Construction
-          3: [255, 0, 0, 1], // Delayed
-          4: [158, 127, 255, 1], // Bored Pile
-          5: [168, 168, 0, 1], // Pile cap
-          6: [0, 166, 76, 1], // Pier
-          7: [255, 85, 0, 1], // Pier head
-          8: [0, 92, 230, 1], // Pre-cast
+          3: [255, 0, 0, 0.8], // Delayed
+          4: [0, 112, 255, 0.8], // Bored Pile
+          5: [0, 112, 255, 0.8], // Pile cap
+          6: [0, 112, 255, 0.8], // Pier
+          7: [0, 112, 255, 0.8], // Pier head
+          8: [0, 112, 255, 0.8], // Pre-cast
         };
 
-
+        
 //*******************************//
 // Import Layers                 //
 //*******************************//
@@ -528,6 +546,7 @@ var viaductLayer = new SceneLayer({
             // when filter using date, example below. use this format
             //definitionExpression: "EndDate = date'2020-6-3'"
           });
+          viaductLayer.listMode = "hide";
           map.add(viaductLayer);
 
           function renderViaductLayer() {
@@ -1053,6 +1072,7 @@ createSeries("value4", "Delayed");
 }); // end am4core.ready()
 
 // Editor
+/*
 view.when(function () {
           view.popup.autoOpenEnabled = true; //disable popups
 
@@ -1064,7 +1084,7 @@ view.when(function () {
           // Add widget to top-right of the view
           view.ui.add(editor, "top-right");
         });
-
+*/
 
 
 //
@@ -1074,12 +1094,6 @@ view.when(function () {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.layer.type != "group") {
-                item.panel = {
-                  content: "legend",
-                  open: false
-                };
-              }
               if (item.title === "Chainage" || item.title === "ROW"){
                 item.visible = false
               }
@@ -1087,10 +1101,34 @@ view.when(function () {
           });
 
 
-          var layerListExpand = new Expand ({
+var legend = new Legend({
+  view: view,
+  container: document.getElementById("legendDiv"),
+  layerInfos: [
+  {
+      layer: rowLayer,
+      title: "PROW"
+    },
+    {
+      layer: chainageLayer,
+      title: "chainage"
+    }
+  ]
+});
+var legendExpand = new Expand({
+    view: view,
+    content: legend,
+    expandIconClass: "esri-icon-legend",
+    group: "bottom-right"
+});
+view.ui.add(legendExpand, {
+    position: "bottom-right"
+});
+
+var layerListExpand = new Expand ({
             view: view,
             content: layerList,
-            expandIconClass: "esri-icon-expand",
+            expandIconClass: "esri-icon-visible",
             group: "bottom-left"
         });
         view.ui.add(layerListExpand, {
@@ -1198,7 +1236,7 @@ view.ui.add(compassWidget, "top-left");
 
     </script>
   </head>
-  <body>
+  <body class="sassy-theme">
     <div id="applicationDiv">
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
