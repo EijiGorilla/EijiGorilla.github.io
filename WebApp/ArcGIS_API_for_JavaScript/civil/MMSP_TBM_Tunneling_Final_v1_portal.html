@@ -206,6 +206,9 @@
         color: #fff;
       }
 
+      .sassy-theme .esri-legend__layer-caption {
+    display: none;
+  }
     </style>
 
     <link
@@ -1548,12 +1551,6 @@ var layerList = new LayerList({
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.layer.type != "group") {
-                item.panel = {
-                  content: "legend",
-                  open: false
-                };
-              }
                 if (item.title === "Monitoring Structures" || item.title === "Monitoring Bridge" ||
                     item.title === "TBM Alignment" || item.title === "Soil Profile" || item.title == "Survey Extent Line") {
                   item.visible = false
@@ -1561,17 +1558,60 @@ var layerList = new LayerList({
               }
           });
 
-          var layerListExpand = new Expand ({
+          var legend = new Legend({
+  view: view,
+  container: document.getElementById("legendDiv"),
+  layerInfos: [
+  {
+      layer: transitLayer,
+      title: "TBM Segment"
+    },
+    {
+      layer: geotech,
+      title: "Soil Profile"
+    },
+    {
+      layer: riverLayer,
+      title: "River"
+    },
+    {
+      layer: bridgeLayer,
+      title: "Bridge"
+    },
+    {
+      layer: obstructionLayer,
+      title: "Obstruction"
+    },
+    {
+      layer: dilapSurveyExtent,
+      title: "Dilapidation Survey Extent"
+    },
+    {
+      layer: tbmAlign,
+      title: "TBM Alignment"
+    }
+  ]
+});
+
+var legendExpand = new Expand({
+    view: view,
+    content: legend,
+    expandIconClass: "esri-icon-legend",
+    group: "bottom-right"
+});
+view.ui.add(legendExpand, {
+    position: "bottom-right"
+});
+
+var layerListExpand = new Expand ({
             view: view,
             content: layerList,
-            expandIconClass: "esri-icon-expand",
+            expandIconClass: "esri-icon-visible",
             group: "bottom-left"
         });
         view.ui.add(layerListExpand, {
             position: "bottom-left"
         });
-        // End of LayerList
-        // End of LayerList
   
         view.ui.empty("top-left");
 

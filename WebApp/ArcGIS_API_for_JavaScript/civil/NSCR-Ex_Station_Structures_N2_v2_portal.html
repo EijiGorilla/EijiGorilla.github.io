@@ -210,6 +210,24 @@
           padding: 0px 0px 10px 0px;
           }
 
+          .esri-layer-list__item-toggle-icon,
+     .esri-layer-list__item-title {
+      color: white;
+     }
+
+      .sassy-theme .esri-menu,
+      .sassy-theme .esri-popup__main-container,
+      .sassy-theme .esri-popup .esri-popup__pointer-direction,
+      .sassy-theme .esri-popup .esri-popup__button,
+      .sassy-theme .esri-button,
+      .sassy-theme .esri-input,
+      .sassy-theme .esri-legend,
+      .sassy-theme .esri-layer-list,
+      .sassy-theme .esri-widget a {
+        background-color: rgb(0, 0, 0, 0.7);
+        color: #fff;
+      }
+
     </style>
 
 <link
@@ -426,12 +444,12 @@ var chainageRenderer = {
         const colors = {
           1: [225, 225, 225, 0.1], // To be Constructed (white)
           2: [130, 130, 130, 0.5], // Under Construction
-          3: [255, 0, 0, 1], // Delayed
-          4: [168, 168, 0, 1], // Pile/Pile Cap
-          5: [0, 132, 168, 1], // Beam
-          6: [115, 38, 0, 1], // Column
-          7: [0, 92, 230, 1], // Slab
-          8: [56, 168, 0, 1], // Roof
+          3: [255, 0, 0, 0.8], // Delayed
+          4: [0, 112, 255, 0.8], // Pile/Pile Cap
+          5: [0, 112, 255, 0.8], // Beam
+          6: [0, 112, 255, 0.8], // Column
+          7: [0, 112, 255, 0.8], // Slab
+          8: [0, 112, 255, 0.8], // Roof
         };
 
 //*******************************//
@@ -531,6 +549,7 @@ var stationLayer = new SceneLayer({
             // when filter using date, example below. use this format
             //definitionExpression: "EndDate = date'2020-6-3'"
         });
+        structureLayer.listMode = "hide";
         map.add(structureLayer, 1);
 
         function renderStructureLayer() {
@@ -1069,12 +1088,6 @@ createSeries("value4", "Delayed");
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.layer.type != "group") {
-                item.panel = {
-                  content: "legend",
-                  open: false
-                };
-              }
               if (item.title === "Chainage" || item.title === "ROW"){
                 item.visible = false
               }
@@ -1085,16 +1098,40 @@ createSeries("value4", "Delayed");
             position: "bottom-left"
           });
 */
-        var layerListExpand = new Expand ({
+var legend = new Legend({
+  view: view,
+  container: document.getElementById("legendDiv"),
+  layerInfos: [
+  {
+      layer: rowLayer,
+      title: "PROW"
+    },
+    {
+      layer: chainageLayer,
+      title: "chainage"
+    }
+  ]
+});
+
+var legendExpand = new Expand({
+    view: view,
+    content: legend,
+    expandIconClass: "esri-icon-legend",
+    group: "bottom-right"
+});
+view.ui.add(legendExpand, {
+    position: "bottom-right"
+});
+
+var layerListExpand = new Expand ({
             view: view,
             content: layerList,
-            expandIconClass: "esri-icon-expand",
+            expandIconClass: "esri-icon-visible",
             group: "bottom-left"
         });
         view.ui.add(layerListExpand, {
             position: "bottom-left"
         });
-        // End of LayerList
 
         view.ui.empty("top-left");
 
@@ -1140,7 +1177,7 @@ createSeries("value4", "Delayed");
     </script>
   </head>
 
-  <body>
+  <body class="sassy-theme">
     <div id="applicationDiv">
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
