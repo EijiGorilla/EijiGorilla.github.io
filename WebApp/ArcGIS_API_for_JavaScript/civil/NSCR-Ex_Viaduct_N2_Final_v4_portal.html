@@ -47,7 +47,7 @@
         height: 90vh;
         width: 100%;
         box-sizing: border-box;
-          grid-template-columns: 4fr 1fr;
+          grid-template-columns: 4fr 1.2fr;
           border-right: 0;
       }
 
@@ -79,7 +79,7 @@
         font-weight: 200;
         text-align: center;
         font-style: normal;
-        font-size: 17px;
+        font-size: 19px;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         color: white;
         margin-top: 5px;
@@ -154,7 +154,6 @@
         color: white;
         padding:3px;
         margin: 0px;
-        width: 250px;
         vertical-align: text-top;
       }
 
@@ -634,7 +633,7 @@ var highlightSelect;
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
-const chartTitleLabel = "Progress of Viaduct (%)";
+const chartTitleLabel = "Construction Progress";
 // Default label
 
 chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
@@ -837,37 +836,37 @@ chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
 chart.data = [
   {
     category: "Precast",
-    value1: precast_tobeC,
+    value1: precast_done,
     value2: precast_underC,
-    value3: precast_done,
+    value3: precast_tobeC,
     value4: precast_delayed
   },
   {
     category: "Pier head",
-    value1: pierhead_tobeC,
+    value1: pierhead_done,
     value2: pierhead_underC,
-    value3: pierhead_done,
+    value3: pierhead_tobeC,
     value4: pierhead_delayed
   },
   {
     category: "Pier",
-    value1: pier_tobeC,
+    value1: pier_done,
     value2: pier_underC,
-    value3: pier_done,
+    value3: pier_tobeC,
     value4: pier_delayed
   },
   {
     category: "Pilecap",
-    value1: pilecap_tobeC,
+    value1: pilecap_done,
     value2: pilecap_underC,
-    value3: pilecap_done,
+    value3: pilecap_tobeC,
     value4: pilecap_delayed
   },
   {
     category: "Pile",
-    value1: pile_tobeC,
+    value1: pile_done,
     value2: pile_underC,
-    value3: pile_done,
+    value3: pile_tobeC,
     value4: pile_delayed
   }
 ];
@@ -902,7 +901,7 @@ markerTemplate.height = 16;
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
 categoryAxis.dataFields.category = "category";
 categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 11;
+categoryAxis.renderer.labels.template.fontSize = 13;
 categoryAxis.renderer.labels.template.fill = "#ffffff";
 categoryAxis.renderer.minGridDistance = 5; //can change label
 
@@ -912,7 +911,7 @@ valueAxis.max = 100;
 valueAxis.strictMinMax = true;
 valueAxis.calculateTotals = true;
 valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 11;
+valueAxis.renderer.labels.template.fontSize = 12;
 valueAxis.renderer.labels.template.fill = "#ffffff";
 
 
@@ -924,15 +923,49 @@ function createSeries(field, name) {
   series.stacked = true;
   series.dataFields.valueXShow = "totalPercent";
   series.dataItems.template.locations.categoryY = 0.5;
+  series.columns.template.stroke = am4core.color("#ffffff");
   series.name = name;
+
+  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+
   if (name == "To be Constructed"){
-    series.fill = am4core.color("#707070");
+    series.fill = am4core.color("#000000");
+    
+  labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  //labelBullet.label.fill = am4core.color("#00FFFFFF");
+  labelBullet.label.fill = am4core.color("#000000");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 12;
+  labelBullet.locationX = 0.5;
+
   } else if (name == "Under Construction"){
     series.fill = am4core.color("#c2c2c2");
+    labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 12;
+  labelBullet.locationX = 0.5;
+
   } else if (name == "Completed"){
     series.fill = am4core.color("#0070ff");
+    labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 12;
+  labelBullet.locationX = 0.5;
+
   } else {
     series.fill = am4core.color("#ff0000"); // delayed
+    labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 12;
+  labelBullet.locationX = 0.5;
+  
   }
   series.columns.template.width = am4core.percent(60);
   series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
@@ -1050,19 +1083,13 @@ function createSeries(field, name) {
   } // End of filterByChart
 
 
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-  labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 10;
-  labelBullet.locationX = 0.5;
+
 
 } // End of createSeries function
 
-createSeries("value1", "To be Constructed");
+createSeries("value1", "Completed");
 createSeries("value2", "Under Construction");
-createSeries("value3", "Completed");
+createSeries("value3", "To be Constructed");
 createSeries("value4", "Delayed");
 
 });
@@ -1241,7 +1268,7 @@ view.ui.add(compassWidget, "top-left");
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
         <div id="headerTitleDiv">
-            <h2>Viaduct (N2)</h2>
+            <h2>Status of Viaduct Construction (N2)</h2>
         </div>
         <div class="dateDiv">
             <h4>As of May 22, 2021</h4>
@@ -1268,7 +1295,7 @@ view.ui.add(compassWidget, "top-left");
         </div>
         <div class="boxA">
           <div id="chartPanel">
-            <div id="chartTitleDiv" class="esri-widget">Progress of Viaduct (%)</div>
+            <div id="chartTitleDiv" class="esri-widget">Construction Progress</div>
             <div id="chartdiv"></div>
             <div id="optionsDiv" class="esri-widget">
                 <div><b>Total Progress (%)</b></div>
