@@ -36,7 +36,7 @@
         height: 90vh;
         width: 100%;
         box-sizing: border-box;
-          grid-template-columns: 4fr 1fr;
+          grid-template-columns: 4fr 1.2fr;
           border-right: 0;
       }
 
@@ -1287,38 +1287,38 @@ chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
 chart.data = [
   {
     category: "TBM 6",
-    value1: TBM6_tobeC,
-    value2: TBM6_done,
+    value1: TBM6_done,
+    value2: TBM6_tobeC,
     value3: TBM6_delayed
   },
   {
     category: "TBM 5",
-    value1: TBM5_tobeC,
-    value2: TBM5_done,
+    value1: TBM5_done,
+    value2: TBM5_tobeC,
     value3: TBM5_delayed
   },
   {
     category: "TBM 4",
-    value1: TBM4_tobeC,
-    value2: TBM4_done,
+    value1: TBM4_done,
+    value2: TBM4_tobeC,
     value3: TBM4_delayed
   },
   {
     category: "TBM 3",
-    value1: TBM3_tobeC,
-    value2: TBM3_done,
+    value1: TBM3_done,
+    value2: TBM3_tobeC,
     value3: TBM3_delayed
   },
   {
     category: "TBM 2",
-    value1: TBM2_tobeC,
-    value2: TBM2_done,
+    value1: TBM2_done,
+    value2: TBM2_tobeC,
     value3: TBM2_delayed
   },
   {
     category: "TBM 1",
-    value1: TBM1_tobeC,
-    value2: TBM1_done,
+    value1: TBM1_done,
+    value2: TBM1_tobeC,
     value3: TBM1_delayed
   },
 ];
@@ -1327,7 +1327,7 @@ chart.colors.step = 2;
 chart.padding(10, 10, 10, 10);
 
 // Legend
-const LegendFontSizze = 12;
+const LegendFontSizze = 14;
 chart.legend = new am4charts.Legend();
 
 chart.legend.valueLabels.template.align = "right"
@@ -1354,7 +1354,7 @@ markerTemplate.height = 16;
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
 categoryAxis.dataFields.category = "category";
 categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 11;
+categoryAxis.renderer.labels.template.fontSize = 14;
 categoryAxis.renderer.labels.template.fill = "#ffffff";
 categoryAxis.renderer.minGridDistance = 5; //can change label
 
@@ -1364,7 +1364,7 @@ valueAxis.max = 100;
 valueAxis.strictMinMax = true;
 valueAxis.calculateTotals = true;
 valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 11;
+valueAxis.renderer.labels.template.fontSize = 13;
 valueAxis.renderer.labels.template.fill = "#ffffff";
 
 
@@ -1376,13 +1376,41 @@ function createSeries(field, name) {
   series.stacked = true;
   series.dataFields.valueXShow = "totalPercent";
   series.dataItems.template.locations.categoryY = 0.5;
+
+  // Bar chart line color and width
+  series.columns.template.stroke = am4core.color("#ffffff");
+  series.columns.template.strokeWidth = 0.5;
   series.name = name;
+
+  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+  
   if (name == "To be Constructed"){
-    series.fill = am4core.color("#707070");
+    series.fill = am4core.color("#000000");
+    labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#000000");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 13;
+  labelBullet.locationX = 0.5;
+
   } else if (name == "Completed"){
     series.fill = am4core.color("#0070ff");
+    labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 13;
+  labelBullet.locationX = 0.5;
+
   } else {
     series.fill = am4core.color("#ff0000"); // delayed
+    labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 12;
+  labelBullet.locationX = 0.5;
+
   }
   series.columns.template.width = am4core.percent(60);
   series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
@@ -1509,18 +1537,13 @@ chartLayerView.filter = {
   } // End of filterByChart
 
 
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-  labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 10;
-  labelBullet.locationX = 0.5;
+
+
 
 } // End of createSeries function
 
-createSeries("value1", "To be Constructed");
-createSeries("value2", "Completed");
+createSeries("value1", "Completed");
+createSeries("value2", "To be Constructed");
 createSeries("value3", "Delayed");
 
 });

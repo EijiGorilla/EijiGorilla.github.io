@@ -36,7 +36,7 @@
         height: 90vh;
         width: 100%;
         box-sizing: border-box;
-          grid-template-columns: 4fr 1fr;
+          grid-template-columns: 4fr 1.3fr;
           border-right: 0;
       }
 
@@ -150,7 +150,6 @@
         color: white;
         padding:3px;
         margin: 0px;
-        width: 450px;
         vertical-align: text-top;
       }
 
@@ -716,7 +715,7 @@ const DropdownValue = document.getElementById("valSelect");
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
-const chartTitleLabel = "Progress of Depot Building Structure (%)";
+const chartTitleLabel = "Progress of Construction";
 
 // Default selection = 'None'
 chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
@@ -1137,93 +1136,93 @@ chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
 chart.data = [
 {
     category: "Wall Footing",
-    value1: footing_tobeC,
+    value1: footing_done,
     value2: footing_underC,
-    value3: footing_done,
+    value3: footing_tobeC,
     value4: footing_delayed
   },
   {
     category: "Tie Beam",
-    value1: tiebeam_tobeC,
+    value1: tiebeam_done,
     value2: tiebeam_underC,
-    value3: tiebeam_done,
+    value3: tiebeam_tobeC,
     value4: tiebeam_delayed
   },
   {
     category: "Slab",
-    value1: slab_tobeC,
+    value1: slab_done,
     value2: slab_underC,
-    value3: slab_done,
+    value3: slab_tobeC,
     value4: slab_delayed
   },
   {
     category: "Skylight",
-    value1: sky_tobeC,
+    value1: sky_done,
     value2: sky_underC,
-    value3: sky_done,
+    value3: sky_tobeC,
     value4: sky_delayed
   },
   {
     category: "Rooftop Stair Enclosure",
-    value1: rooftop_tobeC,
+    value1: rooftop_done,
     value2: rooftop_underC,
-    value3: rooftop_done,
+    value3: rooftop_tobeC,
     value4: rooftop_delayed
   },
   {
     category: "Roof Deck Slab",
-    value1: roofdeck_tobeC,
+    value1: roofdeck_done,
     value2: roofdeck_underC,
-    value3: roofdeck_done,
+    value3: roofdeck_tobeC,
     value4: roofdeck_delayed
   },
   {
     category: "Parapet",
-    value1: parapet_tobeC,
+    value1: parapet_done,
     value2: parapet_underC,
-    value3: parapet_done,
+    value3: parapet_tobeC,
     value4: parapet_delayed
   },
   {
     category: "Mecha & Electirc Space",
-    value1: mef_tobeC,
+    value1: mef_done,
     value2: mef_underC,
-    value3: mef_done,
+    value3: mef_tobeC,
     value4: mef_delayed
   },
   {
     category: "Mecha Equip Foundation",
-    value1: mef_tobeC,
+    value1: mef_done,
     value2: mef_underC,
-    value3: mef_done,
+    value3: mef_tobeC,
     value4: mef_delayed
   },
   {
     category: "Girder",
-    value1: girder_tobeC,
+    value1: girder_done,
     value2: girder_underC,
-    value3: girder_done,
+    value3: girder_tobeC,
     value4: girder_delayed
   },
   {
     category: "Footing",
-    value1: footing_tobeC,
+    value1: footing_done,
     value2: footing_underC,
-    value3: footing_done,
+    value3: footing_tobeC,
     value4: footing_delayed
   },
   {
     category: "Column",
-    value1: column_tobeC,
+    value1: column_done,
     value2: column_underC,
-    value3: column_done,
+    value3: column_tobeC,
     value4: column_delayed
   },
   {
     category: "Beam",
-    value1: beam_tobeC,
+    value1: beam_done,
     value2: beam_underC,
-    value3: beam_done,
+    value3: beam_tobeC,
     value4: beam_delayed
   }
 ]; // End of chart
@@ -1232,7 +1231,7 @@ chart.colors.step = 2;
 chart.padding(10, 10, 10, 10);
 
 // Legend
-const LegendFontSizze = 12;
+const LegendFontSizze = 14;
 chart.legend = new am4charts.Legend();
 
 chart.legend.valueLabels.template.align = "right"
@@ -1259,7 +1258,7 @@ markerTemplate.height = 16;
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
 categoryAxis.dataFields.category = "category";
 categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 11;
+categoryAxis.renderer.labels.template.fontSize = 13;
 categoryAxis.renderer.labels.template.fill = "#ffffff";
 categoryAxis.renderer.minGridDistance = 5; //can change label
 
@@ -1270,7 +1269,7 @@ valueAxis.max = 100;
 valueAxis.strictMinMax = true;
 valueAxis.calculateTotals = true;
 valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 10;
+valueAxis.renderer.labels.template.fontSize = 13;
 valueAxis.renderer.labels.template.fill = "#ffffff";
 
 //
@@ -1285,15 +1284,51 @@ function createSeries(field, name) {
   series.dataFields.valueXShow = "totalPercent";
   series.dataItems.template.locations.categoryY = 0.5;
 
+ // Bar chart line color and width
+ series.columns.template.stroke = am4core.color("#ffffff");
+  series.columns.template.strokeWidth = 0.5;
   series.name = name;
+
+  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+
   if (name == "To be Constructed"){
-    series.fill = am4core.color("#707070");
+    series.fill = am4core.color("#000000");
+    
+  labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  //labelBullet.label.fill = am4core.color("#00FFFFFF");
+  labelBullet.label.fill = am4core.color("#000000");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 12;
+  labelBullet.locationX = 0.5;
+
   } else if (name == "Under Construction"){
     series.fill = am4core.color("#c2c2c2");
+    labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 12;
+  labelBullet.locationX = 0.5;
+
   } else if (name == "Completed"){
     series.fill = am4core.color("#0070ff");
+    labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 12;
+  labelBullet.locationX = 0.5;
+
   } else {
     series.fill = am4core.color("#ff0000"); // delayed
+    labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 12;
+  labelBullet.locationX = 0.5;
+  
   }
   series.columns.template.width = am4core.percent(60);
   series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
@@ -1511,19 +1546,11 @@ view.on("click", function() {
 });
 });
 
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-  labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 10;
-  labelBullet.locationX = 0.5;
-
 } // End of createSeries function
 
-createSeries("value1", "To be Constructed");
+createSeries("value1", "Completed");
 createSeries("value2", "Under Construction");
-createSeries("value3", "Completed");
+createSeries("value3", "To be Constructed");
 createSeries("value4", "Delayed");
 
 }); // End of queryFeatures function
@@ -1629,7 +1656,7 @@ var layerListExpand = new Expand ({
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
         <div id="headerTitleDiv">
-            <h2>Depot Buildings</h2>
+            <h2>Status of Depot Building Construction</h2>
         </div>
         <div class="dateDiv">
             <h4>As of May 25, 2021</h4>
@@ -1653,7 +1680,7 @@ var layerListExpand = new Expand ({
         </div>
         <div class="boxA">
           <div id="chartPanel">
-            <div id="chartTitleDiv" class="esri-widget">Progress of Depot Building Structure (%)</div>
+            <div id="chartTitleDiv" class="esri-widget">Progress of Construction</div>
             <div id="chartdiv"></div>
               <div id="optionsDiv" class="esri-widget">
                 <div><b>Total Progress (%)</b></div>
