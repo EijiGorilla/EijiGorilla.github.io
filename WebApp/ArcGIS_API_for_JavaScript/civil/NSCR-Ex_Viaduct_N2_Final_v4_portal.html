@@ -363,6 +363,47 @@ var labelChainage = new LabelClass({
   }
 });
 
+// Pier No
+var pierNoLabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d",// autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: {
+                  color: "white"
+                },
+                size: 10,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  //weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 40,
+              maxWorldLength: 100,
+              minWorldLength: 20
+            },
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: "white",
+              size: 0.7,
+              border: {
+                color: "grey"
+              }
+            }
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: 'DefaultValue($feature.PIER, "no data")'
+            //value: "{TEXTSTRING}"
+        }
+        });
+
         // Station point feature
         // Station labels
         var labelClass = new LabelClass({
@@ -389,6 +430,7 @@ var labelChainage = new LabelClass({
               maxWorldLength: 100,
               minWorldLength: 20
             },
+
 
           },
           labelPlacement: "above-center",
@@ -491,6 +533,28 @@ var chainageLayer = new FeatureLayer ({
 });
 //chainageLayer.listMode = "hide";
 map.add(chainageLayer, 1);
+
+// Pier No. (point feature)
+var PierNoLayer = new FeatureLayer ({
+  portalItem: {
+    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 6,
+  labelingInfo: [pierNoLabelClass],
+  elevationInfo: {
+          mode: "on-the-ground" //absolute-height, relative-to-ground
+        },
+  title: "Pier No",
+  outFields: ["*"],
+  popupEnabled: false
+
+});
+
+//chainageLayer.listMode = "hide";
+map.add(PierNoLayer, 1);
 
 // ROW //
 var rowLayer = new FeatureLayer ({
@@ -1128,7 +1192,7 @@ view.when(function () {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.title === "Chainage" || item.title === "ROW"){
+              if (item.title === "Chainage" || item.title === "ROW" || item.title === "Pier No"){
                 item.visible = false
               }
             }
