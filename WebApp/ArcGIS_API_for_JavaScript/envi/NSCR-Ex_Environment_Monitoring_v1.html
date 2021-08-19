@@ -36,7 +36,7 @@
         height: 90vh;
         width: 100%;
         box-sizing: border-box;
-          grid-template-columns: 4fr 1fr;
+          grid-template-columns: 4fr 1.2fr;
           border-right: 0;
       }
 
@@ -79,7 +79,7 @@
         font-weight: 200;
         text-align: center;
         font-style: normal;
-        font-size: 17px;
+        font-size: 20px;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         color: white;
         margin-top: 10px;
@@ -146,7 +146,6 @@
         color: white;
         padding:3px;
         margin: 0px;
-        width: 290px;
         vertical-align: text-top;
       }
 
@@ -180,6 +179,27 @@
       br{content:' ';}
       br:after{content:' ';}
 
+      .esri-layer-list__item-toggle-icon,
+     .esri-layer-list__item-title {
+      color: white;
+     }
+
+      .sassy-theme .esri-menu,
+      .sassy-theme .esri-popup__main-container,
+      .sassy-theme .esri-popup .esri-popup__pointer-direction,
+      .sassy-theme .esri-popup .esri-popup__button,
+      .sassy-theme .esri-button,
+      .sassy-theme .esri-input,
+      .sassy-theme .esri-legend,
+      .sassy-theme .esri-layer-list,
+      .sassy-theme .esri-widget a {
+        background-color: rgb(0, 0, 0, 0.7);
+        color: #fff;
+      }
+
+      .sassy-theme .esri-legend__layer-caption {
+    display: none;
+  }
 
     </style>
 
@@ -309,10 +329,11 @@ var labelChainage = new LabelClass({
   labelExpressionInfo: {expression: "$feature.KM_MAIN"},
   symbol: {
     type: "text",
-    color: [219,112,147,0.5],
-    size: 20
+    color: [85, 255, 0],
+    size: 25
   }
 });
+
 
 // Station Label
 var labelClass = new LabelClass({
@@ -471,8 +492,8 @@ var chainageRenderer = {
     type: "simple",
     symbol: {
       type: "simple-marker",
-      size: 2,
-      color: [220,20,60,0.2],
+      size: 5,
+      color: [255, 255, 255, 0.9],
       outline: {
         width: 0.2,
         color: "black"
@@ -566,6 +587,7 @@ var monitorStatusSymbolRenderer = {
           uniqueValueInfos: [
             {
               value: "Normal",
+              label: "Normal",
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/DemolishComplete_v2.png",
                 "#D13470",
@@ -575,6 +597,7 @@ var monitorStatusSymbolRenderer = {
             },
             {
               value: "Exceeds",
+              label: "Exceeded",
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/Demolished.png",
                 "#D13470",
@@ -596,9 +619,12 @@ var monitorStatusSymbolRenderer = {
 // Centerline and chainage
 var chainageLayer = new FeatureLayer ({
   portalItem: {
-    id: "7e1812db542a4261b73787dfe5a5d438"
+    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
   },
-  layerId: 0,
+  layerId: 3,
   title: "Chainage",
   elevationInfo: {
     mode: "relative-to-ground"
@@ -615,17 +641,25 @@ map.add(chainageLayer, 1);
 // ROW //
 var rowLayer = new FeatureLayer ({
   portalItem: {
-    id: "878c49e145b34f269947f8584cd3512c"
+    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
   },
+  layerId: 1,
   title: "ROW",
+  definitionExpression: "Extension = 'N2'",
   popupEnabled: false
 });
 map.add(rowLayer,2);
 
 // Station
 var stationLayer = new SceneLayer({
-            portalItem: {
-                id: "24c2d2cea755430db6c713792a996d02",//68f16da494d941d482af09d6a4bd6468
+  portalItem: {
+                id: "86e3b83f3a6340feb8c5c0f410395007",
+                portal: {
+                  url: "https://gis.railway-sector.com/portal"
+                }
             },
              labelingInfo: [labelClass],
              renderer: stationsRenderer,
@@ -643,7 +677,10 @@ var stationLayer = new SceneLayer({
 
 var monitorPt = new FeatureLayer({
   portalItem: {
-    id: "467e98eee6f84b9790223e127da345b0"//
+    id: "339f1c3980be40bd93d516630f6540c0",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
   },
   title: "Environment Monitoring Points",
   elevationInfo: {
@@ -684,7 +721,10 @@ map.add(monitorPt);
 
 var monitorPt1 = new FeatureLayer({
   portalItem: {
-    id: "467e98eee6f84b9790223e127da345b0"//
+    id: "339f1c3980be40bd93d516630f6540c0",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
   },
   title: "Environment Monitoring Points",
   elevationInfo: {
@@ -754,9 +794,7 @@ var highlightSelect;
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
-const chartTitleLabel = "Progress of Environment Monitoring (%)";
-
-
+const chartTitleLabel = "Monitoring Indicators";
 
 
 // Start of "updateChart" function for Utility Point
@@ -764,39 +802,39 @@ function updateChartPoint() {
   // Define statistics
   /* noise/CATV */
   var total_noise_exceed = {
-    onStatisticField: "CASE WHEN (Type = 1 and Status = 1) THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN (type = 1 and status = 1) THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_noise_exceed",
     statisticType: "sum"
   };
 
   var total_noise_normal = {
-    onStatisticField: "CASE WHEN (Type = 1 and Status = 0) THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN (type = 1 and status = 0) THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_noise_normal",
     statisticType: "sum"  
   };
 
   /* vibration */
   var total_vibration_exceed = {
-    onStatisticField: "CASE WHEN (Type = 2 and Status = 1) THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN (type = 2 and status = 1) THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_vibration_exceed",
     statisticType: "sum"
   };
 
   var total_vibration_normal = {
-    onStatisticField: "CASE WHEN (Type = 2 and Status = 0) THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN (type = 2 and status = 0) THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_vibration_normal",
     statisticType: "sum"  
   };
 
   /* airquality */
   var total_airquality_exceed = {
-    onStatisticField: "CASE WHEN (Type = 3 and Status = 1) THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN (type = 3 and status = 1) THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_airquality_exceed",
     statisticType: "sum"
   };
 
   var total_airquality_normal = {
-    onStatisticField: "CASE WHEN (Type = 3 and Status = 0) THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN (type = 3 and status = 0) THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_airquality_normal",
     statisticType: "sum"  
   };
@@ -804,26 +842,26 @@ function updateChartPoint() {
 
   /* soilwater */
   var total_soilwater_exceed = {
-    onStatisticField: "CASE WHEN (Type = 4 and Status = 1) THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN (type = 4 and status = 1) THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_soilwater_exceed",
     statisticType: "sum"
   };
 
   var total_soilwater_normal = {
-    onStatisticField: "CASE WHEN (Type = 4 and Status = 0) THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN (type = 4 and status = 0) THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_soilwater_normal",
     statisticType: "sum"  
   };
 
 /* Groundwater */
     var total_groundwater_exceed = {
-    onStatisticField: "CASE WHEN (Type = 5 and Status = 1) THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN (type = 5 and status = 1) THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_groundwater_exceed",
     statisticType: "sum"
   };
 
   var total_groundwater_normal = {
-    onStatisticField: "CASE WHEN (Type = 5 and Status = 0) THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN (type = 5 and status = 0) THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_groundwater_normal",
     statisticType: "sum"  
   };
@@ -898,13 +936,13 @@ chart.colors.step = 2;
 chart.padding(10, 10, 10, 10);
 chart.legend = new am4charts.Legend();
 chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = 10;
+chart.legend.labels.template.fontSize = 13;
 chart.legend.labels.template.fill = "#ffffff";
 
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
 categoryAxis.dataFields.category = "category";
 categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 11;
+categoryAxis.renderer.labels.template.fontSize = 13;
 categoryAxis.renderer.labels.template.fill = "#ffffff";
 categoryAxis.renderer.minGridDistance = 5; //can change label
 
@@ -914,7 +952,7 @@ valueAxis.max = 100;
 valueAxis.strictMinMax = true;
 valueAxis.calculateTotals = true;
 valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 11;
+valueAxis.renderer.labels.template.fontSize = 13;
 valueAxis.renderer.labels.template.fill = "#ffffff";
 
 let arrLviews = [];
@@ -927,6 +965,11 @@ function createSeries(field, name) {
   series.stacked = true;
   series.dataFields.valueXShow = "totalPercent";
   series.dataItems.template.locations.categoryY = 0.5;
+
+    // Bar chart line color and width
+    series.columns.template.stroke = am4core.color("#ffffff");
+  series.columns.template.strokeWidth = 0.5;
+
   series.name = name;
   if (name == "Normal"){
     series.fill = am4core.color("#32CD32");
@@ -946,34 +989,34 @@ function createSeries(field, name) {
     // Layer
       if (selectedP == "Noise" && selectedC == "Exceed") {
       selectedLayer = 1;
-      selectedStatus = 1;
+      selectedstatus = 1;
     } else if (selectedP == "Noise" && selectedC == "Normal") {
       selectedLayer = 1;
-      selectedStatus = 0;
+      selectedstatus = 0;
     } else if (selectedP == "Vibration" && selectedC == "Exceed") {
       selectedLayer = 2;
-      selectedStatus = 1;
+      selectedstatus = 1;
     } else if (selectedP == "Vibration" && selectedC == "Normal") {
       selectedLayer = 2;
-      selectedStatus = 0;
+      selectedstatus = 0;
     } else if (selectedP == "Air Quality" && selectedC == "Exceed") {
       selectedLayer = 3;
-      selectedStatus = 1;
+      selectedstatus = 1;
     } else if (selectedP == "Air Quality" && selectedC == "Normal") {
       selectedLayer = 3;
-      selectedStatus = 0;
+      selectedstatus = 0;
     } else if (selectedP == "Soil Water" && selectedC == "Exceed") {
       selectedLayer = 4;
-      selectedStatus = 1;
+      selectedstatus = 1;
     } else if (selectedP == "Soil Water" && selectedC == "Normal") {
       selectedLayer = 4;
-      selectedStatus = 0;
+      selectedstatus = 0;
     } else if (selectedP == "Groundwater" && selectedC == "Exceed") {
       selectedLayer = 5;
-      selectedStatus = 1;
+      selectedstatus = 1;
     } else if (selectedP == "Groundwater" && selectedC == "Normal") {
       selectedLayer = 5;
-      selectedStatus = 0;
+      selectedstatus = 0;
     } else {
       selectedLayer = null;
     }
@@ -992,7 +1035,7 @@ function createSeries(field, name) {
 
             let objID = [];
             for (var i=0; i < rowN; i++) {
-                var obj = results.features[i].attributes.OBJECTID;
+                var obj = results.features[i].attributes.objectid;
                 objID.push(obj);
             }
 
@@ -1028,7 +1071,7 @@ function createSeries(field, name) {
     
     for(var i = 0; i < arrLviews.length; i++) {
       arrLviews[i].filter = {
-        where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+        where: "type = " + selectedLayer + " AND " +  "status = " + selectedStatus
       }
     }
  
@@ -1042,7 +1085,7 @@ function createSeries(field, name) {
   labelBullet.label.text = "{valueX.value.formatNumber('#.')}";
   labelBullet.label.fill = am4core.color("#ffffff");
   labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 10;
+  labelBullet.label.fontSize = 12;
   labelBullet.locationX = 0.5;
 
   // LayerView for point 2
@@ -1057,7 +1100,7 @@ function createSeries(field, name) {
 
 // End of LayerView
 // Run createSeries
-createSeries("value1", "Exceed");
+createSeries("value1", "Exceeded");
 createSeries("value2", "Normal");
 
 }); // End of queryFeatures
@@ -1088,12 +1131,6 @@ view.when(function () {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.layer.type != "group") {
-                item.panel = {
-                  content: "legend",
-                  open: false
-                };
-              }
               if (item.title === "Chainage"){
                 item.visible = false
               }
@@ -1104,6 +1141,32 @@ view.when(function () {
             position: "bottom-left"
           });
 */
+var legend = new Legend({
+  view: view,
+  container: document.getElementById("legendDiv"),
+  layerInfos: [
+  {
+      layer: monitorPt,
+      title: "Monitoring Indicators"
+
+    },
+    {
+      layer: monitorPt1,
+      title: "Assessment Results"
+    }
+  ]
+});
+
+var legendExpand = new Expand({
+    view: view,
+    content: legend,
+    expandIconClass: "esri-icon-legend",
+    group: "bottom-right"
+});
+view.ui.add(legendExpand, {
+    position: "bottom-right"
+});
+
         var layerListExpand = new Expand ({
             view: view,
             content: layerList,
@@ -1165,14 +1228,15 @@ var searchWidget = new Search({
   allPlaceholder: "Chainage",
   includeDefaultSources: false,
   sources: [
-    {
-      layer: chainageLayer,
-      searchFields: ["KM_MAIN"],
-      displayField: "KM_MAIN",
+  {
+    layer: chainageLayer,
+      searchFields: ["KmSpot"],
+      displayField: "KmSpot",
       exactMatch: false,
-      outFields: ["KM_MAIN"],
+      outFields: ["*"],
+      zoomScale: 1000,
       name: "Main KM",
-      placeholder: "example: 80+400"
+      placeholder: "example: 80 + 400"
   }
 ]
 });
@@ -1195,12 +1259,12 @@ searchExpand.watch("expanded", function() {
       });
     </script>
   </head>
-  <body>
+  <body class="sassy-theme">
     <div id="applicationDiv">
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/Water_drop.png" width="30" height="30">
         <div id="headerTitleDiv">
-          <h2>Environment Monitoring (N2)</h2>
+          <h2>Status of Environment Monitoring (N2)</h2>
         </div>
           <div class="dateDiv">
               <h4>As of April 7, 2021</h4>
@@ -1216,7 +1280,7 @@ searchExpand.watch("expanded", function() {
           </div>
         <div class="boxA">
             <div id="chartPanel">
-              <div id="chartTitleDiv" class="esri-widget">Progress of Environment Monitoring (%)</div>
+              <div id="chartTitleDiv" class="esri-widget">Assessment Results</div>
               <div id="chartdiv"></div>
           </div>
       </div>
