@@ -339,16 +339,18 @@
       .panel-side {
       padding: 0px;
       box-sizing: border-box;
-      width: 12.25vw;
+      width: 12vw;
       height: 89vh;
       position: fixed;
       margin: 1 3 3 1;
       color: #fff;
       background-color: rgb(0, 0, 0);
-      overflow-y: auto;
-      overflow-x: hidden;
+      overflow-y: scroll;
+      overflow-x: auto;
     }
-
+    ::-webkit-scrollbar {
+    display: none;
+}
     .panel-side h2 {
         padding: 5 5px;
         margin: 0;
@@ -422,7 +424,10 @@
         color: white;
         font-size: 10px;
       }
-
+      
+      .sassy-theme .esri-legend__layer-caption {
+    display: none;
+  }
 
     </style>
 
@@ -602,7 +607,7 @@ const labelClass = {
 //*****************************//
 //      Renderer Settings      //
 //*****************************//
-// Construction boundary
+
 let defaultLotSymbolBoundary = {
                 type: "simple-fill",
                 color: [0, 0, 0, 0],
@@ -619,6 +624,29 @@ let BoundaryFillSymbol = {
     field: "StatusNVS3",
     defaultSymbol: defaultLotSymbolBoundary,
 }
+
+
+// Construction boundary
+let ConstructionBoundaryFill = {
+                type: "unique-value",
+                valueExpression: "When($feature.MappingBoundary == 1, 'Boundary',$feature.Comp_Agency)",
+                uniqueValueInfos: [
+                    {
+                        value: "Boundary",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [0, 0, 0,0],
+                            outline: {
+                                width: 1.5,
+                                color: [78, 78, 78],
+                                style: "short-dash"
+                            }
+                        }
+                    }
+
+                ]
+};
+
 
 // Station Box
 let poSectionBoxRenderer = {
@@ -719,21 +747,21 @@ const colors = {
 // Construction boundary
 var constBoundary = new FeatureLayer({
   portalItem: {
-    id: "89491eef43454fec87f53151e4bc8a6c",
+    id: "4c076388200a491181d3d5db93c29b63",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 6,
-  renderer: BoundaryFillSymbol,
-  elevationInfo: {
-    mode: "on-the-ground"
-  },
+  layerId: 4,
+  outFields: ["*"],
+  renderer: ConstructionBoundaryFill,
+  definitionExpression: "MappingBoundary = 1",
   title: "Construction Boundary",
   popupEnabled: false
 });
-constBoundary.listMode = "hide";
+//constBoundary.listMode = "hide";
 map.add(constBoundary);
+
 // Priority Layer
 let priorityLotRenderer = {
     field: "Priority3",
@@ -752,12 +780,12 @@ let priorityLotRenderer = {
 // Segment DPWH
 var dpwhSegmentLayer = new FeatureLayer ({
   portalItem: {
-    id: "89491eef43454fec87f53151e4bc8a6c",
+    id: "4c076388200a491181d3d5db93c29b63",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 3,
+  layerId: 2,
   title: "DPWH Segment",
   outFields: ["*"],
   popupEnabled: false
@@ -767,12 +795,12 @@ map.add(dpwhSegmentLayer);
 // BSS Boundary
 var bssDepotLayer = new FeatureLayer ({
   portalItem: {
-    id: "89491eef43454fec87f53151e4bc8a6c",
+    id: "4c076388200a491181d3d5db93c29b63",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 4,
+  layerId: 3,
   title: "BSS Boundary",
   outFields: ["*"],
   popupEnabled: false
@@ -780,29 +808,17 @@ var bssDepotLayer = new FeatureLayer ({
 map.add(bssDepotLayer);
 
 // Construction boundary for North Av
-var naBoundaryLayer = new FeatureLayer ({
-  portalItem: {
-    id: "89491eef43454fec87f53151e4bc8a6c",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  layerId: 5,
-  title: "Construction Boundary (NA)",
-  outFields: ["*"],
-  popupEnabled: false
-});
-map.add(naBoundaryLayer);
+
 
 // Creek Diversion
 var creekDivLayer = new FeatureLayer ({
   portalItem: {
-    id: "89491eef43454fec87f53151e4bc8a6c",
+    id: "4c076388200a491181d3d5db93c29b63",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 8,
+  layerId: 11,
   title: "Creek Diversion",
   outFields: ["*"],
   popupEnabled: false
@@ -812,12 +828,12 @@ map.add(creekDivLayer);
 // Depot Building
 var depotBuildingLayer = new FeatureLayer ({
   portalItem: {
-    id: "89491eef43454fec87f53151e4bc8a6c",
+    id: "4c076388200a491181d3d5db93c29b63",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 9,
+  layerId: 7,
   title: "Depot Building",
   outFields: ["*"],
   popupEnabled: false
@@ -827,7 +843,7 @@ map.add(depotBuildingLayer);
 // BSS Building
 var bssDepotBuildingLayer = new FeatureLayer ({
   portalItem: {
-    id: "89491eef43454fec87f53151e4bc8a6c",
+    id: "4c076388200a491181d3d5db93c29b63",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -842,12 +858,12 @@ map.add(bssDepotBuildingLayer);
 // East Valenzuela
 var evsLayer = new FeatureLayer ({
   portalItem: {
-    id: "89491eef43454fec87f53151e4bc8a6c",
+    id: "4c076388200a491181d3d5db93c29b63",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 11,
+  layerId: 10,
   title: "East Valenzuela",
   outFields: ["*"],
   popupEnabled: false
@@ -857,28 +873,28 @@ map.add(evsLayer);
 // NNC Construction boundary (Senate)
 var senateBoundaryLayer = new FeatureLayer ({
   portalItem: {
-    id: "89491eef43454fec87f53151e4bc8a6c",
+    id: "4c076388200a491181d3d5db93c29b63",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 12,
-  title: "Construction Boundary (Senate)",
+  layerId: 6,
+  title: "NCC Property",
   outFields: ["*"],
   popupEnabled: false
 });
-senateBoundaryLayer.list = "hide";
+//senateBoundaryLayer.list = "hide";
 map.add(senateBoundaryLayer);
 
 // Station box
 var poSectionBoxLayer = new FeatureLayer ({
   portalItem: {
-    id: "89491eef43454fec87f53151e4bc8a6c",
+    id: "4c076388200a491181d3d5db93c29b63",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 7,
+  layerId: 9,
   renderer: poSectionBoxRenderer,
   title: "PO Section",
   outFields: ["*"],
@@ -890,11 +906,12 @@ map.add(poSectionBoxLayer);
 // Station point feature
 var stationLayer = new FeatureLayer({
     portalItem: {
-    id: "95ce5c0a707d4e70b6028c215a849fec",
+    id: "4c076388200a491181d3d5db93c29b63",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
+  layerId: 1,
              definitionExpression: "Project = 'MMSP'"
               //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
         });
@@ -963,7 +980,7 @@ var lotBoundary = new FeatureLayer({
   },
   layerId: 19,
         outFields: ["*"],
-        title: "Status of Land Acquisition",
+        title: "Lot Boundary",
         labelsVisible: false,
         labelingInfo: [labelClass],
         popupTemplate: {
@@ -2271,12 +2288,12 @@ var legend = new Legend({
         title: "BSS Building"
     },
     {
-        layer: naBoundaryLayer,
-        title: "Construction Boundary (NA)"
+        layer: constBoundary,
+        title: "Construction Boundary"
     },
     {
         layer: senateBoundaryLayer,
-        title: "Construction (Senate)"
+        title: "NCC Property"
     },
     {
         layer: creekDivLayer,
