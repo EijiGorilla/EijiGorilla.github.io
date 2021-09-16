@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>Station Structure (PO Section)</title>
+<title>Station Structure (MMSP: PO Section)</title>
 
     <style>
       html,
@@ -523,18 +523,20 @@ let defaultTBMAlign = {
 
 let tbmAlignRenderer = {
     type: "unique-value",
-    field: "LAYER",
+    field: "Layer",
     defaultSymbol: defaultTBMAlign
 };
 
 var tbmAlign = new FeatureLayer({
   portalItem: {
-    id: "70db36c681ee43f3aeb4f84e411b81de",
+    id: "4c076388200a491181d3d5db93c29b63",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
   },
+  layerId: 9,
   renderer: tbmAlignRenderer,
+  definitionExpression: "Layer = 'TBM'",
   elevationInfo: {
             mode: "on-the-ground",
             offset: 0
@@ -546,16 +548,17 @@ var tbmAlign = new FeatureLayer({
 map.add(tbmAlign, 0);
 
 // Station point feature
-        var stationLayer = new SceneLayer({
-
-            portalItem: {
-                id: "86e3b83f3a6340feb8c5c0f410395007",
-                portal: {
-                    url: "https://gis.railway-sector.com/portal"
-                }
+var stationLayer = new SceneLayer({
+          portalItem: {
+            id: "26d8f953c71d440bad2daccb8f8c41a6",
+            portal: {
+              url: "https://gis.railway-sector.com/portal"
             },
+          },
              labelingInfo: [stationLabelClass],
              renderer: stationsRenderer,
+             definitionExpression: "sector = 'MMSP'",
+             popupEnabled: false,
              elevationInfo: {
                  // this elevation mode will place points on top of
                  // buildings or other SceneLayer 3D objects
@@ -564,8 +567,7 @@ map.add(tbmAlign, 0);
               //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
         });
         stationLayer.listMode = "hide";
-        map.add(stationLayer,3);
-
+        map.add(stationLayer);
 
 // Excavation machine
 /*
@@ -588,7 +590,7 @@ map.add(tbmAlign, 0);
 // Structure Layer
         var structureLayer = new SceneLayer({ //structureLayer
           portalItem: {
-            id: "2487076e4bbc494197b98461ab6b54ce",
+            id: "034d1984ae9d4f4a925a3dbd5b0cfdba",
             portal: {
               url: "https://gis.railway-sector.com/portal"
             }
@@ -726,7 +728,7 @@ const DropdownValue = document.getElementById("valSelect");
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
-const chartTitleLabel = "Progress of Station Structure (%)";
+const chartTitleLabel = "Construction Progress (%)";
 
 // Default selection = 'None'
 chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
@@ -929,7 +931,7 @@ markerTemplate.height = 16;
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
 categoryAxis.dataFields.category = "category";
 categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 11;
+categoryAxis.renderer.labels.template.fontSize = 13;
 categoryAxis.renderer.labels.template.fill = "#ffffff";
 categoryAxis.renderer.minGridDistance = 5; //can change label
 
@@ -939,7 +941,7 @@ valueAxis.max = 100;
 valueAxis.strictMinMax = true;
 valueAxis.calculateTotals = true;
 valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 10;
+valueAxis.renderer.labels.template.fontSize = 13;
 valueAxis.renderer.labels.template.fill = "#ffffff";
 
 function createSeries(field, name) {
@@ -951,15 +953,51 @@ function createSeries(field, name) {
   series.dataFields.valueXShow = "totalPercent";
   series.dataItems.template.locations.categoryY = 0.5;
 
+  // Bar chart line color and width
+  series.columns.template.stroke = am4core.color("#ffffff");
+  series.columns.template.strokeWidth = 0.5;
   series.name = name;
+
+  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+
   if (name == "To be Constructed"){
-    series.fill = am4core.color("#707070");
+    series.fill = am4core.color("#000000");
+    
+  labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  //labelBullet.label.fill = am4core.color("#00FFFFFF");
+  labelBullet.label.fill = am4core.color("#000000");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 12;
+  labelBullet.locationX = 0.5;
+
   } else if (name == "Under Construction"){
     series.fill = am4core.color("#c2c2c2");
+    labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 12;
+  labelBullet.locationX = 0.5;
+
   } else if (name == "Completed"){
     series.fill = am4core.color("#0070ff");
+    labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 12;
+  labelBullet.locationX = 0.5;
+
   } else {
     series.fill = am4core.color("#ff0000"); // delayed
+    labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 12;
+  labelBullet.locationX = 0.5;
+  
   }
   series.columns.template.width = am4core.percent(60);
   series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
@@ -1036,13 +1074,6 @@ view.on("click", function() {
 });
 });
 
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-  labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 10;
-  labelBullet.locationX = 0.5;
 
 } // End of createSeries function
 
@@ -1180,7 +1211,7 @@ var layerListExpand = new Expand ({
         </div>
         <div class="boxA">
           <div id="chartPanel">
-            <div id="chartTitleDiv" class="esri-widget">Progress of Station Structure (%)</div>
+            <div id="chartTitleDiv" class="esri-widget"> Construction Progress (%)</div>
             <div id="chartdiv"></div>
             <div id="dataTypeInput" class="cpButtonClass">
                 <label for="dataTypeInput">Type</label>
