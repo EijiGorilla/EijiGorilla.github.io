@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>Viaduct Construction (N2)</title>
+<title>N2 Viaduct</title>
 
     <style>
       html,
@@ -254,6 +254,7 @@
         "esri/symbols/LabelSymbol3D",
         "esri/WebMap",
         "esri/WebScene",
+        "esri/PopupTemplate",
         "esri/portal/PortalItem",
         "esri/portal/Portal",
         "esri/widgets/TimeSlider",
@@ -279,13 +280,13 @@
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
                   LabelClass, LabelSymbol3D, WebMap,
-                  WebScene, PortalItem, Portal,
+                  WebScene, PortalItem, Portal, PopupTemplate,
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol,
-                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable, Compass, TimeExtent, Search) {
+                  TimeExtent, Expand, Editor, UniqueValueRenderer,
+                  DatePicker, FeatureTable, Compass, TimeExtent, Search) {
 
-     let chartLayerView;
         const features = [];
 
         var basemap = new Basemap({
@@ -313,9 +314,9 @@
             viewingMode: "local",
             camera: {
                 position: {
-                    x: 120.57930,
-                    y: 15.18,
-                    z: 500
+                    x: 120.75200,
+                    y: 14.90,
+                    z: 2500
                     },
                     tilt: 65
                     },
@@ -399,7 +400,7 @@ var pierNoLabelClass = new LabelClass({
           },
           labelPlacement: "above-center",
           labelExpressionInfo: {
-            expression: 'DefaultValue($feature.PIER, "no data")'
+            expression: "$feature.PIER"
             //value: "{TEXTSTRING}"
         }
         });
@@ -435,7 +436,7 @@ var pierNoLabelClass = new LabelClass({
           },
           labelPlacement: "above-center",
           labelExpressionInfo: {
-            expression: 'DefaultValue($feature.Station, "no data")'
+            expression: "$feature.Station"
             //value: "{TEXTSTRING}"
         }
         });
@@ -494,7 +495,7 @@ const colors = {
 // Station Layer
 var stationLayer = new SceneLayer({
             portalItem: {
-                id: "86e3b83f3a6340feb8c5c0f410395007",
+                id: "18c149665b67459c857100cd7461ec85",
                 portal: {
                   url: "https://gis.railway-sector.com/portal"
                 }
@@ -515,7 +516,7 @@ var stationLayer = new SceneLayer({
 // Centerline and chainage
 var chainageLayer = new FeatureLayer ({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "8c4dd0f198de4e0496db3999d4fdff51",
     portal: {
                   url: "https://gis.railway-sector.com/portal"
                 }   
@@ -537,7 +538,7 @@ map.add(chainageLayer, 1);
 // Pier No. (point feature)
 var PierNoLayer = new FeatureLayer ({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "8c4dd0f198de4e0496db3999d4fdff51",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -559,7 +560,7 @@ map.add(PierNoLayer, 1);
 // ROW //
 var rowLayer = new FeatureLayer ({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "8c4dd0f198de4e0496db3999d4fdff51",
     portal: {
                   url: "https://gis.railway-sector.com/portal"
                 }   
@@ -571,23 +572,15 @@ var rowLayer = new FeatureLayer ({
 map.add(rowLayer,2);
 
 // Viaduct Layer
-var viaductLayer = new SceneLayer({
-   portalItem: {
-            id: "58e5eba09a5c4604b38f9e0f4f1910e1",
-            portal: {
-              url: "https://gis.railway-sector.com/portal"
-            }
-          },
-          popupTemplate: {
-     title: "<h5>{Status1}</h5>",
-     lastEditInfoEnabled: false,
-     returnGeometry: true,
-     content: [
-       {
-         type: "fields",
-         fieldInfos: [
+const viadTemplate = {
+  title: "<h5>{Status1}</h5>",
+  content: [
+    {
+      type: "fields",
+      fieldInfos: [
            {
-             fieldName: "CP"
+             fieldName: "CP",
+             label: "CP"
            },
            {
              fieldName: "Status1",
@@ -595,16 +588,21 @@ var viaductLayer = new SceneLayer({
            },
            {
              fieldName: "PierNumber",
-             label: "<h5>Pier Number</h5>",
-           },
-           {
-             fieldName: "OBJECTID",
-             label: "OBEJECTID",
+             label: "<h5>Pier Number</h5>"
            }
          ]
        }
      ]
-   },
+   };
+
+var viaductLayer = new SceneLayer({
+   portalItem: {
+            id: "1cf3e07776c74ebaa75a88a429f20601",
+            portal: {
+              url: "https://gis.railway-sector.com/portal"
+            }
+          },
+         // popupTemplate: viadTemplate,
           elevationInfo: {
           mode: "absolute-height" //absolute-height, relative-to-ground
         },
@@ -694,7 +692,6 @@ function zoomToLayer(layer) {
 }
 
 const cpButtonElement = document.getElementById("cpButton");
-var highlightSelect;
 
 
  // Create a Bar chart to calculate % completion for each viaduct sample
@@ -705,9 +702,10 @@ const chartTitleLabel = "Construction Progress";
 // Default label
 
 chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
-if (document.getElementById("N-04").checked = true) {
-    viaductLayer.definitionExpression = "CP = 'N-04'";
-    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-04" + "</p>";
+if (document.getElementById("N-01").checked = true) {
+    viaductLayer.definitionExpression = "CP = 'N-01'";
+    zoomToLayer(viaductLayer);
+    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-01" + "</p>";
   updateChart();
 }
 
@@ -718,24 +716,28 @@ function filterByTest(event) {
 
   if(selectedID === "N-01") {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
+    PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart();
 
   } else if (selectedID === "N-02") {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
+    PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart();
 
   } else if (selectedID === "N-03") {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
+    PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart();
 
   } else if (selectedID === "N-04") {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
+    PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart(); 
@@ -1041,9 +1043,12 @@ function createSeries(field, name) {
   series.columns.template.width = am4core.percent(60);
   series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
  
+  
   // Click chart and filter, update maps
   const chartElement = document.getElementById("chartPanel");
+  
   series.columns.template.events.on("hit", filterByChart, this);
+
   function filterByChart(ev) {
     const selectedC = ev.target.dataItem.component.name;
     const selectedP = ev.target.dataItem.categoryY;
@@ -1113,11 +1118,15 @@ function createSeries(field, name) {
       selectedLayer = null;
     }
 
-    view.whenLayerView(viaductLayer).then(function (layerView) {
-        chartLayerView = layerView;
-        chartElement.style.visibility = "visible";
+    var highlight = null;
 
-        viaductLayer.queryFeatures().then(function(results) {
+
+    view.whenLayerView(viaductLayer).then(function (viaductLayerView) {   
+      viaductLayerView.filter = {
+      where: "Type = " + selectedLayer + " AND " +  "Status1 = " + selectedStatus
+    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+    };
+      viaductLayerView.queryFeatures().then(function(results) {
             const ggg = results.features;
             const rowN = ggg.length;
 
@@ -1131,31 +1140,25 @@ function createSeries(field, name) {
                 objectIds: objID
             });
 
-            viaductLayer.queryExtent(queryExt).then(function(result) {
+            viaductLayerView.queryExtent(queryExt).then(function(result) {
               if (result.extent) {
                 view.goTo(result.extent)
               }
             });
-
-            if (highlightSelect) {
-                highlightSelect.remove();
+/*
+            if (highlight) {
+                highlight.remove();
             }
-            highlightSelect = layerView.highlight(objID);
-
+            highlight = viaductLayerView.highlight(objID);
+*/
             view.on("click", function() {
-                layerView.filter = null;
-                highlightSelect.remove();
+              viaductLayerView.filter = null;
+               // highlight.remove();
             });
         });
+    }); // whenLayerView
 
 
-    });
-
-
-    chartLayerView.filter = {
-      where: "Type = " + selectedLayer + " AND " +  "Status1 = " + selectedStatus
-    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
-    };
 
   } // End of filterByChart
 
@@ -1179,12 +1182,10 @@ createSeries("value4", "Delayed");
 /*
 view.when(function () {
           view.popup.autoOpenEnabled = true; //disable popups
-
           // Create the Editor
           const editor = new Editor({
             view: view
           });
-
           // Add widget to top-right of the view
           view.ui.add(editor, "top-right");
         });
@@ -1361,10 +1362,10 @@ view.ui.add(compassWidget, "top-left");
         <div class="cpButtonBox">
           <div id="cpButton" class="cpButtonClass">
               <label for="cpButton">CP</label>
-              <input type="radio" id="N-01" name="cpButton"> N-01
+              <input type="radio" id="N-01" name="cpButton" checked/> N-01
               <input type="radio" id="N-02" name="cpButton"> N-02
               <input type="radio" id="N-03" name="cpButton"> N-03
-              <input type="radio" id="N-04" name="cpButton" checked/> N-04
+              <input type="radio" id="N-04" name="cpButton"> N-04
             </div>
         </div>
     </div>
