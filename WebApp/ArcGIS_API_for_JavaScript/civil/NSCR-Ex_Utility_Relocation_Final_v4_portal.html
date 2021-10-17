@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>Utility Relocation (N2)</title>
+<title>N2 Utility Relocation</title>
 
     <style>
       html,
@@ -223,14 +223,14 @@
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.18/esri/themes/dark/main.css"
+      href="https://js.arcgis.com/4.20/esri/themes/dark/main.css"
     />
     <!-- Resources -->
     <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
     <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-    <script src="https://js.arcgis.com/4.18/"></script>
+    <script src="https://js.arcgis.com/4.20/"></script>
 
     <script>
       require([
@@ -588,7 +588,7 @@ var chainageRenderer = {
 // Station
 var stationsRenderer = {
           type: "unique-value", // autocasts as new UniqueValueRenderer()
-          field: "Name",
+          field: "Station",
           defaultSymbol: IconSymbol("Train"),//Backhoe, Train
         };
 
@@ -864,7 +864,7 @@ const colorsRelocation = {
 // Centerline and chainage
 var chainageLayer = new FeatureLayer ({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "8c4dd0f198de4e0496db3999d4fdff51",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -886,7 +886,7 @@ map.add(chainageLayer, 1);
 // ROW //
 var rowLayer = new FeatureLayer ({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "8c4dd0f198de4e0496db3999d4fdff51",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -901,7 +901,7 @@ map.add(rowLayer,2);
 // Station
 var stationLayer = new SceneLayer({
             portalItem: {
-                id: "86e3b83f3a6340feb8c5c0f410395007",
+                id: "18c149665b67459c857100cd7461ec85",
                 portal: {
                   url: "https://gis.railway-sector.com/portal"
                 }
@@ -912,11 +912,11 @@ var stationLayer = new SceneLayer({
                  // this elevation mode will place points on top of
                  // buildings or other SceneLayer 3D objects
                  mode: "relative-to-ground"
-                 },
-             definitionExpression: "Extension = 'N2'"
+                 }
+             //definitionExpression: "Extension = 'N2'"
               //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
         });
-        stationLayer.listMode = "hide";
+        //stationLayer.listMode = "hide";
         map.add(stationLayer, 0);
 
 // Utility Point
@@ -927,7 +927,7 @@ var stationLayer = new SceneLayer({
 
 var testUtilPt = new FeatureLayer({
   portalItem: {
-    id: "3345eb3a597c42e680ca2113b0f28163",
+    id: "60ec65f342aa45a8ac95cfee6f60d193",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
@@ -937,8 +937,13 @@ var testUtilPt = new FeatureLayer({
    outFields: ["*"],
    renderer: utilTypePtRenderer,
    elevationInfo: {
-            mode: "on-the-ground"
-          },
+     mode: "relative-to-scene",
+     featureExpressionInfo: {
+       expression: "$feature.Height"
+  },
+  unit: "meters"
+     //offset: 0
+   },
    popupTemplate: {
      title: "<h5>{Comp_Agency}</h5>",
      lastEditInfoEnabled: false,
@@ -993,20 +998,23 @@ map.add(testUtilPt, 3);
 
 var testUtilPt1 = new FeatureLayer({
     portalItem: {
-    id: "3345eb3a597c42e680ca2113b0f28163",
+    id: "60ec65f342aa45a8ac95cfee6f60d193",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
   },
   layerId: 1,
   title: "Utility 3D Render Test",
-  elevationInfo: {
-     mode: "relative-to-scene",
-     unit: "meters"
-     //offset: 0
-   },
    outFields: ["*"],
    renderer: utilReloSymbolRenderer,
+   elevationInfo: {
+     mode: "relative-to-scene",
+     featureExpressionInfo: {
+       expression: "$feature.Height"
+  },
+  unit: "meters"
+     //offset: 0
+   },
    labelingInfo: [labelUtilPtSymbol],
    popupTemplate: {
      title: "<h5>{comp_agency}</h5>",
@@ -1060,7 +1068,7 @@ map.add(testUtilPt1);
 // Utility Line
  var testLine = new FeatureLayer({
     portalItem: {
-    id: "3345eb3a597c42e680ca2113b0f28163",
+    id: "60ec65f342aa45a8ac95cfee6f60d193",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
@@ -1216,7 +1224,7 @@ map.add(testUtilPt1);
 /*Line for Symbols */
 var testLine1 = new FeatureLayer({
     portalItem: {
-    id: "3345eb3a597c42e680ca2113b0f28163",
+    id: "60ec65f342aa45a8ac95cfee6f60d193",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
@@ -2797,7 +2805,7 @@ view.ui.add(legendExpand, {
         var layerListExpand = new Expand ({
             view: view,
             content: layerList,
-            expandIconClass: "esri-icon-expand",
+            expandIconClass: "esri-icon-visible",
             group: "bottom-left"
         });
         view.ui.add(layerListExpand, {
@@ -2912,7 +2920,7 @@ searchExpand.watch("expanded", function() {
           <h2>Status of Utility Relocation (N2)</h2>
         </div>
           <div class="dateDiv">
-              <h4>As of July 23, 2021</h4>
+              <h4>As of Septembeer 13, 2021</h4>
           </div>
           <div class="cpButtonBox">
             <div id="cpButton" class="cpButtonClass">

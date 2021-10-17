@@ -323,22 +323,27 @@ var basemap = new Basemap({
 
 ///// Renderer ///
 // Boundary
-let defaultLotSymbolBoundary = {
-                type: "simple-fill",
-                color: [0, 0, 0, 0],
-                style: "solid",
-                outline: {
-                    style: "dash",
-                color: [215, 215, 158],
-                width: 1.5
-            }
+// Construction boundary
+let ConstructionBoundaryFill = {
+                type: "unique-value",
+                valueExpression: "When($feature.MappingBoundary == 1, 'Boundary',$feature.MappingBoundary)",
+                uniqueValueInfos: [
+                    {
+                        value: "Boundary",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [0, 0, 0,0],
+                            outline: {
+                                width: 1.5,
+                                color: [215, 215, 158], //[78, 78, 78]
+                                style: "short-dash"
+                            }
+                        }
+                    }
+
+                ]
 };
 
-let BoundaryFillSymbol = {
-    type: "unique-value",
-    field: "StatusNVS3",
-    defaultSymbol: defaultLotSymbolBoundary,
-}
 
 // Lot
 let defaultLotSymbol = {
@@ -692,22 +697,22 @@ let treePermitRenderer = {
 //*******************************//
 // Import Layers                 //
 //*******************************//
+// Construction boundary
 var constBoundary = new FeatureLayer({
   portalItem: {
-    id: "89491eef43454fec87f53151e4bc8a6c",
+    id: "4c076388200a491181d3d5db93c29b63",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 6,
-  renderer: BoundaryFillSymbol,
-  elevationInfo: {
-    mode: "on-the-ground"
-  },
+  layerId: 4,
+  outFields: ["*"],
+  renderer: ConstructionBoundaryFill,
+  definitionExpression: "MappingBoundary = 1",
   title: "Construction Boundary",
   popupEnabled: false
 });
-constBoundary.listMode = "hide";
+//constBoundary.listMode = "hide";
 map.add(constBoundary);
 
 // Status of LA
@@ -715,7 +720,7 @@ map.add(constBoundary);
 
 var lotLayer = new FeatureLayer({
     portalItem: {
-        id: "e0f4e409780444388f375609bffa4713",
+        id: "d8adc05d59d349ba9968fbdb1faa83cc",
         portal: {
             url: "https://gis.railway-sector.com/portal"
         }
@@ -793,7 +798,7 @@ var lotLayer = new FeatureLayer({
 // Tree Cutting
 var treeCuttingLayer = new FeatureLayer ({
     portalItem: {
-    id: "e0f4e409780444388f375609bffa4713",
+    id: "990f75f067124dbbb2adf3f417a596be",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
@@ -864,7 +869,7 @@ map.add(treeCuttingLayer);
 // Tree Tree_Compe
 var compensationLayer = new FeatureLayer ({
     portalItem: {
-    id: "e0f4e409780444388f375609bffa4713",
+    id: "990f75f067124dbbb2adf3f417a596be",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
@@ -929,7 +934,7 @@ map.add(compensationLayer);
 // Tree Tree_Compe
 var permitLayer = new FeatureLayer ({
     portalItem: {
-    id: "e0f4e409780444388f375609bffa4713",
+    id: "990f75f067124dbbb2adf3f417a596be",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
@@ -2575,6 +2580,10 @@ searchExpand.watch("expanded", function() {
       layer: permitLayer,
       title: "Status of Tree Permit"
     },
+    {
+      layer: constBoundary,
+      title: "Construction Boundary"
+    }
   ]
 });
 

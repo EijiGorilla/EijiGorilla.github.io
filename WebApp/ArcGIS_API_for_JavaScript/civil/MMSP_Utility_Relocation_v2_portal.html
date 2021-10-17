@@ -123,7 +123,10 @@
           padding-top: 20px;
           }
 
-      
+          ::-webkit-scrollbar {
+    display: none;
+    }
+    
       p {
         color: rgb(0, 197, 255);
         text-align: center;
@@ -202,14 +205,14 @@
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.18/esri/themes/dark/main.css"
+      href="https://js.arcgis.com/4.21/esri/themes/dark/main.css"
     />
     <!-- Resources -->
     <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
     <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-    <script src="https://js.arcgis.com/4.18/"></script>
+    <script src="https://js.arcgis.com/4.21/"></script>
 
     <script>
       require([
@@ -577,6 +580,27 @@ var BoundaryFillSymbol = {
     color: [153, 204, 255, 0.5],
     width: 2
   }
+};
+
+// Construction boundary
+let ConstructionBoundaryFill = {
+                type: "unique-value",
+                valueExpression: "When($feature.MappingBoundary == 1, 'Boundary',$feature.MappingBoundary)",
+                uniqueValueInfos: [
+                    {
+                        value: "Boundary",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [0, 0, 0,0],
+                            outline: {
+                                width: 1.5,
+                                color: [78, 78, 78],
+                                style: "short-dash"
+                            }
+                        }
+                    }
+
+                ]
 };
 
 // Chainage symbol
@@ -969,35 +993,36 @@ const colorsRelocation = {
 // Construction Boundary
 var constBoundary = new FeatureLayer({
   portalItem: {
-    id: "89491eef43454fec87f53151e4bc8a6c",
+    id: "4c076388200a491181d3d5db93c29b63",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 6,
-  //renderer: BoundaryFillSymbol,
+  layerId: 4,
+  outFields: ["*"],
+  renderer: ConstructionBoundaryFill,
+  definitionExpression: "MappingBoundary = 1",
+  title: "Construction Boundary",
   elevationInfo: {
-    mode: "on-the-ground"
+     mode: "on-the-ground",
   },
-  popupTemplate: {
-    defaultPopupTemplateEnabled: false
-  }
+  popupEnabled: false
 });
-constBoundary.listMode = "hide";
+//constBoundary.listMode = "hide";
 map.add(constBoundary);
 
 
 // Station Layer:-------------------
         var stationLayer = new SceneLayer({
           portalItem: {
-            id: "86e3b83f3a6340feb8c5c0f410395007",
+            id: "26d8f953c71d440bad2daccb8f8c41a6",
             portal: {
               url: "https://gis.railway-sector.com/portal"
             },
           },
              labelingInfo: [stationLabelClass],
              renderer: stationsRenderer,
-             definitionExpression: "Sector = 'MMSP'",
+             definitionExpression: "sector = 'MMSP'",
              popupEnabled: false,
              elevationInfo: {
                  // this elevation mode will place points on top of
@@ -1017,7 +1042,7 @@ map.add(constBoundary);
 
 var testUtilPt = new FeatureLayer({
   portalItem: {
-    id: "f2f3036918354a029ed30272e56a568a",
+    id: "dee4a74050444741898490671defd9b4",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
@@ -1089,7 +1114,7 @@ map.add(testUtilPt);
 
 var testUtilPt1 = new FeatureLayer({
     portalItem: {
-    id: "f2f3036918354a029ed30272e56a568a",
+    id: "dee4a74050444741898490671defd9b4",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
@@ -1159,7 +1184,7 @@ map.add(testUtilPt1);
 // Utility Line
  var testLine = new FeatureLayer({
     portalItem: {
-    id: "f2f3036918354a029ed30272e56a568a",
+    id: "dee4a74050444741898490671defd9b4",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
@@ -1315,7 +1340,7 @@ map.add(testUtilPt1);
 /*Line for Symbols */
 var testLine1 = new FeatureLayer({
     portalItem: {
-    id: "f2f3036918354a029ed30272e56a568a",
+    id: "dee4a74050444741898490671defd9b4",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }

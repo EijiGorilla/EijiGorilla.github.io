@@ -335,16 +335,20 @@
       .panel-side {
       padding: 0px;
       box-sizing: border-box;
-      width: 12.25vw;
-      height: 85vh;
+      width: 12vw;
+      height: 89vh;
       position: fixed;
       margin: 1 3 3 1;
       color: #fff;
       background-color: rgb(0, 0, 0);
-      overflow-y: auto;
-      overflow-x: hidden;
+      overflow-y: scroll;
+      overflow-x: auto;
     }
 
+    ::-webkit-scrollbar {
+    display: none;
+    }
+    
     .panel-side h2 {
         padding: 5 5px;
         margin: 0;
@@ -422,14 +426,14 @@
 
 <link
 rel="stylesheet"
-href="https://js.arcgis.com/4.19/esri/themes/dark/main.css"
+href="https://js.arcgis.com/4.21/esri/themes/dark/main.css"
 />
 <!-- Resources -->
 <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
 <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-<script src="https://js.arcgis.com/4.19/"></script>
+<script src="https://js.arcgis.com/4.21/"></script>
 
     <script>
       require([
@@ -577,6 +581,17 @@ var labelChainage = new LabelClass({
   }
 });
 */
+var labelStation = new LabelClass({
+  labelExpressionInfo: {expression: "$feature.Station"},
+  symbol: {
+    type: "text",
+    color: [219,112,147,0.5],
+    size: 12,
+    haloColor: "black",
+    haloSize: 2
+  }
+});
+
 //*****************************//
 //      Renderer Settings      //
 //*****************************// 
@@ -697,10 +712,26 @@ const colors = {
 //*******************************//
 // Import Layers                 //
 //*******************************//
+// Station point feature
+var stationLayer = new FeatureLayer({
+  portalItem: {
+    id: "8c4dd0f198de4e0496db3999d4fdff51",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 7,
+  title: "Station",
+  outFields: ["*"],
+  popuEnabled: false
+        });
+        stationLayer.listMode = "hide";
+        map.add(stationLayer,0);
+
 // Pier head and column
 var pierHeadColumnLayerLayer = new FeatureLayer ({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "8c4dd0f198de4e0496db3999d4fdff51",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -716,7 +747,7 @@ map.add(pierHeadColumnLayerLayer, 1);
 
 var chainageLayer = new FeatureLayer ({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "8c4dd0f198de4e0496db3999d4fdff51",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -737,7 +768,7 @@ map.add(chainageLayer, 1);
 // Pier No. (point feature)
 var PierNoLayer = new FeatureLayer ({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "8c4dd0f198de4e0496db3999d4fdff51",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -753,7 +784,7 @@ var PierNoLayer = new FeatureLayer ({
 // Station box
 var stationBoxLayer = new FeatureLayer ({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "8c4dd0f198de4e0496db3999d4fdff51",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -773,7 +804,7 @@ map.add(PierNoLayer, 1);
 // ROW //
 var rowLayer = new FeatureLayer ({
   portalItem: {
-    id: "da39a50629b54e6e9abf6ddbebf10b37",
+    id: "8c4dd0f198de4e0496db3999d4fdff51",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -784,24 +815,11 @@ var rowLayer = new FeatureLayer ({
 });
 map.add(rowLayer,2);
 
-// Station point feature
-var stationLayer = new FeatureLayer({
-    portalItem: {
-    id: "95ce5c0a707d4e70b6028c215a849fec",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-             definitionExpression: "Extension = 'N2'"
-              //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
-        });
-        stationLayer.listMode = "hide";
-        map.add(stationLayer, 0);
 
 // Priority Lot
 var priorityLayer = new FeatureLayer ({
     portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
+    id: "b180066b824a4b23b582aa89c4146742",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -815,7 +833,7 @@ map.add(priorityLayer,2);
 // Free and Clear Lot //
 var fncLayer = new FeatureLayer ({
   portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
+    id: "b180066b824a4b23b582aa89c4146742",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -832,7 +850,7 @@ map.add(fncLayer,2);
 // Land 
 var lotLayer = new FeatureLayer({
   portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
+    id: "b180066b824a4b23b582aa89c4146742",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -873,7 +891,7 @@ map.add(lotLayer, 1);
 // Structure
 var structureLayer = new FeatureLayer({
   portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
+    id: "b180066b824a4b23b582aa89c4146742",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -977,7 +995,7 @@ let NLOLORenderer = {
 
 var structureNLOLOLayer = new FeatureLayer({
   portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
+    id: "b180066b824a4b23b582aa89c4146742",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -995,7 +1013,7 @@ map.add(structureNLOLOLayer);
 // Status of Relocation (Occupancy)
 var relocationPtLayer = new FeatureLayer({
   portalItem: {
-    id: "95d98d2775ec47ad81140bf7e3717a28",
+    id: "b180066b824a4b23b582aa89c4146742",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -2391,7 +2409,7 @@ view.ui.add(legendExpand, {
             <h2>Land Acquisition (N2)</h2>
         </div>
         <div class="dateDiv">
-            <h4>As of June 4, 2021</h4>
+            <h4>As of October 8, 2021</h4>
         </div>
         <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">Municipality:</label>

@@ -229,22 +229,14 @@
 
     <link
       rel="stylesheet"
-<<<<<<< HEAD
       href="https://js.arcgis.com/4.20/esri/themes/dark/main.css"
-=======
-      href="https://js.arcgis.com/4.21/esri/themes/dark/main.css"
->>>>>>> a8b7d6bc89301d996f996ed1f436d25a52c92c3a
     />
     <!-- Resources -->
     <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
     <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-<<<<<<< HEAD
     <script src="https://js.arcgis.com/4.20/"></script>
-=======
-    <script src="https://js.arcgis.com/4.21/"></script>
->>>>>>> a8b7d6bc89301d996f996ed1f436d25a52c92c3a
 
     <script>
       require([
@@ -262,7 +254,6 @@
         "esri/symbols/LabelSymbol3D",
         "esri/WebMap",
         "esri/WebScene",
-        "esri/PopupTemplate",
         "esri/portal/PortalItem",
         "esri/portal/Portal",
         "esri/widgets/TimeSlider",
@@ -288,12 +279,11 @@
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
                   LabelClass, LabelSymbol3D, WebMap,
-                  WebScene, PortalItem, Portal, PopupTemplate,
+                  WebScene, PortalItem, Portal,
                   TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol,
-                  TimeExtent, Expand, Editor, UniqueValueRenderer,
-                  DatePicker, FeatureTable, Compass, TimeExtent, Search) {
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker, FeatureTable, Compass, TimeExtent, Search) {
 
         const features = [];
 
@@ -408,7 +398,7 @@ var pierNoLabelClass = new LabelClass({
           },
           labelPlacement: "above-center",
           labelExpressionInfo: {
-            expression: "$feature.PIER"
+            expression: 'DefaultValue($feature.PIER, "no data")'
             //value: "{TEXTSTRING}"
         }
         });
@@ -444,7 +434,7 @@ var pierNoLabelClass = new LabelClass({
           },
           labelPlacement: "above-center",
           labelExpressionInfo: {
-            expression: "$feature.Station"
+            expression: 'DefaultValue($feature.Station, "no data")'
             //value: "{TEXTSTRING}"
         }
         });
@@ -503,7 +493,7 @@ const colors = {
 // Station Layer
 var stationLayer = new SceneLayer({
             portalItem: {
-                id: "18c149665b67459c857100cd7461ec85",
+                id: "86e3b83f3a6340feb8c5c0f410395007",
                 portal: {
                   url: "https://gis.railway-sector.com/portal"
                 }
@@ -524,7 +514,7 @@ var stationLayer = new SceneLayer({
 // Centerline and chainage
 var chainageLayer = new FeatureLayer ({
   portalItem: {
-    id: "8c4dd0f198de4e0496db3999d4fdff51",
+    id: "da39a50629b54e6e9abf6ddbebf10b37",
     portal: {
                   url: "https://gis.railway-sector.com/portal"
                 }   
@@ -546,7 +536,7 @@ map.add(chainageLayer, 1);
 // Pier No. (point feature)
 var PierNoLayer = new FeatureLayer ({
   portalItem: {
-    id: "8c4dd0f198de4e0496db3999d4fdff51",
+    id: "da39a50629b54e6e9abf6ddbebf10b37",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -568,7 +558,7 @@ map.add(PierNoLayer, 1);
 // ROW //
 var rowLayer = new FeatureLayer ({
   portalItem: {
-    id: "8c4dd0f198de4e0496db3999d4fdff51",
+    id: "da39a50629b54e6e9abf6ddbebf10b37",
     portal: {
                   url: "https://gis.railway-sector.com/portal"
                 }   
@@ -580,15 +570,23 @@ var rowLayer = new FeatureLayer ({
 map.add(rowLayer,2);
 
 // Viaduct Layer
-const viadTemplate = {
-  title: "<h5>{Status1}</h5>",
-  content: [
-    {
-      type: "fields",
-      fieldInfos: [
+var viaductLayer = new SceneLayer({
+   portalItem: {
+            id: "58e5eba09a5c4604b38f9e0f4f1910e1",
+            portal: {
+              url: "https://gis.railway-sector.com/portal"
+            }
+          },
+          popupTemplate: {
+     title: "<h5>{Status1}</h5>",
+     lastEditInfoEnabled: false,
+     returnGeometry: true,
+     content: [
+       {
+         type: "fields",
+         fieldInfos: [
            {
-             fieldName: "CP",
-             label: "CP"
+             fieldName: "CP"
            },
            {
              fieldName: "Status1",
@@ -596,21 +594,16 @@ const viadTemplate = {
            },
            {
              fieldName: "PierNumber",
-             label: "<h5>Pier Number</h5>"
+             label: "<h5>Pier Number</h5>",
+           },
+           {
+             fieldName: "OBJECTID",
+             label: "OBEJECTID",
            }
          ]
        }
      ]
-   };
-
-var viaductLayer = new SceneLayer({
-   portalItem: {
-            id: "1cf3e07776c74ebaa75a88a429f20601",
-            portal: {
-              url: "https://gis.railway-sector.com/portal"
-            }
-          },
-         // popupTemplate: viadTemplate,
+   },
           elevationInfo: {
           mode: "absolute-height" //absolute-height, relative-to-ground
         },
@@ -724,28 +717,24 @@ function filterByTest(event) {
 
   if(selectedID === "N-01") {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
-    PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart();
 
   } else if (selectedID === "N-02") {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
-    PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart();
 
   } else if (selectedID === "N-03") {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
-    PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart();
 
   } else if (selectedID === "N-04") {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
-    PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart(); 
@@ -1190,18 +1179,12 @@ createSeries("value4", "Delayed");
 /*
 view.when(function () {
           view.popup.autoOpenEnabled = true; //disable popups
-<<<<<<< HEAD
-=======
 
->>>>>>> a8b7d6bc89301d996f996ed1f436d25a52c92c3a
           // Create the Editor
           const editor = new Editor({
             view: view
           });
-<<<<<<< HEAD
-=======
 
->>>>>>> a8b7d6bc89301d996f996ed1f436d25a52c92c3a
           // Add widget to top-right of the view
           view.ui.add(editor, "top-right");
         });
@@ -1373,11 +1356,7 @@ view.ui.add(compassWidget, "top-left");
             <h2>Status of Viaduct Construction (N2)</h2>
         </div>
         <div class="dateDiv">
-<<<<<<< HEAD
-            <h4>As of September 24, 2021</h4>
-=======
-            <h4>As of October 11, 2021</h4>
->>>>>>> a8b7d6bc89301d996f996ed1f436d25a52c92c3a
+            <h4>As of August 17, 2021</h4>
         </div>
         <div class="cpButtonBox">
           <div id="cpButton" class="cpButtonClass">

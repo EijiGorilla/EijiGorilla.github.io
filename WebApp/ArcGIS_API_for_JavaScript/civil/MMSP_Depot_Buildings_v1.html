@@ -239,14 +239,14 @@
 
 <link
 rel="stylesheet"
-href="https://js.arcgis.com/4.18/esri/themes/dark/main.css"
+href="https://js.arcgis.com/4.20/esri/themes/dark/main.css"
 />
 <!-- Resources -->
 <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
 <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-<script src="https://js.arcgis.com/4.18/"></script>
+<script src="https://js.arcgis.com/4.20/"></script>
 
     <script>
       require([
@@ -524,45 +524,61 @@ var basemap = new Basemap({
 //*******************************//
 // Import Layers                 //
 //*******************************//
-// Construction Boundary
-var BoundaryFillSymbol = {
-  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-  color: [0, 0, 0, 0],
-  style: "solid",
-  outline: {  // autocasts as new SimpleLineSymbol()
-    color: [153, 204, 255, 0.5],
-    width: "2px"
-  }
+// Construction boundary
+let ConstructionBoundaryFill = {
+                type: "unique-value",
+                valueExpression: "When($feature.MappingBoundary == 1, 'Boundary',$feature.MappingBoundary)",
+                uniqueValueInfos: [
+                    {
+                        value: "Boundary",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [0, 0, 0,0],
+                            outline: {
+                                width: 1.5,
+                                color: [215, 215, 158],
+                                style: "short-dash"
+                            }
+                        }
+                    }
+
+                ]
 };
 
+// Construction Boundary
 var constBoundary = new FeatureLayer({
   portalItem: {
-    id: "89491eef43454fec87f53151e4bc8a6c",
+    id: "4c076388200a491181d3d5db93c29b63",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 6,
-  //renderer: BoundaryFillSymbol,
-  title: "Construction Boundary",
+  layerId: 4,
+  outFields: ["*"],
   elevationInfo: {
-    mode: "on-the-ground"
-  },
+                 // this elevation mode will place points on top of
+                 // buildings or other SceneLayer 3D objects
+                 mode: "on-the-ground"
+                 },
+  renderer: ConstructionBoundaryFill,
+  definitionExpression: "MappingBoundary = 1",
+  title: "Construction Boundary",
   popupEnabled: false
 });
+//constBoundary.listMode = "hide";
 map.add(constBoundary);
 
 // Station point feature
 var stationLayer = new SceneLayer({
           portalItem: {
-            id: "86e3b83f3a6340feb8c5c0f410395007",
+            id: "26d8f953c71d440bad2daccb8f8c41a6",
             portal: {
               url: "https://gis.railway-sector.com/portal"
             },
           },
              labelingInfo: [stationLabelClass],
              renderer: stationsRenderer,
-             definitionExpression: "Sector = 'MMSP'",
+             definitionExpression: "sector = 'MMSP'",
              popupEnabled: false,
              elevationInfo: {
                  // this elevation mode will place points on top of
@@ -596,7 +612,7 @@ var stationLayer = new SceneLayer({
 // Structure Layer
         var structureLayer = new SceneLayer({ //structureLayer
           portalItem: {
-            id: "b624778e7b7d43e3be3e2a4275a2c834",
+            id: "583d1cf1ff53449e8fc711c2a1d42c0b",
             portal: {
               url: "https://gis.railway-sector.com/portal"
             }

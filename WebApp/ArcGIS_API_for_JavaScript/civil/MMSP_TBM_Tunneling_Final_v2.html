@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>TBM Tunnel (Sample) </title>
+<title>TBM Tunneling (MMSP) </title>
 
     <style>
       html,
@@ -36,7 +36,7 @@
         height: 90vh;
         width: 100%;
         box-sizing: border-box;
-          grid-template-columns: 4fr 1.2fr;
+          grid-template-columns: 4fr 1fr;
           border-right: 0;
       }
 
@@ -160,13 +160,13 @@
       }
 
       h5 {
-        color: rgb(0, 197, 255);
+        color: gray;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-        text-align: left;
-        font-weight: normal;
+        text-align: center;
+        font-weight: bold;
         font-size: 14px;
-        padding: 0;
-        margin: 0;
+        padding: 3;
+        margin: 10;
       }
 
       h6 {
@@ -187,40 +187,19 @@
       br{content:' ';}
       br:after{content:' ';}
 
-      .esri-layer-list__item-toggle-icon,
-     .esri-layer-list__item-title {
-      color: white;
-     }
-
-
-      .sassy-theme .esri-menu,
-      .sassy-theme .esri-popup__main-container,
-      .sassy-theme .esri-popup .esri-popup__pointer-direction,
-      .sassy-theme .esri-popup .esri-popup__button,
-      .sassy-theme .esri-button,
-      .sassy-theme .esri-input,
-      .sassy-theme .esri-legend,
-      .sassy-theme .esri-layer-list,
-      .sassy-theme .esri-widget a {
-        background-color: rgb(0, 0, 0, 0.7);
-        color: #fff;
-      }
-
-      .sassy-theme .esri-legend__layer-caption {
-    display: none;
-  }
+      
     </style>
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.18/esri/themes/dark/main.css"
+      href="https://js.arcgis.com/4.19/esri/themes/dark/main.css"
     />
         <!-- Resources -->
     <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
     <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-    <script src="https://js.arcgis.com/4.18/"></script>
+    <script src="https://js.arcgis.com/4.19/"></script>
 
     <script>
       require([
@@ -290,7 +269,7 @@ let chartLayerView;
         url: "//elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
         });
         
-        const dem = new ElevationLayer({
+      const dem = new ElevationLayer({
         portalItem: {
           id: "34a145bedcf24f64b57b2b26ce25ca54",
           portal: {
@@ -358,7 +337,7 @@ let chartLayerView;
 
  //********* Define LabelingInfo *************//
 // Station labels
-        var stationLabelClass = new LabelClass({
+        var labelClass = new LabelClass({
           symbol: {
             type: "label-3d",// autocasts as new LabelSymbol3D()
             symbolLayers: [
@@ -386,7 +365,7 @@ let chartLayerView;
           },
           labelPlacement: "above-center",
           labelExpressionInfo: {
-            expression: 'DefaultValue($feature.Station, "no data")'
+            expression: 'DefaultValue($feature.Name, "no data")'
           }
         });
 
@@ -542,7 +521,7 @@ let chartLayerView;
         };
 
 // TBM Alignment:-------------------
-        const options = {
+const options = {
           profile: "circle",
           cap: "butt", // butt
           join: "miter",
@@ -682,14 +661,14 @@ var obstructionRenderer = {
 // Station Layer:-------------------
 var stationLayer = new SceneLayer({
           portalItem: {
-            id: "86e3b83f3a6340feb8c5c0f410395007",
+            id: "26d8f953c71d440bad2daccb8f8c41a6",
             portal: {
               url: "https://gis.railway-sector.com/portal"
             },
           },
              labelingInfo: [stationLabelClass],
              renderer: stationsRenderer,
-             definitionExpression: "Sector = 'MMSP'",
+             definitionExpression: "sector = 'MMSP'",
              popupEnabled: false,
              elevationInfo: {
                  // this elevation mode will place points on top of
@@ -704,16 +683,16 @@ var stationLayer = new SceneLayer({
 // TBM Machine Spot:-------------------
         var tbmSpot = new FeatureLayer({
           portalItem: {
-            id: "9ad75be90ec44b3eb064255187fd4c9c",
+            id: "7a8f2d75e4d04cce9ea209e663f17d06",
             portal: {
                 url: "https://gis.railway-sector.com/portal"
-            }
+            },
           },
+          layerId: 0,
           labelingInfo: [tbmspotlabelClass],
           renderer: tbmspotRenderer,
           screenSizePerspectiveEnabled: false,
-          title: "TBM Spot",
-          popupEnabled: false
+          title: "TBM Spot"
         });
         tbmSpot.listMode = "hide";
         view.map.add(tbmSpot);
@@ -721,11 +700,12 @@ var stationLayer = new SceneLayer({
 // Geotechnical information:-------------------
 var geotech = new FeatureLayer({
         portalItem: {
-            id: "802bbb13fed147b1b14fc7f851e6aa42",
+            id: "990f75f067124dbbb2adf3f417a596be",
             portal: {
               url: "https://gis.railway-sector.com/portal"
             }
           },
+          layerId: 2,
           elevationInfo: {
           mode: "absolute-height", //absolute-height
           offset: 0,
@@ -734,28 +714,7 @@ var geotech = new FeatureLayer({
          //renderer: roundTubeSymbol,
          title: "Soil Profile",
          //definitionExpression: "sens='Aller'",
-         outFields: ["*"],
-         popupTemplate: {
-            title: "<h5>{Class}: {USCS}</h5>",
-            lastEditInfoEnabled: false,
-            returnGeometry: true,
-            content: [
-                {
-                    type: "fields",
-                    fieldInfos: [
-                        {
-                            fieldName: "Depth_From",
-                            label: "Depth From"
-
-                        },
-                        {
-                            fieldName: "Depth_To",
-                            label: "Depth To"
-                        }
-                    ]
-                }
-            ]
-        }
+         outFields: ["*"]
         });
         map.add(geotech);
 
@@ -798,40 +757,20 @@ var geotech = new FeatureLayer({
 // TBM segmented line:-------------------
       var transitLayer = new FeatureLayer({
         portalItem: {
-          id: "61389b0a13fb4e57b92f4ef3992c9673",
+          id: "7a8f2d75e4d04cce9ea209e663f17d06",
           portal: {
-              url: "https://gis.railway-sector.com/portal"
-          }
+        url: "https://gis.railway-sector.com/portal"
+    }
         },
         elevationInfo: {
           mode: "absolute-height",//"on-the-ground", relative-to-ground, absolute-height
           offset: 0
         },
+        layerId: 1,
          //renderer: roundTubeSymbol,
          title: "TBM Segment",
          //definitionExpression: "sens='Aller'",
-         outFields: ["*"],
-        popupTemplate: {
-            title: "<h5>{Line}: No. {SegmentNo}</h5>",
-            lastEditInfoEnabled: false,
-            returnGeometry: true,
-            content: [
-                {
-                    type: "fields",
-                    fieldInfos: [
-                        {
-                            fieldName: "Status",
-                            label: "<h5>Status</h5>"
-
-                        },
-                        {
-                            fieldName: "deadline",
-                            label: "Target Date"
-                        }
-                    ]
-                }
-            ]
-        }
+         outFields: ["*"]
         });
         map.add(transitLayer);
 
@@ -874,17 +813,16 @@ var geotech = new FeatureLayer({
 // River Layer:-------------------
         const riverLayer = new FeatureLayer({
           portalItem: {
-            id: "e0572789a4534d7cbe101d4f363aa56e",
+            id: "dcc22f1b9813437b97e287def0b98cfd",
             portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
+              url: "https://gis.railway-sector.com/portal"
+            },
           },
-          layerId: 2,
+          layerId: 0,
         elevationInfo: {
           mode: "on-the-ground",
           offset: 0
         },
-        popupEnabled: false,
         renderer: {
             type: "simple",
             symbol: {
@@ -907,38 +845,25 @@ var geotech = new FeatureLayer({
 // Bridge Layer:-------------------        
         var bridgeLayer = new SceneLayer({
           portalItem: {
-            id: "908de29ec5f94fcf82dc265521e3fbc1",
+            id: "136b1a7080ec42b49c463a81d9788fea",
             portal: {
                 url: "https://gis.railway-sector.com/portal"
-            }
+            },
           },
+          /*
+          portalItem: {
+          id: "e01d0321d29f4239a383be1ba056d2aa",  
+          portal: {
+            url: "https://mmspgc-gis.mmspgc.local/portal"
+          }
+          },
+          */
           elevationInfo: {
             mode: "absolute-height",
             offset: 0
           },
           title: "Monitoring Bridge",
           outFields: ["*"],
-          popupTemplate: {
-            // autocasts as new PopupTemplate()
-            lastEditInfoEnabled: false,
-            returnGeometry: true,
-            title: "<h5>{Subtype}: Rating is {Rating}</h5>",
-            content: [
-              {
-                type: "fields",
-                fieldInfos: [
-                  {
-                    fieldName: "Score",
-                    label: "Score"
-                  },
-                  {
-                    fieldName: "Rating",
-                    label: "Rating"
-                  }
-                ]
-              }
-            ]
-          },
         });
         map.add(bridgeLayer, 0);
 
@@ -992,12 +917,12 @@ var geotech = new FeatureLayer({
          *****************************************************************/
 var obstructionLayer = new FeatureLayer({
     portalItem: {
-          id: "e0572789a4534d7cbe101d4f363aa56e",  
-          portal: {
-            url: "https://gis.railway-sector.com/portal"
-          }
+            id: "dcc22f1b9813437b97e287def0b98cfd",
+            portal: {
+              url: "https://gis.railway-sector.com/portal"
+            },
           },
-  layerId: 1,
+          layerId: 1,
           elevationInfo: {
             mode: "on-the-ground",
             offset: 0
@@ -1007,9 +932,7 @@ var obstructionLayer = new FeatureLayer({
           renderer: obstructionRenderer,
           popupTemplate: {
             // autocasts as new PopupTemplate()
-            lastEditInfoEnabled: false,
-            returnGeometry: true,
-            title: "<h5>{Type}: Rating is {Rating}</h5>",
+            title: "{Rating}",
             content: [
               {
                 type: "fields",
@@ -1038,29 +961,52 @@ var obstructionLayer = new FeatureLayer({
 // Dilapidation survey Extent line
 var dilapSurveyExtent = new FeatureLayer({
   portalItem: {
-    id: "e0572789a4534d7cbe101d4f363aa56e",
+    id: "990f75f067124dbbb2adf3f417a596be",
     portal: {
         url: "https://gis.railway-sector.com/portal"
-    }
+    },
   },
-  layerId: 0,
+  layerId: 1,
+        /*
+          portalItem: {
+          id: "8f53ab5eed324f5d9272a09b243198a6",
+          portal: {
+            url: "https://mmspgc-gis.mmspgc.local/portal"
+          }
+          },
+          */
           elevationInfo: {
             mode: "on-the-ground",
             offset: 0
           },
-          title: "Survey Extent Line",
-          popupEnabled: false
+          title: "Survey Extent Line"
         });
         map.add(dilapSurveyExtent, 0);
 
 // TBM Alignment reference line:--------------
+let defaultTBMAlign = {
+                type: "simple-line",
+                color: [211, 211, 211, 0.5],
+                style: "solid",
+                width: 0.5
+};
+
+let tbmAlignRenderer = {
+    type: "unique-value",
+    field: "Layer",
+    defaultSymbol: defaultTBMAlign
+};
+
 var tbmAlign = new FeatureLayer({
   portalItem: {
-    id: "70db36c681ee43f3aeb4f84e411b81de",
+    id: "4c076388200a491181d3d5db93c29b63",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
   },
+  layerId: 9,
+  renderer: tbmAlignRenderer,
+  definitionExpression: "Layer = 'TBM'",
   elevationInfo: {
             mode: "on-the-ground",
             offset: 0
@@ -1286,74 +1232,54 @@ chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
 chart.data = [
   {
     category: "TBM 6",
-    value1: TBM6_done,
-    value2: TBM6_tobeC,
+    value1: TBM6_tobeC,
+    value2: TBM6_done,
     value3: TBM6_delayed
   },
   {
     category: "TBM 5",
-    value1: TBM5_done,
-    value2: TBM5_tobeC,
+    value1: TBM5_tobeC,
+    value2: TBM5_done,
     value3: TBM5_delayed
   },
   {
     category: "TBM 4",
-    value1: TBM4_done,
-    value2: TBM4_tobeC,
+    value1: TBM4_tobeC,
+    value2: TBM4_done,
     value3: TBM4_delayed
   },
   {
     category: "TBM 3",
-    value1: TBM3_done,
-    value2: TBM3_tobeC,
+    value1: TBM3_tobeC,
+    value2: TBM3_done,
     value3: TBM3_delayed
   },
   {
     category: "TBM 2",
-    value1: TBM2_done,
-    value2: TBM2_tobeC,
+    value1: TBM2_tobeC,
+    value2: TBM2_done,
     value3: TBM2_delayed
   },
   {
     category: "TBM 1",
-    value1: TBM1_done,
-    value2: TBM1_tobeC,
+    value1: TBM1_tobeC,
+    value2: TBM1_done,
     value3: TBM1_delayed
   },
 ];
  
 chart.colors.step = 2;
 chart.padding(10, 10, 10, 10);
-
-// Legend
-const LegendFontSizze = 14;
 chart.legend = new am4charts.Legend();
-
-chart.legend.valueLabels.template.align = "right"
-  chart.legend.valueLabels.template.textAlign = "end";  
-
 chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = LegendFontSizze;
+chart.legend.labels.template.fontSize = 12;
 chart.legend.labels.template.fill = "#ffffff";
-chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
-chart.legend.valueLabels.template.fontSize = LegendFontSizze;
-
-var marker = chart.legend.markers.template.children.getIndex(0);
-var markerTemplate = chart.legend.markers.template;
-marker.cornerRadius(12, 12, 12, 12);
-marker.strokeWidth = 1;
-marker.strokeOpacity = 1;
-marker.stroke = am4core.color("#ccc");
-
-// Change size of legend marker
-markerTemplate.width = 16;
-markerTemplate.height = 16;
 
 
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
 categoryAxis.dataFields.category = "category";
 categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 14;
+categoryAxis.renderer.labels.template.fontSize = 11;
 categoryAxis.renderer.labels.template.fill = "#ffffff";
 categoryAxis.renderer.minGridDistance = 5; //can change label
 
@@ -1363,56 +1289,27 @@ valueAxis.max = 100;
 valueAxis.strictMinMax = true;
 valueAxis.calculateTotals = true;
 valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 13;
+valueAxis.renderer.labels.template.fontSize = 11;
 valueAxis.renderer.labels.template.fill = "#ffffff";
 
 
 function createSeries(field, name) {
   var series = chart.series.push(new am4charts.ColumnSeries());
-  series.calculatePercent = true;
   series.dataFields.valueX = field;
   series.dataFields.categoryY = "category";
   series.stacked = true;
   series.dataFields.valueXShow = "totalPercent";
   series.dataItems.template.locations.categoryY = 0.5;
-
-  // Bar chart line color and width
-  series.columns.template.stroke = am4core.color("#ffffff");
-  series.columns.template.strokeWidth = 0.5;
   series.name = name;
-
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-  
   if (name == "To be Constructed"){
-    series.fill = am4core.color("#000000");
-    labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#000000");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 13;
-  labelBullet.locationX = 0.5;
-
+    series.fill = am4core.color("#707070");
   } else if (name == "Completed"){
     series.fill = am4core.color("#0070ff");
-    labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 13;
-  labelBullet.locationX = 0.5;
-
   } else {
     series.fill = am4core.color("#ff0000"); // delayed
-    labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 12;
-  labelBullet.locationX = 0.5;
-
   }
   series.columns.template.width = am4core.percent(60);
-  series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
+  series.columns.template.tooltipText = "{name}: {valueX.totalPercent.formatNumber('#.')}%"
 
   // Click chart and filter, update maps
   const chartElement = document.getElementById("chartPanel");
@@ -1536,13 +1433,18 @@ chartLayerView.filter = {
   } // End of filterByChart
 
 
-
-
+  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+  labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.value.formatNumber('#.')}";
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 10;
+  labelBullet.locationX = 0.5;
 
 } // End of createSeries function
 
-createSeries("value1", "Completed");
-createSeries("value2", "To be Constructed");
+createSeries("value1", "To be Constructed");
+createSeries("value2", "Completed");
 createSeries("value3", "Delayed");
 
 });
@@ -1553,7 +1455,7 @@ updateChart();
 
 //////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
-
+/*
 view.when(function () {
           view.popup.autoOpenEnabled = true; //disable popups
 
@@ -1565,7 +1467,7 @@ view.when(function () {
           // Add widget to top-right of the view
           view.ui.add(editor, "bottom-right");
         });
-
+*/
 //*****************************//
 //      LayerList             //
 //*****************************//
@@ -1573,6 +1475,12 @@ var layerList = new LayerList({
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
+              if (item.layer.type != "group") {
+                item.panel = {
+                  content: "legend",
+                  open: false
+                };
+              }
                 if (item.title === "Monitoring Structures" || item.title === "Monitoring Bridge" ||
                     item.title === "TBM Alignment" || item.title === "Soil Profile" || item.title == "Survey Extent Line") {
                   item.visible = false
@@ -1580,60 +1488,17 @@ var layerList = new LayerList({
               }
           });
 
-          var legend = new Legend({
-  view: view,
-  container: document.getElementById("legendDiv"),
-  layerInfos: [
-  {
-      layer: transitLayer,
-      title: "TBM Segment"
-    },
-    {
-      layer: geotech,
-      title: "Soil Profile"
-    },
-    {
-      layer: riverLayer,
-      title: "River"
-    },
-    {
-      layer: bridgeLayer,
-      title: "Bridge"
-    },
-    {
-      layer: obstructionLayer,
-      title: "Obstruction"
-    },
-    {
-      layer: dilapSurveyExtent,
-      title: "Dilapidation Survey Extent"
-    },
-    {
-      layer: tbmAlign,
-      title: "TBM Alignment"
-    }
-  ]
-});
-
-var legendExpand = new Expand({
-    view: view,
-    content: legend,
-    expandIconClass: "esri-icon-legend",
-    group: "bottom-right"
-});
-view.ui.add(legendExpand, {
-    position: "bottom-right"
-});
-
-var layerListExpand = new Expand ({
+          var layerListExpand = new Expand ({
             view: view,
             content: layerList,
-            expandIconClass: "esri-icon-visible",
+            expandIconClass: "esri-icon-expand",
             group: "bottom-left"
         });
         view.ui.add(layerListExpand, {
             position: "bottom-left"
         });
+        // End of LayerList
+        // End of LayerList
   
         view.ui.empty("top-left");
 
@@ -1712,7 +1577,7 @@ var compass = new Compass({
     </script>
   </head>
 
-  <body class="sassy-theme">
+  <body>
     <div id="applicationDiv">
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/TBM.png" width="30" height="30">
@@ -1720,7 +1585,7 @@ var compass = new Compass({
             <h2>TBM Tunnel (PO Section)</h2>
         </div>
         <div class="dateDiv">
-            <h4>As of April 16, 2021</h4>
+            <h4>As of February 20, 2020</h4>
         </div>
       </div>
       <div class="container">
