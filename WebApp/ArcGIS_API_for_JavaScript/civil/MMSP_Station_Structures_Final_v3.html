@@ -505,9 +505,7 @@ var basemap = new Basemap({
           1: [225, 225, 225, 0], // To be Constructed (white)
           2: [130, 130, 130, 0.3], // Under Construction
           3: [255, 0, 0, 0.6], // Delayed
-          4: [0, 112, 255, 0.6], // D-Wall
-          5: [0, 112, 255, 0.6], // Column
-          6: [0, 112, 255, 0.6] // Slab
+          4: [0, 197, 255, 0.5], // Completed
         };
 
 //*******************************//
@@ -610,6 +608,10 @@ var stationLayer = new SceneLayer({
            {
              fieldName: "ID",
              label: "Structure ID",
+           },
+           {
+             fieldName: "Status",
+             label: "Construction Status"
            }
          ]
        }
@@ -659,6 +661,81 @@ var stationLayer = new SceneLayer({
         }
 
         renderStructureLayer();
+
+
+// TBM Tunnel used as a reference
+        var transitLayer = new FeatureLayer({
+        portalItem: {
+          id: "7a8f2d75e4d04cce9ea209e663f17d06",
+          portal: {
+        url: "https://gis.railway-sector.com/portal"
+    }
+        },
+        layerId: 1,
+        elevationInfo: {
+          mode: "absolute-height",//"on-the-ground", relative-to-ground, absolute-height
+          offset: 0
+        },
+         //renderer: roundTubeSymbol,
+         title: "TBM Segment",
+         //definitionExpression: "sens='Aller'",
+         outFields: ["*"],
+         popupEnabled: false
+        });
+        map.add(transitLayer);
+
+        const options = {
+          profile: "circle",
+          cap: "butt", // butt
+          join: "miter",
+          width: 5,
+          height: 5,
+          color: [200, 200, 200, 0.3],
+          profileRotation: "all"
+        };
+
+        /* The colors used for the each transit line */
+        const colorsTBM = {
+          0: [225, 225, 225, 0.2], // To be Constructed
+          1: [225, 225, 225, 0.2], // Completed
+          2: [225, 225, 225, 0.2], // Delayed
+        };
+
+        function renderTransitLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "status"
+          });
+
+          for (let property in colorsTBM) {
+            if (colorsTBM.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "line-3d",
+                  symbolLayers: [
+                    {
+                      type: "path",
+                      profile: options.profile,
+                      material: {
+                        color: colorsTBM[property]
+                      },
+                      width: options.width,
+                      height: options.height,
+                      join: options.join,
+                      cap: options.cap,
+                      anchor: "bottom",
+                      profileRotation: options.profileRotation
+                    }
+                  ]
+                }
+              });
+            }
+          }
+
+          transitLayer.renderer = renderer;
+        }
+
+        renderTransitLayer();
 
 // Radio Button Selection //        
 // Selection of 'D-Wall' or 'Station Box' only for visualization (not chart)
@@ -1208,7 +1285,7 @@ var layerListExpand = new Expand ({
             <h2>Station Structure (PO Section)</h2>
         </div>
         <div class="dateDiv">
-            <h4>As of March 31, 2021</h4>
+            <h4>As of October 25, 2021</h4>
         </div>
         <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">Station:</label>
