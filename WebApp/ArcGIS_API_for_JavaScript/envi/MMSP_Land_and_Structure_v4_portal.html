@@ -128,14 +128,14 @@
 
       #chartdiv {
           width: 100%;
-          flex: 0 0 300px;
+          height: 35vh;
           align-items: center;
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
           }
     
       #lotMoaChartdiv {
           width: 100%;
-          flex: 0 0 200px;
+          height: 20vh;
           align-items: center;
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
           margin-bottom: 0;
@@ -169,11 +169,12 @@
         text-align: center;
         vertical-align: middle;
         color: white;
-        padding-top: 10px;
+        padding-top: 15px;
         line-height: 0.3;
         opacity: 0.8;
-        height: 53px;
+        height: 8vh;
       }
+
 
       #structureChartDiv {
         width: 100%;
@@ -234,6 +235,16 @@
         text-align: center;
         font-weight: bold;
         font-size: 14px;
+        width: auto;
+        padding: 0;
+        margin-top: 0;
+      }
+
+      .h8 {
+        color: white;
+        text-align: center;
+        font-weight: bold;
+        font-size: 18px;
         width: auto;
         padding: 0;
         margin-top: 0;
@@ -560,6 +571,7 @@ var basemap = new Basemap({
         //var lotTotalNumberDiv = document.getElementById("lotTotalNumberDiv");
 
         var lotPteDiv = document.getElementById("lotPteDiv");
+        var lotHandedOverDiv = document.getElementById("lotHandedOverDiv");
 
          // Structure Statistics:
          var structureStatsDiv = document.getElementById("structureStatsDiv");
@@ -570,8 +582,8 @@ var basemap = new Basemap({
         var chartTitleDiv = document.getElementById("chartTitleDiv");
         var StructureChartTitleDiv = document.getElementById("structureChartTitleDiv");
 
+        var HandOverDiv = document.getElementById("HandOverDiv");
 
-  
 
 
 //*******************************//
@@ -1109,6 +1121,27 @@ function thousands_separators(num)
     return num_parts.join(".");
   }
 
+// Total number of handed-over lots
+function handedOverNumberLot(){
+  var total_handedover_lot = {
+    onStatisticField: "CASE WHEN HandedOver = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_handedover_lot",
+    statisticType: "sum"
+  }
+var query = lotLayer.createQuery();
+query.outStatistics = [total_handedover_lot];
+query.returnGeometry = true;
+
+lotLayer.queryFeatures(query).then(function(response){
+  var stats = response.features[0].attributes;
+
+  const handedover = stats.total_handedover_lot;
+  lotHandedOverDiv.innerHTML = handedover;
+});
+}
+handedOverNumberLot();
+
+
 // Define 
 var stationSelect = document.getElementById("valSelect");
 
@@ -1257,6 +1290,7 @@ stationSelect.addEventListener("change", function() {
     updateMoaChartLot();
     updateMoaChartStructure();
     pteNumberLot();
+    handedOverNumberLot();
 
     filterLotStation();
 
@@ -1275,6 +1309,7 @@ function testFunction(priorityValue) {
     updateMoaChartLot();
     updateMoaChartStructure();
     pteNumberLot();
+    handedOverNumberLot();
 
     filterLotStation();
 
@@ -1304,6 +1339,7 @@ priorityButton.addEventListener("change", function(event) {
     updateMoaChartLot();
     updateMoaChartStructure();
     pteNumberLot();
+    handedOverNumberLot();
 
     filterLotStation();
     zoomToLayer(lotLayer);
@@ -2430,6 +2466,10 @@ view.ui.add(legendExpand, {
                   <div id="optionsDiv" class="esri-widget">
                     <div><p class="h7"><b>Number of PTE</b></p></div>
                     <h6 id="lotPteDiv"></h6>
+                  </div>
+                  <div id="optionsDiv" class="esri-widget">
+                    <div><p class="h8"><b>Number of Handed Over</b></p></div>
+                    <h6 id="lotHandedOverDiv"></h6>
                   </div>
             </div>
         </div>
