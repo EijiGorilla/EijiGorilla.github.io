@@ -128,14 +128,14 @@
 
       #chartdiv {
           width: 100%;
-          flex: 0 0 300px;
+          height: 35vh;
           align-items: center;
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
           }
     
       #lotMoaChartdiv {
           width: 100%;
-          flex: 0 0 200px;
+          height: 20vh;
           align-items: center;
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
           margin-bottom: 0;
@@ -169,11 +169,12 @@
         text-align: center;
         vertical-align: middle;
         color: white;
-        padding-top: 10px;
+        padding-top: 15px;
         line-height: 0.3;
         opacity: 0.8;
-        height: 53px;
+        height: 8vh;
       }
+
 
       #structureChartDiv {
         width: 100%;
@@ -234,6 +235,16 @@
         text-align: center;
         font-weight: bold;
         font-size: 14px;
+        width: auto;
+        padding: 0;
+        margin-top: 0;
+      }
+
+      .h8 {
+        color: white;
+        text-align: center;
+        font-weight: bold;
+        font-size: 18px;
         width: auto;
         padding: 0;
         margin-top: 0;
@@ -423,7 +434,7 @@
       .sassy-theme .esri-legend .esri-legend__layer-cell--info {
         background-color: black;
         color: white;
-        font-size: 10px;
+        font-size: 12px;
       }
       
       .sassy-theme .esri-legend__layer-caption {
@@ -483,6 +494,7 @@ href="https://js.arcgis.com/4.21/esri/themes/dark/main.css"
         "esri/tasks/support/RelationshipQuery",
         "esri/layers/GraphicsLayer",
         "esri/widgets/Search",
+        "esri/widgets/Locate"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -493,7 +505,7 @@ href="https://js.arcgis.com/4.21/esri/themes/dark/main.css"
                   StatisticDefinition, WebStyleSymbol,
                   TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
                   FeatureTable, Compass, ElevationLayer, Ground, RelationshipQuery,
-                  GraphicsLayer, Search) {
+                  GraphicsLayer, Search, Locate) {
 
 let chartLayerView;
 var highlightSelect;
@@ -545,6 +557,11 @@ var basemap = new Basemap({
           }
         }
 
+        // Locate
+        const locateBtn = new Locate({
+          view: view
+        });
+
         // Setup UI
         var applicationDiv = document.getElementById("applicationDiv");
 
@@ -560,6 +577,7 @@ var basemap = new Basemap({
         //var lotTotalNumberDiv = document.getElementById("lotTotalNumberDiv");
 
         var lotPteDiv = document.getElementById("lotPteDiv");
+        var lotHandedOverDiv = document.getElementById("lotHandedOverDiv");
 
          // Structure Statistics:
          var structureStatsDiv = document.getElementById("structureStatsDiv");
@@ -570,8 +588,8 @@ var basemap = new Basemap({
         var chartTitleDiv = document.getElementById("chartTitleDiv");
         var StructureChartTitleDiv = document.getElementById("structureChartTitleDiv");
 
+        var HandOverDiv = document.getElementById("HandOverDiv");
 
-  
 
 
 //*******************************//
@@ -748,7 +766,7 @@ const colors = {
 // Construction boundary
 var constBoundary = new FeatureLayer({
   portalItem: {
-    id: "4c076388200a491181d3d5db93c29b63",
+    id: "b0cf28b499a54de7b085725bca08deee",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -762,6 +780,22 @@ var constBoundary = new FeatureLayer({
 });
 //constBoundary.listMode = "hide";
 map.add(constBoundary);
+
+// Construction boundary
+var alignmentLine = new FeatureLayer({
+  portalItem: {
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 13,
+  outFields: ["*"],
+  title: "Alignment Line",
+  popupEnabled: false
+});
+//constBoundary.listMode = "hide";
+map.add(alignmentLine);
 
 // Priority Layer
 let priorityLotRenderer = {
@@ -781,7 +815,7 @@ let priorityLotRenderer = {
 // Segment DPWH
 var dpwhSegmentLayer = new FeatureLayer ({
   portalItem: {
-    id: "4c076388200a491181d3d5db93c29b63",
+    id: "b0cf28b499a54de7b085725bca08deee",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -796,7 +830,7 @@ map.add(dpwhSegmentLayer);
 // BSS Boundary
 var bssDepotLayer = new FeatureLayer ({
   portalItem: {
-    id: "4c076388200a491181d3d5db93c29b63",
+    id: "b0cf28b499a54de7b085725bca08deee",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -814,12 +848,12 @@ map.add(bssDepotLayer);
 // Creek Diversion
 var creekDivLayer = new FeatureLayer ({
   portalItem: {
-    id: "4c076388200a491181d3d5db93c29b63",
+    id: "b0cf28b499a54de7b085725bca08deee",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 11,
+  layerId: 10,
   title: "Creek Diversion",
   outFields: ["*"],
   popupEnabled: false
@@ -829,12 +863,12 @@ map.add(creekDivLayer);
 // Depot Building
 var depotBuildingLayer = new FeatureLayer ({
   portalItem: {
-    id: "4c076388200a491181d3d5db93c29b63",
+    id: "b0cf28b499a54de7b085725bca08deee",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 7,
+  layerId: 6,
   title: "Depot Building",
   outFields: ["*"],
   popupEnabled: false
@@ -844,12 +878,12 @@ map.add(depotBuildingLayer);
 // BSS Building
 var bssDepotBuildingLayer = new FeatureLayer ({
   portalItem: {
-    id: "4c076388200a491181d3d5db93c29b63",
+    id: "b0cf28b499a54de7b085725bca08deee",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 10,
+  layerId: 7,
   title: "BSS Building",
   outFields: ["*"],
   popupEnabled: false
@@ -859,12 +893,12 @@ map.add(bssDepotBuildingLayer);
 // East Valenzuela
 var evsLayer = new FeatureLayer ({
   portalItem: {
-    id: "4c076388200a491181d3d5db93c29b63",
+    id: "b0cf28b499a54de7b085725bca08deee",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 10,
+  layerId: 9,
   title: "East Valenzuela",
   outFields: ["*"],
   popupEnabled: false
@@ -874,12 +908,12 @@ map.add(evsLayer);
 // NNC Construction boundary (Senate)
 var senateBoundaryLayer = new FeatureLayer ({
   portalItem: {
-    id: "4c076388200a491181d3d5db93c29b63",
+    id: "b0cf28b499a54de7b085725bca08deee",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 6,
+  layerId: 5,
   title: "NCC Property",
   outFields: ["*"],
   popupEnabled: false
@@ -890,12 +924,12 @@ map.add(senateBoundaryLayer);
 // Station box
 var poSectionBoxLayer = new FeatureLayer ({
   portalItem: {
-    id: "4c076388200a491181d3d5db93c29b63",
+    id: "b0cf28b499a54de7b085725bca08deee",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 9,
+  layerId: 8,
   renderer: poSectionBoxRenderer,
   title: "PO Section",
   outFields: ["*"],
@@ -907,7 +941,7 @@ map.add(poSectionBoxLayer);
 // Station point feature
 var stationLayer = new FeatureLayer({
     portalItem: {
-    id: "4c076388200a491181d3d5db93c29b63",
+    id: "b0cf28b499a54de7b085725bca08deee",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -928,7 +962,7 @@ var stationLayer = new FeatureLayer({
 // Land 
 var lotLayer = new FeatureLayer({
   portalItem: {
-    id: "d8adc05d59d349ba9968fbdb1faa83cc",
+    id: "032432d931624de9bf5ff03f1f9d7016",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -974,7 +1008,7 @@ map.add(lotLayer, 0);
 
 var lotBoundary = new FeatureLayer({
   portalItem: {
-    id: "d8adc05d59d349ba9968fbdb1faa83cc",
+    id: "032432d931624de9bf5ff03f1f9d7016",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -1021,7 +1055,7 @@ map.add(lotBoundary, 0);
 // Priority Lot
 var priorityLayer = new FeatureLayer ({
     portalItem: {
-    id: "d8adc05d59d349ba9968fbdb1faa83cc",
+    id: "032432d931624de9bf5ff03f1f9d7016",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -1092,6 +1126,27 @@ function thousands_separators(num)
     num_parts[0] = num_parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     return num_parts.join(".");
   }
+
+// Total number of handed-over lots
+function handedOverNumberLot(){
+  var total_handedover_lot = {
+    onStatisticField: "CASE WHEN HandedOver = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_handedover_lot",
+    statisticType: "sum"
+  }
+var query = lotLayer.createQuery();
+query.outStatistics = [total_handedover_lot];
+query.returnGeometry = true;
+
+lotLayer.queryFeatures(query).then(function(response){
+  var stats = response.features[0].attributes;
+
+  const handedover = stats.total_handedover_lot;
+  lotHandedOverDiv.innerHTML = handedover;
+});
+}
+handedOverNumberLot();
+
 
 // Define 
 var stationSelect = document.getElementById("valSelect");
@@ -1241,6 +1296,7 @@ stationSelect.addEventListener("change", function() {
     updateMoaChartLot();
     updateMoaChartStructure();
     pteNumberLot();
+    handedOverNumberLot();
 
     filterLotStation();
 
@@ -1259,6 +1315,7 @@ function testFunction(priorityValue) {
     updateMoaChartLot();
     updateMoaChartStructure();
     pteNumberLot();
+    handedOverNumberLot();
 
     filterLotStation();
 
@@ -1288,6 +1345,7 @@ priorityButton.addEventListener("change", function(event) {
     updateMoaChartLot();
     updateMoaChartStructure();
     pteNumberLot();
+    handedOverNumberLot();
 
     filterLotStation();
     zoomToLayer(lotLayer);
@@ -2308,6 +2366,10 @@ var legend = new Legend({
         layer: evsLayer,
         title: "East Valenzuela"
     },
+    {
+      layer: alignmentLine,
+      title: "Alignment Line"
+    }
   ]
 });
 
@@ -2363,6 +2425,11 @@ view.ui.add(legendExpand, {
             "top-left"
         );
 
+        // Add the locate widget
+        view.ui.add(locateBtn, {
+          position: "top-left"
+        });
+
 
       });
     </script>
@@ -2376,7 +2443,7 @@ view.ui.add(legendExpand, {
             <h2>Land Acquisition (MMSP)</h2>
         </div>
         <div class="dateDiv">
-            <h4>As of October 18, 2021</h4>
+            <h4>As of November 28, 2021</h4>
         </div>
         <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">Station:</label>
@@ -2410,6 +2477,10 @@ view.ui.add(legendExpand, {
                   <div id="optionsDiv" class="esri-widget">
                     <div><p class="h7"><b>Number of PTE</b></p></div>
                     <h6 id="lotPteDiv"></h6>
+                  </div>
+                  <div id="optionsDiv" class="esri-widget">
+                    <div><p class="h8"><b>Number of Handed Over</b></p></div>
+                    <h6 id="lotHandedOverDiv"></h6>
                   </div>
             </div>
         </div>
