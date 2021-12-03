@@ -504,10 +504,77 @@ var basemap = new Basemap({
 
         var chartTitleDiv = document.getElementById("chartTitleDiv");
  
+//*******************************//
+// Label Class Property Settings //
+//*******************************//
+// Chainage Label
+var labelChainage = new LabelClass({
+  labelExpressionInfo: {expression: "$feature.KmSpot"},
+  symbol: {
+    type: "text",
+    color: [85, 255, 0],
+    size: 25,
+    haloColor: "black",
+    haloSize: 0.5
+  }
+});
+
+// Pier No label
+var labelPierNo = new LabelClass({
+  labelExpressionInfo: {expression: "$feature.PIER"},
+  symbol: {
+    type: "text",
+    color: [0, 112, 255],
+    size: 25,
+    haloColor: "black",
+    haloSize: 0.5
+  }
+});
+
+// Station label
+
+var labelStation = new LabelClass({
+  labelExpressionInfo: {expression: "$feature.Station"},
+  symbol: {
+    type: "text",
+    color: [255,170,0],
+    size: 18,
+    haloColor: "black",
+    haloSize: 1
+  }
+});
 
 //*****************************//
 //      Renderer Settings      //
 //*****************************//
+// Chainage symbol
+var chainageRenderer = {
+    type: "simple",
+    symbol: {
+      type: "simple-marker",
+      size: 5,
+      color: [255, 255, 255, 0.9],
+      outline: {
+        width: 0.2,
+        color: "black"
+      }
+    }
+  };
+
+// pier No
+var pierNoRenderer = {
+    type: "simple",
+    symbol: {
+      type: "simple-marker",
+      size: 5,
+      color: [255, 255, 255, 0.9],
+      outline: {
+        width: 0.2,
+        color: "black"
+      }
+    }
+  }
+
 // Station Box
 let stationBoxRenderer = {
   type: "unique-value",
@@ -683,23 +750,24 @@ function renderISFLayer() {
 
         renderISFLayer();
 
-var chainageLayer = new FeatureLayer ({
+        var chainageLayer = new FeatureLayer ({
   portalItem: {
     id: "590680d19f2e48fdbd8bcddce3aaedb5",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 3,
+  layerId: 5,
   title: "Chainage",
   elevationInfo: {
     mode: "relative-to-ground"
   },
+  labelingInfo: [labelChainage],
+  renderer: chainageRenderer,
   outFields: ["*"],
   popupEnabled: false
 
 });
-
 //chainageLayer.listMode = "hide";
 map.add(chainageLayer, 1);
 
@@ -714,7 +782,9 @@ var PierNoLayer = new FeatureLayer ({
   layerId: 6,
   title: "Pier No.",
   outFields: ["*"],
-  popupEnabled: false
+  popupEnabled: false,
+  labelingInfo: [labelPierNo],
+  renderer: pierNoRenderer
 
 });
 
@@ -1424,7 +1494,7 @@ hoverShadow.blur = 5;
 
 
   // Add a legend
-  const LegendFontSizze = 12;
+  const LegendFontSizze = 13;
   chart.legend = new am4charts.Legend();
 
   chart.legend.valueLabels.template.align = "right"
@@ -1640,7 +1710,7 @@ var legend = new Legend({
     },
     {
       layer: reloISFLayer,
-      title: "Status for Relocation (NLO/LO)"
+      title: "Status of ISF"
     },
     {
       layer: pierHeadColumnLayerLayer,
