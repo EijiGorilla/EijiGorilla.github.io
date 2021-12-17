@@ -1,0 +1,2469 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
+  -->
+<title>MMSP_Land Acquisition</title>
+
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        background-color: black;       
+      }
+
+      #applicationDiv {
+        display: flex;
+        flex-wrap: wrap;
+        height: 90vh;
+        padding: 10px;
+        margin: 0 auto;
+        box-sizing: border-box;
+      }
+
+      .container {
+          display: grid;
+          border: solid 2.5px gray;
+          flex-wrap: wrap;
+        height: 90vh;
+        width: 100%;
+        box-sizing: border-box;
+          grid-template-columns: 0.8fr 3.2fr 1fr;
+          border-right: 0;
+      }
+
+      #headerDiv {
+        font-weight: 400;
+        max-width: 2000px;
+        font-style: normal;
+        font-size: 25px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        color: white;
+        padding: 0px 0px 2px 12px;
+        height: 6vh;
+        border: solid 2.5px gray;
+        margin-bottom: 3px;
+        display: grid;
+        grid-template-columns: 40px 150fr 0fr 60fr 60fr;
+      }
+
+      #headerTitleDiv {
+          margin-top: 5px;
+      }
+
+
+/* Dropdown list */
+#dropdownDiv {
+    background-color: black;
+    opacity: 1;
+    color: white;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+ #valSelect {
+     margin: 5px 0px 0px 0px;
+ }
+
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 99%;
+        width: 100%;
+        background-color: black;
+        flex: 1 1 auto;
+        order: 1;
+        overflow: hidden;
+      }
+
+
+      .boxA {
+        border: solid 2px gray;
+        display: block;
+        height: 100%;
+        box-sizing: border-box;
+        border-top: 0;
+        border-bottom: 0;
+      }
+
+      .boxB {
+        border: solid 2px gray;
+        display: block;
+        height: 100%;
+        box-sizing: border-box;
+        border-top: 0;
+        border-bottom: 0;
+      }
+
+      .boxC {
+        border: solid 2px gray;
+        display: block;
+        height: 100%;
+        box-sizing: border-box;
+        border-top: 0;
+        border-bottom: 0;
+      }
+
+      .boxD {
+        border: solid 2px gray;
+        display: flex; flex-direction: Column;
+        flex-wrap: wrap;
+        height: 100%;
+        box-sizing: border-box;
+        border-top: 0;
+        border-bottom: 0;
+      }
+
+      .boxE {
+        border: solid 2px gray;
+        display: flex; flex-direction: Column;
+        flex-wrap: wrap;
+        height: 100%;
+        box-sizing: border-box;
+        border-top: 0;
+        border-bottom: 0;
+      }
+
+      #chartdiv {
+          width: 100%;
+          height: 35vh;
+          align-items: center;
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+          }
+    
+      #lotMoaChartdiv {
+          width: 100%;
+          height: 20vh;
+          align-items: center;
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+          margin-bottom: 0;
+          padding-bottom: 0;
+          }         
+
+      #chartTitleDiv {
+        font-weight: 200;
+        text-align: center;
+        font-style: normal;
+        font-size: 45px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        color: rgb(76, 230, 0);
+        margin-top: 5px;
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: rgb(0, 0, 0, 0.5);
+        opacity: 0.9;
+        line-height: 0.5;
+      }
+ 
+      #chartPanel {
+        background: rgb(0, 0, 0, 0);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-size: 17px;
+        display: flex; flex-direction: column;
+      }
+
+      #optionsDiv {
+        font-size: 14px;
+        font-weight: normal;
+        text-align: center;
+        vertical-align: middle;
+        color: white;
+        padding-top: 15px;
+        line-height: 0.3;
+        opacity: 0.8;
+        height: 9vh;
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+
+
+      #structureChartDiv {
+        width: 100%;
+          flex: 0 0 300px;
+          align-items: center;
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+      }
+
+      #structureMoaChartdiv {
+          width: 100%;
+          flex: 0 0 200px;
+          align-items: center;
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+          margin-bottom: 0;
+          padding-bottom: 0;
+          }   
+
+      #structureChartTitleDiv {
+        font-weight: 200;
+        text-align: center;
+        font-style: normal;
+        font-size: 17px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        color: white;
+        margin-top: 5px;
+        padding: 5px;
+        background-color: rgb(0, 0, 0, 0.5);
+        opacity: 0.9;
+        line-height: 0.5;
+      }
+
+      #structureChartPanel{
+        background: rgb(0, 0, 0, 0);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-size: 17px;
+        display: flex; flex-direction: column;
+      }
+
+      #selectedButton {
+        font-size: 15px;
+        padding-top: 10px;
+        color:rgb(0, 197, 255);
+      }
+      
+      p {
+        color: rgb(0, 197, 255);
+        text-align: left;
+        font-weight: bold;
+        font-size: 14px;
+        width: auto;
+        vertical-align: text-bottom;
+        padding: 0;
+        margin-top: 0;
+      }
+
+      .h7 {
+        color: white;
+        text-align: center;
+        font-weight: bold;
+        font-size: 20px;
+        width: auto;
+        padding: 0;
+        margin-top: 0;
+      }
+
+      .h8 {
+        color: white;
+        text-align: center;
+        font-weight: bold;
+        font-size: 20px;
+        width: auto;
+        padding: 0;
+        margin-top: 10x;
+        margin-bottom:10px;
+      }
+
+
+      h2 {
+        font-weight: 400;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-style: normal;
+        font-size: 23px;
+        color: white;
+        padding:3px;
+        margin: 0px;
+        width: 450px;
+        vertical-align: text-top;
+      }
+
+      img {
+        padding: 0;
+        margin: 0;
+      }
+
+      h3 {
+        color: rgb(8, 161, 8);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: left;
+        font-weight: bold;
+        font-size: 13px;
+        padding: 0px;
+      }
+
+      h4 {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: left;
+        font-weight: normal;
+        font-size: 14px;
+        padding-top: 20px;
+        margin: 0;
+        width: 160px;
+        vertical-align: text-bottom;
+      }
+
+      h5 {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: center;
+        font-weight: bold;
+        font-size: 14px;
+        padding: 3;
+        margin: 10;
+      }
+
+      h6 {
+        color: rgb(220, 113, 217);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: center;
+        font-weight: normal;
+        font-size: 40px;
+        margin-top: 20px;
+        padding: 0px 0px 5px 0px;
+        }
+
+        #lotPteDiv {
+            color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: center;
+        font-weight: normal;
+        font-size: 40px;
+        margin-top: 20px;
+        padding: 0px 0px 5px 0px; 
+        }
+
+      #totalProgress {
+        padding-top: 10px;
+      }
+
+      #menu {
+        padding: 3px 3px 3px 3px;
+        background-color: black;
+        color: white;
+      }
+
+      .cpButtonClass {
+          font-style: normal;
+          font-size: 14px;
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+          color: white;
+          text-align: center;
+          margin-top: 14px;
+          }
+
+          #dataTypeInput {
+
+        height: 100%;
+      }
+
+      #relocationOwnerList {
+        background-color: rgb(0, 0, 0);
+        width: 16vw;
+        height: 88vh;
+      }
+      .panel-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          background-color: rgb(0, 0, 0);
+      }
+
+      .panel-side {
+      padding: 0px;
+      box-sizing: border-box;
+      width: 12vw;
+      height: 89vh;
+      position: fixed;
+      margin: 1 3 3 1;
+      color: #fff;
+      background-color: rgb(0, 0, 0);
+      overflow-y: scroll;
+      overflow-x: auto;
+    }
+
+    ::-webkit-scrollbar {
+    display: none;
+}
+    .panel-side h2 {
+        padding: 5 5px;
+        margin: 0;
+        width: 12.25vw;
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+        color: white;
+        background-color: rgb(0, 0, 0);
+        position: sticky;
+        top: 0;
+      }
+
+      .panel-side ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-weight: 100;
+        color: white;
+        font-size: 10pt;
+        background-color: rgb(0, 0, 0);
+      }
+
+      .panel-side li {
+        list-style: none;
+        padding: 3px 10px;
+        font-size: 10pt;
+        background-color: rgb(0, 0, 0);
+      }
+
+      .panel-side li b{
+  color: red;
+  font-size: 12px;
+}
+
+      .panel-result {
+        cursor: pointer;
+        margin: 0px 0;
+        background-color: rgb(0, 0, 0);
+      }
+
+      .panel-result:hover,
+      .panel-result:focus,
+      .panel-result.selected {
+        background-color: rgba(73, 72, 72, 0.5);
+      }
+
+     .esri-layer-list__item-toggle-icon,
+     .esri-layer-list__item-title {
+      color: white;
+     }
+
+      .sassy-theme .esri-menu,
+      .sassy-theme .esri-popup__main-container,
+      .sassy-theme .esri-popup .esri-popup__pointer-direction,
+      .sassy-theme .esri-popup .esri-popup__button,
+      .sassy-theme .esri-button,
+      .sassy-theme .esri-input,
+      .sassy-theme .esri-layer-list,
+      .sassy-theme .esri-widget a {
+        background-color: rgb(0, 0, 0, 0.7);
+        color: #fff;
+      }
+
+      #legendDiv {
+        background-color: black;
+      }
+
+      .sassy-theme .esri-legend .esri-legend__layer-cell--info {
+        background-color: black;
+        color: white;
+        font-size: 12px;
+      }
+      
+      .sassy-theme .esri-legend__layer-caption {
+    display: none;
+  }
+
+    </style>
+
+<link
+rel="stylesheet"
+href="https://js.arcgis.com/4.21/esri/themes/dark/main.css"
+/>
+<!-- Resources -->
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<script src="https://js.arcgis.com/4.21/"></script>
+
+    <script>
+      require([
+        "esri/Basemap",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/views/SceneView",
+        "esri/layers/FeatureLayer",
+        "esri/views/layers/support/FeatureFilter",
+        "esri/layers/SceneLayer",
+        "esri/layers/Layer",
+        "esri/layers/TileLayer",
+        "esri/layers/VectorTileLayer",
+        "esri/layers/support/LabelClass",
+        "esri/symbols/LabelSymbol3D",
+        "esri/WebMap",
+        "esri/WebScene",
+        "esri/portal/PortalItem",
+        "esri/portal/Portal",
+        "esri/widgets/TimeSlider",
+        "esri/widgets/Legend",
+        "esri/widgets/LayerList",
+        "esri/widgets/Fullscreen",
+        "esri/tasks/GeometryService",
+        "esri/tasks/support/Query",
+        "esri/tasks/QueryTask",
+        "esri/renderers/smartMapping/statistics/summaryStatistics",
+        "esri/tasks/support/StatisticDefinition",
+        "esri/symbols/WebStyleSymbol",
+        "esri/TimeExtent",
+        "esri/widgets/Expand",
+        "esri/widgets/Editor",
+        "esri/renderers/UniqueValueRenderer",
+        "esri/widgets/support/DatePicker",
+        "esri/widgets/FeatureTable",
+        "esri/widgets/Compass",
+        "esri/layers/ElevationLayer",
+        "esri/Ground",
+        "esri/tasks/support/RelationshipQuery",
+        "esri/layers/GraphicsLayer",
+        "esri/widgets/Search",
+        "esri/widgets/Locate"
+      ], function(Basemap, Map, MapView, SceneView, 
+                  FeatureLayer, FeatureFilter,
+                  SceneLayer, Layer, TileLayer, VectorTileLayer,
+                  LabelClass, LabelSymbol3D, WebMap,
+                  WebScene, PortalItem, Portal,
+                  TimeSlider, Legend, LayerList, Fullscreen,
+                  GeometryService, Query, QueryTask, summaryStatistics,
+                  StatisticDefinition, WebStyleSymbol,
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
+                  FeatureTable, Compass, ElevationLayer, Ground, RelationshipQuery,
+                  GraphicsLayer, Search, Locate) {
+
+let chartLayerView;
+var highlightSelect;
+////////////////////////////////////////////////////
+var basemap = new Basemap({
+        baseLayers: [
+          new VectorTileLayer({
+            portalItem: {
+              id: "79bd8b0729b34aabb4c93fa43c59c897" // 8a9ef2a144e8423786f6139408ac3424
+            }
+          })
+        ]
+      });
+      
+         var map = new Map({
+              basemap: "gray-vector", // "streets-night-vector", basemap
+              ground: "world-elevation"
+        }); 
+        //map.ground.surfaceColor = "#FFFF";
+        //map.ground.opacity = 0.5;
+         
+        var view = new MapView({
+            map: map,
+            center: [121.0194387, 14.6972616],
+            zoom: 14,
+            container: "viewDiv",
+            environment: {
+                background: {
+                    type: "color", // autocasts as new ColorBackground()
+                    color: [0, 0, 0, 1]
+                    },
+                    // disable stars
+                    starsEnabled: false,
+                    //disable atmosphere
+                    atmosphereEnabled: false
+                    }
+        });
+
+        //
+        function shiftCamera(deg) {
+          var camera = view.camera.clone();
+          camera.position.longitude += deg;
+          return camera;
+        }
+
+        function catchAbortError(error) {
+          if (error.name != "AbortError") {
+            console.error(error);
+          }
+        }
+
+        // Locate
+        const locateBtn = new Locate({
+          view: view
+        });
+
+        // Setup UI
+        var applicationDiv = document.getElementById("applicationDiv");
+
+        var headerDiv = document.getElementById("headerDiv");
+        var headerTitleDiv = document.getElementById("headerTitleDiv");
+
+        var lengendDiv = document.getElementById("lengendDiv");
+        var lotListExproDiv = document.getElementById("lotListExproDiv");
+
+        // Lot Statistics:
+        var lotStatsDiv = document.getElementById("lotStatsDiv");
+        var lotChartDiv = document.getElementById("lotChartDiv");
+        //var lotTotalNumberDiv = document.getElementById("lotTotalNumberDiv");
+
+        var lotPteDiv = document.getElementById("lotPteDiv");
+        var lotHandedOverDiv = document.getElementById("lotHandedOverDiv");
+
+         // Structure Statistics:
+         var structureStatsDiv = document.getElementById("structureStatsDiv");
+        var structureChartDiv = document.getElementById("structureChartDiv");
+        var structurePteDiv = document.getElementById("structurePteDiv");       
+
+
+        var chartTitleDiv = document.getElementById("chartTitleDiv");
+        var StructureChartTitleDiv = document.getElementById("structureChartTitleDiv");
+
+        var HandOverDiv = document.getElementById("HandOverDiv");
+        var isfDiv = document.getElementById("isfDiv");
+
+
+
+//*******************************//
+// Label Class Property Settings //
+//*******************************//
+// Chainage Label
+/*
+var labelChainage = new LabelClass({
+  labelExpressionInfo: {expression: "$feature.KM_MAIN"},
+  symbol: {
+    type: "text",
+    color: [219,112,147,0.5],
+    size: 20
+  }
+});
+*/
+const labelClass = {
+  // autocasts as new LabelClass()
+  symbol: {
+    type: "text",  // autocasts as new TextSymbol()
+    color: "black",
+    font: {  // autocast as new Font()
+      family: "Gill Sans",
+      size: 8
+    }
+  },
+  labelPlacement: "above-center",
+  labelExpressionInfo: {
+    expression: "$feature.CN"
+  }
+};
+
+
+//*****************************//
+//      Renderer Settings      //
+//*****************************//
+
+let defaultLotSymbolBoundary = {
+                type: "simple-fill",
+                color: [0, 0, 0, 0],
+                style: "solid",
+                outline: {
+                    style: "short-dash",
+                color: [215, 215, 158],
+                width: 1.5
+            }
+};
+
+let BoundaryFillSymbol = {
+    type: "unique-value",
+    field: "StatusNVS3",
+    defaultSymbol: defaultLotSymbolBoundary,
+}
+
+
+// Construction boundary
+let ConstructionBoundaryFill = {
+                type: "unique-value",
+                valueExpression: "When($feature.MappingBoundary == 1, 'Boundary',$feature.Comp_Agency)",
+                uniqueValueInfos: [
+                    {
+                        value: "Boundary",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [0, 0, 0,0],
+                            outline: {
+                                width: 1.5,
+                                color: [78, 78, 78],
+                                style: "short-dash"
+                            }
+                        }
+                    }
+
+                ]
+};
+
+
+// Station Box
+let poSectionBoxRenderer = {
+  type: "unique-value",
+  field: "Layer",
+  defaultSymbol: { type: "simple-fill"},
+  uniqueValueInfos: [
+    {
+      value: "U-Shape Retaining Wall",
+      symbol: {
+        type: "simple-fill",
+        color: [104, 104, 104],
+        style: "backward-diagonal",
+        outline: {
+          width: 1,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "Cut & Cover Box",
+      symbol: {
+        type: "simple-fill",
+        color: [104, 104, 104],
+        style: "backward-diagonal",
+        outline: {
+          width: 1,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "TBM Shaft",
+      symbol: {
+        type: "simple-fill",
+        color: [104, 104, 104],
+        style: "backward-diagonal",
+        outline: {
+          width: 1,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "TBM",
+      symbol: {
+        type: "simple-fill",
+        color: [178, 178, 178],
+        style: "backward-diagonal",
+        outline: {
+          width: 0.5,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "Station Platform",
+      symbol: {
+        type: "simple-fill",
+        color: [240, 204, 230],
+        style: "backward-diagonal",
+        outline: {
+          width: 0.4,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "Station Box",
+      symbol: {
+        type: "simple-fill",
+        color: [0, 0, 0, 0],
+        outline: {
+          width: 2,
+          color: "red"
+        }
+      }
+    }
+  ]
+};
+
+// Fill symbol color for Structure Layer (Status of Structure)
+const colors = {
+          1: [255, 0, 197], // Dismantling/Clearing
+          2: [112, 173, 71], // Paid
+          3: [0, 112, 255], // For Payment Processing
+          4: [255, 255, 0], // For Legal Pass 
+          5: [255, 170, 0], // For Appraisal/Offer to Compensate
+          6: [255, 0, 0] //LBP Account Opening
+        };
+
+// Fill symbol for to-be-acquire lot (Pink) and acquired lot (blue)
+let lotFill = {
+                type: "unique-value",
+                valueExpression: "When($feature.HandedOver > 1, 'Boundary',$feature.HandedOver)",
+                uniqueValueInfos: [
+                    {
+                        value: "Boundary",
+                        label: "To be Acquired",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [220, 113, 2170, 0.8],
+                            outline: {
+                                width: 0.7,
+                                color: [110, 110, 110]
+                                //style: "short-dash"
+                            }
+                        }
+                    }
+
+                ]
+};
+
+let lotDoneFill = {
+                type: "unique-value",
+                valueExpression: "When($feature.HandedOver > 1, 'Boundary',$feature.HandedOver)",
+                uniqueValueInfos: [
+                    {
+                        value: "Boundary",
+                        label: "Acquired Lot",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [0, 92, 230, 0.8],
+                            outline: {
+                                width: 0.7,
+                                color: [110, 110, 110]
+                                //style: "short-dash"
+                            }
+                        }
+                    }
+
+                ]
+};
+
+
+//*******************************//
+// Import Layers                 //
+//*******************************//
+// Construction boundary
+var constBoundary = new FeatureLayer({
+  portalItem: {
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 4,
+  outFields: ["*"],
+  renderer: ConstructionBoundaryFill,
+  definitionExpression: "MappingBoundary = 1",
+  title: "Construction Boundary",
+  popupEnabled: false
+});
+//constBoundary.listMode = "hide";
+map.add(constBoundary);
+
+// Construction boundary
+var alignmentLine = new FeatureLayer({
+  portalItem: {
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 13,
+  outFields: ["*"],
+  title: "Alignment Line",
+  popupEnabled: false
+});
+//constBoundary.listMode = "hide";
+map.add(alignmentLine);
+
+// Priority Layer
+let priorityLotRenderer = {
+    field: "HandedOver",
+    symbol: {
+        type: "simple-fill",
+        color: [0, 0, 0, 0],
+        outline: {
+            width: 1,
+            color: [255, 0, 0]
+        }
+
+    }
+
+};
+
+// Segment DPWH
+var dpwhSegmentLayer = new FeatureLayer ({
+  portalItem: {
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 2,
+  title: "DPWH Segment",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(dpwhSegmentLayer);
+
+// BSS Boundary
+var bssDepotLayer = new FeatureLayer ({
+  portalItem: {
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 3,
+  title: "BSS Boundary",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(bssDepotLayer);
+
+// Construction boundary for North Av
+
+
+// Creek Diversion
+var creekDivLayer = new FeatureLayer ({
+  portalItem: {
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 10,
+  title: "Creek Diversion",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(creekDivLayer);
+
+// Depot Building
+var depotBuildingLayer = new FeatureLayer ({
+  portalItem: {
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 6,
+  title: "Depot Building",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(depotBuildingLayer);
+
+// BSS Building
+var bssDepotBuildingLayer = new FeatureLayer ({
+  portalItem: {
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 7,
+  title: "BSS Building",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(bssDepotBuildingLayer);
+
+// East Valenzuela
+var evsLayer = new FeatureLayer ({
+  portalItem: {
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 9,
+  title: "East Valenzuela",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(evsLayer);
+
+// NNC Construction boundary (Senate)
+var senateBoundaryLayer = new FeatureLayer ({
+  portalItem: {
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 5,
+  title: "NCC Property",
+  outFields: ["*"],
+  popupEnabled: false
+});
+//senateBoundaryLayer.list = "hide";
+map.add(senateBoundaryLayer);
+
+// Station box
+var poSectionBoxLayer = new FeatureLayer ({
+  portalItem: {
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 8,
+  renderer: poSectionBoxRenderer,
+  title: "PO Section",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(poSectionBoxLayer);
+
+
+// Station point feature
+var stationLayer = new FeatureLayer({
+    portalItem: {
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 1,
+             definitionExpression: "Project = 'MMSP'"
+              //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
+        });
+        stationLayer.listMode = "hide";
+        map.add(stationLayer, 0);
+
+
+
+
+// Relocation Status point layer
+
+
+// Land 
+var lotLayer = new FeatureLayer({
+  portalItem: {
+    id: "2e20f63ba4434921ac0898406e1d1f49",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+        outFields: ["*"],
+        title: "To be Acquired",
+        //labelsVisible: false,
+        renderer: lotFill,
+        labelingInfo: [labelClass],
+        popupTemplate: {
+          title: "<p>{Id}</p>",
+          lastEditInfoEnabled: false,
+          returnGeometry: true,
+          content: [
+            {
+              type: "fields",
+              fieldInfos: [
+                {
+                  fieldName: "OWNER",
+                  label: "Land Owner"
+                },
+                {
+                  fieldName: "Station"
+                },
+                {
+                  fieldName: "StatusNVS3",
+                  label: "<p>Status of Land Acquisition</p>"
+                },
+                {
+                    fieldName: "HandedOver",
+                    label: "Priority"
+                },
+                {
+                    fieldName: "StrucStatus",
+                    label: "<p>Status of Structure</p>"
+                },
+              ]
+            }
+          ]
+        }
+});
+map.add(lotLayer, 0);
+
+var lotDoneLayer = new FeatureLayer({
+  portalItem: {
+    id: "2e20f63ba4434921ac0898406e1d1f49",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  outFields: ["*"],
+        title: "Acquired Lot",
+        //labelsVisible: false,
+        renderer: lotDoneFill,
+        popupEnabled: false
+})
+map.add(lotDoneLayer, 0);
+//lotDoneLayer.visible = false;
+
+
+var lotBoundary = new FeatureLayer({
+  portalItem: {
+    id: "032432d931624de9bf5ff03f1f9d7016",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 5,
+        outFields: ["*"],
+        title: "Lot Boundary",
+        labelsVisible: false,
+        labelingInfo: [labelClass],
+        popupEnabled: false
+});
+map.add(lotBoundary, 0);
+
+// Priority Lot
+var priorityLayer = new FeatureLayer ({
+    portalItem: {
+    id: "032432d931624de9bf5ff03f1f9d7016",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 2,
+  //definitionExpression: "HandedOver = 1",
+  //renderer: priorityLotRenderer,
+  title: "Priority Lot",
+  popupEnabled: false
+});
+map.add(priorityLayer, 0);
+
+// 
+const priorityButton = document.getElementById("dataTypeInput");
+
+// Progress Chart //
+am4core.ready(function() {
+am4core.useTheme(am4themes_animated);
+
+// Default
+updateChartLot().then(totalNumberOfLots);
+updateChartStructure();
+// Click event handler for Lot, Structure, and Relocation
+
+
+
+//*******************************//
+//      Progress Chart           //
+//*******************************//
+/* Function for zooming to selected layers */
+function zoomToLayer(layer) {
+  return layer.queryExtent().then(function(response) {
+    view.goTo(response.extent, { //response.extent
+      speedFactor: 2
+    }).catch(function(error) {
+      if (error.name != "AbortError") {
+        console.error(error);
+      }
+    });
+  });
+}
+
+
+// TOtal number of PTE for LOT
+function pteNumberLot(){
+  var total_pte_lot = {
+    onStatisticField: "Id",
+    outStatisticFieldName: "total_pte_lot",
+    statisticType: "count"
+  };
+  var query = lotDoneLayer.createQuery();
+  query.outStatistics = [total_pte_lot];
+  query.returnGeometry = true;
+
+  lotDoneLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const pte = stats.total_pte_lot;
+    lotPteDiv.innerHTML = pte;
+  });
+} 
+pteNumberLot();
+
+// Thousand separators function
+function thousands_separators(num)
+  {
+    var num_parts = num.toString().split(".");
+    num_parts[0] = num_parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return num_parts.join(".");
+  }
+
+// Total number of handed-over lots
+function handedOverNumberLot(){
+  var total_handedover_lot = {
+    onStatisticField: "CASE WHEN HandedOver > 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_handedover_lot",
+    statisticType: "sum"
+  }
+var query = lotLayer.createQuery();
+query.outStatistics = [total_handedover_lot];
+query.returnGeometry = true;
+
+lotLayer.queryFeatures(query).then(function(response){
+  var stats = response.features[0].attributes;
+
+  const handedover = stats.total_handedover_lot;
+  lotHandedOverDiv.innerHTML = handedover;
+});
+}
+handedOverNumberLot();
+
+
+// Define 
+var stationSelect = document.getElementById("valSelect");
+
+
+////////////////////////////////////////////////
+// Return an array of unique values in the 'Brangay' field of the lot Layer
+// Query all features from the lot layer
+view.when(function() {
+    return lotLayer.when(function() {
+        var query = lotLayer.createQuery();
+        return lotLayer.queryFeatures(query);
+    });
+})
+.then(getValues)
+.then(getUniqueValues)
+.then(addToSelect)
+
+//Return an array of all the values in the 'Municipality' field'
+function getValues(response) {
+    var features = response.features;
+    var values = features.map(function(feature) {
+        return feature.attributes.Station;
+    });
+    return values;
+}
+
+// Return an array of unique values in the 'Municipality' field of the lot Layer
+function getUniqueValues(values) {
+    var uniqueValues = [];
+
+    values.forEach(function(item, i) {
+        if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
+            uniqueValues.push(item);
+        }
+    });
+    return uniqueValues;
+}
+
+// Add the unique values to the municipalility select element. this will allow the user
+// to filter lot layer by municipality.
+function addToSelect(values) {
+    values.sort();
+    values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
+    values.forEach(function(value) {
+        var option = document.createElement("option");
+        option.text = value;
+        stationSelect.add(option);
+    });
+   return setLotMunicipalExpression(stationSelect.value);
+}
+
+// Set the definition expression on the lot layer
+// to reflect the selecction of the user
+function setLotMunicipalOnlyExpression(newValue) {
+
+    if (newValue == 'None') {
+    lotLayer.definitionExpression = null;
+    priorityLayer.definitionExpression = null;
+    lotDoneLayer.definitionExpression = null;
+
+  } else {
+    lotLayer.definitionExpression = "Station = '" + newValue + "'";
+    priorityLayer.definitionExpression = "Station = '" + newValue + "'";
+    lotDoneLayer.definitionExpression = "Station = '" + newValue + "'";
+  }
+
+    if (!lotLayer.visible | !lotDoneLayer) {
+        lotLayer.visible = true;
+        lotDoneLayer.visible = true;
+    }
+    
+    return queryForLotGeometries();
+}
+
+function setLotMunicipalExpression(newValue, newValue2) {
+    // newValue: station names
+    // newValue2: priority (replace this with Month)
+    if (newValue2 == undefined && newValue == 'None') {
+        lotLayer.definitionExpression = null;
+        lotDoneLayer.definitionExpression = null;
+
+    } else if (newValue2 == 'None' && newValue == 'None') {
+        lotLayer.definitionExpression = null;
+        lotDoneLayer.definitionExpression = null;
+
+    } else if (newValue2 == 'None' && newValue !== 'None') {
+        lotLayer.definitionExpression = "Station = '" + newValue + "'";
+        lotDoneLayer.definitionExpression = "Station = '" + newValue + "'";
+
+    } else if (newValue2 == 202201 && newValue == 'None') {
+        lotLayer.definitionExpression = "HandedOver = 202201";
+        lotDoneLayer.definitionExpression = "HandedOver < " + newValue2;
+
+    } else if (newValue2 == 202201 && newValue !== 'None') {
+        lotLayer.definitionExpression = "Station = '" + newValue + "'" + " AND " + "HandedOver = " + newValue2;
+        lotDoneLayer.definitionExpression = "Station = '" + newValue + "'" + " AND " + "HandedOver < " + newValue2;
+
+    } else if (newValue2 == 202202 && newValue !== 'None') {
+        lotLayer.definitionExpression = "Station = '" + newValue + "'" + " AND " + "HandedOver = " + newValue2;
+        lotDoneLayer.definitionExpression = "Station = '" + newValue + "'" + " AND " + "HandedOver < " + newValue2;
+    }
+
+    /*
+    if (newValue == 'None') {
+    lotLayer.definitionExpression = null;
+    priorityLayer.definitionExpression = null;
+
+  } else {
+    lotLayer.definitionExpression = "Station = '" + newValue + "'";
+    priorityLayer.definitionExpression = "Station = '" + newValue + "'";
+  }
+   */
+    if (!lotLayer.visible) {
+        lotLayer.visible = true;
+    }
+    
+    return queryForLotGeometries();
+}
+
+
+
+function setLotDefinitionExpression(newValue1, newValue2){
+    // newValue1 = staion names
+    // newValue2 = 1st Priority (1)
+
+    //headerTitleDiv.innerHTML = newValue1 + ", " + newValue2;
+  if(newValue1 == 'None' && newValue2 == 202201){
+    lotLayer.definitionExpression = "HandedOver = " + newValue2;
+    lotDoneLayer.definitionExpression = "HandedOver < " + newValue2;
+
+  } else if (newValue1 == 'None' && newValue2 == 202202){
+    lotLayer.definitionExpression = "HandedOver = " + newValue2;
+    lotDoneLayer.definitionExpression = "HandedOver < " + newValue2;
+
+  } else if (newValue1 == 'None' && newValue2 == null){
+    lotLayer.definitionExpression = null;
+    lotDoneLayer.definitionExpression = null;
+
+  } else if (newValue1 !== 'None' && newValue2 == 202201) {
+    lotLayer.definitionExpression = "Station = '" + newValue1 + "'" + " AND " + "HandedOver = " + newValue2;
+    lotDoneLayer.definitionExpression = "Station = '" + newValue1 + "'" + " AND " + "HandedOver < " + newValue2;
+
+   } else if (newValue1 !== 'None' && newValue2 == 202202) {
+    lotLayer.definitionExpression = "Station = '" + newValue1 + "'" + " AND " + "HandedOver = " + newValue2;
+    lotDoneLayer.definitionExpression = "Station = '" + newValue1 + "'" + " AND " + "HandedOver < " + newValue2;
+
+  } else if (newValue1 !== 'None' && newValue2 == null) {
+    lotLayer.definitionExpression = "Station = '" + newValue1 + "'";
+  }
+   if(!lotLayer.visible){
+    lotLayer.visible = true;
+  }
+  return queryForLotGeometries();
+}
+
+function queryForLotGeometries() {
+    var lotQuery = lotLayer.createQuery();
+
+    return lotLayer.queryFeatures(lotQuery).then(function(response) {
+        lotGeometries = response.features.map(function(feature) {
+            return feature.geometry;
+        });
+        return lotGeometries;
+    });
+
+}
+
+stationSelect.addEventListener("change", function() {
+    var type = event.target.value;
+    var target = event.target;
+
+    setLotMunicipalOnlyExpression(type);
+
+    updateChartLot().then(totalNumberOfLots);
+    updateChartStructure();
+    updateMoaChartLot();
+    updateMoaChartStructure();
+    pteNumberLot();
+    handedOverNumberLot();
+
+    filterLotStation();
+
+    zoomToLayer(lotLayer);
+});
+
+function testFunction(priorityValue) {
+  stationSelect.addEventListener("change", function() {
+    var type = event.target.value;
+    var target = event.target;
+
+    setLotMunicipalExpression(type, priorityValue);
+ 
+    updateChartLot().then(totalNumberOfLots);
+    updateChartStructure();
+    updateMoaChartLot();
+    updateMoaChartStructure();
+    pteNumberLot();
+    handedOverNumberLot();
+
+    filterLotStation();
+
+    zoomToLayer(lotLayer);
+});
+
+};
+
+function filterLotStation() {
+  var query2 = lotLayer.createQuery();
+  query2.where = lotLayer.definitionExpression; // use filtered municipality. is this correct?
+
+}
+
+priorityButton.addEventListener("change", function(event) {
+    const typeS = event.target.id;
+
+    if (typeS == "202201") {
+        const priorityValue = 202201;
+        setLotDefinitionExpression(stationSelect.value, priorityValue);
+        chartTitleDiv.innerHTML = "JANUARY";
+    } else if (typeS == "202202") {
+      const priorityValue = 202202;
+      setLotDefinitionExpression(stationSelect.value, priorityValue)
+      chartTitleDiv.innerHTML = "FEBRUARY";
+    } 
+    else {
+        const priorityValue = null;
+        setLotDefinitionExpression(stationSelect.value, priorityValue);
+    }
+    updateChartLot().then(totalNumberOfLots);
+    updateChartStructure();
+    updateMoaChartLot();
+    updateMoaChartStructure();
+    pteNumberLot();
+    handedOverNumberLot();
+
+    filterLotStation();
+    filterIsfStation();
+    zoomToLayer(lotLayer);
+
+    return testFunction(typeS);
+    
+  });
+
+
+
+
+
+
+
+//////
+const chartTitleLabel = "Progress of Land Acquisition (%)";
+const chartTitleLabelStructure = "Progress of Structure (%)";
+
+const chartElement = document.getElementById("chartPanel");
+const chartElementStructure = document.getElementById("structureChartPanel");
+
+var totalNumberDiv = document.getElementById("totalNumberDiv");
+var structureTotalNumberDiv = document.getElementById("structureTotalNumberDiv");
+
+//////////////////// Pie Chart ///////////////////////////////////////////////////
+// Lot Chart
+async function updateChartLot() {
+  var total_paid_lot = {
+    onStatisticField: "CASE WHEN StatusNVS3 = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_paid_lot",
+    statisticType: "sum"
+  };
+
+  var total_payp_lot = {
+    onStatisticField: "CASE WHEN StatusNVS3 = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_payp_lot",
+    statisticType: "sum"
+  };
+
+  var total_legalpass_lot = {
+    onStatisticField: "CASE WHEN StatusNVS3 = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_legalpass_lot",
+    statisticType: "sum"
+  };
+
+  var total_otb_lot = {
+    onStatisticField: "CASE WHEN StatusNVS3 = 4 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_otb_lot",
+    statisticType: "sum"
+  };
+
+  var total_expro_lot = {
+    onStatisticField: "CASE WHEN StatusNVS3 = 5 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_expro_lot",
+    statisticType: "sum"
+  };
+
+  var total_dismissal_lot = {
+    onStatisticField: "CASE WHEN StatusNVS3 = 6 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_dismissal_lot",
+    statisticType: "sum"
+  };
+
+  var query = lotLayer.createQuery();
+  query.outStatistics = [total_paid_lot, total_payp_lot, total_legalpass_lot,
+                         total_otb_lot, total_expro_lot, total_dismissal_lot];
+  query.returnGeometry = true;
+
+  return lotLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const paid = stats.total_paid_lot;
+    const payp = stats.total_payp_lot;
+    const legalpass = stats.total_legalpass_lot;
+    const otb = stats.total_otb_lot;
+    const expro = stats.total_expro_lot;
+    const dismissal = stats.total_dismissal_lot;
+
+    const totalNumberLots = paid + payp + legalpass + otb + expro + dismissal;
+
+    var chart = am4core.create("chartdiv", am4charts.PieChart);
+
+
+    // Add data
+    chart.data = [
+      {
+        "StatusNVS3": "Paid",
+        "status": paid,
+        "color": am4core.color("#70AD47")
+      },
+      {
+        "StatusNVS3": "For Payment Processing",
+        "status": payp,
+        "color": am4core.color("#0070FF")   
+      },
+      {
+        "StatusNVS3": "For Legal Pass",
+        "status": legalpass,
+        "color": am4core.color("#FFFF00") 
+      },
+      {
+        "StatusNVS3": "For Appraisal/Offer to Buy",
+        "status": otb,
+        "color": am4core.color("#FFAA00")
+      },
+      {
+        "StatusNVS3": "For Expro",
+        "status": expro,
+        "color": am4core.color("#FF0000")    
+      },
+      {
+        "StatusNVS3": "For Dismissal",
+        "status": dismissal,
+        "color": am4core.color("#00734C")    
+      }
+  ];
+
+  // Set inner radius
+  chart.innerRadius = am4core.percent(30);
+
+  // Add and configure Series
+  
+function createSlices(field, status){
+  var pieSeries = chart.series.push(new am4charts.PieSeries());
+  pieSeries.dataFields.value = field;
+  pieSeries.dataFields.category = status;
+
+  pieSeries.slices.template.propertyFields.fill = "color";
+  pieSeries.slices.template.stroke = am4core.color("#fff");
+  pieSeries.slices.template.strokeWidth = 1;
+  pieSeries.slices.template.strokeOpacity = 1;
+
+  pieSeries.slices.template
+  // change the cursor on hover to make it apparent the object can be interacted with
+  .cursorOverStyle = [
+    {
+      "property": "cursor",
+      "value": "pointer"
+    }
+  ];
+
+  
+  // Hover setting
+  pieSeries.tooltip.label.fontSize = 9;
+
+  // Pie
+//pieSeries.alignLabels = false;
+//pieSeries.labels.template.bent = false;
+pieSeries.labels.template.disabled = true;
+pieSeries.labels.template.radius = 3;
+pieSeries.labels.template.padding(0,0,0,0);
+pieSeries.labels.template.fontSize = 9;
+pieSeries.labels.template.fill = "#ffffff";
+
+// Ticks (a straight line)
+//pieSeries.ticks.template.disabled = true;
+pieSeries.ticks.template.fill = "#ffff00";
+
+// Create a base filter effect (as if it's not there) for the hover to return to
+var shadow = pieSeries.slices.template.filters.push(new am4core.DropShadowFilter);
+shadow.opacity = 0;
+
+
+
+// Create hover state
+var hoverState = pieSeries.slices.template.states.getKey("hover"); // normally we have to create the hover state, in this case it already exists
+
+// Slightly shift the shadow and make it more prominent on hover
+var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
+hoverShadow.opacity = 0.7;
+hoverShadow.blur = 5;
+
+
+  // Add a legend
+  const LegendFontSizze = 12;
+  chart.legend = new am4charts.Legend();
+
+  chart.legend.valueLabels.template.align = "right"
+  chart.legend.valueLabels.template.textAlign = "end";  
+  
+  //chart.legend.position = "bottom";
+  chart.legend.labels.template.fontSize = LegendFontSizze;
+  chart.legend.labels.template.fill = "#ffffff";
+  chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+  chart.legend.valueLabels.template.fontSize = LegendFontSizze; 
+  pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
+  //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+
+
+
+  var marker = chart.legend.markers.template.children.getIndex(0);
+  var markerTemplate = chart.legend.markers.template;
+marker.cornerRadius(12, 12, 12, 12);
+marker.strokeWidth = 1;
+marker.strokeOpacity = 1;
+marker.stroke = am4core.color("#ccc");
+
+// Change size of legend marker
+markerTemplate.width = 18;
+markerTemplate.height = 18;
+// This creates initial animation
+//pieSeries.hiddenState.properties.opacity = 1;
+//pieSeries.hiddenState.properties.endAngle = -90;
+//pieSeries.hiddenState.properties.startAngle = -90;
+
+// Click chart and filter, update maps
+
+pieSeries.slices.template.events.on("hit", filterByChart, this);
+function filterByChart(ev) {
+  const selectedD = ev.target.dataItem.category;
+
+  if (selectedD == "Paid") {
+      selectedStatus = 1;
+  } else if (selectedD == "For Payment Processing") {
+    selectedStatus = 2;
+  } else if (selectedD == "For Legal Pass") {
+    selectedStatus = 3;
+  } else if (selectedD == "For Appraisal/Offer to Buy") {
+    selectedStatus = 4;
+  } else if (selectedD == "For Expro") {
+    selectedStatus = 5;
+  } else if (selectedD == "For Dismissal") {
+    selectedStatus = 6;
+  } else {
+      selectedStatus = null;
+  }
+
+  view.when(function() {
+    view.whenLayerView(lotLayer).then(function (layerView) {
+      chartLayerView = layerView;
+      chartElement.style.visibility = "visible";
+
+      lotLayer.queryFeatures().then(function(results) {
+        const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i < rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            lotLayer.queryExtent(queryExt).then(function(result) {
+                if (result.extent) {
+                    view.goTo(result.extent)
+                }
+            });
+
+            if (highlightSelect) {
+                highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+
+            view.on("click", function() {
+            layerView.filter = null;
+            highlightSelect.remove();
+            });
+      }); // End of queryFeatures
+      layerView.filter = {
+    where: "StatusNVS3 = " + selectedStatus
+  }
+    }); // End of view.whenLayerView
+
+  }); // End of view.when
+} // End of filterByChart
+
+} // End of createSlices function
+
+createSlices("status", "StatusNVS3");
+
+return totalNumberLots;
+
+}); // End of queryFeatures
+} // End of updateChartLot()
+
+function totalNumberOfLots(totalNumberLots) {
+  totalNumberDiv.innerHTML = thousands_separators(totalNumberLots);
+}
+
+
+// Structure Chart
+async function updateChartStructure() {
+    var total_legalpass_lot = {
+    onStatisticField: "CASE WHEN StrucStatus = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_legalpass_lot",
+    statisticType: "sum"
+  };
+
+  var total_payp_lot = {
+    onStatisticField: "CASE WHEN StrucStatus = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_payp_lot",
+    statisticType: "sum"
+  };
+
+  var total_paid_lot = {
+    onStatisticField: "CASE WHEN StrucStatus = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_paid_lot",
+    statisticType: "sum"
+  };
+
+  var query = lotLayer.createQuery();
+  query.outStatistics = [total_paid_lot, total_payp_lot, total_legalpass_lot];
+  query.returnGeometry = true;
+
+  return lotLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const paid = stats.total_paid_lot;
+    const payp = stats.total_payp_lot;
+    const legalpass = stats.total_legalpass_lot;
+
+    var chart = am4core.create("structureChartDiv", am4charts.PieChart);
+
+
+    // Add data
+    chart.data = [
+      {
+        "StrucStatus": "Legal Pass",
+        "status": legalpass,
+        "color": am4core.color("#FFFF00")
+      },
+      {
+        "StrucStatus": "Process For Payment",
+        "status": payp,
+        "color": am4core.color("#0070FF") 
+      },
+      {
+        "StrucStatus": "Paid",
+        "status": paid,
+        "color": am4core.color("#70AD47")   
+      },
+  ];
+
+  // Set inner radius
+  chart.innerRadius = am4core.percent(30);
+
+  // Add and configure Series
+function createSlices(field, status) {
+  var pieSeries = chart.series.push(new am4charts.PieSeries());
+  pieSeries.dataFields.value = field;
+  pieSeries.dataFields.category = status;
+
+  pieSeries.slices.template.propertyFields.fill = "color";
+  pieSeries.slices.template.stroke = am4core.color("#fff");
+  pieSeries.slices.template.strokeWidth = 1;
+  pieSeries.slices.template.strokeOpacity = 1;
+
+  pieSeries.slices.template.adapter.add("fill", function(fill, target) {
+  var pattern = new am4core.LinePattern();
+  pattern.width = 7;
+  pattern.height = 7;
+  pattern.strokeWidth = 1.5;
+  pattern.stroke = target.dataItem.dataContext.color;
+  pattern.rotation = 135;
+  return pattern;
+});
+
+pieSeries.slices.template.background.adapter.add("fill", function(fill, target) {
+  return target.dataItem ? target.dataItem.dataContext.color : fill;
+});
+
+  pieSeries.slices.template
+  // change the cursor on hover to make it apparent the object can be interacted with
+  .cursorOverStyle = [
+    {
+      "property": "cursor",
+      "value": "pointer"
+    }
+  ];
+
+  
+  // Hover setting
+  pieSeries.tooltip.label.fontSize = 9;
+
+  // Pie
+//pieSeries.alignLabels = false;
+//pieSeries.labels.template.bent = false;
+pieSeries.labels.template.disabled = true;
+pieSeries.labels.template.radius = 3;
+pieSeries.labels.template.padding(0,0,0,0);
+pieSeries.labels.template.fontSize = 9;
+pieSeries.labels.template.fill = "#ffffff";
+
+// Ticks (a straight line)
+//pieSeries.ticks.template.disabled = true;
+pieSeries.ticks.template.fill = "#ffff00";
+
+// Create a base filter effect (as if it's not there) for the hover to return to
+var shadow = pieSeries.slices.template.filters.push(new am4core.DropShadowFilter);
+shadow.opacity = 0;
+
+
+
+// Create hover state
+var hoverState = pieSeries.slices.template.states.getKey("hover"); // normally we have to create the hover state, in this case it already exists
+
+// Slightly shift the shadow and make it more prominent on hover
+var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
+hoverShadow.opacity = 0.7;
+hoverShadow.blur = 5;
+
+
+  // Add a legend
+  const LegendFontSizze = 12;
+  chart.legend = new am4charts.Legend();
+
+  chart.legend.valueLabels.template.align = "right"
+  chart.legend.valueLabels.template.textAlign = "end";  
+  
+  //chart.legend.position = "bottom";
+  chart.legend.labels.template.fontSize = LegendFontSizze;
+  chart.legend.labels.template.fill = "#ffffff";
+  chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+  chart.legend.valueLabels.template.fontSize = LegendFontSizze; 
+  pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
+  //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+
+  chart.legend.horizontalGap = 0;
+chart.legend.marginLeft = 0;
+chart.legend.marginRight = 0;
+
+
+  var marker = chart.legend.markers.template.children.getIndex(0);
+  var markerTemplate = chart.legend.markers.template;
+marker.cornerRadius(12, 12, 12, 12);
+marker.strokeWidth = 1;
+marker.strokeOpacity = 1;
+marker.stroke = am4core.color("#ccc");
+
+// Change size of legend marker
+markerTemplate.width = 18;
+markerTemplate.height = 18;
+// This creates initial animation
+//pieSeries.hiddenState.properties.opacity = 1;
+//pieSeries.hiddenState.properties.endAngle = -90;
+//pieSeries.hiddenState.properties.startAngle = -90;
+
+// Click chart and filter, update maps
+pieSeries.slices.template.events.on("hit", filterByChart, this);
+function filterByChart(ev) {
+  const selectedD = ev.target.dataItem.category;
+
+  if (selectedD == "Legal Pass") {
+      selectedStatus = 1;
+  } else if (selectedD == "Process For Payment") {
+    selectedStatus = 2;
+  } else if (selectedD == "Paid") {
+    selectedStatus = 3;
+  } else {
+    selectedStatus = null;
+  }
+
+  view.when(function() {
+    view.whenLayerView(lotLayer).then(function (layerView) {
+      chartLayerView = layerView;
+      chartElementStructure.style.visibility = "visible";
+
+      lotLayer.queryFeatures().then(function(results) {
+        const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i < rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            lotLayer.queryExtent(queryExt).then(function(result) {
+                if (result.extent) {
+                    view.goTo(result.extent)
+                }
+            });
+
+            if (highlightSelect) {
+                highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+
+            view.on("click", function() {
+            layerView.filter = null;
+            highlightSelect.remove();
+            });
+
+      }); // End of queryFeatures
+      layerView.filter = {
+    where: "StrucStatus = " + selectedStatus
+  }
+
+    }); // End of view.whenLayerView
+
+
+  }); // End of view.when
+
+} // End of filterByChart
+} // End of createSlices function
+
+createSlices("status", "StrucStatus");
+
+return totalNumberStructures;
+
+});  // End of queryFeature                 
+} // End of updateChartStructure()
+
+
+//////////////////// Bar Chart for MOA ///////////////////////////////////////////////////
+// Lot
+async function updateMoaChartLot() {
+  var total_nvs_lot = {
+    onStatisticField: "CASE WHEN MOA = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_nvs_lot",
+    statisticType: "sum"
+  };
+
+  var total_expro_lot = {
+    onStatisticField: "CASE WHEN MOA = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_expro_lot",
+    statisticType: "sum"
+  };
+
+  var total_rowua_lot = {
+    onStatisticField: "CASE WHEN MOA = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_rowua_lot",
+    statisticType: "sum"
+  };
+
+var query = lotLayer.createQuery();
+query.outStatistics = [total_nvs_lot, total_expro_lot, total_rowua_lot];
+query.returnGeometry = true;
+
+lotLayer.queryFeatures(query).then(function(response) {
+  var stats = response.features[0].attributes;
+
+  const nvs = stats.total_nvs_lot;
+  const expro = stats.total_expro_lot;
+  const rowua = stats.total_rowua_lot;
+
+  var chart = am4core.create("lotMoaChartDiv", am4charts.XYChart);
+  chart.hiddenState.properties.opacity = 0;
+  chart.padding(10, 10, 10, 10);
+
+var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+categoryAxis.renderer.grid.template.location = 0;
+categoryAxis.dataFields.category = "category";
+categoryAxis.renderer.minGridDistance = 1;
+categoryAxis.renderer.inversed = true;
+categoryAxis.renderer.grid.template.disabled = true;
+categoryAxis.renderer.labels.template.fontSize = 11;
+categoryAxis.renderer.labels.template.fill = "#ffffff";
+categoryAxis.renderer.minGridDistance = 5; //can change label
+categoryAxis.renderer.grid.template.strokeOpacity = 1;
+categoryAxis.renderer.grid.template.stroke = am4core.color("#FFFFFF");
+categoryAxis.renderer.grid.template.strokeWidth = 1.5;
+
+
+//categoryAxis.renderer.cellStartLocation = 0;
+//categoryAxis.renderer.cellEndLocation = 0.7;
+/////////////////
+categoryAxis.renderer.line.strokeOpacity = 1;
+categoryAxis.renderer.line.strokeWidth = 1.5;
+categoryAxis.renderer.line.stroke = am4core.color("#FFFFFF");
+
+// Create value axis
+
+//////////////
+
+var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+valueAxis.min = 0;
+valueAxis.strictMinMax = true;
+valueAxis.calculateTotals = true;
+valueAxis.renderer.minWidth = 50;
+valueAxis.renderer.labels.template.fontSize = 10;
+valueAxis.renderer.labels.template.fill = "#ffffff";
+valueAxis.renderer.line.strokeOpacity = 1;
+valueAxis.renderer.line.strokeWidth = 1.5;
+valueAxis.renderer.line.stroke = am4core.color("#FFFFFF");
+
+var series = chart.series.push(new am4charts.ColumnSeries());
+series.dataFields.categoryY = "category";
+series.dataFields.valueX = "value";
+series.tooltipText = "{valueX.value}"
+series.columns.template.strokeOpacity = 0;
+
+// Click chart and filer 
+const chartElement = document.getElementById("chartPanel");
+  series.columns.template.events.on("hit", filterByChart, this);
+  function filterByChart(ev) {
+    const selectedP = ev.target.dataItem.categoryY;
+
+    if (selectedP == "1-NVS") {
+        selectedStatus = 1;
+    } else if (selectedP == "2-Expropriation") {
+        selectedStatus = 2;
+    } else if (selectedP == "3-ROWUA") {
+        selectedStatus = 3;
+    }
+    view.whenLayerView(lotLayer).then(function (layerView) {
+        chartLayerView = layerView;
+        chartElement.style.visibility = "visible";
+
+        lotLayer.queryFeatures().then(function(results) {
+            const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i< rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            if (highlightSelect) {
+                highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+
+            view.on("click", function() {
+                layerView.filter = null;
+                highlightSelect.remove();
+            });
+        });
+
+
+    }); // End of whenLayerView
+
+    chartLayerView.filter = {
+      where: "MOA = " + selectedStatus
+    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+    };
+  }; // End of filterByChart
+ 
+
+var labelBullet = series.bullets.push(new am4charts.LabelBullet())
+labelBullet.label.horizontalCenter = "left";
+labelBullet.label.text = "{values.valueX.workingValue.formatNumber('#')}"; //#.0as for 17k
+labelBullet.locationX = 0.5;
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 10;
+
+  // Add chart title
+var title = chart.titles.create();
+title.text = "[bold]Mode of Acquisition[/]"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+title.fontSize = 12;
+title.fill = "#3ce00a";
+
+series.columns.template.adapter.add("fill", function(fill, target){
+  return chart.colors.getIndex(target.dataItem.index);
+});
+
+  chart.data = [
+  {
+      category: "1-NVS",
+      value: nvs
+    },
+    {
+      category: "2-Expropriation",
+      value: expro
+    },
+    {
+      category: "3-ROWUA",
+      value: rowua
+    }
+
+  ]; // End of chart
+
+
+}); // End of queryFeatures
+
+} // End of updateMOAChartLot
+updateMoaChartLot();
+
+// Lot
+async function updateMoaChartStructure() {
+  var total_nvs_lot = {
+    onStatisticField: "CASE WHEN S_MOA = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_nvs_lot",
+    statisticType: "sum"
+  };
+
+  var total_expro_lot = {
+    onStatisticField: "CASE WHEN S_MOA = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_expro_lot",
+    statisticType: "sum"
+  };
+
+  var total_rowua_lot = {
+    onStatisticField: "CASE WHEN S_MOA = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_rowua_lot",
+    statisticType: "sum"
+  };
+
+var query = lotLayer.createQuery();
+query.outStatistics = [total_nvs_lot, total_expro_lot, total_rowua_lot];
+query.returnGeometry = true;
+
+lotLayer.queryFeatures(query).then(function(response) {
+  var stats = response.features[0].attributes;
+
+  const nvs = stats.total_nvs_lot;
+  const expro = stats.total_expro_lot;
+  const rowua = stats.total_rowua_lot;
+
+  var chart = am4core.create("structureMoaChartDiv", am4charts.XYChart);
+  chart.hiddenState.properties.opacity = 0;
+  chart.padding(10, 10, 10, 10);
+
+var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+categoryAxis.renderer.grid.template.location = 0;
+categoryAxis.dataFields.category = "category";
+categoryAxis.renderer.minGridDistance = 1;
+categoryAxis.renderer.inversed = true;
+categoryAxis.renderer.grid.template.disabled = true;
+categoryAxis.renderer.labels.template.fontSize = 11;
+categoryAxis.renderer.labels.template.fill = "#ffffff";
+categoryAxis.renderer.minGridDistance = 5; //can change label
+categoryAxis.renderer.grid.template.strokeOpacity = 1;
+categoryAxis.renderer.grid.template.stroke = am4core.color("#FFFFFF");
+categoryAxis.renderer.grid.template.strokeWidth = 1.5;
+
+
+//categoryAxis.renderer.cellStartLocation = 0;
+//categoryAxis.renderer.cellEndLocation = 0.7;
+/////////////////
+categoryAxis.renderer.line.strokeOpacity = 1;
+categoryAxis.renderer.line.strokeWidth = 1.5;
+categoryAxis.renderer.line.stroke = am4core.color("#FFFFFF");
+
+// Create value axis
+
+//////////////
+
+var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+valueAxis.min = 0;
+valueAxis.strictMinMax = true;
+valueAxis.calculateTotals = true;
+valueAxis.renderer.minWidth = 50;
+valueAxis.renderer.labels.template.fontSize = 10;
+valueAxis.renderer.labels.template.fill = "#ffffff";
+valueAxis.renderer.line.strokeOpacity = 1;
+valueAxis.renderer.line.strokeWidth = 1.5;
+valueAxis.renderer.line.stroke = am4core.color("#FFFFFF");
+
+var series = chart.series.push(new am4charts.ColumnSeries());
+series.dataFields.categoryY = "category";
+series.dataFields.valueX = "value";
+series.tooltipText = "{valueX.value}"
+series.columns.template.strokeOpacity = 0;
+
+// Click chart and filer 
+const chartElement = document.getElementById("chartPanel");
+  series.columns.template.events.on("hit", filterByChart, this);
+  function filterByChart(ev) {
+    const selectedP = ev.target.dataItem.categoryY;
+
+    if (selectedP == "1-NVS") {
+        selectedStatus = 1;
+    } else if (selectedP == "2-Expropriation") {
+        selectedStatus = 2;
+    }
+
+    view.whenLayerView(lotLayer).then(function (layerView) {
+        chartLayerView = layerView;
+        chartElement.style.visibility = "visible";
+
+        lotLayer.queryFeatures().then(function(results) {
+            const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i< rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            if (highlightSelect) {
+                highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+
+            view.on("click", function() {
+                layerView.filter = null;
+                highlightSelect.remove();
+            });
+        });
+
+
+    }); // End of whenLayerView
+
+    chartLayerView.filter = {
+      where: "S_MOA = " + selectedStatus
+    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+    };
+  }; // End of filterByChart
+
+  
+var labelBullet = series.bullets.push(new am4charts.LabelBullet())
+labelBullet.label.horizontalCenter = "left";
+labelBullet.label.text = "{values.valueX.workingValue.formatNumber('#')}"; //#.0as for 17k
+labelBullet.locationX = 0.5;
+  labelBullet.label.fill = am4core.color("#ffffff");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 10;
+
+// Add chart title
+var title = chart.titles.create();
+title.text = "[bold]Mode of Acquisition[/]"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+title.fontSize = 12;
+title.fill = "#3ce00a";
+
+series.columns.template.adapter.add("fill", function(fill, target){
+  return chart.colors.getIndex(target.dataItem.index);
+});
+
+  chart.data = [
+  {
+      category: "1-NVS",
+      value: nvs
+    },
+    {
+      category: "2-Expropriation",
+      value: expro
+    }
+    /*
+    {
+      category: "ROWUA",
+      value: rowua
+    }
+    */
+  ]; // End of chart
+
+
+}); // End of queryFeatures
+
+} // End of updateS_MOAChartStructure
+updateMoaChartStructure();
+
+}); // End of am4core.ready
+
+
+
+//*****************************//
+//      Search Widget          //
+//*****************************//
+var searchWidget = new Search({
+  view: view,
+  locationEnabled: false,
+  allPlaceholder: "LotID, StructureID, Chainage",
+  includeDefaultSources: false,
+  sources: [
+    {
+      layer: lotLayer,
+      searchFields: ["ID"],
+      displayField: "ID",
+      exactMatch: false,
+      outFields: ["ID"],
+      name: "Lot No",
+      placeholder: "example: DP89"
+  }
+]
+});
+
+const searchExpand = new Expand({
+    view: view,
+    content: searchWidget,
+    expandIconClass: "esri-icon-search",
+    group: "top-right"
+  });
+        view.ui.add(searchExpand, {
+          position: "top-right"
+        });
+searchExpand.watch("expanded", function() {
+    if(!searchExpand.expanded) {
+      searchWidget.searchTerm = null;
+    }
+  });
+
+
+
+
+
+///////////////////////////////////////////////
+// LayerList and Add legend to the LayerList
+        // On-off feature layer tab
+        var layerList = new LayerList({
+            view: view,
+            listItemCreatedFunction: function(event) {
+              const item = event.item;
+              if (item.title === "BSS Boundary" || item.title === "BSS Building" || item.title === "Depot Building"){
+                item.visible = false
+              }
+            }
+          });
+
+
+var legend = new Legend({
+  view: view,
+  container: legendDiv,
+  layerInfos: [
+  {
+      layer: priorityLayer,
+      title: "Priority"
+    },
+    {
+      layer: lotLayer,
+      title: "To be Acquired",
+      text: "TEST"
+    },
+    {
+      layer: lotDoneLayer,
+      title: "Acquired Lot"
+
+    }
+  ]
+});
+
+/*
+var legendExpand = new Expand({
+    view: view,
+    content: legend,
+    expandIconClass: "esri-icon-legend",
+    group: "bottom-right"
+});
+view.ui.add(legendExpand, {
+    position: "bottom-right"
+});
+*/
+
+        var layerListExpand = new Expand ({
+            view: view,
+            content: layerList,
+            expandIconClass: "esri-icon-visible",
+            group: "bottom-left"
+        });
+        view.ui.add(layerListExpand, {
+            position: "bottom-left"
+        });
+        // End of LayerList
+
+        view.ui.empty("top-left");
+
+        // Compass
+        var compass = new Compass({
+          view: view});
+          // adds the compass to the top left corner of the MapView
+        view.ui.add(compass, "top-left");
+
+        // See-through-Ground        
+          view.when(function() {
+          // allow navigation above and below the ground
+          map.ground.navigationConstraint = {
+            type: "none"
+          };
+          // the webscene has no basemap, so set a surfaceColor on the ground
+          map.ground.surfaceColor = "#fff";
+          // to see through the ground, set the ground opacity to 0.4
+          map.ground.opacity = 0.5;
+        });
+          
+        // Full screen logo
+        view.ui.add(
+            new Fullscreen({
+                view: view,
+                element: applicationDiv
+            }),
+            "top-left"
+        );
+
+        // Add the locate widget
+        view.ui.add(locateBtn, {
+          position: "top-left"
+        });
+
+
+      });
+    </script>
+  </head>
+
+  <body class="sassy-theme">
+    <div id="applicationDiv">
+      <div id="headerDiv">
+        <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
+        <div id="headerTitleDiv">
+            <h2>Land Acquisition (MMSP)</h2>
+        </div>
+        <div class="dateDiv">
+            <h4>As of December 13, 2021</h4>
+        </div>
+        <div id="dataTypeInput" class="cpButtonClass">
+            <input type="radio" id="None" name="dataTypeInput" checked/> All
+            <input type="radio" id="202201" name="dataTypeInput"> Jan
+            <input type="radio" id="202202" name="dataTypeInput"> Feb
+          </div>
+        <div class="esri-widget" id="dropdownDiv">
+            <label for="sel-options">Station:</label>
+            <select id="valSelect" class="esri-widget" width="150" style="width: 150px"></select>
+        </div>
+      </div>
+      <div class="container">
+          <div class="boxA">
+              <div class = "panel-side esri-widget" id="legendDiv"></div>
+          </div>
+        <div class="boxC">
+            <div id="viewDiv"></div>
+        </div>
+        <div class="boxD">
+            <div id="chartPanel">
+                <div id="chartTitleDiv" class="esri-widget">Month</div>
+                <div id="optionsDiv" class="esri-widget">
+                    <div><p class="h8"><b>To be Acquired</b></p></div>
+                    <h6 id="lotHandedOverDiv"></h6>
+                  </div>
+                  <div id="optionsDiv" class="esri-widget">
+                    <div><p class="h7"><b>Acquired Lot Before</b></p></div>
+                    <h6 id="lotPteDiv"></h6>
+                  </div>
+            </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
