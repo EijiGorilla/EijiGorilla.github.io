@@ -763,6 +763,14 @@ const colors = {
           6: [255, 0, 0] //LBP Account Opening
         };
 
+        const strucColors = {
+          1: [112, 173, 71], // Paid #70AD47
+          2: [0, 112, 255], // For Payment Processing #0070FF
+          3: [255, 255, 0], // For Legal Pass #FFFF00
+          4: [255, 170, 0], // For Appraisal/Offer to Compensate #FFAA00
+          5: [255, 0, 0], // For Expro #FF0000
+          6: [0, 115, 76] //Quit Claim #00734C
+        };
 // Fill symbol color for Structure Layer (NLO/LO)
 
 
@@ -1058,6 +1066,70 @@ var lotBoundary = new FeatureLayer({
 });
 map.add(lotBoundary, 0);
 
+// Structure
+var structureLayer = new FeatureLayer({
+  portalItem: {
+    id: "ec9dac0c16af4797bb917a0babc735e9",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+        title: "Status of Structure",
+        outFields: ["*"],
+        popupTemplate: {
+          title: "<p>{ID}</p>",
+          lastEditInfoEnabled: false,
+          returnGeometry: true,
+          content: [
+            {
+              type: "fields",
+              fieldInfos: [
+                {
+                  fieldName: "Status",
+                  label: "<p>Status of Structure</p>"
+                },               
+                {
+                  fieldName: "ID",
+                  label: "Lot ID"
+                }
+              ]
+            }
+          ]
+        }
+});
+map.add(structureLayer);
+structureLayer.visible = true;
+
+function renderStructureLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "Status"
+          });
+
+          for (let property in strucColors) {
+            if (strucColors.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "simple-fill",
+                  color: strucColors[property],
+                  style: "backward-diagonal",
+                  outline: {
+                    color: "#6E6E6E",
+                    width: 0.7
+                  }
+                 }
+              });
+            }
+          }
+
+          structureLayer.renderer = renderer;
+        }
+
+        renderStructureLayer();
+
+
+
+
 // Priority Lot
 var priorityLayer = new FeatureLayer ({
     portalItem: {
@@ -1172,6 +1244,7 @@ function pteNumberLot(){
 } 
 pteNumberLot();
 
+
 // Thousand separators function
 function thousands_separators(num)
   {
@@ -1273,11 +1346,13 @@ function setLotMunicipalOnlyExpression(newValue) {
     lotLayer.definitionExpression = null;
     priorityLayer.definitionExpression = null;
     isfLayer.definitionExpression = null;
+    structureLayer.definitionExpression = null;
 
   } else {
     lotLayer.definitionExpression = "Station = '" + newValue + "'";
     priorityLayer.definitionExpression = "Station = '" + newValue + "'";
     isfLayer.definitionExpression = "Station = '" + newValue + "'";
+    structureLayer.definitionExpression = "Station = '" + newValue + "'";
   }
 
     if (!lotLayer.visible) {
@@ -1293,17 +1368,25 @@ function setLotMunicipalExpression(newValue, newValue2) {
     if (newValue2 == undefined && newValue == 'None') {
         lotLayer.definitionExpression = null;
         isfLayer.definitionExpression = null;
+        structureLayer.definitionExpression = null;
+
     } else if (newValue2 == 'None' && newValue == 'None') {
         lotLayer.definitionExpression = null;
         isfLayer.definitionExpression = null;
+        structureLayer.definitionExpression = null;
+
     } else if (newValue2 == 'None' && newValue !== 'None') {
         lotLayer.definitionExpression = "Station = '" + newValue + "'";
         isfLayer.definitionExpression = "Station = '" + newValue + "'";
+        structureLayer.definitionExpression = "Station = '" + newValue + "'";
+
     } else if (newValue2 == 'Priority1' && newValue == 'None') {
         lotLayer.definitionExpression = "Priority3 = 1";
+
     } else if (newValue2 == 'Priority1' && newValue !== 'None') {
         lotLayer.definitionExpression = "Station = '" + newValue + "'" + " AND " + "Priority3 = 1";
         isfLayer.definitionExpression = "Station = '" + newValue + "'";
+
     }
 
     /*
@@ -1332,15 +1415,22 @@ function setLotDefinitionExpression(newValue1, newValue2){
     //headerTitleDiv.innerHTML = newValue1 + ", " + newValue2;
   if(newValue1 == 'None' && newValue2 == 1){
     lotLayer.definitionExpression = "Priority3 = " + newValue2;
+
   } else if (newValue1 == 'None' && newValue2 == 0){
     lotLayer.definitionExpression = null;
     isfLayer.definitionExpression = null;
+    structureLayer.definitionExpression = null;
+
   } else if (newValue1 !== 'None' && newValue2 == 1) {
     lotLayer.definitionExpression = "Station = '" + newValue1 + "'" + " AND " + "Priority3 = " + newValue2;
     isfLayer.definitionExpression = "Station = '" + newValue1 + "'";
+    structureLayer.definitionExpression = "Station = '" + newValue1 + "'";
+
   } else if (newValue1 !== 'None' && newValue2 == 0) {
     lotLayer.definitionExpression = "Station = '" + newValue1 + "'";
     isfLayer.definitionExpression = "Station = '" + newValue1 + "'";
+    structureLayer.definitionExpression = "Station = '" + newValue1 + "'";
+
   }
    if(!lotLayer.visible){
     lotLayer.visible = true;
@@ -1357,8 +1447,16 @@ function queryForLotGeometries() {
         });
         return lotGeometries;
     });
+    var structureQuery = structureLayer.createQuery();
 
+return structureLayer.queryFeatures(structureQuery).then(function(response) {
+    structureGeometries = response.features.map(function(feature) {
+        return feature.geometry;
+    });
+    return structureGeometries;
+  });
 }
+
 
 stationSelect.addEventListener("change", function() {
     var type = event.target.value;
@@ -1779,54 +1877,93 @@ function totalNumberOfLots(totalNumberLots) {
 
 // Structure Chart
 async function updateChartStructure() {
-    var total_legalpass_lot = {
-    onStatisticField: "CASE WHEN StrucStatus = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_legalpass_lot",
+    var total_paid_struc = {
+    onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_paid_struc",
     statisticType: "sum"
   };
 
-  var total_payp_lot = {
-    onStatisticField: "CASE WHEN StrucStatus = 2 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_payp_lot",
+  var total_payp_struc = {
+    onStatisticField: "CASE WHEN Status = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_payp_struc",
     statisticType: "sum"
   };
 
-  var total_paid_lot = {
-    onStatisticField: "CASE WHEN StrucStatus = 3 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_paid_lot",
+    var total_legalpass_struc = {
+    onStatisticField: "CASE WHEN Status = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_legalpass_struc",
     statisticType: "sum"
   };
 
-  var query = lotLayer.createQuery();
-  query.outStatistics = [total_paid_lot, total_payp_lot, total_legalpass_lot];
+  var total_otb_struc = {
+    onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_otb_struc",
+    statisticType: "sum"
+  };
+
+  var total_expro_struc = {
+    onStatisticField: "CASE WHEN Status = 5 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_expro_struc",
+    statisticType: "sum"
+  };
+
+  var total_quitc_struc = {
+    onStatisticField: "CASE WHEN Status = 6 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_quitc_struc",
+    statisticType: "sum"
+  };
+
+  var query = structureLayer.createQuery();
+  query.outStatistics = [total_paid_struc, total_payp_struc, total_legalpass_struc,
+                         total_otb_struc, total_expro_struc, total_quitc_struc];
   query.returnGeometry = true;
 
-  return lotLayer.queryFeatures(query).then(function(response) {
+  return structureLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
-    const paid = stats.total_paid_lot;
-    const payp = stats.total_payp_lot;
-    const legalpass = stats.total_legalpass_lot;
+    const paid = stats.total_paid_struc;
+    const payp = stats.total_payp_struc;
+    const legalpass = stats.total_legalpass_struc;
+    const otb = stats.total_otb_struc;
+    const expro = stats.total_expro_struc;
+    const quitc = stats.total_quitc_struc;
+
+    const totalNumberStructures = paid + payp + legalpass + otb + expro + quitc;
 
     var chart = am4core.create("structureChartDiv", am4charts.PieChart);
 
 
     // Add data
     chart.data = [
-      {
-        "StrucStatus": "Legal Pass",
-        "status": legalpass,
-        "color": am4core.color("#FFFF00")
-      },
-      {
-        "StrucStatus": "Process For Payment",
-        "status": payp,
-        "color": am4core.color("#0070FF") 
-      },
-      {
+    {
         "StrucStatus": "Paid",
         "status": paid,
         "color": am4core.color("#70AD47")   
+      },
+      {
+        "StrucStatus": "For Payment Processing",
+        "status": payp,
+        "color": am4core.color("#0070FF")   
+      },
+      {
+        "StrucStatus": "For Legal Pass",
+        "status": legalpass,
+        "color": am4core.color("#FFFF00")   
+      },
+      {
+      "StrucStatus": "For Appraisal/Offer to Buy",
+        "status": otb,
+        "color": am4core.color("#FFAA00")   
+      },
+      {
+        "StrucStatus": "For Expro",
+        "status": expro,
+        "color": am4core.color("#FF0000") 
+      },
+      {
+        "StrucStatus": "Quit Claim",
+        "status": quitc,
+        "color": am4core.color("#00734C")
       },
   ];
 
@@ -1888,8 +2025,6 @@ pieSeries.ticks.template.fill = "#ffff00";
 var shadow = pieSeries.slices.template.filters.push(new am4core.DropShadowFilter);
 shadow.opacity = 0;
 
-
-
 // Create hover state
 var hoverState = pieSeries.slices.template.states.getKey("hover"); // normally we have to create the hover state, in this case it already exists
 
@@ -1939,22 +2074,28 @@ pieSeries.slices.template.events.on("hit", filterByChart, this);
 function filterByChart(ev) {
   const selectedD = ev.target.dataItem.category;
 
-  if (selectedD == "Legal Pass") {
+  if (selectedD == "Paid") {
       selectedStatus = 1;
-  } else if (selectedD == "Process For Payment") {
+  } else if (selectedD == "For Payment Processing") {
     selectedStatus = 2;
-  } else if (selectedD == "Paid") {
+  } else if (selectedD == "For Legal pass") {
     selectedStatus = 3;
+} else if (selectedD == "For Appraisal/Offer to Buy") {
+    selectedStatus = 4;
+} else if (selectedD == "For Expro") {
+    selectedStatus = 5;
+} else if (selectedD == "Quit Claim") {
+    selectedStatus = 6;
   } else {
     selectedStatus = null;
   }
 
   view.when(function() {
-    view.whenLayerView(lotLayer).then(function (layerView) {
+    view.whenLayerView(structureLayer).then(function (layerView) {
       chartLayerView = layerView;
       chartElementStructure.style.visibility = "visible";
 
-      lotLayer.queryFeatures().then(function(results) {
+      structureLayer.queryFeatures().then(function(results) {
         const ggg = results.features;
             const rowN = ggg.length;
 
@@ -1968,7 +2109,7 @@ function filterByChart(ev) {
                 objectIds: objID
             });
 
-            lotLayer.queryExtent(queryExt).then(function(result) {
+            structureLayer.queryExtent(queryExt).then(function(result) {
                 if (result.extent) {
                     view.goTo(result.extent)
                 }
@@ -1986,7 +2127,7 @@ function filterByChart(ev) {
 
       }); // End of queryFeatures
       layerView.filter = {
-    where: "StrucStatus = " + selectedStatus
+    where: "Status = " + selectedStatus
   }
 
     }); // End of view.whenLayerView
@@ -2531,7 +2672,7 @@ view.ui.add(legendExpand, {
             <h2>Land Acquisition (MMSP)</h2>
         </div>
         <div class="dateDiv">
-            <h4>As of December 20, 2021</h4>
+            <h4>As of December 27, 2021</h4>
         </div>
         <div id="dataTypeInput" class="cpButtonClass">
             <input type="radio" id="None" name="dataTypeInput" checked/> All
@@ -2562,16 +2703,16 @@ view.ui.add(legendExpand, {
                 <div id="chartTitleDiv" class="esri-widget">Progress of Land Acquisition</div>
                 <div id="chartdiv"></div>
                   <div id="optionsDiv" class="esri-widget">
-                    <div><b>Number of Lot</b></div>
+                    <div><b>Number of Lots</b></div>
                     <h6 id="totalNumberDiv"></h6>
                   </div>
                   <div id="lotMoaChartDiv"></div>
                   <div id="optionsDiv" class="esri-widget">
-                    <div><p class="h7"><b>Number of PTE</b></p></div>
+                    <div><p class="h7"><b>PTE Lot</b></p></div>
                     <h6 id="lotPteDiv"></h6>
                   </div>
                   <div id="optionsDiv" class="esri-widget">
-                    <div><p class="h8"><b>Number of Handed Over</b></p></div>
+                    <div><p class="h8"><b>Handed-Over Lot</b></p></div>
                     <h6 id="lotHandedOverDiv"></h6>
                   </div>
             </div>
@@ -2582,7 +2723,7 @@ view.ui.add(legendExpand, {
                 <div id="structureChartDiv"></div>
                   <div id="structureMoaChartDiv"></div>
                   <div id="optionsDiv" class="esri-widget">
-                    <div><p class="h8"><b>Number of Relocated (ISF)</b></p></div>
+                    <div><p class="h8"><b>Relocated Lot (ISF)</b></p></div>
                     <h6 id="isfDiv"></h6>
                   </div>
             </div>
