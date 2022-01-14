@@ -1178,15 +1178,25 @@ function pteNumberLot(){
     outStatisticFieldName: "total_pte_lot",
     statisticType: "sum"
   };
+
+  var total_lot_N = {
+    onStatisticField: "CASE WHEN StatusLA >= 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_lot_N",
+    statisticType: "sum"
+  };
+
   var query = lotLayer.createQuery();
-  query.outStatistics = [total_pte_lot];
+  query.outStatistics = [total_pte_lot, total_lot_N];
   query.returnGeometry = true;
 
   lotLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
     const pte = stats.total_pte_lot;
-    lotPteDiv.innerHTML = pte;
+    const totalN = stats.total_lot_N;
+    const percPTE = ((pte/totalN)*100).toFixed(1);
+
+    lotPteDiv.innerHTML = percPTE + "% (" + pte + ")";
   });
 } 
 pteNumberLot();
@@ -1198,15 +1208,25 @@ function pteNumberStructure() {
     outStatisticFieldName: "total_pte_structure",
     statisticType: "sum"
   };
+
+  var total_struc_N = {
+    onStatisticField: "CASE WHEN StatusStruc >=1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_struc_N",
+    statisticType: "sum"
+  };
+
   var query = structureLayer.createQuery();
-  query.outStatistics = [total_pte_structure];
+  query.outStatistics = [total_pte_structure,total_struc_N];
   query.returnGeometry = true;
 
   structureLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
     const pte = stats.total_pte_structure;
-    structurePteDiv.innerHTML = pte;
+    const totalN = stats.total_struc_N;
+    const percPTE = ((pte/totalN)*100).toFixed(1);
+    
+    structurePteDiv.innerHTML = percPTE + "% (" + pte + ")";
   })
 }
 pteNumberStructure();
@@ -2496,7 +2516,7 @@ view.ui.add(legendExpand, {
             <h2>Land Acquisition (N2)</h2>
         </div>
         <div class="dateDiv">
-            <h4>As of January 10, 2022</h4>
+            <h4>As of January 14, 2022</h4>
         </div>
         <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">Municipality:</label>
