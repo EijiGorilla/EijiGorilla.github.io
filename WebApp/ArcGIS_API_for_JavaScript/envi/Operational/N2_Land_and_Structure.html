@@ -310,15 +310,39 @@
         color: white;
       }
 
+      #cpButton {
+        margin:0;
+        width: 400px;
+        height: 35px;
+        text-align: center;
+        background-color:rgb(0, 0, 0, 0.5);
+      }
+
       .cpButtonClass {
+          position: absolute;
+          top: 80px;
+          right: 40%;
           font-style: normal;
-          font-size: 14px;
+          font-size: 25px;
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-          color: white;
+          color: rgb(0, 197, 255);
           text-align: center;
-          margin: 30px 0px 20px 0px;
-          padding: 0px 0px 10px 0px;
           }
+
+        .handedOverClass b,
+        .cpButtonClass b {
+          color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-size: 20px;
+        }
+
+        #handedOverDiv {
+          margin:0;
+        width: 400px;
+        height: 35px;
+        text-align: center;
+        background-color:rgb(0, 0, 0, 0.7);
+        }
 
       #relocationOwnerList {
         background-color: rgb(0, 0, 0);
@@ -550,6 +574,8 @@ var basemap = new Basemap({
         var lotStatsDiv = document.getElementById("lotStatsDiv");
         var lotChartDiv = document.getElementById("lotChartDiv");
         //var lotTotalNumberDiv = document.getElementById("lotTotalNumberDiv");
+        var handedOverDiv = document.getElementById("handedOverDiv");
+ 
 
         var lotPteDiv = document.getElementById("lotPteDiv");
 
@@ -911,7 +937,6 @@ map.add(fncLayer,2);
 
 // Relocation Status point layer
 
-
 // Land 
 var lotLayer = new FeatureLayer({
   portalItem: {
@@ -1171,6 +1196,39 @@ function zoomToLayer(layer) {
   });
 }
 
+// Number of handed-over lots
+function handedOverLot(){
+  var total_handedover_lot = {
+    onStatisticField: "CASE WHEN HandOver = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_handedover_lot",
+    statisticType: "sum"
+  };
+
+  // In this case, the total number of lots include everything including PNR..
+  var total_lot = {
+    onStatisticField: "LotID",
+    outStatisticFieldName: "total_lot",
+    statisticType: "count"
+  };
+  var query = lotLayer.createQuery();
+  query.outStatistics = [total_handedover_lot, total_lot];
+  query.returnGeometry = true;
+
+  lotLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const handover = stats.total_handedover_lot;
+    const total_N = stats.total_lot;
+    const perc = ((handover/total_N)*100).toFixed(0);
+
+    handedOverDiv.innerHTML = "Handed-Over  " +  perc + "<b>" + "%" + "</b>" + " (" + thousands_separators(handover) + ")";
+
+   // cpButton.innerHTML = "Handed-Over  " +  perc + "<b>" + "%" + "</b>" + " (" + thousands_separators(handover) + ")";
+
+  });
+}
+handedOverLot();
+
 // TOtal number of PTE for LOT
 function pteNumberLot(){
   var total_pte_lot = {
@@ -1194,7 +1252,7 @@ function pteNumberLot(){
 
     const pte = stats.total_pte_lot;
     const totalN = stats.total_lot_N;
-    const percPTE = ((pte/totalN)*100).toFixed(1);
+    const percPTE = ((pte/totalN)*100).toFixed(0);
 
     lotPteDiv.innerHTML = percPTE + "% (" + pte + ")";
   });
@@ -1224,7 +1282,7 @@ function pteNumberStructure() {
 
     const pte = stats.total_pte_structure;
     const totalN = stats.total_struc_N;
-    const percPTE = ((pte/totalN)*100).toFixed(1);
+    const percPTE = ((pte/totalN)*100).toFixed(0);
     
     structurePteDiv.innerHTML = percPTE + "% (" + pte + ")";
   })
@@ -1379,6 +1437,7 @@ return structureLayer.queryFeatures(structureQuery).then(function(response) {
     updateMoaChartStructure();
     pteNumberLot();
     pteNumberStructure();
+    handedOverLot();
 
     zoomToLayer(lotLayer);
 
@@ -1439,6 +1498,7 @@ barangaySelect.addEventListener("click", function() {
   updateMoaChartStructure();
   pteNumberLot();
   pteNumberStructure();
+  handedOverLot();
 
 
   zoomToLayer(lotLayer);
@@ -2519,7 +2579,7 @@ view.ui.add(legendExpand, {
             <h4>As of January 14, 2022</h4>
         </div>
         <div class="esri-widget" id="dropdownDiv">
-            <label for="sel-options">Municipality:</label>
+            <label for="sel-options">City/Municipality:</label>
             <select id="valSelect" class="esri-widget"></select>
             <label for="sel-options">Barangay:</label>
             <select id="barangaySelect" class="esri-widget" width="150" style="width: 150px"></select>
@@ -2538,7 +2598,13 @@ view.ui.add(legendExpand, {
             </div>
         </div>
         <div class="boxC">
-            <div id="viewDiv"></div>
+            <div id="viewDiv">
+              <div class="cpButtonBox">
+                <div id="cpButton" class="cpButtonClass">
+                  <div id="handedOverDiv" class="handedOverClass"></div>
+                </div>
+                  </div>              
+            </div>
         </div>
         <div class="boxD">
             <div id="chartPanel">
