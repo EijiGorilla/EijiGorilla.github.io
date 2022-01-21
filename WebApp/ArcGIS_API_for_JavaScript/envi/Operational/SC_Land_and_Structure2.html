@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>Land Acquisition (SC): Sample</title>
+<title>SC1 Subcontractor Submissions: Sample</title>
 
     <style>
       html,
@@ -128,7 +128,7 @@
 
       #chartdiv {
           width: 100%;
-          height: 40vh;
+          height: 50vh;
           align-items: center;
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
           }
@@ -174,6 +174,15 @@
         opacity: 0.8;
         height: 60px;
       }
+
+      #barangayChartDiv {
+        width: 100%;
+        height: 40vh;
+          align-items: center;
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+      }
+
+      
 
       #structureChartDiv {
         width: 100%;
@@ -556,6 +565,12 @@ var basemap = new Basemap({
          // Structure Statistics:
          var structureStatsDiv = document.getElementById("structureStatsDiv");
         var structureChartDiv = document.getElementById("structureChartDiv");
+        
+
+        var barangayChartDiv = document.getElementById("barangayChartDiv");
+
+
+
         var structurePteDiv = document.getElementById("structurePteDiv");       
 
 
@@ -742,14 +757,365 @@ let reloStatusLayerRenderer = {
   }
 };
 
+// Default symbol
+let defaultSymbol = {
+  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+  color: [0,0,0,0],
+  style: "solid",
+  outline: {  // autocasts as new SimpleLineSymbol()
+    color: [110, 110, 110],
+    width: 0.7
+  }
+};
+
+let lotLayerRenderer = {
+  type: "unique-value",
+  field: "Reqs",
+  defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
+  valueExpression: "When($feature.Reqs == 1, '1', $feature.Reqs == 2, '2', \
+                         $feature.Reqs == 3, '3', $feature.Reqs == 4, '4', \
+                         $feature.Reqs == 5, '5', $feature.Reqs == 6, '6', \
+                         $feature.Reqs == 7, '7', $feature.Reqs == 8, '8', $feature.Reqs)",
+  uniqueValueInfos: [
+  {
+    // All features with value of "North" will be blue
+    value: "1",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[1],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "2",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[2],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "3",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[3],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "4",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[4],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "5",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[5],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "6",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[6],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "7",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[7],
+    }
+  },
+  {
+      value: "8",
+      symbol: {
+        type: "simple-fill",
+        color: colorLotReqs()[8],
+        style: "diagonal-cross",
+        outline: {
+          width: 0.5,
+          color: "black"
+        }
+      }
+    }
+  ]
+}
+
+// Priority
+let lotPriorityRenderer = {
+  type: "unique-value",
+  field: "Priority1",
+  defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
+  valueExpression: "When($feature.Priority1 == 1, '1', $feature.Priority1 == 2, '2', \
+                         $feature.Priority1 == 3, '3', $feature.Priority1)",
+  uniqueValueInfos: [
+  {
+    // All features with value of "North" will be blue
+    value: "1",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: [0,0,0,0],
+      outline: {
+          width: 4,
+          color: colorPriority()[1]
+        }
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "2",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: [0,0,0,0],
+      outline: {
+          width: 4,
+          color: colorPriority()[2]
+        }
+    }
+  },
+  {
+    value: "3",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: [0,0,0,0],
+      outline: {
+          width: 4,
+          color: colorPriority()[3]
+        }
+    }
+  },
+]
+}
+
+let barangayRenderer = {
+  type: "unique-value",
+  field: "Coop",
+  defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
+  valueExpression: "When($feature.Coop == 1, '1', $feature.Coop == 2, '2', \
+                         $feature.Coop == 3, '3', $feature.Coop == 4, '4', \
+                         $feature.Coop == 5, '5', $feature.Coop == 6, '6', $feature.Coop)",
+  uniqueValueInfos: [
+  {
+    // All features with value of "North" will be blue
+    value: "1",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorBarangay()[1],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "2",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorBarangay()[2],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "3",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorBarangay()[3],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "4",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorBarangay()[4],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "5",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorBarangay()[5],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "6",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorBarangay()[6],
+      style: "diagonal-cross",
+        outline: {
+          width: 0.5,
+          color: "black"
+        }
+    }
+  },
+]
+}
+
+let structureRenderer = {
+  type: "unique-value",
+  field: "BasicPlan",
+  defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
+  valueExpression: "When($feature.BasicPlan == 1, '1', $feature.BasicPlan == 2, '2', \
+                         $feature.BasicPlan == 3, '3', $feature.BasicPlan == 4, '4', \
+                         $feature.BasicPlan == 5, '5', $feature.BasicPlan == 6, '6', \
+                         $feature.BasicPlan == 7, '7', $feature.BasicPlan)",
+  uniqueValueInfos: [
+  {
+    // All features with value of "North" will be blue
+    value: "1",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorStructure()[1],
+      style: "backward-diagonal",
+                  outline: {
+                    color: "#6E6E6E",
+                    width: 0.7
+                  }
+    },
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "2",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorStructure()[2],
+      style: "backward-diagonal",
+                  outline: {
+                    color: "#6E6E6E",
+                    width: 0.7
+                  }
+    },
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "3",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorStructure()[3],
+      style: "backward-diagonal",
+                  outline: {
+                    color: "#6E6E6E",
+                    width: 0.7
+                  }
+    },
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "4",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorStructure()[4],
+      style: "backward-diagonal",
+                  outline: {
+                    color: "#6E6E6E",
+                    width: 0.7
+                  }
+    },
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "5",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorStructure()[5],
+      style: "backward-diagonal",
+                  outline: {
+                    color: "#6E6E6E",
+                    width: 0.7
+                  }
+    },
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "6",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorStructure()[6],
+      style: "backward-diagonal",
+                  outline: {
+                    color: "#6E6E6E",
+                    width: 0.7
+                  }
+    },
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "7",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorStructure()[7],
+      style: "backward-diagonal",
+                  outline: {
+                    color: "#6E6E6E",
+                    width: 0.7
+                  }
+    },
+  },
+]
+}
+
+// Lot Requirements symbol
+function colorLotReqs(){
+  return {
+    1: [0,0,128],
+    2: [49,149,183],
+    3: [68,85,90],
+    4: [255,170,0],
+    5: [255,255,0],
+    6: [255,255,255],
+    7: [255,0,0],
+    8: [0,0,0,0.5]
+  }
+}
+
+function colorPriority() {
+  return {
+    1: [255,0,0],
+    2: [255,255,0],
+    3: [0,0,0]
+  }
+}
+
+function colorBarangay() {
+  return {
+    1: [0,0,128,0.5],
+    2: [68,85,90,0.5],
+    3: [255,255,255,0.5],
+    4: [255,170,0,0.5],
+    5: [255,0,0,0.5],
+    6: [0,0,0,0.5]
+  }
+
+}
+
+function colorStructure() {
+  return {
+    1: [0,0,128], // Complete
+          2: [68,85,90], // Surveyed and for drafting
+          3: [255,255,255], // For Survey
+          4: [255,255, 0], // For Reschedule
+          5: [255,204,203], // Missing tag or structure or owner
+          6: [255,0,0], //  refused
+          7: [0,0,0,0.5] // NA
+  }
+}
+
 // Fill symbol color for Structure Layer (Status of Structure)
 const colors = {
-          1: [255, 0, 197], // Dismantling/Clearing
-          2: [112, 173, 71], // Paid
-          3: [0, 112, 255], // For Payment Processing
-          4: [255, 255, 0], // For Legal Pass 
-          5: [255, 170, 0], // For Appraisal/Offer to Compensate
-          6: [255, 0, 0] //LBP Account Opening
+          1: [0,0,128], // Complete
+          2: [68,85,90], // Surveyed and for drafting
+          3: [255,255,255], // For Survey
+          4: [255,255, 0], // For Reschedule
+          5: [255,204,203], // Missing tag or structure or owner
+          6: [255,0,0], //  refused
+          7: [0,0,0,0.5] // NA
         };
 
 // Fill symbol color for Structure Layer (NLO/LO)
@@ -876,10 +1242,12 @@ var priorityLayer = new FeatureLayer ({
     }
   },
   layerId: 8,
+  renderer: lotPriorityRenderer,
+  definitionExpression: "ContSubm = 1",
   title: "Priority Lot",
   popupEnabled: false
 });
-map.add(priorityLayer,2);
+map.add(priorityLayer,0);
 
 // Free and Clear Lot //
 var fncLayer = new FeatureLayer ({
@@ -907,8 +1275,10 @@ var lotLayer = new FeatureLayer({
     }
   },
   layerId: 14,
+  renderer: lotLayerRenderer,
+  definitionExpression: "ContSubm = 1",
         outFields: ["*"],
-        title: "Status of Land Acquisition",
+        title: "Lot Requirements",
         labelsVisible: false,
         popupTemplate: {
           title: "<p>{LotID}</p>",
@@ -929,8 +1299,12 @@ var lotLayer = new FeatureLayer({
                   fieldName: "Barangay"
                 },
                 {
-                  fieldName: "StatusLA",
-                  label: "<p>Status of Land Acquisition</p>"
+                  fieldName: "Reqs",
+                  label: "<p>Requirements</p>"
+                },
+                {
+                  fieldName: "Priority1",
+                  label: "<p>Priority</p>"
                 }
               ]
             }
@@ -966,7 +1340,8 @@ var structureLayer = new FeatureLayer({
     }
   },
   layerId: 13,
-        title: "Status of Structure",
+  renderer: structureRenderer,
+        title: "Structure Basic Plan",
         outFields: ["*"],
         popupTemplate: {
           title: "<p>{StrucID}</p>",
@@ -981,7 +1356,7 @@ var structureLayer = new FeatureLayer({
                   label: "Structure Owner"
                 },
                 {
-                  fieldName: "StatusStruc",
+                  fieldName: "BasicPlan",
                   label: "<p>Status of Structure</p>"
                 },               
                 {
@@ -1001,10 +1376,10 @@ var structureLayer = new FeatureLayer({
 });
 map.add(structureLayer);
 
-
+/*
 function renderStructureLayer() {
           const renderer = new UniqueValueRenderer({
-            field: "StatusStruc"
+            field: "BasicPlan"
           });
 
           for (let property in colors) {
@@ -1028,70 +1403,21 @@ function renderStructureLayer() {
         }
 
         renderStructureLayer();
+*/
 
-// Structure (NLO/LO)
-let NLOLORenderer = {
-  type: "unique-value",
-  field: "Status",
-  uniqueValueInfos:[
-    {
-      value: 1,
-      symbol: {
-      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-      style: "forward-diagonal",
-      color: [128, 128, 128, 0.8],
-      outline: {
-        color: "#6E6E6E",
-        width: 0.3
-      }
-    }
-    },
-    {
-      value: 2,
-      symbol: {
-      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-      style: "vertical",
-      color: [128, 128, 128, 0.8],
-      outline: {
-        color: "#6E6E6E",
-        width: 0.3
-      }
-    }
-    }
-  ]
-};
-
-
-var structureNLOLOLayer = new FeatureLayer({
+// Barangay
+var barangayLayer = new FeatureLayer({
   portalItem: {
-    id: "c38a7320b34b45b580778d7363f4e4c3",
+    id: "21212e2402314a88abc95f6b2780276e",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  renderer: NLOLORenderer,
-  layerId: 10,
-        title: "Structure (NLO/LO)",
+  renderer: barangayRenderer,
         outFields: ["*"],
-        popupEnabled: false
-});
-structureNLOLOLayer.listMode = "hide";
-map.add(structureNLOLOLayer);
-
-
-// Status of Relocation (Occupancy)
-var relocationPtLayer = new FeatureLayer({
-  portalItem: {
-    id: "c38a7320b34b45b580778d7363f4e4c3",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  layerId: 12,
-        outFields: ["*"],
-        title: "Relocation (Occupancy)",
+        title: "Barangay",
         popupTemplate: {
-          title: "<p>{StrucID}</p>",
+          title: "<p>{Barangay}</p>",
           lastEditInfoEnabled: false,
           returnGeometry: true,
           content: [
@@ -1099,33 +1425,21 @@ var relocationPtLayer = new FeatureLayer({
               type: "fields",
               fieldInfos: [
                 {
-                  fieldName: "StrucOwner",
-                  label: "Structure Owner"
-                },
-                {
                   fieldName: "Municipality"
                 },
                 {
-                  fieldName: "Barangay"
-                },
-                {
-                  fieldName: "Occupancy",
-                  label: "<p>Status for Relocation(structure)</p>"
-                },
-                {
-                  fieldName: "Name",
-                },
-                {
-                  fieldName: "Status",
-                  label: "Status of NLO/LO"
+                  fieldName: "Coop",
+                  label: "<p>Cooperation</p>"
                 }
               ]
             }
           ]
         }
-});
-map.add(relocationPtLayer);
+        //labelsVisible: false,
+        //popuEnabled: false,
 
+});
+map.add(barangayLayer, 1);
 
 // 
 const lotStrucReloTypeButton = document.getElementById("dataTypeInput");
@@ -1263,24 +1577,14 @@ function setLotMunicipalExpression(newValue) {
   if (newValue == 'None') {
     lotLayer.definitionExpression = null;
     structureLayer.definitionExpression = null;
-    relocationPtLayer.definitionExpression = null;
     priorityLayer.definitionExpression = null;
 
   } else {
     lotLayer.definitionExpression = "Municipality = '" + newValue + "'";
     structureLayer.definitionExpression = "Municipality = '" + newValue + "'";
-    relocationPtLayer.definitionExpression = "Municipality = '" + newValue + "'";
     priorityLayer.definitionExpression = "Municipality = '" + newValue + "'";
   }
   
-  /*
-    if (!lotLayer.visible || !structureLayer.visible || !reloISFLayer.visible || !relocationPtLayer.visible) {
-        lotLayer.visible = true;
-        structureLayer.visible = true;
-        reloISFLayer.visible = true;
-        relocationPtLayer.visible = true;
-    }
-    */
     return queryForLotGeometries();
 }
 
@@ -1288,24 +1592,15 @@ function setLotDefinitionExpression(newValue1, newValue2){
   if(newValue2 == undefined || newValue2 == 'None'){
     lotLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
     structureLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
-    relocationPtLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
     priorityLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
 
   } else {
     lotLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
     lotLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
     structureLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
-    relocationPtLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
     priorityLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
   }
-  /*
-  if(!lotLayer.visible || !structureLayer.visible || !reloISFLayer.visible || !relocationPtLayer.visible){
-    lotLayer.visible = true;
-    structureLayer.visible = true;
-        reloISFLayer.visible = true;
-        relocationPtLayer.visible = true;
-  }
-  */
+
 
   return queryForLotGeometries();
 }
@@ -1341,7 +1636,8 @@ return structureLayer.queryFeatures(structureQuery).then(function(response) {
 
     updateChartLot().then(totalNumberOfLots);
     updateChartStructure().then(totalNumberOfStructures);
-    updateMoaChartLot();
+    updateBarangay()
+    updatePriorityChartLot();
     updateMoaChartStructure();
     pteNumberLot();
     pteNumberStructure();
@@ -1401,7 +1697,8 @@ barangaySelect.addEventListener("click", function() {
 
   updateChartLot().then(totalNumberOfLots);
   updateChartStructure().then(totalNumberOfStructures);
-  updateMoaChartLot();
+  updateBarangay();
+  updatePriorityChartLot();
   updateMoaChartStructure();
   pteNumberLot();
   pteNumberStructure();
@@ -1421,21 +1718,21 @@ view.when(function() {
 var ownerContainer = document.getElementById("relocationOwnerList");
 
 // Obtain a list of Owner's names and status
-    view.whenLayerView(lotLayer).then(function(exprolayerView) {
-      exprolayerView.watch("updating", function(val) {
+    view.whenLayerView(lotLayer).then(function(researchlayerView) {
+      researchlayerView.watch("updating", function(val) {
         if (!val) {
           var query = new Query();
-          query.where = "StatusLA = 5";
-          exprolayerView.queryFeatures(query).then(function(result) {
+          query.where = "Reqs = 7";
+          researchlayerView.queryFeatures(query).then(function(result) {
             ownerContainer.innerHTML = "";
             result.features.forEach(function(feature) {
               var attributes = feature.attributes;
               var li = document.createElement("li");
               li.setAttribute("class", "panel-result");
 
-              const status = attributes.StatusLA;
-              if (status == 5) {
-                statusla = "Expropriation"
+              const status = attributes.Reqs;
+              if (status == 7) {
+                statusla = "Refused"
               }
 
               li.innerHTML = "Lot ID: " + "<b>" + attributes.LotID + "</b>" + "<br>" + attributes.LandOwner + "</br>" + "<p>" + statusla + "</p>";
@@ -1446,7 +1743,7 @@ var ownerContainer = document.getElementById("relocationOwnerList");
                 var queryExtent = new Query({
                   objectIds: [objectId]
                 });
-                exprolayerView.queryExtent(queryExtent).then(function(result) {
+                researchlayerView.queryExtent(queryExtent).then(function(result) {
                   if (result.extent) {
                     view.goTo({
                       target: result.extent,
@@ -1462,10 +1759,10 @@ var ownerContainer = document.getElementById("relocationOwnerList");
                 if (highlightSelect) {
                   highlightSelect.remove();
                 }
-                highlightSelect = exprolayerView.highlight([objectId]);
+                highlightSelect = researchlayerView.highlight([objectId]);
                 
             view.on("click", function() {
-              exprolayerView.filter = null;
+              researchlayerView.filter = null;
               highlightSelect.remove();
             });
 
@@ -1493,51 +1790,73 @@ var structureTotalNumberDiv = document.getElementById("structureTotalNumberDiv")
 //////////////////// Pie Chart ///////////////////////////////////////////////////
 // Lot Chart
 async function updateChartLot() {
-  var total_paid_lot = {
-    onStatisticField: "CASE WHEN StatusLA = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_paid_lot",
+  var total_survdraft_struc = {
+    onStatisticField: "CASE WHEN Reqs = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_survdraft_struc",
     statisticType: "sum"
   };
 
-  var total_payp_lot = {
-    onStatisticField: "CASE WHEN StatusLA = 2 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_payp_lot",
+  var total_survey_struc = {
+    onStatisticField: "CASE WHEN Reqs = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_survey_struc",
     statisticType: "sum"
   };
 
-  var total_legalpass_lot = {
-    onStatisticField: "CASE WHEN StatusLA = 3 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_legalpass_lot",
+  var total_resche_struc = {
+    onStatisticField: "CASE WHEN Reqs = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_resche_struc",
     statisticType: "sum"
   };
 
-  var total_otb_lot = {
-    onStatisticField: "CASE WHEN StatusLA = 4 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_otb_lot",
+  var total_survdraft_lot = {
+    onStatisticField: "CASE WHEN Reqs = 4 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_survdraft_lot",
     statisticType: "sum"
   };
 
-  var total_expro_lot = {
-    onStatisticField: "CASE WHEN StatusLA = 5 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_expro_lot",
+  var total_second_lot = {
+    onStatisticField: "CASE WHEN Reqs = 5 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_second_lot",
+    statisticType: "sum"
+  };
+
+  var total_survres_lot = {
+    onStatisticField: "CASE WHEN Reqs = 6 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_survres_lot",
+    statisticType: "sum"
+  };
+
+  var total_refuse_lot = {
+    onStatisticField: "CASE WHEN Reqs = 7 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_refuse_lot",
+    statisticType: "sum"
+  };
+
+  var total_na_lot = {
+    onStatisticField: "CASE WHEN Reqs = 8 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_na_lot",
     statisticType: "sum"
   };
 
   var query = lotLayer.createQuery();
-  query.outStatistics = [total_paid_lot, total_payp_lot, total_legalpass_lot,
-                         total_otb_lot, total_expro_lot];
+  query.outStatistics = [total_survdraft_struc, total_survey_struc, total_resche_struc,
+                         total_survdraft_lot, total_second_lot, total_survres_lot,
+                        total_refuse_lot, total_na_lot];
   query.returnGeometry = true;
 
   return lotLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
-    const paid = stats.total_paid_lot;
-    const payp = stats.total_payp_lot;
-    const legalpass = stats.total_legalpass_lot;
-    const otb = stats.total_otb_lot;
-    const expro = stats.total_expro_lot;
+    const comp = stats.total_survdraft_struc;
+    const incomp = stats.total_survey_struc;
+    const survplan = stats.total_resche_struc;
+    const survdraft = stats.total_survdraft_lot;
+    const research = stats.total_second_lot;
+    const survres = stats.total_survres_lot;
+    const refuse = stats.total_refuse_lot;
+    const nna = stats.total_na_lot;
 
-    const totalNumberLots = paid + payp + legalpass + otb + expro;
+    const totalNumberLots = comp + incomp + survplan + survdraft + research + survres + refuse + nna;
 
     var chart = am4core.create("chartdiv", am4charts.PieChart);
 
@@ -1545,30 +1864,45 @@ async function updateChartLot() {
     // Add data
     chart.data = [
       {
-        "StatusLA": "Paid",
-        "status": paid,
-        "color": am4core.color("#70AD47")
+        "Reqs": "Complete",
+        "status": comp,
+        "color": am4core.color("#000080")
       },
       {
-        "StatusLA": "For Payment Processing",
-        "status": payp,
-        "color": am4core.color("#0070FF")   
+        "Reqs": "Incomplete Documents",
+        "status": incomp,
+        "color": am4core.color("#3196B7")   
       },
       {
-        "StatusLA": "For Legal Pass",
-        "status": legalpass,
-        "color": am4core.color("#FFFF00") 
+        "Reqs": "Surveyed and with plan",
+        "status": survplan,
+        "color": am4core.color("#44555A")
       },
       {
-        "StatusLA": "For Appraisal/Offer to Buy",
-        "status": otb,
+        "Reqs": "Surveyed and for drafting",
+        "status": survdraft,
         "color": am4core.color("#FFAA00")
       },
       {
-        "StatusLA": "For Expro",
-        "status": expro,
+        "Reqs": "Researched",
+        "status": research,
+        "color": am4core.color("#FFFF00")    
+      },
+      {
+        "Reqs": "For Survey & Research",
+        "status": survres,
+        "color": am4core.color("#FFFFFF")    
+      },
+      {
+        "Reqs": "Refused",
+        "status": refuse,
         "color": am4core.color("#FF0000")    
-      }
+      },
+      {
+        "Reqs": "NA",
+        "status": nna,
+        "color": am4core.color("#FFFF0000")    
+      },
   ];
 
   // Set inner radius
@@ -1597,7 +1931,7 @@ function createSlices(field, status){
 
   
   // Hover setting
-  pieSeries.tooltip.label.fontSize = 9;
+  pieSeries.tooltip.label.fontSize = 12;
 
   // Pie
 //pieSeries.alignLabels = false;
@@ -1626,9 +1960,15 @@ var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
 hoverShadow.opacity = 0.7;
 hoverShadow.blur = 5;
 
+// Chart Title
+let title = chart.titles.create();
+title.text = "Lot Requirements";
+title.fontSize = 20;
+title.fill = am4core.color("#ffffff");
+title.marginTop = 7;
 
   // Add a legend
-  const LegendFontSizze = 12;
+  const LegendFontSizze = 14;
   chart.legend = new am4charts.Legend();
 
   chart.legend.valueLabels.template.align = "right"
@@ -1665,16 +2005,23 @@ pieSeries.slices.template.events.on("hit", filterByChart, this);
 function filterByChart(ev) {
   const selectedD = ev.target.dataItem.category;
 
-  if (selectedD == "Paid") {
+  if (selectedD == "Complete") {
       selectedStatus = 1;
-  } else if (selectedD == "For Payment Processing") {
+  } else if (selectedD == "Incomplete Documents") {
     selectedStatus = 2;
-  } else if (selectedD == "For Legal Pass") {
+  } else if (selectedD == "Surveyed and with plan") {
     selectedStatus = 3;
-  } else if (selectedD == "For Appraisal/Offer to Buy") {
+  } else if (selectedD == "Surveyed and for drafting") {
     selectedStatus = 4;
-  } else if (selectedD == "For Expro") {
+  } else if (selectedD == "Researched") {
     selectedStatus = 5;
+  } else if (selectedD == "For Survey & Research") {
+    selectedStatus = 6;
+  } else if (selectedD == "Refused") {
+    selectedStatus = 7;
+  } else if (selectedD == "NA") {
+    selectedStatus = 8;
+
   } else {
     selectedStatus = null;
   }
@@ -1715,7 +2062,7 @@ function filterByChart(ev) {
             });
       }); // End of queryFeatures
       layerView.filter = {
-    where: "StatusLA = " + selectedStatus
+    where: "Reqs = " + selectedStatus
   }
     }); // End of view.whenLayerView
 
@@ -1724,7 +2071,7 @@ function filterByChart(ev) {
 
 } // End of createSlices function
 
-createSlices("status", "StatusLA");
+createSlices("status", "Reqs");
 
 return totalNumberLots;
 
@@ -1735,61 +2082,69 @@ function totalNumberOfLots(totalNumberLots) {
   totalNumberDiv.innerHTML = thousands_separators(totalNumberLots);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 
 // Structure Chart
 async function updateChartStructure() {
-  var total_clear_lot = {
-    onStatisticField: "CASE WHEN StatusStruc = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_clear_lot",
+  var total_complete_struc = {
+    onStatisticField: "CASE WHEN BasicPlan = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_complete_struc",
     statisticType: "sum"
   };
 
-  var total_paid_lot = {
-    onStatisticField: "CASE WHEN StatusStruc = 2 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_paid_lot",
+  var total_survdraft_struc = {
+    onStatisticField: "CASE WHEN BasicPlan = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_survdraft_struc",
     statisticType: "sum"
   };
 
-  var total_payp_lot = {
-    onStatisticField: "CASE WHEN StatusStruc = 3 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_payp_lot",
+  var total_survey_struc = {
+    onStatisticField: "CASE WHEN BasicPlan = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_survey_struc",
     statisticType: "sum"
   };
 
-  var total_legalpass_lot = {
-    onStatisticField: "CASE WHEN StatusStruc = 4 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_legalpass_lot",
+  var total_resche_struc = {
+    onStatisticField: "CASE WHEN BasicPlan = 4 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_resche_struc",
     statisticType: "sum"
   };
 
-  var total_otc_lot = {
-    onStatisticField: "CASE WHEN StatusStruc = 5 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_otc_lot",
+  var total_miss_struc = {
+    onStatisticField: "CASE WHEN BasicPlan = 5 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_miss_struc",
     statisticType: "sum"
   };
 
-  var total_lbp_lot = {
-    onStatisticField: "CASE WHEN StatusStruc = 6 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_lbp_lot",
+  var total_refuse_struc = {
+    onStatisticField: "CASE WHEN BasicPlan = 6 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_refuse_struc",
+    statisticType: "sum"
+  };
+
+  var total_na_struc = {
+    onStatisticField: "CASE WHEN BasicPlan = 7 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_na_struc",
     statisticType: "sum"
   };  
 
   var query = structureLayer.createQuery();
-  query.outStatistics = [total_clear_lot, total_paid_lot, total_payp_lot,
-                         total_legalpass_lot, total_otc_lot, total_lbp_lot];
+  query.outStatistics = [total_complete_struc, total_survdraft_struc, total_survey_struc,
+                         total_resche_struc, total_miss_struc, total_refuse_struc, total_na_struc];
   query.returnGeometry = true;
 
   return structureLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
-    const clear = stats.total_clear_lot;
-    const paid = stats.total_paid_lot;
-    const payp = stats.total_payp_lot;
-    const legalpass = stats.total_legalpass_lot;
-    const otc = stats.total_otc_lot;
-    const lbp = stats.total_lbp_lot;
+    const complete = stats.total_complete_struc;
+    const survdraft = stats.total_survdraft_struc;
+    const survey = stats.total_survey_struc;
+    const resche = stats.total_resche_struc;
+    const miss = stats.total_miss_struc;
+    const refuse = stats.total_refuse_struc;
+    const nna = stats.total_na_struc;
 
-    const totalNumberStructures = clear + paid + payp + legalpass + otc + lbp;
+    const totalNumberStructures = complete + survdraft + survey + resche + miss + refuse + nna;
 
     var chart = am4core.create("structureChartDiv", am4charts.PieChart);
 
@@ -1797,34 +2152,39 @@ async function updateChartStructure() {
     // Add data
     chart.data = [
       {
-        "StatusStruc": "Dismantling/Clearing",
-        "status": clear,
-        "color": am4core.color("#FF00C5")
+        "BasicPlan": "Complete",
+        "status": complete,
+        "color": am4core.color("#000080")
       },
       {
-        "StatusStruc": "Paid",
-        "status": paid,
-        "color": am4core.color("#70AD47")   
+        "BasicPlan": "Survey and for drafting",
+        "status": survdraft,
+        "color": am4core.color("#44555A")   
       },
       {
-        "StatusStruc": "For Payment Processing",
-        "status": payp,
-        "color": am4core.color("#0070FF") 
+        "BasicPlan": "For Survey",
+        "status": survey,
+        "color": am4core.color("#FFFFFF") 
       },
       {
-        "StatusStruc": "For Legal Pass",
-        "status": legalpass,
+        "BasicPlan": "For Reschedule",
+        "status": resche,
         "color": am4core.color("#FFFF00")
       },
       {
-        "StatusStruc": "For Appraisal/Offer to Compensate",
-        "status": otc,
-        "color": am4core.color("#FFAA00")    
+        "BasicPlan": "Missing tag or structure or owner",
+        "status": miss,
+        "color": am4core.color("#FFCCCB")    
       },
       {
-        "StatusStruc": "LBP Account Opening",
-        "status": lbp,
+        "BasicPlan": "Refused",
+        "status": refuse,
         "color": am4core.color("#FF0000")    
+      },
+      {
+        "BasicPlan": "NA",
+        "status": nna,
+        "color": am4core.color("#FFFF0000")    
       }
   ];
 
@@ -1846,7 +2206,7 @@ function createSlices(field, status) {
   var pattern = new am4core.LinePattern();
   pattern.width = 7;
   pattern.height = 7;
-  pattern.strokeWidth = 1.5;
+  pattern.strokeWidth = 1;
   pattern.stroke = target.dataItem.dataContext.color;
   pattern.rotation = 135;
   return pattern;
@@ -1867,7 +2227,7 @@ pieSeries.slices.template.background.adapter.add("fill", function(fill, target) 
 
   
   // Hover setting
-  pieSeries.tooltip.label.fontSize = 9;
+  pieSeries.tooltip.label.fontSize = 12;
 
   // Pie
 //pieSeries.alignLabels = false;
@@ -1896,9 +2256,15 @@ var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
 hoverShadow.opacity = 0.7;
 hoverShadow.blur = 5;
 
+// Chart Title
+let title = chart.titles.create();
+title.text = "Structure Basic Plan";
+title.fontSize = 20;
+title.fill = am4core.color("#ffffff");
+title.marginTop = 7;
 
   // Add a legend
-  const LegendFontSizze = 12;
+  const LegendFontSizze = 14;
   chart.legend = new am4charts.Legend();
 
   chart.legend.valueLabels.template.align = "right"
@@ -1939,16 +2305,19 @@ function filterByChart(ev) {
 
   if (selectedD == "Dismantling/Clearing") {
       selectedStatus = 1;
-  } else if (selectedD == "Paid") {
+  } else if (selectedD == "Survey and for drafting") {
     selectedStatus = 2;
-  } else if (selectedD == "For Payment Processing") {
+  } else if (selectedD == "For Survey") {
     selectedStatus = 3;
-  } else if (selectedD == "For Legal Pass") {
+  } else if (selectedD == "For Reschedule") {
     selectedStatus = 4;
-  } else if (selectedD == "For Appraisal/Offer to Compensate") {
+  } else if (selectedD == "Missing tag or structure or owner") {
     selectedStatus = 5;
-  } else if (selectedD == "LBP Account Opening") {
+  } else if (selectedD == "Refused") {
     selectedStatus = 6;
+  } else if (selectedD == "NA") {
+    selectedStatus = 7;
+
   } else {
     selectedStatus = null;
   }
@@ -1990,7 +2359,7 @@ function filterByChart(ev) {
 
       }); // End of queryFeatures
       layerView.filter = {
-    where: "StatusStruc = " + selectedStatus
+    where: "BasicPlan = " + selectedStatus
   }
 
     }); // End of view.whenLayerView
@@ -2001,7 +2370,7 @@ function filterByChart(ev) {
 } // End of filterByChart
 } // End of createSlices function
 
-createSlices("status", "StatusStruc");
+createSlices("status", "BasicPlan");
 
 return totalNumberStructures;
 
@@ -2012,52 +2381,324 @@ function totalNumberOfStructures(totalNumberStructures) {
     structureTotalNumberDiv.innerHTML = thousands_separators(totalNumberStructures);
 }
 
+
+/////////////////////////////////////////////////////////////////////
+// Barangay Chart
+async function updateBarangay() {
+  var total_coopassist_barang = {
+    onStatisticField: "CASE WHEN Coop = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_coopassist_barang",
+    statisticType: "sum"
+  };
+
+  var total_coopnoassist_barang = {
+    onStatisticField: "CASE WHEN Coop = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_coopnoassist_barang",
+    statisticType: "sum"
+  };
+
+  var total_coord_barang = {
+    onStatisticField: "CASE WHEN Coop = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_coord_barang",
+    statisticType: "sum"
+  };
+
+  var total_quaran_barang = {
+    onStatisticField: "CASE WHEN Coop = 4 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_quaran_barang",
+    statisticType: "sum"
+  };
+
+  var total_refuse_barang = {
+    onStatisticField: "CASE WHEN Coop = 5 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_refuse_barang",
+    statisticType: "sum"
+  };
+
+  var total_na_barang = {
+    onStatisticField: "CASE WHEN Coop = 6 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_na_barang",
+    statisticType: "sum"
+  };  
+
+  var query = barangayLayer.createQuery();
+  query.outStatistics = [total_coopassist_barang, total_coopnoassist_barang, total_coord_barang,
+                         total_quaran_barang, total_refuse_barang, total_na_barang];
+  query.returnGeometry = true;
+
+  return barangayLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const coopassist = stats.total_coopassist_barang;
+    const coopnoassist = stats.total_coopnoassist_barang;
+    const coord = stats.total_coord_barang;
+    const quaran = stats.total_quaran_barang;
+    const refuse = stats.total_refuse_barang;
+    const nna = stats.total_na_barang;
+
+    const totalNumberBarangay = coopassist + coopnoassist + coord + quaran + refuse + nna;
+
+    var chart = am4core.create("barangayChartDiv", am4charts.PieChart);
+
+
+    // Add data
+    chart.data = [
+      {
+        "Coop": "Cooperative w/ assistance",
+        "status": coopassist,
+        "color": am4core.color("#000080")
+      },
+      {
+        "Coop": "Cooperative w/out assistance",
+        "status": coopnoassist,
+        "color": am4core.color("#44555A")   
+      },
+      {
+        "Coop": "For Coordination",
+        "status": coord,
+        "color": am4core.color("#FFFFFF") 
+      },
+      {
+        "Coop": "Quarantine/Reschedule",
+        "status": quaran,
+        "color": am4core.color("#FFAA00")
+      },
+      {
+        "Coop": "Refused",
+        "status": refuse,
+        "color": am4core.color("#FF0000")    
+      },
+      {
+        "Coop": "NA",
+        "status": nna,
+        "color": am4core.color("#FFFF0000")    
+      }
+  ];
+
+  // Set inner radius
+  chart.innerRadius = am4core.percent(30);
+
+  // Add and configure Series
+function createSlices(field, status) {
+  var pieSeries = chart.series.push(new am4charts.PieSeries());
+  pieSeries.dataFields.value = field;
+  pieSeries.dataFields.category = status;
+
+  pieSeries.slices.template.propertyFields.fill = "color";
+  pieSeries.slices.template.stroke = am4core.color("#fff");
+  pieSeries.slices.template.strokeWidth = 1;
+  pieSeries.slices.template.strokeOpacity = 1;
+
+  /*
+  pieSeries.slices.template.adapter.add("fill", function(fill, target) {
+  var pattern = new am4core.LinePattern();
+  pattern.width = 7;
+  pattern.height = 7;
+  pattern.strokeWidth = 1.5;
+  pattern.stroke = target.dataItem.dataContext.color;
+  pattern.rotation = 135;
+  return pattern;
+});
+
+pieSeries.slices.template.background.adapter.add("fill", function(fill, target) {
+  return target.dataItem ? target.dataItem.dataContext.color : fill;
+});
+*/
+
+  pieSeries.slices.template
+  // change the cursor on hover to make it apparent the object can be interacted with
+  .cursorOverStyle = [
+    {
+      "property": "cursor",
+      "value": "pointer"
+    }
+  ];
+
+  
+  // Hover setting
+  pieSeries.tooltip.label.fontSize = 12;
+
+  // Pie
+//pieSeries.alignLabels = false;
+//pieSeries.labels.template.bent = false;
+pieSeries.labels.template.disabled = true;
+pieSeries.labels.template.radius = 3;
+pieSeries.labels.template.padding(0,0,0,0);
+pieSeries.labels.template.fontSize = 9;
+pieSeries.labels.template.fill = "#ffffff";
+
+// Ticks (a straight line)
+//pieSeries.ticks.template.disabled = true;
+pieSeries.ticks.template.fill = "#ffff00";
+
+// Create a base filter effect (as if it's not there) for the hover to return to
+var shadow = pieSeries.slices.template.filters.push(new am4core.DropShadowFilter);
+shadow.opacity = 0;
+
+
+
+// Create hover state
+var hoverState = pieSeries.slices.template.states.getKey("hover"); // normally we have to create the hover state, in this case it already exists
+
+// Slightly shift the shadow and make it more prominent on hover
+var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
+hoverShadow.opacity = 0.7;
+hoverShadow.blur = 5;
+
+// Chart Title
+let title = chart.titles.create();
+title.text = "Cooperation (Barangay)";
+title.fontSize = 20;
+title.fill = am4core.color("#ffffff");
+title.marginTop = 7;
+//title.marginBottom = 10;
+
+  // Add a legend
+  const LegendFontSizze = 14;
+  chart.legend = new am4charts.Legend();
+
+  chart.legend.valueLabels.template.align = "right"
+  chart.legend.valueLabels.template.textAlign = "end";  
+  
+  //chart.legend.position = "bottom";
+  chart.legend.labels.template.fontSize = LegendFontSizze;
+  chart.legend.labels.template.fill = "#ffffff";
+  chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+  chart.legend.valueLabels.template.fontSize = LegendFontSizze; 
+  pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
+  //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+
+  chart.legend.horizontalGap = 0;
+chart.legend.marginLeft = 0;
+chart.legend.marginRight = 0;
+
+
+  var marker = chart.legend.markers.template.children.getIndex(0);
+  var markerTemplate = chart.legend.markers.template;
+marker.cornerRadius(12, 12, 12, 12);
+marker.strokeWidth = 1;
+marker.strokeOpacity = 1;
+marker.stroke = am4core.color("#ccc");
+
+// Change size of legend marker
+markerTemplate.width = 18;
+markerTemplate.height = 18;
+// This creates initial animation
+//pieSeries.hiddenState.properties.opacity = 1;
+//pieSeries.hiddenState.properties.endAngle = -90;
+//pieSeries.hiddenState.properties.startAngle = -90;
+
+// Click chart and filter, update maps
+pieSeries.slices.template.events.on("hit", filterByChart, this);
+function filterByChart(ev) {
+  const selectedD = ev.target.dataItem.category;
+
+  if (selectedD == "Cooperative w/ assistance") {
+      selectedStatus = 1;
+  } else if (selectedD == "Cooperative w/out assistance") {
+    selectedStatus = 2;
+  } else if (selectedD == "For Coordination") {
+    selectedStatus = 3;
+  } else if (selectedD == "Quarantine/Reschedule") {
+    selectedStatus = 4;
+  } else if (selectedD == "Refused") {
+    selectedStatus = 5;
+  } else if (selectedD == "NA") {
+    selectedStatus = 6;
+  } else {
+    selectedStatus = null;
+  }
+
+  view.when(function() {
+    view.whenLayerView(barangayLayer).then(function (layerView) {
+      chartLayerView = layerView;
+      chartElementStructure.style.visibility = "visible";
+
+      barangayLayer.queryFeatures().then(function(results) {
+        const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i < rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            barangayLayer.queryExtent(queryExt).then(function(result) {
+                if (result.extent) {
+                    view.goTo(result.extent)
+                }
+            });
+
+            if (highlightSelect) {
+                highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+
+            view.on("click", function() {
+            layerView.filter = null;
+            highlightSelect.remove();
+            });
+
+      }); // End of queryFeatures
+      layerView.filter = {
+    where: "Coop = " + selectedStatus
+  }
+
+    }); // End of view.whenLayerView
+
+
+  }); // End of view.when
+
+} // End of filterByChart
+} // End of createSlices function
+
+createSlices("status", "Coop");
+
+return totalNumberBarangay;
+
+});  // End of queryFeature                 
+} // End of updateChartStructure()
+
+updateBarangay();
+
+
+
 //////////////////// Bar Chart for MOA ///////////////////////////////////////////////////
 // Lot
-async function updateMoaChartLot() {
-  var total_nego_lot = {
-    onStatisticField: "CASE WHEN MoA = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_nego_lot",
+async function updatePriorityChartLot() {
+  var total_first_lot = {
+    onStatisticField: "CASE WHEN Priority1 = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_first_lot",
     statisticType: "sum"
   };
 
-  var total_expro_lot = {
-    onStatisticField: "CASE WHEN MoA = 2 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_expro_lot",
+  var total_second_lot = {
+    onStatisticField: "CASE WHEN Priority1 = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_second_lot",
     statisticType: "sum"
   };
 
-  var total_donate_lot = {
-    onStatisticField: "CASE WHEN MoA = 3 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_donate_lot",
-    statisticType: "sum"
-  };
-
-  var total_ca141_lot = {
-    onStatisticField: "CASE WHEN MoA = 4 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_ca141_lot",
-    statisticType: "sum"
-  };
-
-  var total_noneed_lot = {
-    onStatisticField: "CASE WHEN MoA = 5 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_noneed_lot",
+  var total_third_lot = {
+    onStatisticField: "CASE WHEN Priority1 = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_third_lot",
     statisticType: "sum"
   };
 
 var query = lotLayer.createQuery();
-query.outStatistics = [total_nego_lot, total_expro_lot, total_donate_lot, total_ca141_lot, total_noneed_lot];
+query.outStatistics = [total_first_lot, total_second_lot, total_third_lot];
 query.returnGeometry = true;
 
 lotLayer.queryFeatures(query).then(function(response) {
   var stats = response.features[0].attributes;
 
-  const nego = stats.total_nego_lot;
-  const expro = stats.total_expro_lot;
-  const donate = stats.total_donate_lot;
-  const ca141 = stats.total_ca141_lot;
-  const noneed = stats.total_noneed_lot;
-
+  const first = stats.total_first_lot;
+  const second = stats.total_second_lot;
+  const third = stats.total_third_lot;
 
   var chart = am4core.create("lotMoaChartDiv", am4charts.XYChart);
   chart.hiddenState.properties.opacity = 0;
@@ -2080,6 +2721,7 @@ categoryAxis.renderer.grid.template.strokeWidth = 1.5;
 //categoryAxis.renderer.cellStartLocation = 0;
 //categoryAxis.renderer.cellEndLocation = 0.7;
 /////////////////
+categoryAxis.renderer.labels.template.fontSize = 13;
 categoryAxis.renderer.line.strokeOpacity = 1;
 categoryAxis.renderer.line.strokeWidth = 1.5;
 categoryAxis.renderer.line.stroke = am4core.color("#FFFFFF");
@@ -2093,7 +2735,7 @@ valueAxis.min = 0;
 valueAxis.strictMinMax = true;
 valueAxis.calculateTotals = true;
 valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 10;
+valueAxis.renderer.labels.template.fontSize = 12;
 valueAxis.renderer.labels.template.fill = "#ffffff";
 valueAxis.renderer.line.strokeOpacity = 1;
 valueAxis.renderer.line.strokeWidth = 1.5;
@@ -2111,89 +2753,85 @@ labelBullet.label.text = "{values.valueX.workingValue.formatNumber('#')}"; //#.0
 labelBullet.locationX = 0.5;
   labelBullet.label.fill = am4core.color("#ffffff");
   labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 10;
+  labelBullet.label.fontSize = 13;
 
   // Add chart title
 var title = chart.titles.create();
-title.text = "[bold]Mode of Acquisition[/]"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
-title.fontSize = 12;
+title.text = "[bold]Priority Lot[/]"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+title.fontSize = 16;
 title.fill = "#3ce00a";
 
-series.columns.template.adapter.add("fill", function(fill, target){
-  return chart.colors.getIndex(target.dataItem.index);
-});
+//series.columns.template.adapter.add("fill", function(fill, target){
+ // return chart.colors.getIndex(target.dataItem.index);
+//});
+
 
   chart.data = [
   {
-      category: "No Need to Acquire",
-      value: noneed
+      category: "1st Priority",
+      value: first,
+      color: am4core.color("#FF0000")
     },
     {
-      category: "CA 141",
-      value: ca141
+      category: "2nd Priority",
+      value: second,
+      color: am4core.color("#FFFF00")
     },
     {
-      category: "Donation",
-      value: donate
-    },
-    {
-      category: "Expropriation",
-      value: expro
-    },
-    {
-      category: "For Negotiation",
-      value: nego
+      category: "3rd Priority",
+      value: third,
+      color: am4core.color("#FFFFFF00")
     }
   ]; // End of chart
 
 
 }); // End of queryFeatures
 
-} // End of updateMoaChartLot
-updateMoaChartLot();
+} // End of updatePriorityChartLot
+updatePriorityChartLot();
 
-// Lot
+// Structure
 async function updateMoaChartStructure() {
-  var total_nego_lot = {
-    onStatisticField: "CASE WHEN MoA = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_nego_lot",
+  var total_first_lot = {
+    onStatisticField: "CASE WHEN Priority1 = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_first_lot",
     statisticType: "sum"
   };
 
-  var total_expro_lot = {
-    onStatisticField: "CASE WHEN MoA = 2 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_expro_lot",
+  var total_second_lot = {
+    onStatisticField: "CASE WHEN Priority1 = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_second_lot",
     statisticType: "sum"
   };
 
-  var total_donate_lot = {
-    onStatisticField: "CASE WHEN MoA = 3 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_donate_lot",
+  var total_third_lot = {
+    onStatisticField: "CASE WHEN Priority1 = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_third_lot",
     statisticType: "sum"
   };
 
   var total_ca141_lot = {
-    onStatisticField: "CASE WHEN MoA = 4 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN Priority1 = 4 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_ca141_lot",
     statisticType: "sum"
   };
 
   var total_noneed_lot = {
-    onStatisticField: "CASE WHEN MoA = 5 THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN Priority1 = 5 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_noneed_lot",
     statisticType: "sum"
   };
 
 var query = structureLayer.createQuery();
-query.outStatistics = [total_nego_lot, total_expro_lot, total_donate_lot, total_ca141_lot, total_noneed_lot];
+query.outStatistics = [total_first_lot, total_second_lot, total_third_lot, total_ca141_lot, total_noneed_lot];
 query.returnGeometry = true;
 
 structureLayer.queryFeatures(query).then(function(response) {
   var stats = response.features[0].attributes;
 
-  const nego = stats.total_nego_lot;
-  const expro = stats.total_expro_lot;
-  const donate = stats.total_donate_lot;
+  const nego = stats.total_first_lot;
+  const research = stats.total_second_lot;
+  const donate = stats.total_third_lot;
   const ca141 = stats.total_ca141_lot;
   const noneed = stats.total_noneed_lot;
 
@@ -2258,6 +2896,7 @@ title.text = "[bold]Mode of Acquisition[/]"; // [#00ff00]world[/], Hello [font-s
 title.fontSize = 12;
 title.fill = "#3ce00a";
 
+
 series.columns.template.adapter.add("fill", function(fill, target){
   return chart.colors.getIndex(target.dataItem.index);
 });
@@ -2277,7 +2916,7 @@ series.columns.template.adapter.add("fill", function(fill, target){
     },
     {
       category: "Expropriation",
-      value: expro
+      value: research
     },
     {
       category: "For Negotiation",
@@ -2381,26 +3020,17 @@ var legend = new Legend({
   view: view,
   container: legendDiv,
   layerInfos: [
-  {
-      layer: pierHeadColumnLayerLayer,
-      title: "Pier Head/Column"
-
+    {
+      layer: barangayLayer,
+      title: "Cooperation for Barangay"
     },
     {
       layer: lotLayer,
-      title: "Status of Parcellary"
+      title: "Lot Requirements"
     },
     {
       layer: structureLayer,
-      title: "Status of Structure"
-    },
-    {
-      layer: structureNLOLOLayer,
-      title: "Structure (NLO/LO)"
-    },
-    {
-      layer: relocationPtLayer,
-      title: "Occupancy"
+      title: "Structure Basic Plan"
     },
     {
       layer: priorityLayer,
@@ -2413,6 +3043,11 @@ var legend = new Legend({
     {
       layer: pnrLayer,
       title: "PNR"
+    },
+    {
+      layer: pierHeadColumnLayerLayer,
+      title: "Pier Head/Column"
+
     }
   ]
 });
@@ -2469,7 +3104,7 @@ view.ui.add(legendExpand, {
             "top-left"
         );
 
-
+//test
       });
     </script>
   </head>
@@ -2479,13 +3114,13 @@ view.ui.add(legendExpand, {
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
         <div id="headerTitleDiv">
-            <h2>Land Acquisition (SC): SAMPLE</h2>
+            <h2>SC1 Subcontractor Submissions: SAMPLE</h2>
         </div>
         <div class="dateDiv">
-            <h4>As of November 25, 2021</h4>
+            <h4>As of January 21, 2022</h4>
         </div>
         <div class="esri-widget" id="dropdownDiv">
-            <label for="sel-options">Municipality:</label>
+            <label for="sel-options">City/Municipality:</label>
             <select id="valSelect" class="esri-widget"></select>
             <label for="sel-options">Barangay:</label>
             <select id="barangaySelect" class="esri-widget" width="150" style="width: 150px"></select>
@@ -2497,7 +3132,7 @@ view.ui.add(legendExpand, {
           </div>
           <div class="boxB">
             <div class="panel-side esri-widget">
-                <h2>Lots For Expro</h2>
+                <h2>Lots Refused</h2>
                 <ul id="relocationOwnerList">
                   <li>Loading&hellip;</li>
                 </ul>
@@ -2508,32 +3143,22 @@ view.ui.add(legendExpand, {
         </div>
         <div class="boxD">
             <div id="chartPanel">
-                <div id="chartTitleDiv" class="esri-widget">Progress of Land Acquisition</div>
                 <div id="chartdiv"></div>
                   <div id="optionsDiv" class="esri-widget">
                     <div><b>Number of Lot</b></div>
                     <h6 id="totalNumberDiv"></h6>
                   </div>
                   <div id="lotMoaChartDiv"></div>
-                  <div id="optionsDiv" class="esri-widget">
-                    <div><p class="h7"><b>Number of PTE</b></p></div>
-                    <h6 id="lotPteDiv"></h6>
-                  </div>
             </div>
         </div>
         <div class="boxE">
             <div id="structureChartPanel">
-                <div id="structureChartTitleDiv" class="esri-widget">Progress of Structure</div>
                 <div id="structureChartDiv"></div>
                 <div id="optionsDiv" class="esri-widget">
                     <div><b>Number of Structure</b></div>
                     <h6 id="structureTotalNumberDiv"></h6>
                   </div>
-                  <div id="structureMoaChartDiv"></div>
-                  <div id="optionsDiv" class="esri-widget">
-                    <div><p class="h7"><b>Number of PTE</b></p></div>
-                    <h6 id="structurePteDiv"></h6>
-                  </div>
+                  <div id="barangayChartDiv"></div>
             </div>
         </div>
         </div>
