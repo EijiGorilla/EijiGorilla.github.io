@@ -1659,7 +1659,7 @@ function addToSelect(values) {
         option.text = value;
         municipalSelect.add(option);
     });
-   //return setLotMunicipalExpression(municipalSelect.value);
+   //return setMunicipalExpression(municipalSelect.value);
 }
 
 /// 2.2. Barangay
@@ -1766,7 +1766,7 @@ function addToSelectQuery4(query4Values) {
 // Set the definition expression on the lot layer
 // to reflect the selecction of the user
 // Only for Municipality
-function setLotMunicipalExpression() {
+function setMunicipalExpression() {
   var municipal = municipalSelect.options[municipalSelect.selectedIndex].value;
 
   if (municipal == 'None') {
@@ -1827,30 +1827,51 @@ function setMunicipalBarangDefinitionExpression() {
 // for Municipcality + Barangay + Priority
 function setMunicipalPriorityExpression() {
   var municipal = municipalSelect.options[municipalSelect.selectedIndex].value;
-  //var barang = barangaySelect.options[barangaySelect.selectedIndex].value;
+  var barang = barangaySelect.options[barangaySelect.selectedIndex].value;
   var priori = prioritySelect.options[prioritySelect.selectedIndex].value;
 
- //headerTitleDiv.innerHTML = municipal + ", " + priori;
+ //headerTitleDiv.innerHTML = municipal + ", " + barang + ", "+ priori;
 
- if (municipal == 'None' && priori == 'None') {
+ // all = 'None'
+ if (municipal == 'None' && barang == 'None' && priori == 'None') {
     lotLayer.definitionExpression = null;
     structureLayer.definitionExpression = null;
     priorityLayer.definitionExpression = null;
 
- } else if (municipal !== 'None' && priori == 'None') {
+  } else if (municipal == 'None' && barang == 'None' && priori !== 'None') {
+    lotLayer.definitionExpression = "Priority1_1 = '" + priori + "'";
+    structureLayer.definitionExpression = "Priority1_1 = '" + priori + "'";
+    priorityLayer.definitionExpression = "Priority1_1 = '" + priori + "'"; 
+
+  } else if (municipal == 'None' && barang !== 'None' && priori == 'None') {
+    lotLayer.definitionExpression = "Barangay = '" + barang + "'";
+    structureLayer.definitionExpression = "Barangay = '" + barang + "'";
+    priorityLayer.definitionExpression = "Barangay = '" + barang + "'"; 
+
+  } else if (municipal == 'None' && barang !== 'None' && priori !== 'None') {
+    lotLayer.definitionExpression = "Barangay = '" + barang + "'" + " AND " + "Priority1_1 = '" + priori + "'";
+    structureLayer.definitionExpression = "Barangay = '" + barang + "'" + " AND " + "Priority1_1 = '" + priori + "'";
+    priorityLayer.definitionExpression = "Barangay = '" + barang + "'" + " AND " + "Priority1_1 = '" + priori + "'"; 
+
+  } else if (municipal !== 'None' && barang == 'None' && priori == 'None') {
     lotLayer.definitionExpression = "Municipality = '" + municipal + "'";
     structureLayer.definitionExpression = "Municipality = '" + municipal + "'";
-    priorityLayer.definitionExpression = "Municipality = '" + municipal + "'"; 
+    priorityLayer.definitionExpression = "Municipality = '" + municipal + "'";
 
-  } else if (municipal == 'None' && priori !== 'None') {
-    lotLayer.definitionExpression = null;
-    structureLayer.definitionExpression = null;
-    priorityLayer.definitionExpression = null;
-
-  } else {
+  } else if (municipal !== 'None' && barang == 'None' && priori !== 'None') {
     lotLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Priority1_1 = '" + priori + "'";
     structureLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Priority1_1 = '" + priori + "'";
     priorityLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Priority1_1 = '" + priori + "'";
+
+  } else if (municipal !== 'None' && barang !== 'None' && priori == 'None') {
+    lotLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'";
+    structureLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'";
+    priorityLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'"; 
+
+  } else {
+    lotLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'" + " AND " + "Priority1_1 = '" + priori + "'";
+    structureLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'" + " AND " + "Priority1_1 = '" + priori + "'";
+    priorityLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'" + " AND " + "Priority1_1 = '" + priori + "'";
   }
 
 
@@ -1872,7 +1893,7 @@ municipalSelect.addEventListener("change", function() {
     var target = event.target;
 
 
-    setLotMunicipalExpression();
+    setMunicipalExpression();
     filterLotMunicipality();
     filterLotPriorityMunicipality();
     filterLotPriorityBarangay();
@@ -3258,21 +3279,6 @@ view.ui.add(legendExpand, {
             "top-left"
         );
 
-// Print widget
-const print = new Print({
-  view: view,
-  printServiceUrl: "https://gis.railway-sector.com/server/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
-  container: "printDiv"
-});
-var printExpand = new Expand ({
-            view: view,
-            content: print,
-            expandIconClass: "esri-icon-printer",
-            group: "top-left"
-        });
-        view.ui.add(printExpand, {
-            position: "top-left"
-        });
 //test
       });
     </script>
