@@ -36,7 +36,7 @@
         height: 90vh;
         width: 100%;
         box-sizing: border-box;
-          grid-template-columns: 4fr 1.4fr;
+          grid-template-columns: 4fr 1.3fr 1.3fr;
           border-right: 0;
       }
 
@@ -75,6 +75,16 @@
         border-bottom: 0;
       }
 
+      .boxC {
+        border: solid 2px gray;
+        display: flex; flex-direction: Column;
+        flex-wrap: wrap;
+        height: 100%;
+        box-sizing: border-box;
+        border-top: 0;
+        border-bottom: 0;
+      }
+
       #chartTitleDiv {
         font-weight: 200;
         text-align: center;
@@ -96,16 +106,22 @@
 
       #chartdiv {
           width: 100%;
-          height: 40vh;
+          height: 70vh;
           align-items: center;
           }
-
-
-       #utilChartDiv{
+          
+      #treeChartDiv {
         width: 100%;
-          height: 40vh;
+          height: 44vh;
+          align-items: center;
+      }
+
+      #utilChartDiv{
+        width: 100%;
+          height: 44vh;
           align-items: center;
        }
+
 
       #cpButton {
         margin:0;
@@ -566,24 +582,153 @@ var verticalOffsetRelocation = {
 
         }
 
+//*******************************//
+// Label Class Property Settings //
+//*******************************//
+// Pier No
+var pierNoLabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d",// autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: {
+                  color: "white"
+                },
+                size: 10,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  //weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 100,
+              maxWorldLength: 100,
+              minWorldLength: 20
+            },
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: "white",
+              size: 0.7,
+              border: {
+                color: "grey"
+              }
+            }
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: "$feature.PIER"
+            //value: "{TEXTSTRING}"
+        }
+        });
+
+
+var chainageNoLabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d",// autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: {
+                  color: [115, 223, 255]
+                },
+                size: 10,
+                color: [115, 223, 255],
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  //weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 70,
+              maxWorldLength: 100,
+              minWorldLength: 20
+            },
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: [115, 223, 255],
+              size: 0.7,
+              border: {
+                color: "grey"
+              }
+            }
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: "$feature.KmSpot"
+            //value: "{TEXTSTRING}"
+        }
+        });
 
 //*****************************//
 //      Renderer Settings      //
 //*****************************//
-
-// Chainage symbol
-var chainageRenderer = {
-    type: "simple",
+// Pier Heand Pier Column
+let pierHeadColRenderer = {
+  type: "unique-value",
+  field: "Layer",
+  defaultSymbol: { type: "simple-fill" },  // autocasts as new SimpleFillSymbol()
+  uniqueValueInfos: [
+    {
+    // All features with value of "North" will be blue
+    value: "Pier_Column",
     symbol: {
-      type: "simple-marker",
-      size: 5,
-      color: [255, 255, 255, 0.9],
-      outline: {
-        width: 0.2,
-        color: "black"
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: [78, 78, 78, 0.5],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "Pier_Head",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: [169, 169, 169, 0.7]
+    }
+  }
+]
+};
+
+// PNR
+let pnrRenderer = {
+  type: "unique-value",
+  valueExpression: "When($feature.LandOwner == 'BASES CONVERSION DEVELOPMENT AUTHORITY', 'BCDA', \
+                         $feature.LandOwner == 'MANILA RAILROAD COMPANY' || $feature.LandOwner == 'Manila Railroad Company','PNR',$feature.LandOwner)",
+  uniqueValueInfos: [
+    {
+      value: "BCDA",
+      symbol: {
+        type: "simple-fill",
+        color: [204, 204, 204],
+        style: "diagonal-cross",
+        outline: {
+          width: 0.5,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "PNR",
+      symbol: {
+        type: "simple-fill",
+        color: [204, 204, 204],
+        style: "diagonal-cross",
+        outline: {
+          width: 0.5,
+          color: "black"
+        }
       }
     }
-  };
+  ]
+};
+
+
 
 // Station
 var stationsRenderer = {
@@ -854,6 +999,7 @@ let lotPriorityRenderer = {
   {
     // All features with value of "North" will be blue
     value: "0",
+    label: "Top Priority",
     symbol: {
       type: "simple-fill",  // autocasts as new SimpleFillSymbol()
       color: [0,0,0,0],
@@ -866,6 +1012,7 @@ let lotPriorityRenderer = {
   {
     // All features with value of "North" will be blue
     value: "1",
+    label: "1st Priority",
     symbol: {
       type: "simple-fill",  // autocasts as new SimpleFillSymbol()
       color: [0,0,0,0],
@@ -877,6 +1024,7 @@ let lotPriorityRenderer = {
   },
   {
     value: "2",
+    label: "2nd Priority",
     symbol: {
       type: "simple-fill",  // autocasts as new SimpleFillSymbol()
       color: [0,0,0,0],
@@ -904,104 +1052,332 @@ function colorsCut() {
 ///////////////////
 /////////////////////
 let treeCuttingRenderer = {
-  type: "unique-values",
+  type: "unique-value",
   valueExpression: "When($feature.Status == 1, 'cutearthb', \
                          $feature.Status == 2, 'permit', $feature.Status == 3, 'submit', \
                          $feature.Status == 4, 'ongoing', $feature.Status)",
   uniqueValueInfos: [
     {
       value: "cutearthb",
+      symbol: {
       type: "point-3d", // autocasts as new PointSymbol3D()
           symbolLayers: [
             {
               type: "icon", // autocasts as new IconSymbol3DLayer()
-              size: 7,
+              size: 8,
               resource: {
-                primitive: "cube"
+                primitive: "sphere"
               },
               material: {
-                color: "blue"
+                color: [112,173,71]
               },
               outline: {
                 color: "white",
-                size: 0.8
+                size: 0.6
               }
             }
           ]
-
-
+      }
     },
     {
       value: "permit",
+      symbol: {
       type: "point-3d", // autocasts as new PointSymbol3D()
           symbolLayers: [
             {
               type: "icon", // autocasts as new IconSymbol3DLayer()
-              size: 7,
+              size: 8,
               resource: {
-                primitive: "cube"
+                primitive: "sphere"
               },
               material: {
-                color: "blue"
+                color: [255,255,0]
               },
               outline: {
                 color: "white",
-                size: 0.8
+                size: 0.6
               }
             }
           ]
-
+      }
     },
     {
       value: "submit",
+      symbol: {
       type: "point-3d", // autocasts as new PointSymbol3D()
           symbolLayers: [
             {
               type: "icon", // autocasts as new IconSymbol3DLayer()
               size: 7,
               resource: {
-                primitive: "cube"
+                primitive: "sphere"
               },
               material: {
-                color: "blue"
+                color: [255,170,0]
               },
               outline: {
-                color: "white",
-                size: 0.8
+                color: "blue",
+                size: 0.6
               }
             }
           ]
-
+      }
     },
     {
       value: "ongoing",
+      symbol: {
       type: "point-3d", // autocasts as new PointSymbol3D()
           symbolLayers: [
             {
               type: "icon", // autocasts as new IconSymbol3DLayer()
               size: 7,
               resource: {
-                primitive: "cube"
+                primitive: "sphere"
               },
               material: {
-                color: "blue"
+                color: [255,0,0]
               },
               outline: {
                 color: "white",
-                size: 0.8
+                size: 0.6
               }
             }
           ]
-
+      }
     },
   ]
 };
+
+// Free and Clear
+
+let fncRenderer = {
+  type: "simple",
+  symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: [76, 230, 0, 0.5],
+    }
+
+}
+
+// ISF Relocation
+const isfSymbolColor = {
+  1: [255, 0, 197], // Relocated
+          2: [112, 173, 71], // Paid
+          3: [0, 112, 255], // For Payment Processing
+          4: [255, 255, 0], // For Legal Pass 
+          5: [255, 170, 0], // For Appraisal/OtC/Requirements for Other Entitlements
+          6: [255, 0, 0] //LBP Account Opening
+}
+
+let isfRenderer = {
+  type: "unique-value",
+  valueExpression: "When($feature.StatusRC == 1, 'relocated', \
+                         $feature.StatusRC == 2, 'paid', $feature.StatusRC == 3, 'payp', \
+                         $feature.StatusRC == 4, 'legalpass', $feature.StatusRC == 5, 'otc', \
+                         $feature.StatusRC == 6, 'lbp', $feature.StatusRC)",
+  uniqueValueInfos: [
+    {
+      value: "relocated",
+      symbol: {
+      type: "point-3d", // autocasts as new PointSymbol3D()
+          symbolLayers: [
+            {
+              type: "icon", // autocasts as new IconSymbol3DLayer()
+              size: 7,
+              resource: {
+                primitive: "triangle"
+              },
+              material: {
+                color: isfSymbolColor[1]
+              },
+              outline: {
+                color: "white",
+                size: 0.6
+              }
+            }
+          ]
+      }
+    },
+    {
+      value: "paid",
+      symbol: {
+      type: "point-3d", // autocasts as new PointSymbol3D()
+          symbolLayers: [
+            {
+              type: "icon", // autocasts as new IconSymbol3DLayer()
+              size: 7,
+              resource: {
+                primitive: "triangle"
+              },
+              material: {
+                color: isfSymbolColor[2]
+              },
+              outline: {
+                color: "white",
+                size: 0.6
+              }
+            }
+          ]
+      }
+    },
+    {
+      value: "payp",
+      symbol: {
+      type: "point-3d", // autocasts as new PointSymbol3D()
+          symbolLayers: [
+            {
+              type: "icon", // autocasts as new IconSymbol3DLayer()
+              size: 7,
+              resource: {
+                primitive: "triangle"
+              },
+              material: {
+                color: isfSymbolColor[3]
+              },
+              outline: {
+                color: "white",
+                size: 0.6
+              }
+            }
+          ]
+      }
+    },
+    {
+      value: "legalpass",
+      symbol: {
+      type: "point-3d", // autocasts as new PointSymbol3D()
+          symbolLayers: [
+            {
+              type: "icon", // autocasts as new IconSymbol3DLayer()
+              size: 7,
+              resource: {
+                primitive: "triangle"
+              },
+              material: {
+                color: isfSymbolColor[4]
+              },
+              outline: {
+                color: "white",
+                size: 0.6
+              }
+            }
+          ]
+      }
+    },
+    {
+      value: "otc",
+      symbol: {
+      type: "point-3d", // autocasts as new PointSymbol3D()
+          symbolLayers: [
+            {
+              type: "icon", // autocasts as new IconSymbol3DLayer()
+              size: 7,
+              resource: {
+                primitive: "triangle"
+              },
+              material: {
+                color: isfSymbolColor[5]
+              },
+              outline: {
+                color: "white",
+                size: 0.6
+              }
+            }
+          ]
+      }
+    },
+    {
+      value: "lbp",
+      symbol: {
+      type: "point-3d", // autocasts as new PointSymbol3D()
+          symbolLayers: [
+            {
+              type: "icon", // autocasts as new IconSymbol3DLayer()
+              size: 7,
+              resource: {
+                primitive: "triangle"
+              },
+              material: {
+                color: isfSymbolColor[6]
+              },
+              outline: {
+                color: "white",
+                size: 0.6
+              }
+            }
+          ]
+      }
+    }
+  ]
+};
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
  //*****************************//
 //      Layer Import           //
 //*****************************//
+// Free and Clear Lot //
+var fncLayer = new FeatureLayer ({
+  portalItem: {
+    id: "dca1d785da0f458b8f87638a76918496",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 2,
+  renderer: fncRenderer,
+  elevationInfo: {
+    mode: "on-the-ground"
+  },
+
+  title: "Free and Clear",
+  popupEnabled: false
+});
+map.add(fncLayer,2);
+
+// Pier head and column
+var pierHeadColumnLayerLayer = new FeatureLayer ({
+  portalItem: {
+    id: "590680d19f2e48fdbd8bcddce3aaedb5",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 4,
+  title: "Pier Head/Column",
+  outFields: ["*"],
+  renderer: pierHeadColRenderer,
+  elevationInfo: {
+    mode: "on-the-ground"
+  },
+  popupEnabled: false
+});
+//pierHeadColumnLayerLayer.listMode = "hide";
+map.add(pierHeadColumnLayerLayer, 1);
+
+
+// PNR
+var pnrLayer = new FeatureLayer({
+  portalItem: {
+    id: "dca1d785da0f458b8f87638a76918496",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 10,
+  elevationInfo: {
+    mode: "on-the-ground"
+  },
+        outFields: ["*"],
+        title: "PNR",
+        labelsVisible: false,
+        popuEnabled: false,
+        renderer: pnrRenderer
+
+});
+map.add(pnrLayer, 1);
 
 // Centerline and chainage
 var chainageLayer = new FeatureLayer ({
@@ -1016,8 +1392,7 @@ var chainageLayer = new FeatureLayer ({
   elevationInfo: {
     mode: "relative-to-ground"
   },
-  labelingInfo: [labelChainage],
-  renderer: chainageRenderer,
+  labelingInfo: [chainageNoLabelClass],
   outFields: ["*"],
   popupEnabled: false
 
@@ -1026,6 +1401,30 @@ var chainageLayer = new FeatureLayer ({
 map.add(chainageLayer, 1);
 
 // ROW //
+const otherSym = {
+  type: "simple-line", // autocasts as new SimpleLineSymbol()
+  color: "red",
+  width: 4,
+  style: "short-dash"
+};
+let prowRenderer = {
+  type: "unique-value",  // autocasts as new UniqueValueRenderer()
+  field: "Extension",
+  defaultSymbol: otherSym,  // autocasts as new SimpleFillSymbol()
+  uniqueValueInfos: [
+    {
+    value: "N2",
+    label: "",
+    type: "simple-line",
+    color: "red",
+    width: 4,
+    style: "short-dash" 
+  }
+]
+
+};
+
+
 var rowLayer = new FeatureLayer ({
   portalItem: {
     id: "590680d19f2e48fdbd8bcddce3aaedb5",
@@ -1035,10 +1434,172 @@ var rowLayer = new FeatureLayer ({
   },
   layerId: 1,
   title: "ROW",
+  renderer: prowRenderer,
+  elevationInfo: {
+                 // this elevation mode will place points on top of
+                 // buildings or other SceneLayer 3D objects
+                 mode: "on-the-ground"
+                 },
   definitionExpression: "Extension = 'N2'",
   popupEnabled: false
 });
 map.add(rowLayer,2);
+
+
+
+// Pier No. (point feature)
+var PierNoLayer = new FeatureLayer ({
+  portalItem: {
+    id: "590680d19f2e48fdbd8bcddce3aaedb5",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 6,
+  labelingInfo: [pierNoLabelClass],
+  elevationInfo: {
+          mode: "on-the-ground" //absolute-height, relative-to-ground
+        },
+  title: "Pier No",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(PierNoLayer, 1);
+
+// Structure
+var structureLayer = new FeatureLayer({
+  portalItem: {
+    id: "dca1d785da0f458b8f87638a76918496",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 6,
+        title: "Status of Structure",
+        outFields: ["*"],
+        elevationInfo: {
+          mode: "on-the-ground"
+        },
+        popupTemplate: {
+          title: "<p>{StrucID}</p>",
+          lastEditInfoEnabled: false,
+          returnGeometry: true,
+          content: [
+            {
+              type: "fields",
+              fieldInfos: [
+                {
+                  fieldName: "StrucOwner",
+                  label: "Structure Owner"
+                },
+                {
+                  fieldName: "StatusStruc",
+                  label: "<p>Status of Structure</p>"
+                },               
+                {
+                  fieldName: "LotID",
+                  label: "Lot ID"
+                },
+                {
+                  fieldName: "Municipality"
+                },
+                {
+                  fieldName: "Barangay"
+                }
+              ]
+            }
+          ]
+        }
+});
+map.add(structureLayer);
+
+const colors = {
+          1: [255, 0, 197], // Dismantling/Clearing
+          2: [112, 173, 71], // Paid
+          3: [0, 112, 255], // For Payment Processing
+          4: [255, 255, 0], // For Legal Pass 
+          5: [255, 170, 0],// For Appraisal/Offer to Compensate
+          6: [255, 0, 0] //LBP Account Opening
+        };
+
+function renderStructureLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "StatusStruc"
+          });
+
+          for (let property in colors) {
+            if (colors.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "simple-fill",
+                  color: colors[property],
+                  style: "backward-diagonal",
+                  outline: {
+                    color: "#6E6E6E",
+                    width: 0.7
+                  }
+                 }
+              });
+            }
+          }
+
+          structureLayer.renderer = renderer;
+        }
+
+        renderStructureLayer();
+
+
+// Relocation Status point layer
+var reloISFLayer = new FeatureLayer({
+  portalItem: {
+    id: "dca1d785da0f458b8f87638a76918496",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 4,
+  renderer: isfRenderer,
+        outFields: ["*"],
+        title: "Status for Relocation (ISF)",
+        popupTemplate: {
+          title: "<p>{StrucID}</p>",
+          lastEditInfoEnabled: false,
+          returnGeometry: true,
+          content: [
+            {
+              type: "fields",
+              fieldInfos: [
+                {
+                  fieldName: "StrucOwner",
+                  label: "Structure Owner"
+                },
+                {
+                  fieldName: "Municipality"
+                },
+                {
+                  fieldName: "Barangay"
+                },
+                {
+                  fieldName: "StatusRC",
+                  label: "<p>Status for Relocation(ISF)</p>"
+                },
+                {
+                  fieldName: "Name",
+                },
+                {
+                  fieldName: "Status",
+                  label: "Status of NLO/LO"
+                }
+              ]
+            }
+          ]
+        }
+});
+//reloISFLayer.listMode = "hide";
+map.add(reloISFLayer);
+
+
 
 // Station
 var stationLayer = new SceneLayer({
@@ -1088,7 +1649,7 @@ var treeCuttingLayer = new FeatureLayer ({
         url: "https://gis.railway-sector.com/portal"
     }
   },
-  outFields: ["CP", "Status"],
+  outFields: ["*"],
   title: "Status of Tree Cutting",
   renderer: treeCuttingRenderer,
   popupTemplate: {
@@ -1206,7 +1767,7 @@ var testUtilPt = new FeatureLayer({
      ]
    }
 });
-
+testUtilPt.listMode = "hide";
 map.add(testUtilPt, 3);
 
 /* Symbols with callout */
@@ -1222,7 +1783,7 @@ var testUtilPt1 = new FeatureLayer({
     }
   },
   layerId: 1,
-  title: "Utility 3D Render Test",
+  title: "Utility Point",
    outFields: ["*"],
    renderer: utilReloSymbolRenderer,
    elevationInfo: {
@@ -1278,7 +1839,6 @@ var testUtilPt1 = new FeatureLayer({
      ]
    }
 });
-testUtilPt1.listMode = "hide";
 map.add(testUtilPt1);
 
 
@@ -1292,7 +1852,7 @@ map.add(testUtilPt1);
     }
   },
   layerId: 2,
-   title: "Relocation Plan (Line)",
+   title: "Utility Line",
    elevationInfo: {
      mode: "relative-to-scene",
      featureExpressionInfo: {
@@ -1346,6 +1906,7 @@ map.add(testUtilPt1);
      ]
    }
  });
+testLine.listMode = "hide";
  map.add(testLine, 4);
 
  /* Utility Line rendnerer*/
@@ -1448,7 +2009,7 @@ var testLine1 = new FeatureLayer({
     }
   },
   layerId: 2,
-   title: "testLine",
+   title: "Utility Line",
    elevationInfo: {
      mode: "relative-to-scene",
      featureExpressionInfo: {
@@ -1504,7 +2065,7 @@ var testLine1 = new FeatureLayer({
      ]
    }
  });
- testLine1.listMode = "hide";
+
  map.add(testLine1);
 
 
@@ -1547,19 +2108,7 @@ let compileArrayLine = [];
 if (document.getElementById("None").checked = true) {
     updatePriorityChart();
     updateTreeCuttingLot();
-
-}
-
-
-treeUtilChartChangeButton.addEventListener("change", filterByType);
-function filterByType(e) {
-  const selectedType = e.target.id;
-  if(selectedType == "Tree Cutting") {
-    updateTreeCuttingLot();
-
-  } else if (selectedType == "Utility") {
     updateChartCombine();
-  }
 
 }
 
@@ -1571,6 +2120,8 @@ cpButtonElement.addEventListener("change", function(event) {
     if (cp == 'None') {
         priorityLayer.definitionExpression = null;
         treeCuttingLayer.definitionExpression = null;
+        PierNoLayer.definitionExpression = null;
+    
         testUtilPt.definitionExpression = null;
         testUtilPt1.definitionExpression = null;
         testLine.definitionExpression = null;
@@ -1585,6 +2136,9 @@ cpButtonElement.addEventListener("change", function(event) {
     } else if (cp == 'N-01') {
         priorityLayer.definitionExpression = "CP = 'N01'";
         treeCuttingLayer.definitionExpression = "CP = 1";
+        PierNoLayer.definitionExpression = "CP = 'N-01'";
+        structureLayer.definitionExpression = null;
+
         testUtilPt.definitionExpression = "CP = 'N-01'";
         testUtilPt1.definitionExpression = "CP = 'N-01'";
         testLine.definitionExpression = "CP = 'N-01'";
@@ -1599,6 +2153,8 @@ cpButtonElement.addEventListener("change", function(event) {
     } else if (cp == 'N-02') {
         priorityLayer.definitionExpression = "CP = 'N02'";
         treeCuttingLayer.definitionExpression = "CP = 2";
+        PierNoLayer.definitionExpression = "CP = 'N-02'";
+
         testUtilPt.definitionExpression = "CP = 'N-02'";
         testUtilPt1.definitionExpression = "CP = 'N-02'";
         testLine.definitionExpression = "CP = 'N-02'";
@@ -1613,6 +2169,8 @@ cpButtonElement.addEventListener("change", function(event) {
     } else if (cp == 'N-03') {
         priorityLayer.definitionExpression = "CP = 'N03'";
         treeCuttingLayer.definitionExpression = "CP = 3";
+        PierNoLayer.definitionExpression = "CP = 'N-03'";
+
         testUtilPt.definitionExpression = "CP = 'N-03'";
         testUtilPt1.definitionExpression = "CP = 'N-03'";
         testLine.definitionExpression = "CP = 'N-03'";
@@ -1627,6 +2185,8 @@ cpButtonElement.addEventListener("change", function(event) {
     } else if (cp == 'N-04') {
         priorityLayer.definitionExpression = "CP = 'N04'";
         treeCuttingLayer.definitionExpression = "CP = 4";
+        PierNoLayer.definitionExpression = "CP = 'N-04'";
+
         testUtilPt.definitionExpression = "CP = 'N-04'";
         testUtilPt1.definitionExpression = "CP = 'N-04'";
         testLine.definitionExpression = "CP = 'N-04'";
@@ -1640,7 +2200,9 @@ cpButtonElement.addEventListener("change", function(event) {
 
     } else if (cp == 'N-05') {
         priorityLayer.definitionExpression = "CP = 'N05'";
-        treeCuttingLayer.definitionExpression = "CP = 2";
+        treeCuttingLayer.definitionExpression = "CP = 5";
+        PierNoLayer.definitionExpression = "CP = 'N-05'";
+
         testUtilPt.definitionExpression = "CP = 'N-05'";
         testUtilPt1.definitionExpression = "CP = 'N-05'";
         testLine.definitionExpression = "CP = 'N-05'";
@@ -1789,13 +2351,13 @@ var chart = am4core.create("chartdiv", am4charts.XYChart);
 chart.hiddenState.properties.opacity = 0;
 
 chart.data = [
-  {
-    category: "Top Priority",
-    value1: topP_paid,
-    value2: topP_payp,
-    value3: topP_legalpass,
-    value4: topP_otb,
-    value5: topP_expro
+{
+    category: "2nd Priority",
+    value1: secondP_paid,
+    value2: secondP_payp,
+    value3: secondP_legalpass,
+    value4: secondP_otb,
+    value5: secondP_expro
   },
   {
     category: "1st Priority",
@@ -1806,19 +2368,20 @@ chart.data = [
     value5: firstP_expro
   },
   {
-    category: "2nd Priority",
-    value1: secondP_paid,
-    value2: secondP_payp,
-    value3: secondP_legalpass,
-    value4: secondP_otb,
-    value5: secondP_expro
+    category: "Top Priority",
+    value1: topP_paid,
+    value2: topP_payp,
+    value3: topP_legalpass,
+    value4: topP_otb,
+    value5: topP_expro,
   }
+
 ];
 chart.colors.step = 2;
 chart.padding(10, 10, 10, 10);
 chart.legend = new am4charts.Legend();
 chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = 13;
+chart.legend.labels.template.fontSize = 15;
 chart.legend.labels.template.fill = "#ffffff";
 
 var marker = chart.legend.markers.template.children.getIndex(0);
@@ -2047,10 +2610,6 @@ createSeries("value5", "For Expro");
 }
 // End of updatePriorityChart
 
-
-
-
-/* Create Expand widget for selecting CP and updating chart */
 
 
 
@@ -2483,32 +3042,26 @@ async function updateTreeCuttingLot() {
         statisticType: "sum"
     };
 
-    var total_earthb_tree = {
-        onStatisticField: "CASE WHEN Status = 2 THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_earthb_tree",
-        statisticType: "sum"
-    };
-
     var total_permit_tree = {
-        onStatisticField: "CASE WHEN Status = 3 THEN 1 ELSE 0 END",
+        onStatisticField: "CASE WHEN Status = 2 THEN 1 ELSE 0 END",
         outStatisticFieldName: "total_permit_tree",
         statisticType: "sum"
     };
 
     var total_submit_tree = {
-        onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+        onStatisticField: "CASE WHEN Status = 3 THEN 1 ELSE 0 END",
         outStatisticFieldName: "total_submit_tree",
         statisticType: "sum"
     };
 
     var total_ongoing_tree = {
-        onStatisticField: "CASE WHEN Status = 5 THEN 1 ELSE 0 END",
+        onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
         outStatisticFieldName: "total_ongoing_tree",
         statisticType: "sum"
     };
 
     var query = treeCuttingLayer.createQuery();
-  query.outStatistics = [total_cut_tree, total_earthb_tree, total_permit_tree,
+  query.outStatistics = [total_cut_tree, total_permit_tree,
                          total_submit_tree, total_ongoing_tree];
   query.returnGeometry = true;
 
@@ -2516,23 +3069,17 @@ async function updateTreeCuttingLot() {
       var stats = response.features[0].attributes;
 
       const cut = stats.total_cut_tree;
-      const earthb = stats.total_earthb_tree;
       const permit = stats.total_permit_tree;
       const submit = stats.total_submit_tree;
       const ongoing = stats.total_ongoing_tree;
 
-      var chart = am4core.create("utilChartDiv", am4charts.PieChart);
+      var chart = am4core.create("treeChartDiv", am4charts.PieChart);
 
       chart.data = [
           {
-            "treeCut": "Cut",
+            "treeCut": "Cut/Earthballed",
             "status": cut,
             "color": am4core.color("#70AD47")
-          },
-          {
-            "treeCut": "Earthballed",
-            "status": earthb,
-            "color": am4core.color("#0070FF")
           },
           {
             "treeCut": "Permit Acquired",
@@ -2650,16 +3197,14 @@ pieSeries.slices.template.events.on("hit", filterByChart, this);
 function filterByChart(ev) {
   const selectedD = ev.target.dataItem.category;
 
-  if (selectedD == "Cut") {
+  if (selectedD == "Cut/Earthballed") {
       selectedStatus = 1;
-  } else if (selectedD == "Earthballed") {
-    selectedStatus = 2;
   } else if (selectedD == "Permit Acquired") {
-    selectedStatus = 3;
+    selectedStatus = 2;
   } else if (selectedD == "Submitted to DENR") {
-    selectedStatus = 4;
+    selectedStatus = 3;
   } else if (selectedD == "Ongoing") {
-    selectedStatus = 5;
+    selectedStatus = 4;
   } else {
     selectedStatus = null;
   }
@@ -2879,6 +3424,35 @@ var legend = new Legend({
   view: view,
   container: document.getElementById("legendDiv"),
   layerInfos: [
+    {
+      layer: priorityLayer,
+      title: "Lot Priority"
+    },
+    {
+      layer: structureLayer,
+      title: "Status of Structure"
+    },
+    {
+      layer: reloISFLayer,
+      title: "ISF Relocation"
+    },
+    {
+      layer: treeCuttingLayer,
+      title: "Tree Cutting Status"
+    },
+    {
+      layer: pnrLayer,
+      title: "PNR"
+    },
+    {
+      layer: fncLayer,
+      title: "Free and Clear"
+
+    },
+    {
+      layer: rowLayer,
+      title: "PROW"
+    },
   {
       layer: testUtilPt,
       title: "UL Point"
@@ -2966,6 +3540,25 @@ var searchWidget = new Search({
   includeDefaultSources: false,
   sources: [
   {
+      layer: priorityLayer,
+      searchFields: ["LotID"],
+      displayField: "LotID",
+      exactMatch: false,
+      outFields: ["LotID"],
+      name: "Lot ID",
+      placeholder: "example: 10083"
+  },
+  {
+    layer: PierNoLayer,
+      searchFields: ["PIER"],
+      displayField: "PIER",
+      exactMatch: false,
+      outFields: ["PIER"],
+      name: "Pier No",
+      zoomScale: 1000,
+      placeholder: "example: P-288"
+  },
+  {
     layer: chainageLayer,
       searchFields: ["KmSpot"],
       displayField: "KmSpot",
@@ -3047,15 +3640,16 @@ searchExpand.watch("expanded", function() {
         <div class="boxA">
             <div id="chartPanel">
               <div id="chartdiv"></div>
-              <div id="utilChartDiv"></div>
-              <div id="dataTypeInput" class="cpButtonClass">
-                <label for="dataTypeInput">Chart Change</label>
-                <input type="radio" id="Tree Cutting" name="dataTypeInput" checked/> Tree Cutting
-                <input type="radio" id="Utility" name="dataTypeInput"> Utility
-              </div>
           </div>
       </div>
+      <div class="boxC">
+        <div id="treeULchartPanel">
+          <div id="treeChartDiv"></div>
+          <div id="utilChartDiv"></div>
+      </div>
+  </div>
+
       </div>
     </div>
   </body>
-</html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+</html>
