@@ -376,9 +376,9 @@ var labelClass = new LabelClass({
               {
                 type: "text", // autocasts as new TextSymbol3DLayer()
                 material: {
-                  color: "white"
+                  color: "orange"
                 },
-                size: 15,
+                size: 30,
                 color: "black",
                 haloColor: "black",
                 haloSize: 1,
@@ -389,11 +389,18 @@ var labelClass = new LabelClass({
               }
             ],
             verticalOffset: {
-              screenLength: 40,
-              maxWorldLength: 100,
+              screenLength: 150,
+              maxWorldLength: 150,
               minWorldLength: 20
             },
-
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: "orange",
+              size: 0.3,
+              border: {
+                color: "grey"
+              }
+            }
           },
           labelPlacement: "above-center",
           labelExpressionInfo: {
@@ -729,12 +736,19 @@ let pnrRenderer = {
 };
 
 
-
+// Station Symbol
+        function stationsSymbol(name) {
+          return {
+            type: "web-style", // autocasts as new WebStyleSymbol()
+            name: name,
+            styleName: "EsriIconsStyle"//EsriRealisticTransportationStyle, EsriIconsStyle
+          };
+        }
 // Station
 var stationsRenderer = {
           type: "unique-value", // autocasts as new UniqueValueRenderer()
           field: "Station",
-          defaultSymbol: IconSymbol("Train"),//Backhoe, Train
+          defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
         };
 
 // Utility Point
@@ -1312,30 +1326,74 @@ let isfRenderer = {
 };
 
 
+// Station Box
+let stationBoxRenderer = {
+  type: "unique-value",
+  field: "Layer",
+  defaultSymbol: { type: "simple-fill"},
+  uniqueValueInfos: [
+    {
+      value: "00_Platform",
+      symbol: {
+        type: "simple-fill",
+        color: [160, 160, 160],
+        style: "backward-diagonal",
+        outline: {
+          width: 1,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "00_Platform 10car",
+      symbol: {
+        type: "simple-fill",
+        color: [104, 104, 104],
+        style: "cross",
+        outline: {
+          width: 1,
+          color: "black",
+          style: "short-dash"
+        }
+      }
+    },
+    {
+      value: "00_Station",
+      symbol: {
+        type: "simple-fill",
+        color: [0, 0, 0, 0],
+        outline: {
+          width: 2,
+          color: [115, 0, 0]
+        }
+      }
+    }
+  ]
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
  //*****************************//
 //      Layer Import           //
 //*****************************//
-// Free and Clear Lot //
-var fncLayer = new FeatureLayer ({
+// Station box
+var stationBoxLayer = new FeatureLayer ({
   portalItem: {
-    id: "dca1d785da0f458b8f87638a76918496",
+    id: "590680d19f2e48fdbd8bcddce3aaedb5",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 2,
-  renderer: fncRenderer,
+  layerId: 3,
+  renderer: stationBoxRenderer,
   elevationInfo: {
     mode: "on-the-ground"
   },
-
-  title: "Free and Clear",
+  title: "Station Box",
+  outFields: ["*"],
   popupEnabled: false
 });
-map.add(fncLayer,2);
+map.add(stationBoxLayer,0);
 
 // Pier head and column
 var pierHeadColumnLayerLayer = new FeatureLayer ({
@@ -2069,6 +2127,24 @@ var testLine1 = new FeatureLayer({
  map.add(testLine1);
 
 
+// Free and Clear Lot //
+var fncLayer = new FeatureLayer ({
+  portalItem: {
+    id: "dca1d785da0f458b8f87638a76918496",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 2,
+  renderer: fncRenderer,
+  elevationInfo: {
+    mode: "on-the-ground"
+  },
+
+  title: "Free and Clear",
+  popupEnabled: false
+});
+map.add(fncLayer,0);
 /////////////////////////////////////////////////////////////////////////////////////
 //*******************************//
 //      Progress Chart           //
@@ -3410,7 +3486,7 @@ view.when(function () {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.title === "Chainage" || item.title === "Existing Points" || item.title === "Existing Line"){
+              if (item.title === "Chainage" || item.title === "Existing Points" || item.title === "Existing Line" || item.title === "Pier No"){
                 item.visible = false
               }
             }
@@ -3452,6 +3528,10 @@ var legend = new Legend({
     {
       layer: rowLayer,
       title: "PROW"
+    },
+    {
+      layer: stationBoxLayer,
+      title: "Station Box"
     },
   {
       layer: testUtilPt,
