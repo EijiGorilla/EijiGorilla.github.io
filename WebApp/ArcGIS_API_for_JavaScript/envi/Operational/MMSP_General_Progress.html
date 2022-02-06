@@ -48,10 +48,10 @@
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         color: white;
         padding: 10px 0px 2px 12px;
-        border: solid 0px gray;
+        border: solid 1px rgb(209, 205, 205);
         margin-bottom: 3px;
         display: grid;
-        grid-template-columns: 40px 110fr 0fr 60fr;
+        grid-template-columns: 40px 130fr 0fr 60fr;
       }
 
 
@@ -88,8 +88,6 @@
         border-bottom: 0;
       }
 
-
-
       .BoxB1Title,
       .BoxB2Title,
       .BoxB3Title,
@@ -109,6 +107,8 @@
 
       .BoxB1s, .BoxB2s, .BoxB3s, .BoxD1s, .BoxD2s, .BoxD3s {
           display: flex;
+          height: 25.2vh;
+          width: 23vw;
       }
 
       #totalLotDiv,
@@ -142,13 +142,13 @@
       #totalRelocatedIsfDiv,
       #totalCutEarthballedTreeDiv,
       #totalCompletedUtilPointDiv,
-      #totalRelocatedUtilLineDiv  {
+      #totalCompletedUtilLineDiv  {
         color: rgb(0, 197, 255);
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         text-align: center;
         vertical-align: middle;
         font-weight: normal;
-        font-size: 70px;
+        font-size: 80px;
         padding-top: 37px;
         padding-bottom: 25px;
       }
@@ -158,7 +158,7 @@
       #totalRelocatedIsfDiv b,
       #totalCutEarthballedTreeDiv b,
       #totalCompletedUtilPointDiv b,
-      #totalRelocatedUtilLineDiv b  {
+      #totalCompletedUtilLineDiv b  {
         color: rgb(0, 197, 255);
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         font-size: 25px;
@@ -175,7 +175,7 @@
         text-align: center;
         vertical-align: middle;
         font-weight: normal;
-        font-size: 70px;
+        font-size: 80px;
         padding-top: 37px;
         padding-bottom: 25px;
       }
@@ -196,7 +196,7 @@
       #relocatedIsfLabelDiv,
       #cutEarthballedTreeLabelDiv,
       #completedUtilPointLabelDiv,
-      #relocatedUtilLineLabelDiv {
+      #completedUtilLineLabelDiv {
         color: white;
           font-size: 20px;
           font-weight: bold;
@@ -236,7 +236,7 @@
         margin: 0;
         padding: 0;
         width: 50%;
-        height: 24.6vh;
+        height: 25.2vh;
         border-style: solid;
         border-width: 0.5;
         border-color: rgb(216, 205, 205, 0.5);
@@ -278,7 +278,7 @@
         color: white;
         padding:3px;
         margin: 0px;
-        width: 450px;
+        width: 490px;
         vertical-align: text-top;
       }
 
@@ -1338,7 +1338,7 @@ function utilityPointFigure() {
   };
 
   var total_demolished_utilpoint = {
-    onStatisticField: "CASE WHEN (LAYER = 1 and Status = 2) THEN 1 ELSE 0 END",
+    onStatisticField: "CASE WHEN (LAYER = 1 and Status = 1) THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_demolished_utilpoint",
     statisticType: "sum"
   };
@@ -1374,22 +1374,28 @@ utilityPointFigure();
 var totalUtilLineDiv = document.getElementById("totalUtilLineDiv")
   var totalUtilLineDiv1 = document.getElementById("totalUtilLineDiv1");
 
-  var totalRelocatedUtilLineDiv = document.getElementById("totalRelocatedUtilLineDiv");
+  var totalCompletedUtilLineDiv = document.getElementById("totalCompletedUtilLineDiv");
   var totalDemolishedUtilLineDiv = document.getElementById("totalDemolishedUtilLineDiv");
 
-  var relocatedUtilLineLabelDiv = document.getElementById("relocatedUtilLineLabelDiv");
+  var completedUtilLineLabelDiv = document.getElementById("completedUtilLineLabelDiv");
   var demolishedUtilLineLabelDiv = document.getElementById("demolishedUtilLineLabelDiv");
 
 function utilityLineFigure() {
-  var total_number_utilline = {
+    var total_number_utilline = {
     onStatisticField: "LAYER",
     outStatisticFieldName: "total_number_utilline",
     statisticType: "count"
   };
+  var total_completed_utilline = {
+    onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_completed_utilline",
+    statisticType: "sum"
+  };
 
-  var total_relocated_utilline = {
-    onStatisticField: "CASE WHEN (LAYER = 2 and Status = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_relocated_utilline",
+
+  var total_demolition_utilline = {
+    onStatisticField: "CASE WHEN LAYER = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_demolition_utilline",
     statisticType: "sum"
   };
 
@@ -1400,23 +1406,26 @@ function utilityLineFigure() {
   };
 
   var query = utilLineLayer.createQuery();
-  query.outStatistics = [total_number_utilline, total_relocated_utilline, total_demolished_utilline];
+  query.outStatistics = [total_number_utilline, total_completed_utilline,
+                        total_demolition_utilline, total_demolished_utilline];
   query.returnGeometry = true;
 
   utilLineLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
     const totalnumberUtilLine = stats.total_number_utilline;
-    const relocatedUtilLine = stats.total_relocated_utilline;
-    const demolishedUtilLine = stats.total_demolished_utilline;
+    const totalcompleteUtilLine = stats.total_completed_utilline;
+
+    const totaldemolitionUtilLine = stats.total_demolition_utilline;
+    const totaldemolishedUtilLine = stats.total_demolished_utilline;
 
     totalUtilLineDiv.innerHTML = "<b>" + "(" + "</b>" + thousands_separators(totalnumberUtilLine) + "<b>" + ")" + "</b>";
-    totalUtilLineDiv1.innerHTML = "<b>" + "(" + "</b>" + thousands_separators(totalnumberUtilLine) + "<b>" + ")" + "</b>";
+    totalUtilLineDiv1.innerHTML = "<b>" + "(" + "</b>" + thousands_separators(totaldemolitionUtilLine) + "<b>" + ")" + "</b>";
     
-    totalRelocatedUtilLineDiv.innerHTML = ((relocatedUtilLine/totalnumberUtilLine)*100).toFixed(0) + "<b>" + "%" + "</b>";
-    totalDemolishedUtilLineDiv.innerHTML = ((demolishedUtilLine/totalnumberUtilLine)*100).toFixed(0) + "<b>" + "%" + "</b>";
+    totalCompletedUtilLineDiv.innerHTML = ((totalcompleteUtilLine/totalnumberUtilLine)*100).toFixed(0) + "<b>" + "%" + "</b>";
+    totalDemolishedUtilLineDiv.innerHTML = ((totaldemolishedUtilLine/totaldemolitionUtilLine)*100).toFixed(0) + "<b>" + "%" + "</b>";
 
-    relocatedUtilLineLabelDiv.innerHTML = "Relocated";
+    completedUtilLineLabelDiv.innerHTML = "Total Progress";
     demolishedUtilLineLabelDiv.innerHTML = "Demolished";
   });
 }
@@ -1567,10 +1576,10 @@ view.ui.add(legendExpand, {
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
         <div id="headerTitleDiv">
-            <h2>General Progress (MMSP)</h2>
+            <h2>General Progress for MMSP Pre-Construction</h2>
         </div>
         <div class="dateDiv">
-            <h4>As of June 4, 2021</h4>
+            <h4>As of January 31, 2022</h4>
         </div>
       </div>
       <div class="container">
@@ -1624,7 +1633,6 @@ view.ui.add(legendExpand, {
             </div>
         </div>
         <div class="boxC">
-          <div id="viewDiv"></div>
         </div>
         <div class="boxD">
           <div class="panel-side esri-widget">
@@ -1661,16 +1669,16 @@ view.ui.add(legendExpand, {
         <div class="boxD3">
           <div class="BoxD3Title">Utility Relocation (Line)</div>
           <div class="BoxD3s">
-              <div id="optionsDiv" class="esri-widget">
-                  <div id="totalRelocatedUtilLineDiv"></div>
-                  <h6 id="totalUtilLineDiv" class="esri-widget"></h6>
-                  <div id="relocatedUtilLineLabelDiv"></div>
-              </div>
-              <div id="optionsDiv" class="esri-widget">
-                  <div id="totalDemolishedUtilLineDiv"></div>
-                  <h6 id="totalUtilLineDiv1" class="esri-widget"></h6>
-                  <div id="demolishedUtilLineLabelDiv"></div>
-              </div>
+            <div id="optionsDiv" class="esri-widget">
+                <div id="totalCompletedUtilLineDiv"></div>
+                <h6 id="totalUtilLineDiv" class="esri-widget"></h6>
+                <div id="completedUtilLineLabelDiv"></div>
+            </div>
+            <div id="optionsDiv" class="esri-widget">
+                <div id="totalDemolishedUtilLineDiv"></div>
+                <h6 id="totalUtilLineDiv1" class="esri-widget"></h6>
+                <div id="demolishedUtilLineLabelDiv"></div>
+            </div>
           </div>
       </div>
           </div>
