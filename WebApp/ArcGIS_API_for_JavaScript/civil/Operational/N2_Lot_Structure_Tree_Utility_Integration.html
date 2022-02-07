@@ -128,16 +128,44 @@
         width: 400px;
         text-align: left;
         padding: 10px;
-
       }
       .cpButtonClass {
           font-style: normal;
-          width: 350px;
+          width: 100%;
           font-size: 14px;
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
           color: white;
           text-align: center;
           }
+
+          .handedOverClass b,
+        .cpButtonClass b {
+          color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-size: 20px;
+        }
+
+        
+        #handOverButton {
+        margin:0;
+        width: 100%;
+        text-align: center;
+        padding: 1px;
+        background-color: black;
+      }
+
+          #handedOverDiv {
+          margin:0;
+          padding-top: 1;
+        width: 100%;
+        height: 30px;
+        font-size: 20px;
+        text-align: center;
+        background-color:rgb(0, 0, 0, 0.8);
+        color: rgb(0, 197, 255);
+        }
+
+
 
       #dataTypeInput {
         font-size: 17px;
@@ -1375,6 +1403,7 @@ let stationBoxRenderer = {
   ]
 };
 
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
  //*****************************//
@@ -2166,7 +2195,51 @@ function zoomToLayer(layer) {
   });
 }
 
+// Thousand separators function
+function thousands_separators(num)
+  {
+    var num_parts = num.toString().split(".");
+    num_parts[0] = num_parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return num_parts.join(".");
+  }
+
+// Number of handed-over lots
+function handedOverLot(){
+  var total_handedover_lot = {
+    onStatisticField: "CASE WHEN HandOver = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_handedover_lot",
+    statisticType: "sum"
+  };
+
+  // In this case, the total number of lots include everything including PNR..
+  var total_lot = {
+    onStatisticField: "LotID",
+    outStatisticFieldName: "total_lot",
+    statisticType: "count"
+  };
+  var query = priorityLayer.createQuery();
+  query.outStatistics = [total_handedover_lot, total_lot];
+  query.returnGeometry = true;
+
+  priorityLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const handover = stats.total_handedover_lot;
+    const total_N = stats.total_lot;
+    const perc = ((handover/total_N)*100).toFixed(0);
+
+    handedOverDiv.innerHTML = "Handed-Over  " +  perc + "<b>" + "%" + "</b>" + " (" + thousands_separators(handover) + ")";
+
+   // cpButton.innerHTML = "Handed-Over  " +  perc + "<b>" + "%" + "</b>" + " (" + thousands_separators(handover) + ")";
+
+  });
+}
+handedOverLot();
+
 //
+var handedOverInput = document.getElementById("handedOverInput");
+var opacityInput = document.getElementById("opacityInput");
+const handedOverDiv = document.getElementById("handedOverDiv");
 const seasonsNodes = document.querySelectorAll(`.test-item`);
 const testElement = document.getElementById("test-filter");
 const utilTypesButton = document.getElementById("dataTypeInput");
@@ -2210,6 +2283,7 @@ cpButtonElement.addEventListener("change", function(event) {
         updatePriorityChart();
         updateChartCombine();
         updateTreeCuttingLot();
+        handedOverLot();
 
         zoomToLayer(priorityLayer);
 
@@ -2227,6 +2301,7 @@ cpButtonElement.addEventListener("change", function(event) {
         updatePriorityChart();
         updateChartCombine();
         updateTreeCuttingLot();
+        handedOverLot();
 
         zoomToLayer(priorityLayer);
 
@@ -2243,6 +2318,7 @@ cpButtonElement.addEventListener("change", function(event) {
         updatePriorityChart();
         updateChartCombine();
         updateTreeCuttingLot();
+        handedOverLot();
 
         zoomToLayer(priorityLayer);
 
@@ -2259,6 +2335,7 @@ cpButtonElement.addEventListener("change", function(event) {
         updatePriorityChart();
         updateChartCombine();
         updateTreeCuttingLot();
+        handedOverLot();
 
         zoomToLayer(priorityLayer);
 
@@ -2275,6 +2352,7 @@ cpButtonElement.addEventListener("change", function(event) {
         updatePriorityChart();
         updateChartCombine();
         updateTreeCuttingLot();
+        handedOverLot();
 
         zoomToLayer(priorityLayer);
 
@@ -2291,6 +2369,7 @@ cpButtonElement.addEventListener("change", function(event) {
         updatePriorityChart();
         updateChartCombine();
         updateTreeCuttingLot();
+        handedOverLot();
 
         zoomToLayer(priorityLayer);
     }
@@ -2298,6 +2377,85 @@ cpButtonElement.addEventListener("change", function(event) {
 
 });
 
+// Handed Over Check box
+handedOverInput.addEventListener("change", function(event) {
+    if (event.target.checked) {
+        //lotLayer.definitionExpression = "HandOver = 1";
+        view.when(function() {
+
+    view.whenLayerView(priorityLayer).then(function (layerView) {
+      priorityLayer.queryFeatures().then(function(results) {
+        const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i < rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            priorityLayer.queryExtent(queryExt).then(function(result) {
+                if (result.extent) {
+                    view.goTo(result.extent)
+                }
+            });
+
+            highlightSelect = layerView.highlight(objID);
+
+
+      }); // End of queryFeatures
+      layerView.filter = {
+    where: "HandOver = 1"
+  }
+    }); // End of view.whenLayerView
+
+    
+  }); // End of view.when
+
+    } else {
+        view.when(function() {
+
+view.whenLayerView(priorityLayer).then(function (layerView) {
+  priorityLayer.queryFeatures().then(function(results) {
+    const ggg = results.features;
+        const rowN = ggg.length;
+
+        let objID = [];
+        for (var i=0; i < rowN; i++) {
+            var obj = results.features[i].attributes.OBJECTID;
+            objID.push(obj);
+        }
+
+        var queryExt = new Query({
+            objectIds: objID
+        });
+
+        priorityLayer.queryExtent(queryExt).then(function(result) {
+            if (result.extent) {
+                view.goTo(result.extent)
+            }
+        });
+
+        if (highlightSelect) {
+            highlightSelect.remove();
+        }
+
+  }); // End of queryFeatures
+  layerView.filter = {
+where: "HandOver = null || HandOver = 1"
+}
+}); // End of view.whenLayerView
+
+
+}); // End of view.when
+    }
+    
+
+});
 
 // Click event handler for choices
 async function updatePriorityChart() {
@@ -3727,6 +3885,12 @@ searchExpand.watch("expanded", function() {
         <div class="boxA">
             <div id="chartPanel">
               <div id="chartdiv"></div>
+              <div id="handOverButton" class="cpButtonClass">
+                <div id="handedOverDiv" class="handedOverClass"></div>
+                <div id="menu" class="esri-widget">
+                  <input type="checkbox" id="handedOverInput" unchecked />
+                </div>
+              </div>
           </div>
       </div>
       <div class="boxC">
