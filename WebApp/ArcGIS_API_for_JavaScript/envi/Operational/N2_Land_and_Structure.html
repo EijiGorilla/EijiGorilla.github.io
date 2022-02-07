@@ -29,6 +29,12 @@
         box-sizing: border-box;
       }
 
+      #menu {
+        padding: 3px 3px 3px 3px;
+        background-color: black;
+        color: white;
+      }
+
       .container {
           display: grid;
           border: solid 2.5px gray;
@@ -321,7 +327,7 @@
       .cpButtonClass {
           position: absolute;
           top: 80px;
-          right: 40%;
+          right: 42%;
           font-style: normal;
           font-size: 20px;
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
@@ -576,6 +582,8 @@ var basemap = new Basemap({
         var lotChartDiv = document.getElementById("lotChartDiv");
         //var lotTotalNumberDiv = document.getElementById("lotTotalNumberDiv");
         var handedOverDiv = document.getElementById("handedOverDiv");
+
+        var opacityInput = document.getElementById("opacityInput");
  
 
         var lotPteDiv = document.getElementById("lotPteDiv");
@@ -592,7 +600,7 @@ var basemap = new Basemap({
 
         const utilTypesButton = document.getElementById("dataTypeInput");
 
-
+        // hand
 
 //*******************************//
 // Label Class Property Settings //
@@ -794,8 +802,77 @@ const colors = {
         };
 
 // Fill symbol color for Structure Layer (NLO/LO)
+// Default symbol
+let defaultSymbol = {
+  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+  color: [0,0,0,0],
+  style: "solid",
+  outline: {  // autocasts as new SimpleLineSymbol()
+    color: [110, 110, 110],
+    width: 0.7
+  }
+};
 
+function colorLotReqs(){
+  return {
+    1: [112,173,71],
+    2: [0,112,255],
+    3: [255,255,0],
+    4: [255,170,0],
+    5: [255,0,0],
+  }
+}
 
+let lotLayerRenderer = {
+  type: "unique-value",
+  field: "StatusLA",
+  defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
+  valueExpression: "When($feature.Reqs == 1, '1', $feature.Reqs == 2, '2', \
+                         $feature.Reqs == 3, '3', $feature.Reqs == 4, '4', \
+                         $feature.Reqs == 5, '5', $feature.Reqs)",
+  uniqueValueInfos: [
+  {
+    // All features with value of "North" will be blue
+    value: "1",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[1],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "2",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[2],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "3",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[3],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "4",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[4],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "5",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[5],
+    }
+  }
+  ]
+}
 //*******************************//
 // Import Layers                 //
 //*******************************//
@@ -947,6 +1024,7 @@ var lotLayer = new FeatureLayer({
     }
   },
   layerId: 7,
+  renderer:lotLayerRenderer,
         outFields: ["*"],
         title: "Status of Land Acquisition",
         labelsVisible: false,
@@ -1511,7 +1589,88 @@ barangaySelect.addEventListener("click", function() {
 
 });
 
+opacityInput.addEventListener("change", function(event) {
+    if (event.target.checked) {
+        //lotLayer.definitionExpression = "HandOver = 1";
+        view.when(function() {
 
+    view.whenLayerView(lotLayer).then(function (layerView) {
+      lotLayer.queryFeatures().then(function(results) {
+        const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i < rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            lotLayer.queryExtent(queryExt).then(function(result) {
+                if (result.extent) {
+                    view.goTo(result.extent)
+                }
+            });
+
+            highlightSelect = layerView.highlight(objID);
+
+
+      }); // End of queryFeatures
+      layerView.filter = {
+    where: "HandOver = 1"
+  }
+    }); // End of view.whenLayerView
+
+    
+  }); // End of view.when
+
+    } else {
+        view.when(function() {
+
+view.whenLayerView(lotLayer).then(function (layerView) {
+  lotLayer.queryFeatures().then(function(results) {
+    const ggg = results.features;
+        const rowN = ggg.length;
+
+        let objID = [];
+        for (var i=0; i < rowN; i++) {
+            var obj = results.features[i].attributes.OBJECTID;
+            objID.push(obj);
+        }
+
+        var queryExt = new Query({
+            objectIds: objID
+        });
+
+        lotLayer.queryExtent(queryExt).then(function(result) {
+            if (result.extent) {
+                view.goTo(result.extent)
+            }
+        });
+
+        if (highlightSelect) {
+            highlightSelect.remove();
+        }
+
+  }); // End of queryFeatures
+  layerView.filter = {
+where: "HandOver = null || HandOver = 1"
+}
+}); // End of view.whenLayerView
+
+
+}); // End of view.when
+    }
+    
+
+})
+
+
+
+//////////////////
 
 view.when(function() {
 
@@ -1727,7 +1886,7 @@ hoverShadow.blur = 5;
 
 
   // Add a legend
-  const LegendFontSizze = 13;
+  const LegendFontSizze = 14;
   chart.legend = new am4charts.Legend();
 
   chart.legend.valueLabels.template.align = "right"
@@ -1997,7 +2156,7 @@ hoverShadow.blur = 5;
 
 
   // Add a legend
-  const LegendFontSizze = 13;
+  const LegendFontSizze = 14;
   chart.legend = new am4charts.Legend();
 
   chart.legend.valueLabels.template.align = "right"
@@ -2192,7 +2351,7 @@ valueAxis.min = 0;
 valueAxis.strictMinMax = true;
 valueAxis.calculateTotals = true;
 valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 10;
+valueAxis.renderer.labels.template.fontSize = 12;
 valueAxis.renderer.labels.template.fill = "#ffffff";
 valueAxis.renderer.line.strokeOpacity = 1;
 valueAxis.renderer.line.strokeWidth = 1.5;
@@ -2215,7 +2374,7 @@ labelBullet.locationX = 0.5;
   // Add chart title
 var title = chart.titles.create();
 title.text = "[bold]Mode of Acquisition[/]"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
-title.fontSize = 12;
+title.fontSize = 13;
 title.fill = "#3ce00a";
 
 series.columns.template.adapter.add("fill", function(fill, target){
@@ -2331,7 +2490,7 @@ valueAxis.min = 0;
 valueAxis.strictMinMax = true;
 valueAxis.calculateTotals = true;
 valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 10;
+valueAxis.renderer.labels.template.fontSize = 12;
 valueAxis.renderer.labels.template.fill = "#ffffff";
 valueAxis.renderer.line.strokeOpacity = 1;
 valueAxis.renderer.line.strokeWidth = 1.5;
@@ -2354,7 +2513,7 @@ labelBullet.locationX = 0.5;
 // Add chart title
 var title = chart.titles.create();
 title.text = "[bold]Mode of Acquisition[/]"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
-title.fontSize = 12;
+title.fontSize = 13;
 title.fill = "#3ce00a";
 
 series.columns.template.adapter.add("fill", function(fill, target){
@@ -2442,6 +2601,11 @@ var searchWidget = new Search({
   }
 ]
 });
+
+
+
+
+
 
 
 ///////////////////////////////////////////////
@@ -2564,8 +2728,6 @@ searchExpand.watch("expanded", function() {
       searchWidget.searchTerm = null;
     }
   });
-  
-
       });
     </script>
   </head>
@@ -2604,6 +2766,9 @@ searchExpand.watch("expanded", function() {
               <div class="cpButtonBox">
                 <div id="cpButton" class="cpButtonClass">
                   <div id="handedOverDiv" class="handedOverClass"></div>
+                  <div id="menu" class="esri-widget">
+                    <input type="checkbox" id="opacityInput" unchecked />
+                  </div>
                 </div>
                   </div>              
             </div>
