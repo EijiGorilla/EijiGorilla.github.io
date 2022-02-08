@@ -108,7 +108,7 @@
       
       #cpButton {
         margin:0;
-        width: 400px;
+        width: 420px;
         text-align: left;
         padding: 10px;
 
@@ -116,7 +116,7 @@
       .cpButtonClass {
           font-style: normal;
           width: 350px;
-          font-size: 14px;
+          font-size: 16px;
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
           color: white;
           text-align: center;
@@ -148,7 +148,7 @@
         color: rgb(0, 197, 255);
         text-align: center;
         font-weight: bold;
-        font-size: 14px;
+        font-size: 16px;
         width: auto;
         vertical-align: text-bottom;
         padding: 3px;
@@ -342,6 +342,48 @@ let chartLayerView;
 //*******************************//
 // Label Class Property Settings //
 //*******************************//
+// Pier No
+var pierNoLabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d",// autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: {
+                  color: "white"
+                },
+                size: 10,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  //weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 100,
+              maxWorldLength: 100,
+              minWorldLength: 20
+            },
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: "white",
+              size: 0.7,
+              border: {
+                color: "grey"
+              }
+            }
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: "$feature.PIER"
+            //value: "{TEXTSTRING}"
+        }
+        });
+
+
 // Chainage Label
 var labelChainage = new LabelClass({
   labelExpressionInfo: {expression: "$feature.KM_MAIN"},
@@ -360,9 +402,9 @@ var labelClass = new LabelClass({
               {
                 type: "text", // autocasts as new TextSymbol3DLayer()
                 material: {
-                  color: "white"
+                  color: "orange"
                 },
-                size: 15,
+                size: 30,
                 color: "black",
                 haloColor: "black",
                 haloSize: 1,
@@ -570,6 +612,76 @@ var verticalOffsetRelocation = {
 //*****************************//
 //      Renderer Settings      //
 //*****************************//
+// Pier Heand Pier Column
+let pierHeadColRenderer = {
+  type: "unique-value",
+  field: "Layer",
+  defaultSymbol: { type: "simple-fill" },  // autocasts as new SimpleFillSymbol()
+  uniqueValueInfos: [
+    {
+    // All features with value of "North" will be blue
+    value: "Pier_Column",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: [78, 78, 78, 0.5],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "Pier_Head",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: [169, 169, 169, 0.7]
+    }
+  }
+]
+};
+
+// Station Box
+let stationBoxRenderer = {
+  type: "unique-value",
+  field: "Layer",
+  defaultSymbol: { type: "simple-fill"},
+  uniqueValueInfos: [
+    {
+      value: "00_Platform",
+      symbol: {
+        type: "simple-fill",
+        color: [160, 160, 160],
+        style: "backward-diagonal",
+        outline: {
+          width: 1,
+          color: "black"
+        }
+      }
+    },
+    {
+      value: "00_Platform 10car",
+      symbol: {
+        type: "simple-fill",
+        color: [104, 104, 104],
+        style: "cross",
+        outline: {
+          width: 1,
+          color: "black",
+          style: "short-dash"
+        }
+      }
+    },
+    {
+      value: "00_Station",
+      symbol: {
+        type: "simple-fill",
+        color: [0, 0, 0, 0],
+        outline: {
+          width: 2,
+          color: [115, 0, 0]
+        }
+      }
+    }
+  ]
+};
+
 
 // Chainage symbol
 var chainageRenderer = {
@@ -831,6 +943,64 @@ const colorsRelocation = {
  //*****************************//
 //      Layer Import           //
 //*****************************//
+// Station box
+var stationBoxLayer = new FeatureLayer ({
+  portalItem: {
+    id: "590680d19f2e48fdbd8bcddce3aaedb5",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 3,
+  renderer: stationBoxRenderer,
+  elevationInfo: {
+    mode: "on-the-ground"
+  },
+  title: "Station Box",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(stationBoxLayer,0);
+
+// Pier No. (point feature)
+var PierNoLayer = new FeatureLayer ({
+  portalItem: {
+    id: "590680d19f2e48fdbd8bcddce3aaedb5",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 6,
+  labelingInfo: [pierNoLabelClass],
+  elevationInfo: {
+          mode: "on-the-ground" //absolute-height, relative-to-ground
+        },
+  title: "Pier No",
+  outFields: ["*"],
+  popupEnabled: false
+});
+map.add(PierNoLayer, 1);
+
+// Pier head and column
+var pierHeadColumnLayerLayer = new FeatureLayer ({
+  portalItem: {
+    id: "590680d19f2e48fdbd8bcddce3aaedb5",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 4,
+  title: "Pier Head/Column",
+  outFields: ["*"],
+  renderer: pierHeadColRenderer,
+  elevationInfo: {
+    mode: "on-the-ground"
+  },
+  popupEnabled: false
+});
+//pierHeadColumnLayerLayer.listMode = "hide";
+map.add(pierHeadColumnLayerLayer, 1);
+
 
 // Centerline and chainage
 var chainageLayer = new FeatureLayer ({
@@ -2734,7 +2904,7 @@ view.when(function () {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.title === "Chainage" || item.title === "Existing Points" || item.title === "Existing Line"){
+              if (item.title === "Chainage" || item.title === "Existing Points" || item.title === "Existing Line" || item.title === "Pier No"){
                 item.visible = false
               }
             }
@@ -2759,7 +2929,15 @@ var legend = new Legend({
   {
       layer: testUtilPt1,
       title: "UL Status"
-    }
+    },
+    {
+      layer: rowLayer,
+      title: "PROW"
+    },
+    {
+      layer: stationBoxLayer,
+      title: "Station Box"
+    },
   ]
 });
 
@@ -2834,6 +3012,16 @@ var searchWidget = new Search({
   allPlaceholder: "Chainage or Utility ID",
   includeDefaultSources: false,
   sources: [
+  {
+    layer: PierNoLayer,
+      searchFields: ["PIER"],
+      displayField: "PIER",
+      exactMatch: false,
+      outFields: ["PIER"],
+      name: "Pier No",
+      zoomScale: 1000,
+      placeholder: "example: P-288"
+  },
   {
     layer: chainageLayer,
       searchFields: ["KmSpot"],
