@@ -57,7 +57,7 @@
         border: solid 2.5px gray;
         margin-bottom: 3px;
         display: grid;
-        grid-template-columns: 40px 110fr 0fr 60fr;
+        grid-template-columns: 40px 110fr 0fr 120fr;
       }
 
 
@@ -67,6 +67,9 @@
     opacity: 1;
     color: white;
     font-weight: bold;
+    width:50vw;
+    text-align: right;
+    padding-right:5px;
 }
 
  #valSelect {
@@ -519,6 +522,7 @@ href="https://js.arcgis.com/4.22/esri/themes/dark/main.css"
         "esri/tasks/support/RelationshipQuery",
         "esri/layers/GraphicsLayer",
         "esri/widgets/Search",
+        "esri/widgets/BasemapToggle"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -529,7 +533,7 @@ href="https://js.arcgis.com/4.22/esri/themes/dark/main.css"
                   StatisticDefinition, WebStyleSymbol,
                   TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
                   FeatureTable, Compass, ElevationLayer, Ground, RelationshipQuery,
-                  GraphicsLayer, Search) {
+                  GraphicsLayer, Search, BasemapToggle) {
 
 let chartLayerView;
 var highlightSelect;
@@ -567,6 +571,13 @@ var basemap = new Basemap({
                     atmosphereEnabled: false
                     }
         });
+
+        const toggle = new BasemapToggle({
+          view: view,
+          nextBaseMap: "hybrid"
+        });
+
+        view.ui.add(toggle, "top-right");
 
         //
         function shiftCamera(deg) {
@@ -1260,7 +1271,7 @@ var lotLayer = new FeatureLayer({
         title: "Land Acquisition (Status)",
         labelsVisible: false,
         popupTemplate: {
-          title: "<p>Lot No: {LotID}, <br>Hand-Over by {HandOverDate}</br></p>",
+          title: "<p>Lot No: {LotID}, <br>Status: {StatusLA}</br></p>",
           lastEditInfoEnabled: false,
           returnGeometry: true,
           content: [
@@ -1280,10 +1291,6 @@ var lotLayer = new FeatureLayer({
                 },
                 {
                   fieldName: "Barangay"
-                },
-                {
-                  fieldName: "StatusLA",
-                  label: "<p>Status of Land Acquisition</p>"
                 }
               ]
             }
@@ -1305,9 +1312,8 @@ var pnrLayer = new FeatureLayer({
         outFields: ["*"],
         title: "PNR",
         labelsVisible: false,
-        popuEnabled: false,
-        renderer: pnrRenderer
-
+        renderer: pnrRenderer,
+        popupEnabled: false
 });
 map.add(pnrLayer, 1);
 
@@ -1593,7 +1599,12 @@ function pteNumberLot(){
     const totalN = stats.total_lot_N;
     const percPTE = ((pte/totalN)*100).toFixed(0);
 
-    lotPteDiv.innerHTML = percPTE + "% (" + pte + ")";
+    if (percPTE === "Infinity"){
+      lotPteDiv.innerHTML = "N/A";
+    } else {
+      lotPteDiv.innerHTML = percPTE + "% (" + pte + ")";
+    }
+    
   });
 } 
 pteNumberLot();
@@ -1639,7 +1650,7 @@ function thousands_separators(num)
 // Define 
 var municipalSelect = document.getElementById("valSelect");
 var barangaySelect = document.getElementById("barangaySelect");
-
+var prioritySelect = document.getElementById("prioritySelect");
 
 ////////////////////////////////////////////////
 // Return an array of unique values in the 'Brangay' field of the lot Layer
@@ -1654,7 +1665,68 @@ view.when(function() {
 .then(getUniqueValues)
 .then(addToSelect)
 
+// newValue1: municipality, "1st"
+// newValue2: Barangay
+// newValue3: Priority1
+
+function queryForLotGeometries() {
+    var lotQuery = lotLayer.createQuery();
+
+    return lotLayer.queryFeatures(lotQuery).then(function(response) {
+        lotGeometries = response.features.map(function(feature) {
+            return feature.geometry;
+        });
+        return lotGeometries;
+    });
+
+    var structureQuery = structureLayer.createQuery();
+
+return structureLayer.queryFeatures(structureQuery).then(function(response) {
+    structureGeometries = response.features.map(function(feature) {
+        return feature.geometry;
+    });
+    return structureGeometries;
+  });
+}
+
+// 1. Write Function to filter Barangay and Priority
+/// 1.1. Filter Lot for Municipality List
+function filterLotMunicipality() {
+  var query2 = lotLayer.createQuery();
+  query2.where = lotLayer.definitionExpression; // use filtered municipality. is this correct?
+
+  lotLayer.queryFeatures(query2)
+    .then(getQuery2Values)
+    .then(getUniqueValues2)
+    .then(addToSelectQuery2);
+}
+
+/// 1.2. Filter Lot for Priority List
+function filterLotPriorityMunicipality() {
+  var query3 = lotLayer.createQuery();
+  query3.where = lotLayer.definitionExpression; // use filtered municipality. is this correct?
+
+  lotLayer.queryFeatures(query3)
+    .then(getQuery3Values)
+    .then(getUniqueValues3)
+    .then(addToSelectQuery3);
+}
+
+/// 1.3. Filter Barangay for Priority List
+function filterLotPriorityBarangay() {
+  var query4 = lotLayer.createQuery();
+  query4.where = lotLayer.definitionExpression; // use filtered municipality. is this correct?
+
+  lotLayer.queryFeatures(query4)
+    .then(getQuery4Values)
+    .then(getUniqueValues4)
+    .then(addToSelectQuery4);
+}
+
+
+// 2. Get values and Return to list
 //Return an array of all the values in the 'Municipality' field'
+/// 2.1. Municipality
 function getValues(response) {
     var features = response.features;
     var values = features.map(function(feature) {
@@ -1685,116 +1757,11 @@ function addToSelect(values) {
         option.text = value;
         municipalSelect.add(option);
     });
-   return setLotMunicipalExpression(municipalSelect.value);
+   //return setMunicipalExpression(municipalSelect.value);
 }
 
-// Set the definition expression on the lot layer
-// to reflect the selecction of the user
-function setLotMunicipalExpression(newValue) {
-  if (newValue == 'None') {
-    lotLayer.definitionExpression = null;
-    structureLayer.definitionExpression = null;
-    relocationPtLayer.definitionExpression = null;
-    priorityLayer.definitionExpression = null;
-    reloISFLayer.definitionExpression = null;
-
-  } else {
-    lotLayer.definitionExpression = "Municipality = '" + newValue + "'";
-    structureLayer.definitionExpression = "Municipality = '" + newValue + "'";
-    relocationPtLayer.definitionExpression = "Municipality = '" + newValue + "'";
-    priorityLayer.definitionExpression = "Municipality = '" + newValue + "'";
-    reloISFLayer.definitionExpression = "Municipality = '" + newValue + "'";
-  }
-  
-  /*
-    if (!lotLayer.visible || !structureLayer.visible || !reloISFLayer.visible || !relocationPtLayer.visible) {
-        lotLayer.visible = true;
-        structureLayer.visible = true;
-        reloISFLayer.visible = true;
-        relocationPtLayer.visible = true;
-    }
-    */
-    return queryForLotGeometries();
-}
-
-function setLotDefinitionExpression(newValue1, newValue2){
-  if(newValue2 == undefined || newValue2 == 'None'){
-    lotLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
-    structureLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
-    relocationPtLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
-    priorityLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
-    reloISFLayer.definitionExpression = "Municipality = '" + newValue1 + "'";
-
-  } else {
-    lotLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
-    lotLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
-    structureLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
-    relocationPtLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
-    priorityLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
-    reloISFLayer.definitionExpression = "Municipality = '" + newValue1 + "'" + " AND " + "Barangay = '" + newValue2 + "'";
-  }
-  /*
-  if(!lotLayer.visible || !structureLayer.visible || !reloISFLayer.visible || !relocationPtLayer.visible){
-    lotLayer.visible = true;
-    structureLayer.visible = true;
-        reloISFLayer.visible = true;
-        relocationPtLayer.visible = true;
-  }
-  */
-
-  return queryForLotGeometries();
-}
-
-function queryForLotGeometries() {
-    var lotQuery = lotLayer.createQuery();
-
-    return lotLayer.queryFeatures(lotQuery).then(function(response) {
-        lotGeometries = response.features.map(function(feature) {
-            return feature.geometry;
-        });
-        return lotGeometries;
-    });
-
-    var structureQuery = structureLayer.createQuery();
-
-return structureLayer.queryFeatures(structureQuery).then(function(response) {
-    structureGeometries = response.features.map(function(feature) {
-        return feature.geometry;
-    });
-    return structureGeometries;
-  });
-}
-
-    municipalSelect.addEventListener("change", function() {
-    var type = event.target.value;
-    var target = event.target;
-
-    setLotMunicipalExpression(type);
-    filterLotMunicipality();
-
-    updateChartLot().then(totalNumberOfLots);
-    updateChartStructure().then(totalNumberOfStructures);
-    updateMoaChartLot();
-    updateMoaChartStructure();
-    pteNumberLot();
-    pteNumberStructure();
-
-    zoomToLayer(lotLayer);
-
-});
-
-
-
-function filterLotMunicipality() {
-  var query2 = lotLayer.createQuery();
-  query2.where = lotLayer.definitionExpression; // use filtered municipality. is this correct?
-
-  lotLayer.queryFeatures(query2)
-    .then(getQuery2Values)
-    .then(getUniqueValues2)
-    .then(addToSelectQuery2);
-}
-
+/// 2.2. Barangay
+// Filter Barangay List when Municipalit list changes
 function getQuery2Values(response) {
   var featuresQuery2 = response.features;
   var query2Values = featuresQuery2.map(function(feature) {
@@ -1824,26 +1791,367 @@ function addToSelectQuery2(query2Values) {
       barangaySelect.add(option);
   });
 
-  return setLotBarangayExpression(barangaySelect.value);
+  //return setLotBarangayExpression(barangaySelect.value);
 }
 
 
-barangaySelect.addEventListener("click", function() {
-  var type = event.target.value;
-  setLotDefinitionExpression(municipalSelect.value, type);
+/// 2.3. Priority
+// 2.3.1. Filter Priority List when Municipalit list changes
+function getQuery3Values(response) {
+  var featuresQuery3 = response.features;
+  var query3Values = featuresQuery3.map(function(feature) {
+    return feature.attributes.HandOverDate;
+  });
+  return query3Values;
+}
 
+function getUniqueValues3(values3) {
+  var uniqueValues3 = [];
+    values3.forEach(function(item, i) {
+        if ((uniqueValues3.length < 1 || uniqueValues3.indexOf(item) === -1) && item !== "") {
+            uniqueValues3.push(item);
+        }
+    });
+    return uniqueValues3;
+}
+
+function addToSelectQuery3(query3Values) {
+    prioritySelect.options.length = 0;
+  query3Values.sort();
+  query3Values.unshift('None');
+    query3Values.forEach(function(value) {
+    var option = document.createElement("option");
+      option.text = value;
+      prioritySelect.add(option);
+  });
+
+  //return setLotBarangayExpression(barangaySelect.value);
+}
+
+// 2.3.2. Filter Priority List when Barangay list changes
+function getQuery4Values(response) {
+  var featuresQuery4 = response.features;
+  var query4Values = featuresQuery4.map(function(feature) {
+    return feature.attributes.HandOverDate;
+  });
+  return query4Values;
+}
+
+function getUniqueValues4(values4) {
+  var uniqueValues4 = [];
+    values4.forEach(function(item, i) {
+        if ((uniqueValues4.length < 1 || uniqueValues4.indexOf(item) === -1) && item !== "") {
+            uniqueValues4.push(item);
+        }
+    });
+    return uniqueValues4;
+}
+
+function addToSelectQuery4(query4Values) {
+    prioritySelect.options.length = 0;
+  query4Values.sort();
+  query4Values.unshift('None');
+    query4Values.forEach(function(value) {
+    var option = document.createElement("option");
+      option.text = value;
+      prioritySelect.add(option);
+  });
+
+  //return setLotBarangayExpression(barangaySelect.value);
+}
+
+
+// Set the definition expression on the lot layer
+// to reflect the selecction of the user
+// Only for Municipality
+function setMunicipalExpression() {
+  var municipal = municipalSelect.options[municipalSelect.selectedIndex].value;
+
+  if (municipal == 'None') {
+    lotLayer.definitionExpression = null;
+    structureLayer.definitionExpression = null;
+    priorityLayer.definitionExpression = null;
+    reloISFLayer.definitionExpression = null;
+    pnrLayer.definitionExpression = null;
+
+  } else {
+    lotLayer.definitionExpression = "Municipality = '" + municipal + "'";
+    structureLayer.definitionExpression = "Municipality = '" + municipal + "'";
+    priorityLayer.definitionExpression = "Municipality = '" + municipal + "'";
+    reloISFLayer.definitionExpression = "Municipality = '" + municipal + "'";
+    pnrLayer.definitionExpression = "Municipality = '" + municipal + "'";;
+  }
+
+
+  
+  //var barang = barangaySelect.options[barangaySelect.selectedIndex].value;
+  if (!lotLayer.visible) {
+        lotLayer.visible = true;
+    }
+    return queryForLotGeometries();
+}
+
+// Only for Municipcality + Barangay
+function setMunicipalBarangDefinitionExpression() {
+  var municipal = municipalSelect.options[municipalSelect.selectedIndex].value;
+  var barang = barangaySelect.options[barangaySelect.selectedIndex].value;
+
+ // headerTitleDiv.innerHTML = municipal + ", " + barang;
+
+  if (municipal == 'None' && barang == 'None') {
+    lotLayer.definitionExpression = null;
+    structureLayer.definitionExpression = null;
+    priorityLayer.definitionExpression = null;
+    reloISFLayer.definitionExpression = null;
+    pnrLayer.definitionExpression = null;
+
+  } else if (municipal !== 'None' && barang == 'None') {
+    lotLayer.definitionExpression = "Municipality = '" + municipal + "'";
+    structureLayer.definitionExpression = "Municipality = '" + municipal + "'";
+    priorityLayer.definitionExpression = "Municipality = '" + municipal + "'";
+    reloISFLayer.definitionExpression = "Municipality = '" + municipal + "'";
+    pnrLayer.definitionExpression = "Municipality = '" + municipal + "'";
+
+  } else if (municipal == 'None' && barang !== 'None') {
+    lotLayer.definitionExpression = null;
+    structureLayer.definitionExpression = null;
+    priorityLayer.definitionExpression = null;
+    reloISFLayer.definitionExpression = null;
+    pnrLayer.definitionExpression = null;
+
+  } else {
+    lotLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'";
+    structureLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'";
+    priorityLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'";
+    reloISFLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'";
+    pnrLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'";
+  }
+  
+  //var barang = barangaySelect.options[barangaySelect.selectedIndex].value;
+  if (!lotLayer.visible) {
+        lotLayer.visible = true;
+    }
+    return queryForLotGeometries();
+}
+
+// for Municipcality + Barangay + Priority
+function setMunicipalBarangayPriorityExpression() {
+  var municipal = municipalSelect.options[municipalSelect.selectedIndex].value;
+  var barang = barangaySelect.options[barangaySelect.selectedIndex].value;
+  var priori = prioritySelect.options[prioritySelect.selectedIndex].value;
+
+ //headerTitleDiv.innerHTML = municipal + ", " + barang + ", "+ priori;
+
+ // all = 'None'
+ if (municipal == 'None' && barang == 'None' && priori == 'None') {
+    lotLayer.definitionExpression = null;
+    structureLayer.definitionExpression = null;
+    priorityLayer.definitionExpression = null;
+    reloISFLayer.definitionExpression = null;
+    pnrLayer.definitionExpression = null;
+
+  } else if (municipal == 'None' && barang == 'None' && priori !== 'None') {
+    lotLayer.definitionExpression = "HandOverDate = '" + priori + "'";
+    structureLayer.definitionExpression = "HandOverDate = '" + priori + "'";
+    priorityLayer.definitionExpression = "HandOverDate = '" + priori + "'";
+    pnrLayer.definitionExpression = "HandOverDate = '" + priori + "'";
+
+  } else if (municipal == 'None' && barang !== 'None' && priori == 'None') {
+    lotLayer.definitionExpression = "Barangay = '" + barang + "'";
+    structureLayer.definitionExpression = "Barangay = '" + barang + "'";
+    priorityLayer.definitionExpression = "Barangay = '" + barang + "'"; 
+    reloISFLayer.definitionExpression = "Barangay = '" + barang + "'";
+    pnrLayer.definitionExpression = "Barangay = '" + barang + "'";
+
+  } else if (municipal == 'None' && barang !== 'None' && priori !== 'None') {
+    lotLayer.definitionExpression = "Barangay = '" + barang + "'" + " AND " + "HandOverDate = '" + priori + "'";
+    structureLayer.definitionExpression = "Barangay = '" + barang + "'" + " AND " + "HandOverDate = '" + priori + "'";
+    priorityLayer.definitionExpression = "Barangay = '" + barang + "'" + " AND " + "HandOverDate = '" + priori + "'";
+    pnrLayer.definitionExpression = "Barangay = '" + barang + "'" + " AND " + "HandOverDate = '" + priori + "'"; 
+
+  } else if (municipal !== 'None' && barang == 'None' && priori == 'None') {
+    lotLayer.definitionExpression = "Municipality = '" + municipal + "'";
+    structureLayer.definitionExpression = "Municipality = '" + municipal + "'";
+    priorityLayer.definitionExpression = "Municipality = '" + municipal + "'";
+    reloISFLayer.definitionExpression = "Municipality = '" + municipal + "'";
+    pnrLayer.definitionExpression = "Municipality = '" + municipal + "'";
+
+  } else if (municipal !== 'None' && barang == 'None' && priori !== 'None') {
+    lotLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "HandOverDate = '" + priori + "'";
+    structureLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "HandOverDate = '" + priori + "'";
+    priorityLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "HandOverDate = '" + priori + "'";
+    pnrLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "HandOverDate = '" + priori + "'";
+
+  } else if (municipal !== 'None' && barang !== 'None' && priori == 'None') {
+    lotLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'";
+    structureLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'";
+    priorityLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'"; 
+    reloISFLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'";
+    pnrLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'";
+
+  } else {
+    lotLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'" + " AND " + "HandOverDate = '" + priori + "'";
+    structureLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'" + " AND " + "HandOverDate = '" + priori + "'";
+    priorityLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'" + " AND " + "HandOverDate = '" + priori + "'";
+    pnrLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'" + " AND " + "HandOverDate = '" + priori + "'";
+  }
+
+
+  //var barang = barangaySelect.options[barangaySelect.selectedIndex].value;
+  if (!lotLayer.visible) {
+        lotLayer.visible = true;
+    }
+    return queryForLotGeometries();
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// addEventListener for Municipality, Barangay, and Priority
+municipalSelect.addEventListener("change", function() {
+    var type = event.target.value;
+    var target = event.target;
+
+
+    setMunicipalExpression();
+    filterLotMunicipality();
+    filterLotPriorityMunicipality();
+    filterLotPriorityBarangay();
+
+
+    updateChartLot().then(totalNumberOfLots);
+  updateChartStructure().then(totalNumberOfStructures);
+  updateMoaChartLot();
+    updateMoaChartStructure();
+    pteNumberLot();
+    pteNumberStructure();
+
+
+    zoomToLayer(lotLayer);
+
+});
+
+barangaySelect.addEventListener("change", function() {
+  var type = event.target.value;
+
+  setMunicipalBarangDefinitionExpression();
+  filterLotPriorityMunicipality();
+  filterLotPriorityBarangay();
+
+  //headerTitleDiv.innerHTML = strregion + ", " + strstate;
   updateChartLot().then(totalNumberOfLots);
   updateChartStructure().then(totalNumberOfStructures);
   updateMoaChartLot();
-  updateMoaChartStructure();
-  pteNumberLot();
-  pteNumberStructure();
+    updateMoaChartStructure();
+    pteNumberLot();
+    pteNumberStructure();
+
 
 
   zoomToLayer(lotLayer);
   //relocationObjectID(reloStatusLayer);
 
 });
+
+
+prioritySelect.addEventListener("change", function() {
+  var type = event.target.value;
+  
+  //headerTitleDiv.innerHTML = strregion + ", " + strstate + ", " + type;
+
+  setMunicipalBarangayPriorityExpression();
+
+  //headerTitleDiv.innerHTML = strregion + ", " + strstate;
+  updateChartLot().then(totalNumberOfLots);
+  updateChartStructure().then(totalNumberOfStructures);
+  updateMoaChartLot();
+    updateMoaChartStructure();
+    pteNumberLot();
+    pteNumberStructure();
+
+  //zoomToLayer(lotLayer);
+  //relocationObjectID(reloStatusLayer);
+
+let arrLviews = [];
+
+  view.whenLayerView(lotLayer).then(function (layerView) {
+    arrLviews.push(layerView);
+    lotLayer.queryFeatures().then(function(results) {
+  const ggg = results.features;
+      const rowN = ggg.length;
+
+      let objID = [];
+      for (var i=0; i < rowN; i++) {
+          var obj = results.features[i].attributes.OBJECTID;
+          objID.push(obj);
+      }
+
+      var queryExt = new Query({
+          objectIds: objID
+      });
+
+      lotLayer.queryExtent(queryExt).then(function(result) {
+          if (result.extent) {
+              view.goTo(result.extent)
+          }
+      });
+
+      if (highlightSelect) {
+          highlightSelect.remove();
+      }
+      highlightSelect = layerView.highlight(objID);
+
+      view.on("click", function() {
+      layerView.filter = null;
+      highlightSelect.remove();
+      });
+}); // End of queryFeatures
+}); // End of view.whenLayerView
+
+    view.whenLayerView(pnrLayer).then(function (layerView) {
+      arrLviews.push(layerView);
+      pnrLayer.queryFeatures().then(function(results) {
+        const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i < rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            pnrLayer.queryExtent(queryExt).then(function(result) {
+                if (result.extent) {
+                    view.goTo(result.extent)
+                }
+            });
+
+            if (highlightSelect) {
+                highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+
+            view.on("click", function() {
+            layerView.filter = null;
+            highlightSelect.remove();
+            });
+      }); // End of queryFeatures
+    }); // End of view.whenLayerView
+
+    for(var i = 0; i < arrLviews.length; i++) {
+      arrLviews[i].filter = {
+        where: "HandOverDate = '" + type + "'"
+      }
+    }
+});
+
+
+/////////////////////////////////////////////////////////////
+////////////////////////////////////////////
+
 
 const structureChartChangeButton= document.getElementById("dataTypeInput");
 
@@ -3253,6 +3561,8 @@ searchExpand.watch("expanded", function() {
             <select id="valSelect" class="esri-widget"></select>
             <label for="sel-options">Barangay:</label>
             <select id="barangaySelect" class="esri-widget" width="150" style="width: 150px"></select>
+            <label for="sel-options">Priority:</label>
+            <select id="prioritySelect" class="esri-widget"></select>
         </div>
       </div>
       <div class="container">
