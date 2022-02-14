@@ -543,14 +543,14 @@ var basemap = new Basemap({
         baseLayers: [
           new VectorTileLayer({
             portalItem: {
-              id: "8a9ef2a144e8423786f6139408ac3424" // 3a62040541b84f528da3ac7b80cf4a63
+              id: "f666b3fb303c47ddb9b0dae032f800f5" // 8a9ef2a144e8423786f6139408ac3424 (original)
             }
           })
         ]
       });
-
+      
          var map = new Map({
-              basemap: "gray-vector", // "streets-night-vector", basemap
+              basemap: basemap, //"gray-vector", // "streets-night-vector", basemap
               ground: "world-elevation"
         }); 
         //map.ground.surfaceColor = "#FFFF";
@@ -1546,12 +1546,22 @@ const selectedButton = document.getElementById("SelectedButton");
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
+// Setting of Chart Buttons------------------------------
+// Initial setting for chart: default = structure chart
 if (document.getElementById("Structure").checked = true) {
   reloISFLayer.visible = false;
   relocationPtLayer.visible = true;
     updateChartStructure().then(totalNumberOfStructures);
 }
 
+// When city, barangay, or priority is changed, I want a chart to return to Structure
+function backToStructureChart(){
+  document.getElementById("Structure").checked = true
+    reloISFLayer.visible = false;
+    relocationPtLayer.visible = true;
+}
+
+//--------------------------------------------------------
 // Default
 updateChartLot().then(totalNumberOfLots);
 //updateChartStructure().then(totalNumberOfStructures);
@@ -2026,6 +2036,8 @@ municipalSelect.addEventListener("change", function() {
     pteNumberLot();
     pteNumberStructure();
 
+    backToStructureChart();
+
 
     zoomToLayer(lotLayer);
 
@@ -2046,7 +2058,7 @@ barangaySelect.addEventListener("change", function() {
     pteNumberLot();
     pteNumberStructure();
 
-
+    backToStructureChart();
 
   zoomToLayer(lotLayer);
   //relocationObjectID(reloStatusLayer);
@@ -2069,6 +2081,8 @@ prioritySelect.addEventListener("change", function() {
     pteNumberLot();
     pteNumberStructure();
 
+    backToStructureChart();
+    
   //zoomToLayer(lotLayer);
   //relocationObjectID(reloStatusLayer);
 
@@ -2244,9 +2258,6 @@ var ownerContainer = document.getElementById("relocationOwnerList");
 
 
 //////
-const chartTitleLabel = "Progress of Land Acquisition (%)";
-const chartTitleLabelStructure = "Progress of Structure (%)";
-
 const chartElement = document.getElementById("chartPanel");
 const chartElementStructure = document.getElementById("structureChartPanel");
 
@@ -2419,7 +2430,7 @@ hoverShadow.blur = 5;
 
 // Chart Title
 var title = chart.titles.create();
-title.text = "Progress of Land"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+title.text = "Private Land"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
 title.fontSize = 18;
 title.fontWeight = "bold";
 title.fill = "#ffffff";
@@ -2700,7 +2711,7 @@ chart.legend.marginRight = 0;
 
 // Chart Title
 var title = chart.titles.create();
-title.text = "Progress of Structure"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+title.text = "Structure"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
 title.fontSize = 18;
 title.fontWeight = "bold";
 title.fill = "#ffffff";
@@ -2982,7 +2993,7 @@ chart.legend.marginRight = 0;
 
 // Chart Title
 var title = chart.titles.create();
-title.text = "Progress of ISF"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+title.text = "ISF Relocation"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
 title.fontSize = 18;
 title.fontWeight = "bold";
 title.fill = "#ffffff";
@@ -3580,7 +3591,7 @@ searchExpand.watch("expanded", function() {
         </div>
         <div class="boxC">
           <div id="dataTypeInput" class="chartButtonClass">
-            <label for="dataTypeInput"></label>
+            <label for="dataTypeInput">Chart Switch:</label>
             <input type="radio" id="Structure" name="dataTypeInput" checked/> Structure
             <input type="radio" id="ISF" name="dataTypeInput"> ISF
           </div>
