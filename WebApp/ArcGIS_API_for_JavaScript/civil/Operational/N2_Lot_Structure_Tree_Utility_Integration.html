@@ -1431,6 +1431,81 @@ let stationBoxRenderer = {
   ]
 };
 
+function colorLotReqs(){
+  return {
+    0: [0, 197, 255], 
+    1: [112,173,71],
+    2: [0,112,255],
+    3: [255,255,0],
+    4: [255,170,0],
+    5: [255,0,0],
+  }
+}
+
+let lotLayerRenderer = {
+  type: "unique-value",
+  ///field: "StatusLA",
+  defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
+  valueExpression: "When($feature.StatusLA == 0, '0',$feature.StatusLA == 1, '1', $feature.StatusLA == 2, '2', \
+                         $feature.StatusLA == 3, '3', $feature.StatusLA == 4, '4', \
+                         $feature.StatusLA == 5, '5', $feature.StatusLA)",
+                         uniqueValueInfos: [
+  {
+    // All features with value of "North" will be blue
+    value: "0",
+    label: "Handed-Over",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[0],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "1",
+    label: "Paid",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[1],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "2",
+    label: "For Payment Processing",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[2],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "3",
+    label: "For Legal Pass",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[3],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "4",
+    label: "For Appraisal/Offer to Buy",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[4],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "5",
+    label: "For Expro",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[5],
+    }
+  }
+  ]
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1759,6 +1834,51 @@ var priorityLayer = new FeatureLayer ({
   popupEnabled: true
 });
 map.add(priorityLayer,2);
+
+// Land 
+var lotLayer = new FeatureLayer({
+  portalItem: {
+    id: "dca1d785da0f458b8f87638a76918496",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 7,
+  renderer:lotLayerRenderer,
+        outFields: ["*"],
+        title: "Land Acquisition (Status)",
+        labelsVisible: false,
+        elevationInfo: {
+          mode: "on-the-ground"
+        },
+        popupTemplate: {
+          title: "<p>Lot No: {LotID}, <br>Status: {StatusLA}</br></p>",
+          lastEditInfoEnabled: false,
+          returnGeometry: true,
+          content: [
+            {
+              type: "fields",
+              fieldInfos: [
+                {
+                  fieldName: "LandOwner",
+                  label: "Land Owner"
+                },
+              {
+                fieldName: "LandUse",
+                label: "Land Use"
+              },
+                {
+                  fieldName: "Municipality"
+                },
+                {
+                  fieldName: "Barangay"
+                }
+              ]
+            }
+          ]
+        }
+});
+map.add(lotLayer, 1);
 
 // Tree Cutting
 var treeCuttingLayer = new FeatureLayer ({
@@ -2263,8 +2383,6 @@ function handedOverLot(){
     const total_N = stats.total_lot;
     const perc = ((handover/total_N)*100).toFixed(0);
 
-    handedOverDiv.innerHTML = "Handed-Over  " +  perc + "<b>" + "%" + "</b>" + " (" + thousands_separators(handover) + ")";
-
    // cpButton.innerHTML = "Handed-Over  " +  perc + "<b>" + "%" + "</b>" + " (" + thousands_separators(handover) + ")";
 
   });
@@ -2272,9 +2390,7 @@ function handedOverLot(){
 handedOverLot();
 
 //
-var handedOverInput = document.getElementById("handedOverInput");
 var opacityInput = document.getElementById("opacityInput");
-const handedOverDiv = document.getElementById("handedOverDiv");
 const seasonsNodes = document.querySelectorAll(`.test-item`);
 const testElement = document.getElementById("test-filter");
 const utilTypesButton = document.getElementById("dataTypeInput");
@@ -2294,7 +2410,7 @@ let compileArrayLine = [];
 
 // As default, chart shows the progress of all the relocated layers (point + line)
 if (document.getElementById("None").checked = true) {
-    updatePriorityChart();
+  updateChartLot();
     updateTreeCuttingLot();
     updateChartCombine();
 
@@ -2315,7 +2431,7 @@ cpButtonElement.addEventListener("change", function(event) {
         testLine.definitionExpression = null;
         testLine1.definitionExpression = null;
 
-        updatePriorityChart();
+        updateChartLot();
         updateChartCombine();
         updateTreeCuttingLot();
         handedOverLot();
@@ -2333,7 +2449,7 @@ cpButtonElement.addEventListener("change", function(event) {
         testLine.definitionExpression = "CP = 'N-01'";
         testLine1.definitionExpression = "CP = 'N-01'";
 
-        updatePriorityChart();
+        updateChartLot();
         updateChartCombine();
         updateTreeCuttingLot();
         handedOverLot();
@@ -2350,7 +2466,7 @@ cpButtonElement.addEventListener("change", function(event) {
         testLine.definitionExpression = "CP = 'N-02'";
         testLine1.definitionExpression = "CP = 'N-02'";
 
-        updatePriorityChart();
+        updateChartLot();
         updateChartCombine();
         updateTreeCuttingLot();
         handedOverLot();
@@ -2367,7 +2483,7 @@ cpButtonElement.addEventListener("change", function(event) {
         testLine.definitionExpression = "CP = 'N-03'";
         testLine1.definitionExpression = "CP = 'N-03'";
 
-        updatePriorityChart();
+        updateChartLot();
         updateChartCombine();
         updateTreeCuttingLot();
         handedOverLot();
@@ -2384,7 +2500,7 @@ cpButtonElement.addEventListener("change", function(event) {
         testLine.definitionExpression = "CP = 'N-04'";
         testLine1.definitionExpression = "CP = 'N-04'";
 
-        updatePriorityChart();
+        updateChartLot();
         updateChartCombine();
         updateTreeCuttingLot();
         handedOverLot();
@@ -2401,7 +2517,7 @@ cpButtonElement.addEventListener("change", function(event) {
         testLine.definitionExpression = "CP = 'N-05'";
         testLine1.definitionExpression = "CP = 'N-05'";
 
-        updatePriorityChart();
+        updateChartLot();
         updateChartCombine();
         updateTreeCuttingLot();
         handedOverLot();
@@ -2412,14 +2528,218 @@ cpButtonElement.addEventListener("change", function(event) {
 
 });
 
-// Handed Over Check box
-handedOverInput.addEventListener("change", function(event) {
-    if (event.target.checked) {
-        //lotLayer.definitionExpression = "HandOver = 1";
-        view.when(function() {
 
-    view.whenLayerView(priorityLayer).then(function (layerView) {
-      priorityLayer.queryFeatures().then(function(results) {
+// Lot Chart
+async function updateChartLot() {
+ var total_handedover_lot = {
+    onStatisticField: "CASE WHEN StatusLA = 0 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_handedover_lot",
+    statisticType: "sum"
+  };
+
+  var total_paid_lot = {
+    onStatisticField: "CASE WHEN StatusLA = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_paid_lot",
+    statisticType: "sum"
+  };
+
+  var total_payp_lot = {
+    onStatisticField: "CASE WHEN StatusLA = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_payp_lot",
+    statisticType: "sum"
+  };
+
+  var total_legalpass_lot = {
+    onStatisticField: "CASE WHEN StatusLA = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_legalpass_lot",
+    statisticType: "sum"
+  };
+
+  var total_otb_lot = {
+    onStatisticField: "CASE WHEN StatusLA = 4 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_otb_lot",
+    statisticType: "sum"
+  };
+
+  var total_expro_lot = {
+    onStatisticField: "CASE WHEN StatusLA = 5 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_expro_lot",
+    statisticType: "sum"
+  };
+
+  var query = lotLayer.createQuery();
+  query.outStatistics = [total_handedover_lot, total_paid_lot, total_payp_lot, total_legalpass_lot,
+                         total_otb_lot, total_expro_lot];
+  query.returnGeometry = true;
+
+  return lotLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const handedover = stats.total_handedover_lot;
+    const paid = stats.total_paid_lot;
+    const payp = stats.total_payp_lot;
+    const legalpass = stats.total_legalpass_lot;
+    const otb = stats.total_otb_lot;
+    const expro = stats.total_expro_lot;
+
+    var chart = am4core.create("chartdiv", am4charts.PieChart);
+
+
+    // Add data
+    chart.data = [
+    {
+        "StatusLA": "Handed-Over",
+        "status": handedover,
+        "color": am4core.color("#00C5FF")
+      },
+      {
+        "StatusLA": "Paid",
+        "status": paid,
+        "color": am4core.color("#70AD47")
+      },
+      {
+        "StatusLA": "For Payment Processing",
+        "status": payp,
+        "color": am4core.color("#0070FF")   
+      },
+      {
+        "StatusLA": "For Legal Pass",
+        "status": legalpass,
+        "color": am4core.color("#FFFF00") 
+      },
+      {
+        "StatusLA": "For Appraisal/Offer to Buy",
+        "status": otb,
+        "color": am4core.color("#FFAA00")
+      },
+      {
+        "StatusLA": "For Expro",
+        "status": expro,
+        "color": am4core.color("#FF0000")    
+      }
+  ];
+
+  // Set inner radius
+  chart.innerRadius = am4core.percent(30);
+
+  // Add and configure Series
+  
+function createSlices(field, status){
+  var pieSeries = chart.series.push(new am4charts.PieSeries());
+  pieSeries.dataFields.value = field;
+  pieSeries.dataFields.category = status;
+
+  pieSeries.slices.template.propertyFields.fill = "color";
+  pieSeries.slices.template.stroke = am4core.color("#fff");
+  pieSeries.slices.template.strokeWidth = 1;
+  pieSeries.slices.template.strokeOpacity = 1;
+
+  pieSeries.slices.template
+  // change the cursor on hover to make it apparent the object can be interacted with
+  .cursorOverStyle = [
+    {
+      "property": "cursor",
+      "value": "pointer"
+    }
+  ];
+
+  
+  // Hover setting
+  pieSeries.tooltip.label.fontSize = 9;
+
+  // Pie
+//pieSeries.alignLabels = false;
+//pieSeries.labels.template.bent = false;
+pieSeries.labels.template.disabled = true;
+pieSeries.labels.template.radius = 3;
+pieSeries.labels.template.padding(0,0,0,0);
+pieSeries.labels.template.fontSize = 9;
+pieSeries.labels.template.fill = "#ffffff";
+
+// Ticks (a straight line)
+//pieSeries.ticks.template.disabled = true;
+pieSeries.ticks.template.fill = "#ffff00";
+
+// Create a base filter effect (as if it's not there) for the hover to return to
+var shadow = pieSeries.slices.template.filters.push(new am4core.DropShadowFilter);
+shadow.opacity = 0;
+
+
+
+// Create hover state
+var hoverState = pieSeries.slices.template.states.getKey("hover"); // normally we have to create the hover state, in this case it already exists
+
+// Slightly shift the shadow and make it more prominent on hover
+var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
+hoverShadow.opacity = 0.7;
+hoverShadow.blur = 5;
+
+
+  // Add a legend
+  const LegendFontSizze = 14;
+  chart.legend = new am4charts.Legend();
+
+  chart.legend.valueLabels.template.align = "right"
+  chart.legend.valueLabels.template.textAlign = "end";  
+  
+  //chart.legend.position = "bottom";
+  chart.legend.labels.template.fontSize = LegendFontSizze;
+  chart.legend.labels.template.fill = "#ffffff";
+  chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+  chart.legend.valueLabels.template.fontSize = LegendFontSizze; 
+  pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
+  //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+
+// Chart Title
+var title = chart.titles.create();
+title.text = "Private Land"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+title.fontSize = 18;
+title.fontWeight = "bold";
+title.fill = "#ffffff";
+
+  var marker = chart.legend.markers.template.children.getIndex(0);
+  var markerTemplate = chart.legend.markers.template;
+marker.cornerRadius(12, 12, 12, 12);
+marker.strokeWidth = 1;
+marker.strokeOpacity = 1;
+marker.stroke = am4core.color("#ccc");
+
+// Change size of legend marker
+markerTemplate.width = 18;
+markerTemplate.height = 18;
+// This creates initial animation
+//pieSeries.hiddenState.properties.opacity = 1;
+//pieSeries.hiddenState.properties.endAngle = -90;
+//pieSeries.hiddenState.properties.startAngle = -90;
+
+// Click chart and filter, update maps
+
+pieSeries.slices.template.events.on("hit", filterByChart, this);
+function filterByChart(ev) {
+  const selectedD = ev.target.dataItem.category;
+
+  if (selectedD == "Handed-Over") {
+      selectedStatus = 0;
+  } else if (selectedD == "Paid") {
+    selectedStatus = 1;
+  } else if (selectedD == "For Payment Processing") {
+    selectedStatus = 2;
+  } else if (selectedD == "For Legal Pass") {
+    selectedStatus = 3;
+  } else if (selectedD == "For Appraisal/Offer to Buy") {
+    selectedStatus = 4;
+  } else if (selectedD == "For Expro") {
+    selectedStatus = 5;
+  } else {
+    selectedStatus = null;
+  }
+
+  view.when(function() {
+    view.whenLayerView(lotLayer).then(function (layerView) {
+      chartLayerView = layerView;
+      chartElement.style.visibility = "visible";
+
+      lotLayer.queryFeatures().then(function(results) {
         const ggg = results.features;
             const rowN = ggg.length;
 
@@ -2433,423 +2753,11 @@ handedOverInput.addEventListener("change", function(event) {
                 objectIds: objID
             });
 
-            priorityLayer.queryExtent(queryExt).then(function(result) {
+            lotLayer.queryExtent(queryExt).then(function(result) {
                 if (result.extent) {
                     view.goTo(result.extent)
                 }
             });
-
-            highlightSelect = layerView.highlight(objID);
-
-
-      }); // End of queryFeatures
-      layerView.filter = {
-    where: "HandOver = 1"
-  }
-    }); // End of view.whenLayerView
-
-    
-  }); // End of view.when
-
-    } else {
-        view.when(function() {
-
-view.whenLayerView(priorityLayer).then(function (layerView) {
-  priorityLayer.queryFeatures().then(function(results) {
-    const ggg = results.features;
-        const rowN = ggg.length;
-
-        let objID = [];
-        for (var i=0; i < rowN; i++) {
-            var obj = results.features[i].attributes.OBJECTID;
-            objID.push(obj);
-        }
-
-        var queryExt = new Query({
-            objectIds: objID
-        });
-
-        priorityLayer.queryExtent(queryExt).then(function(result) {
-            if (result.extent) {
-                view.goTo(result.extent)
-            }
-        });
-
-        if (highlightSelect) {
-            highlightSelect.remove();
-        }
-
-  }); // End of queryFeatures
-  layerView.filter = {
-where: "HandOver = null || HandOver = 1"
-}
-}); // End of view.whenLayerView
-
-
-}); // End of view.when
-    }
-    
-
-});
-
-// Click event handler for choices
-async function updatePriorityChart() {
-    /* Top Priority */
-    var total_topP_paid = {
-        onStatisticField: "CASE WHEN (HandOverDate = 'August 2022' and StatusLA = 1) THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_topP_paid",
-        statisticType: "sum"
-    };
-
-    var total_topP_payp = {
-        onStatisticField: "CASE WHEN (HandOverDate = 'August 2022' and StatusLA = 2) THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_topP_payp",
-        statisticType: "sum"
-    };
-
-    var total_topP_legalpass = {
-        onStatisticField: "CASE WHEN (HandOverDate = 'August 2022' and StatusLA = 3) THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_topP_legalpass",
-        statisticType: "sum"
-    };
-
-    var total_topP_otb = {
-        onStatisticField: "CASE WHEN (HandOverDate = 'August 2022' and StatusLA = 4) THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_topP_otb",
-        statisticType: "sum"
-    };
-
-    var total_topP_expro = {
-        onStatisticField: "CASE WHEN (HandOverDate = 'August 2022' and StatusLA = 5) THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_topP_expro",
-        statisticType: "sum"
-    };
-
-    /* 1st Priority */
-    var total_1stp_paid = {
-        onStatisticField: "CASE WHEN (HandOverDate = 'September 2022' and StatusLA = 1) THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_1stp_paid",
-        statisticType: "sum"
-    };
-
-    var total_1stp_payp = {
-        onStatisticField: "CASE WHEN (HandOverDate = 'September 2022' and StatusLA = 2) THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_1stp_payp",
-        statisticType: "sum"
-    };
-
-    var total_1stp_legalpass = {
-        onStatisticField: "CASE WHEN (HandOverDate = 'September 2022' and StatusLA = 3) THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_1stp_legalpass",
-        statisticType: "sum"
-    };
-
-    var total_1stp_otb = {
-        onStatisticField: "CASE WHEN (HandOverDate = 'September 2022' and StatusLA = 4) THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_1stp_otb",
-        statisticType: "sum"
-    };
-
-    var total_1stp_expro = {
-        onStatisticField: "CASE WHEN (HandOverDate = 'September 2022' and StatusLA = 5) THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_1stp_expro",
-        statisticType: "sum"
-    };
-
-        /* 2nd Priority */
-        var total_2ndp_paid = {
-        onStatisticField: "CASE WHEN (HandOverDate = 'December 2022' and StatusLA = 1) THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_2ndp_paid",
-        statisticType: "sum"
-    };
-
-    var total_2ndp_payp = {
-        onStatisticField: "CASE WHEN (HandOverDate = 'December 2022' and StatusLA = 2) THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_2ndp_payp",
-        statisticType: "sum"
-    };
-
-    var total_2ndp_legalpass = {
-        onStatisticField: "CASE WHEN (HandOverDate = 'December 2022' and StatusLA = 3) THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_2ndp_legalpass",
-        statisticType: "sum"
-    };
-
-    var total_2ndp_otb = {
-        onStatisticField: "CASE WHEN (HandOverDate = 'December 2022' and StatusLA = 4) THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_2ndp_otb",
-        statisticType: "sum"
-    };
-
-    var total_2ndp_expro = {
-        onStatisticField: "CASE WHEN (HandOverDate = 'December 2022' and StatusLA = 5) THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_2ndp_expro",
-        statisticType: "sum"
-    };
-
-     // Start Query
-  var query = priorityLayer.createQuery();
-  //query.where = "Stations = 'Tandang Sora'"; // Selected Stations
-  query.outStatistics = [total_topP_paid, total_topP_payp, total_topP_legalpass, total_topP_otb, total_topP_expro,
-                         total_1stp_paid, total_1stp_payp, total_1stp_legalpass, total_1stp_otb, total_1stp_expro,
-                         total_2ndp_paid, total_2ndp_payp, total_2ndp_legalpass, total_2ndp_otb, total_2ndp_expro];
-  query.returnGeometry = true;
-
-  priorityLayer.queryFeatures(query).then(function(response) {
-    var stats = response.features[0].attributes;
-
-    /* top priority */
-    const topP_paid = stats.total_topP_paid;
-    const topP_payp = stats.total_topP_payp;
-    const topP_legalpass = stats.total_topP_legalpass;
-    const topP_otb = stats.total_topP_otb;
-    const topP_expro = stats.total_topP_expro;
-
-    /* 1st priority */
-    const firstP_paid = stats.total_1stp_paid;
-    const firstP_payp = stats.total_1stp_payp;
-    const firstP_legalpass = stats.total_1stp_legalpass;
-    const firstP_otb = stats.total_1stp_otb;
-    const firstP_expro = stats.total_1stp_expro;
-
-     /* 2nd priority */
-     const secondP_paid = stats.total_2ndp_paid;
-    const secondP_payp = stats.total_2ndp_payp;
-    const secondP_legalpass = stats.total_2ndp_legalpass;
-    const secondP_otb = stats.total_2ndp_otb;
-    const secondP_expro = stats.total_2ndp_expro; 
-
-// Chart //
-var chart = am4core.create("chartdiv", am4charts.XYChart);
-chart.hiddenState.properties.opacity = 0;
-
-chart.data = [
-{
-    category: "2nd Priority",
-    value1: secondP_paid,
-    value2: secondP_payp,
-    value3: secondP_legalpass,
-    value4: secondP_otb,
-    value5: secondP_expro
-  },
-  {
-    category: "1st Priority",
-    value1: firstP_paid,
-    value2: firstP_payp,
-    value3: firstP_legalpass,
-    value4: firstP_otb,
-    value5: firstP_expro
-  },
-  {
-    category: "Top Priority",
-    value1: topP_paid,
-    value2: topP_payp,
-    value3: topP_legalpass,
-    value4: topP_otb,
-    value5: topP_expro,
-  }
-
-];
-chart.colors.step = 2;
-chart.padding(10, 10, 10, 10);
-chart.legend = new am4charts.Legend();
-chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = 15;
-chart.legend.labels.template.fill = "#ffffff";
-
-var marker = chart.legend.markers.template.children.getIndex(0);
-  var markerTemplate = chart.legend.markers.template;
-marker.cornerRadius(12, 12, 12, 12);
-marker.strokeWidth = 1;
-marker.strokeOpacity = 1;
-marker.stroke = am4core.color("#ccc");
-
-// Change size of legend marker
-markerTemplate.width = 18;
-markerTemplate.height = 18;
-
-var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-categoryAxis.dataFields.category = "category";
-categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 15;
-categoryAxis.renderer.labels.template.fill = "#ffffff";
-categoryAxis.renderer.minGridDistance = 5; //can change label
-
-var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
-valueAxis.min = 0;
-valueAxis.max = 100;
-valueAxis.strictMinMax = true;
-valueAxis.calculateTotals = true;
-valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 13;
-valueAxis.renderer.labels.template.fill = "#ffffff";
-
-  // Add chart title
-  let title = chart.titles.create();
-title.text = "LA Progress by Priority";
-title.fontSize = 19;
-title.fontWeight = "bold";
-title.fill = am4core.color("#00c3ff");
-title.marginTop = 1;
-
-
-let arrLviews = [];
-
-// Layerview and Expand
-function createSeries(field, name) {
-  var series = chart.series.push(new am4charts.ColumnSeries());
-  series.calculatePercent = true;
-  series.dataFields.valueX = field;
-  series.dataFields.categoryY = "category";
-  series.stacked = true;
-  series.dataFields.valueXShow = "totalPercent";
-  series.dataItems.template.locations.categoryY = 0.5;
-
-    // Bar chart line color and width
-    series.columns.template.stroke = am4core.color("#ffffff");
-  series.columns.template.strokeWidth = 1;
-  series.name = name;
-
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-
-  if (name == "Paid"){
-    series.fill = am4core.color("#70AD47");
-    
-    labelBullet.locationX = 0.5;
-    labelBullet.label.text = "";
-    labelBullet.label.fill = am4core.color("#70AD47");
-    labelBullet.interactionsEnabled = false;
-    labelBullet.label.fontSize = 13;
-    labelBullet.locationX = 0.5;
-
-  } else if (name == "For Payment Processing"){
-    series.fill = am4core.color("#0070FF"); // Completed
-    labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#0070FF");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 15;
-  labelBullet.locationX = 0.5;
-
-  } else if (name == "For Legal Pass"){
-    series.fill = am4core.color("#FFFF00"); // Completed
-    labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#FFFF00");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 15;
-  labelBullet.locationX = 0.5;
-
-  } else if (name == "For Appraisal/Offer to Buy"){
-    series.fill = am4core.color("#FFAA00"); // Completed
-    labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#FFAA00");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 15;
-  labelBullet.locationX = 0.5;
-
-  } else if (name == "For Expro"){
-    series.fill = am4core.color("#FF0000"); // Completed
-    labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#FF0000");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 15;
-  labelBullet.locationX = 0.5;
-
-  }
-
-  series.columns.template.width = am4core.percent(60);
-  series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
-
-
-  // Click chart and filter, update maps
-  const chartElement = document.getElementById("chartPanel");
-  series.columns.template.events.on("hit", filterByChart, this);
-  function filterByChart(ev) {
-    const selectedC = ev.target.dataItem.component.name;
-    const selectedP = ev.target.dataItem.categoryY;
-
-    // Layer
-
-      if (selectedP == "Top Priority" && selectedC == "Paid") {
-      selectedLayer = 'August 2022';
-      selectedStatus = 1;
-    } else if (selectedP == "Top Priority" && selectedC == "For Payment Processing") {
-      selectedLayer = 'August 2022';
-      selectedStatus = 2;
-    } else if (selectedP == "Top Priority" && selectedC == "For Legal Pass") {
-      selectedLayer = 'August 2022';
-      selectedStatus = 3;
-    } else if (selectedP == "Top Priority" && selectedC == "For Appraisal/Offer to Buy") {
-      selectedLayer = 'August 2022';
-      selectedStatus = 4;
-    } else if (selectedP == "Top Priority" && selectedC == "For Expro") {
-      selectedLayer = 'August 2022';
-      selectedStatus = 5;
-
-     } else if (selectedP == "1st Priority" && selectedC == "Paid") {
-      selectedLayer = 'September 2022';
-      selectedStatus = 1;
-    } else if (selectedP == "1st Priority" && selectedC == "For Payment Processing") {
-      selectedLayer = 'September 2022';
-      selectedStatus = 2;
-    } else if (selectedP == "1st Priority" && selectedC == "For Legal Pass") {
-      selectedLayer = 'September 2022';
-      selectedStatus = 3;
-    } else if (selectedP == "1st Priority" && selectedC == "For Appraisal/Offer to Buy") {
-      selectedLayer = 'September 2022';
-      selectedStatus = 4;
-    } else if (selectedP == "1st Priority" && selectedC == "For Expro") {
-      selectedLayer = 'September 2022';
-      selectedStatus = 5;
-
-    } else if (selectedP == "2nd Priority" && selectedC == "Paid") {
-      selectedLayer = 'December 2022';
-      selectedStatus = 1;
-    } else if (selectedP == "2nd Priority" && selectedC == "For Payment Processing") {
-      selectedLayer = 'December 2022';
-      selectedStatus = 2;
-    } else if (selectedP == "2nd Priority" && selectedC == "For Legal Pass") {
-      selectedLayer = 'December 2022';
-      selectedStatus = 3;
-    } else if (selectedP == "2nd Priority" && selectedC == "For Appraisal/Offer to Buy") {
-      selectedLayer = 'December 2022';
-      selectedStatus = 4;
-    } else if (selectedP == "2nd Priority" && selectedC == "For Expro") {
-      selectedLayer = 'December 2022';
-      selectedStatus = 5;
-    } else {
-        selectedLayer = null;
-    }
-
-    view.when(function() {
-        view.whenLayerView(priorityLayer).then(function (layerView) {
-        chartLayerView = layerView;
-        chartElement.style.visibility = "visible";
-
-        //treeCuttingLayer1.definitionExpression = sqlExpression;
-        priorityLayer.queryFeatures().then(function(results) {
-            const ggg = results.features;
-            const rowN = ggg.length;
-
-            let objID = [];
-            for (var i=0; i < rowN; i++) {
-                var obj = results.features[i].attributes.OBJECTID;
-                objID.push(obj);
-            }
-
-            var queryExt = new Query({
-                objectIds: objID
-            });
-
-            priorityLayer.queryExtent(queryExt).then(function(result) {
-                if (result.extent) {
-                    view.goTo(result.extent)
-                }
-            });
-
 
             if (highlightSelect) {
                 highlightSelect.remove();
@@ -2859,30 +2767,25 @@ function createSeries(field, name) {
             view.on("click", function() {
             layerView.filter = null;
             highlightSelect.remove();
-        });
-        }); // end of query features
-        layerView.filter = {
-    where: "HandOverDate = '" + selectedLayer + "'" + " AND " + "StatusLA = " + selectedStatus
+            });
+      }); // End of queryFeatures
+      layerView.filter = {
+    where: "StatusLA = " + selectedStatus
   }
-}); // end of when layerview
+    }); // End of view.whenLayerView
 
-  }); // end of view.when
- 
+  }); // End of view.when
+} // End of filterByChart
 
-  } // End of filterByChart
+} // End of createSlices function
 
-} // End of createSeries function
+createSlices("status", "StatusLA");
 
-createSeries("value1", "Paid");
-createSeries("value2", "For Payment Processing");
-createSeries("value3", "For Legal Pass");
-createSeries("value4", "For Appraisal/Offer to Buy");
-createSeries("value5", "For Expro");
-
+return totalNumberLots;
 
 }); // End of queryFeatures
-}
-// End of updatePriorityChart
+} // End of updateChartLot()
+
 
 
 
@@ -3701,6 +3604,11 @@ var legend = new Legend({
   container: document.getElementById("legendDiv"),
   layerInfos: [
     {
+      layer: lotLayer,
+      title: "Private Land"
+
+    },
+    {
       layer: priorityLayer,
       title: "Lot Priority"
     },
@@ -3920,12 +3828,6 @@ searchExpand.watch("expanded", function() {
         <div class="boxA">
             <div id="chartPanel">
               <div id="chartdiv"></div>
-              <div id="handOverButton" class="cpButtonClass">
-                <div id="handedOverDiv" class="handedOverClass"></div>
-                <div id="menu" class="esri-widget">
-                  <input type="checkbox" id="handedOverInput" unchecked />
-                </div>
-              </div>
           </div>
       </div>
       <div class="boxC">
