@@ -1245,6 +1245,7 @@ var priorityLayer = new FeatureLayer ({
   },
   layerId: 1,
   renderer: lotPriorityRenderer,
+  definitionExpression: "HandOverDate IS NOT NULL",
   title: "Land (Hand-Over Dates)",
   popupEnabled: false
 });
@@ -1276,6 +1277,7 @@ var lotLayer = new FeatureLayer({
   },
   layerId: 7,
   renderer:lotLayerRenderer,
+  //definitionExpression: "LandOwner NOT IN ('BASES CONVERSION DEVELOPMENT AUTHORITY','MANILA RAILROAD COMPANY')",
         outFields: ["*"],
         title: "Land Acquisition (Status)",
         labelsVisible: false,
@@ -1318,11 +1320,34 @@ var pnrLayer = new FeatureLayer({
   },
   layerId: 10,
   title: "Land (PNR)",
+  //definitionExpression: "LandOwner IN ('BASES CONVERSION DEVELOPMENT AUTHORITY','MANILA RAILROAD COMPANY')",
         outFields: ["*"],
         title: "PNR",
         labelsVisible: false,
         renderer: pnrRenderer,
-        popupEnabled: false
+        popupTemplate: {
+          title: "<p>{LandOwner} ({LotID})</p>",
+          lastEditInfoEnabled: false,
+          returnGeometry: true,
+          content: [
+            {
+              type: "fields",
+              fieldInfos: [
+                {
+                  fieldName: "HandOverDate",
+                  label: "Hand-Over Date"
+                },
+                {
+                  fieldName: "Municipality"
+                },
+                {
+                  fieldName: "Barangay"
+                }
+              ]
+            }
+          ]
+        }
+        //popupEnabled: false
 });
 map.add(pnrLayer, 1);
 
@@ -2438,7 +2463,7 @@ hoverShadow.blur = 5;
 
 // Chart Title
 var title = chart.titles.create();
-title.text = "Private Land"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+title.text = "Land"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
 title.fontSize = 18;
 title.fontWeight = "bold";
 title.fill = "#ffffff";
