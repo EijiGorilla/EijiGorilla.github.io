@@ -892,6 +892,7 @@ var utilExistSymbolRenderer = {
 /// Symbol for Utility Relocated feature layer
 var utilReloSymbolRenderer = {
           type: "unique-value", // autocasts as new UniqueValueRenderer()
+          // Note that 'Retained' status is always 'Complete'
           valueExpression: "When($feature.Checks == 1, 'NeedCheck',\
                                  $feature.Status == 1 && $feature.LAYER == 1, 'DemolishComplete',\
                                  $feature.Status == 0 && $feature.LAYER == 1, 'DemolishIncomplete',\
@@ -899,7 +900,7 @@ var utilReloSymbolRenderer = {
                                  $feature.Status == 1 && $feature.LAYER == 2, 'RelocComplete', \
                                  $feature.Status == 0 && $feature.LAYER == 3, 'NewlyAdded', \
                                  $feature.Status == 1 && $feature.LAYER == 3, 'NewlyAddedComplete', \
-                                 $feature.Status == 0 && $feature.LAYER == 4, 'Retained', \
+                                 $feature.Status == 1 && $feature.LAYER == 4, 'Retained', \
                                  $feature.Status == 0 && $feature.LAYER == 5, 'Replaced', \
                                  $feature.Status == 1 && $feature.LAYER == 5, 'ReplaceComplete', $feature.Comp_Agency)",
           //field: "Company",
@@ -975,12 +976,42 @@ var utilReloSymbolRenderer = {
                 )
             },
             {
+              value: "Replaced",
+              label: "To be Replaced",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/UL_Replace_icomplete_symbol.png",
+                "#D13470",
+                30,
+                "Relocation"
+              )
+            },
+            {
+              value: "ReplaceComplete",
+              label: "Replacement Complete",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/UL_Replace_complete.png",
+                "#D13470",
+                30,
+                "Relocation"
+              )
+            },
+            {
+              value: "Retained",
+              label: "Retained",
+              symbol: getUniqueValueSymbol(
+                "https://EijiGorilla.github.io/Symbols/UL_Retained.png",
+                "#D13470",
+                30,
+                "Relocation"
+              )
+            },
+            {
               value: "NoAction",
               label: "Require Data Checking",
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/Unknown_v2.png",
                 "#D13470",
-                35,
+                30,
                 "Relocation"
                 )
             }
@@ -1015,19 +1046,20 @@ const options1 = { // rectangular
 /* The colors used for the each transit line */
 
 const colorsRelocation = {
-    1: [32,178,170, 0.1], //Telecom Line
-    2: [112,128,144, 0.1], // Internet Cable TV Line
-    3: [230, 0, 169, 0.3], // Duct Bank
+    1: [32,178,170, 0.5], //Telecom Line
+    2: [112,128,144, 0.5], // Internet Cable TV Line
+    3: [230, 0, 169, 0.5], // Duct Bank
     4: [0, 128, 255, 0.5], // Water Distribution Pipe
-    5: [0, 197, 255, 0.3], // Main Line
-    6: [0, 197, 254, 0.3], // Sub-Main Line
-    7: [205,133,63, 0.3], // Canal
-    8: [224, 224, 224, 0.3], // Sewer Pipeline
-    9: [224, 224, 223, 0.3], // Sewer Drainage
-    10: [139,69,19, 0.3], // Creek
-    11: [211,211,211, 0.3], // Elecric Line
-    12: [105,105,105, 0.3], // Storm Drainage
-    13: [105,105,104, 0.3] // Drainage
+    5: [0, 197, 255, 0.5], // Main Line
+    6: [0, 197, 254, 0.5], // Sub-Main Line
+    7: [205,133,63, 0.5], // Canal
+    8: [224, 224, 224, 0.5], // Sewer Pipeline
+    9: [224, 224, 223, 0.5], // Sewer Drainage
+    10: [139,69,19, 0.5], // Creek
+    11: [211,211,211, 0.5], // Elecric Line
+    12: [105,105,105, 0.5], // Storm Drainage
+    13: [105,105,104, 0.5], // Drainage
+    14: [197,0,255,0.5] // Gas line
     };
 
     const colorsExisting = {
@@ -1421,6 +1453,12 @@ testUtilPt1.visible = true;
                 symbol: lineSizeShapeSymbolLayers("circle","none","miter", 0.5, 0.5,"all", property)
               });
 
+            } else if (property == 14) { // "Gas line"
+                renderer.addUniqueValueInfo({
+                value: property,
+                symbol: lineSizeShapeSymbolLayers("circle","none","miter", 0.5, 0.5,"all", property)
+              });              
+
             } else {// end of 'property == '1'
               renderer.addUniqueValueInfo({
                 value: property,
@@ -1740,7 +1778,7 @@ async function updateChartPoint() {
   };
 
   
-  /* Public Safet*/
+  /* Public Safety*/
   var total_safety_incomp = {
     onStatisticField: "CASE WHEN (UtilType = 5 and Status = 0) THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_safety_incomp",
@@ -1753,6 +1791,32 @@ async function updateChartPoint() {
     statisticType: "sum"
   };
 
+/* Drainage */
+var total_drainage_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 6 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_drainage_incomp",
+    statisticType: "sum"
+  };
+
+  var total_drainage_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 6 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_drainage_comp",
+    statisticType: "sum"
+  };
+
+/* GAS */
+  var total_gas_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 7 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_gas_incomp",
+    statisticType: "sum"
+  };
+
+  var total_gas_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 7 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_gas_comp",
+    statisticType: "sum"
+  };
+
   // Start Query
   var query = testUtilPt.createQuery();
   //query.where = "Stations = 'Tandang Sora'"; // Selected Stations
@@ -1760,7 +1824,10 @@ async function updateChartPoint() {
                         total_water_incomp, total_water_comp,
                         total_sewage_incomp, total_sewage_comp,
                         total_power_incomp, total_power_comp,
-                        total_safety_incomp, total_safety_comp];
+                        total_safety_incomp, total_safety_comp,
+                        total_drainage_incomp, total_drainage_comp,
+                        total_gas_incomp, total_gas_comp
+                        ];
   query.returnGeometry = true;
 
 
@@ -1786,6 +1853,14 @@ async function updateChartPoint() {
     /* Public Safety */
     const safety_incomp = stats.total_safety_incomp;
     const safety_comp = stats.total_safety_comp;
+
+    /* Drainage */
+    const drainage_incomp = stats.total_drainage_incomp;
+    const drainage_comp = stats.total_drainage_comp;
+
+    /* Gas */
+    const gas_incomp = stats.total_gas_incomp;
+    const gas_comp = stats.total_gas_comp;
 
 // Chart //
 var chart = am4core.create("chartdiv", am4charts.XYChart);
@@ -1816,6 +1891,16 @@ chart.data = [
     category: "Safety",
     value1: safety_comp,
     value2: safety_incomp
+  },
+  {
+    category: "Drainage",
+    value1: drainage_comp,
+    value2: drainage_incomp
+  },
+  {
+    category: "Gas",
+    value1: gas_comp,
+    value2: gas_incomp
   }
 ];
 
@@ -1943,6 +2028,21 @@ function createSeries(field, name) {
     } else if (selectedP == "Safety" && selectedC == "Complete") {
       selectedLayer = 5;
       selectedStatus = 1;
+
+    } else if (selectedP == "Drainage" && selectedC == "Incomplete") {
+      selectedLayer = 6;
+      selectedStatus = 0;
+    } else if (selectedP == "Drainage" && selectedC == "Complete") {
+      selectedLayer = 6;
+      selectedStatus = 1;
+
+    } else if (selectedP == "Gas" && selectedC == "Incomplete") {
+      selectedLayer = 7;
+      selectedStatus = 0;
+    } else if (selectedP == "Gas" && selectedC == "Complete") {
+      selectedLayer = 7;
+      selectedStatus = 1;
+
     } else {
       selectedLayer = null;
     }
@@ -2081,6 +2181,36 @@ async function updateChartLine() {
     statisticType: "sum"  
   };
 
+  /* Drainage */
+  var total_drainage_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 6 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_drainage_incomp",
+    statisticType: "sum"
+  };
+
+  var total_drainage_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 6 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_drainage_comp",
+    statisticType: "sum"  
+  };
+
+
+  /* Gas */
+  var total_gas_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 7 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_gas_incomp",
+    statisticType: "sum"
+  };
+
+  var total_gas_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 7 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_gas_comp",
+    statisticType: "sum"  
+  };
+
+
+
+
 
 
   // Start Query
@@ -2089,7 +2219,9 @@ async function updateChartLine() {
   query.outStatistics = [total_telecom_incomp, total_telecom_comp,
                         total_water_incomp, total_water_comp,
                         total_sewage_incomp, total_sewage_comp,
-                        total_power_incomp, total_power_comp];
+                        total_power_incomp, total_power_comp,
+                        total_drainage_incomp, total_drainage_comp,
+                        total_gas_incomp, total_gas_comp];
   query.returnGeometry = true;
 
  testLine.queryFeatures(query).then(function(response) {
@@ -2110,6 +2242,14 @@ async function updateChartLine() {
     /* Power */
     const power_incomp = stats.total_power_incomp;
     const power_comp = stats.total_power_comp;
+
+    /* Drainage */
+    const drainage_incomp = stats.total_drainage_incomp;
+    const drainage_comp = stats.total_drainage_comp;
+
+    /* Gas */
+    const gas_incomp = stats.total_gas_incomp;
+    const gas_comp = stats.total_gas_comp;
 
 // Chart //
 var chart = am4core.create("chartdiv", am4charts.XYChart);
@@ -2135,7 +2275,18 @@ chart.data = [
     category: "Power",
     value1: power_comp,
     value2: power_incomp
-  }
+  },
+  {
+    category: "Drainage",
+    value1: drainage_comp,
+    value2: drainage_incomp
+  },
+  {
+    category: "Gas",
+    value1: gas_comp,
+    value2: gas_incomp
+  },
+  
 ];
 
 chart.colors.step = 2;
@@ -2257,6 +2408,22 @@ function createSeries(field, name) {
     } else if (selectedP == "Power" && selectedC == "Complete") {
       selectedLayer = 4;
       selectedStatus = 1;
+
+    } else if (selectedP == "Drainage" && selectedC == "Incomplete") {
+      selectedLayer = 6;
+      selectedStatus = 0;
+    } else if (selectedP == "Drainage" && selectedC == "Complete") {
+      selectedLayer = 6;
+      selectedStatus = 1;
+
+    } else if (selectedP == "Gas" && selectedC == "Incomplete") {
+      selectedLayer = 7;
+      selectedStatus = 0;
+    } else if (selectedP == "Gas" && selectedC == "Complete") {
+      selectedLayer = 7;
+      selectedStatus = 1;
+
+
     } else {
       selectedLayer = null;
     }
@@ -2402,13 +2569,41 @@ function testUtilPtForCombineChart() {
     statisticType: "sum"
   };
 
+  /* Drainage */
+  var total_drainage_incomp1 = {
+    onStatisticField: "CASE WHEN (UtilType = 6 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_drainage_incomp1",
+    statisticType: "sum"
+  };
+
+  var total_drainage_comp1 = {
+    onStatisticField: "CASE WHEN (UtilType = 6 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_drainage_comp1",
+    statisticType: "sum"
+  };
+
+  /* Gas */
+  var total_gas_incomp1 = {
+    onStatisticField: "CASE WHEN (UtilType = 7 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_gas_incomp1",
+    statisticType: "sum"
+  };
+
+  var total_gas_comp1 = {
+    onStatisticField: "CASE WHEN (UtilType = 7 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_gas_comp1",
+    statisticType: "sum"
+  };
+
   // Start Query
   var query = testUtilPt.createQuery();
   query.outStatistics = [total_telecom_incomp1, total_telecom_comp1,
                         total_water_incomp1, total_water_comp1,
                         total_sewage_incomp1, total_sewage_comp1,
                         total_power_incomp1, total_power_comp1,
-                        total_safety_incomp1, total_safety_comp1];
+                        total_safety_incomp1, total_safety_comp1,
+                        total_drainage_incomp1, total_drainage_comp1,
+                        total_gas_incomp1, total_gas_comp1];
   query.returnGeometry = true;
 
   return testUtilPt.queryFeatures(query).then(function(response) {
@@ -2434,8 +2629,18 @@ function testUtilPtForCombineChart() {
     const safety_incomp1 = stats.total_safety_incomp1;
     const safety_comp1 = stats.total_safety_comp1;
 
+    /* Drainage */
+    const drainage_incomp1 = stats.total_drainage_incomp1;
+    const drainage_comp1 = stats.total_drainage_comp1;
+
+    /* Gas */
+    const gas_incomp1 = stats.total_gas_incomp1;
+    const gas_comp1 = stats.total_gas_comp1;
+
+
     var compileArrayPoint = [telecom_incomp1, water_incomp1, sewage_incomp1 ,power_incomp1, safety_incomp1, // Incomplete
-                             telecom_comp1, water_comp1, sewage_comp1, power_comp1, safety_comp1]; // Complete
+                             telecom_comp1, water_comp1, sewage_comp1, power_comp1, safety_comp1,
+                             drainage_incomp1,drainage_comp1, gas_incomp1,gas_comp1]; // Complete
 
     return compileArrayPoint;
   });
@@ -2511,6 +2716,33 @@ function testUtilPtForCombineChart() {
   };
 
 
+  /* Drainage */
+  var total_drainage_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 6 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_drainage_incomp",
+    statisticType: "sum"
+  };
+
+  var total_drainage_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 6 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_drainage_comp",
+    statisticType: "sum"  
+  };
+
+  /* Gas */
+  var total_gas_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 7 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_gas_incomp",
+    statisticType: "sum"
+  };
+
+  var total_gas_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 7 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_gas_comp",
+    statisticType: "sum"  
+  };
+
+
   // Start Query
   var query = testLine.createQuery();
   //query.where = "Stations = 'Tandang Sora'"; // Selected Stations
@@ -2518,7 +2750,9 @@ function testUtilPtForCombineChart() {
                         total_water_incomp, total_water_comp,
                         total_sewage_incomp, total_sewage_comp,
                         total_power_incomp, total_power_comp,
-                        total_safety_incomp, total_safety_comp];
+                        total_safety_incomp, total_safety_comp,
+                        total_drainage_incomp, total_drainage_comp,
+                        total_gas_incomp, total_gas_comp];
 query.returnGeometry = true;
 
  return testLine.queryFeatures(query).then(function(response) {
@@ -2543,27 +2777,46 @@ query.returnGeometry = true;
   const safety_incomp = stats.total_safety_incomp;
   const safety_comp = stats.total_safety_comp;
 
+  /* Drainage */
+  const drainage_incomp = stats.total_drainage_incomp;
+  const drainage_comp = stats.total_drainage_comp;
+
+  /* Gas */
+  const gas_incomp = stats.total_gas_incomp;
+  const gas_comp = stats.total_gas_comp;
+
   /* Calculate total values for points and lines */
   const telecomIncompTotal = telecom_incomp + compileArrayPoint[0];
-  const telecomCompTotal = telecom_comp + compileArrayPoint[5];
+  const telecomCompTotal = telecom_comp + compileArrayPoint[7];
 
   const waterIncompTotal = water_incomp + compileArrayPoint[1];
-  const waterCompTotal = water_comp + compileArrayPoint[6];
+  const waterCompTotal = water_comp + compileArrayPoint[8];
 
   const sewageIncompTotal = sewage_incomp + compileArrayPoint[2];
-  const sewageCompTotal = sewage_comp + compileArrayPoint[7];
+  const sewageCompTotal = sewage_comp + compileArrayPoint[9];
 
   const powerIncompTotal = power_incomp + compileArrayPoint[3];
-  const powerCompTotal = power_comp + compileArrayPoint[8];
+  const powerCompTotal = power_comp + compileArrayPoint[10];
 
   const safetyIncompTotal = safety_incomp + compileArrayPoint[4];
-  const safetyCompTotal = safety_comp + compileArrayPoint[9];
+  const safetyCompTotal = safety_comp + compileArrayPoint[11];
+
+  const drainageIncompTotal = drainage_incomp + compileArrayPoint[5];
+  const drainageCompTotal = drainage_comp + compileArrayPoint[12];
+
+  const gasIncompTotal = gas_incomp + compileArrayPoint[6];
+  const gasCompTotal = gas_comp + compileArrayPoint[13];
+
+
 
     var totalValues = [telecomIncompTotal, telecomCompTotal, // Telecom
                        waterIncompTotal, waterCompTotal, // Water
                        sewageIncompTotal, sewageCompTotal, // Sewage
                        powerIncompTotal, powerCompTotal, // Power
-                       safetyIncompTotal, safetyCompTotal]; // Public Safety
+                       safetyIncompTotal, safetyCompTotal,// Public Safety
+                       drainageIncompTotal, drainageCompTotal, // Drainage
+                       gasIncompTotal, gasCompTotal // Gas
+                       ]; 
 
     return totalValues;
  });
@@ -2600,6 +2853,16 @@ chart.data = [
     category: "Safety",
     value1: totalValues[9],
     value2: totalValues[8]
+  },
+  {
+    category: "Drainage",
+    value1: totalValues[11],
+    value2: totalValues[10]
+  },
+  {
+    category: "Gas",
+    value1: totalValues[13],
+    value2: totalValues[12]
   }
 ];
 
@@ -2727,6 +2990,22 @@ function createSeriesCombine(field, name) {
     } else if (selectedP == "Safety" && selectedC == "Complete") {
       selectedLayer = 5;
       selectedStatus = 1;
+
+    } else if (selectedP == "drainage" && selectedC == "Incomplete") {
+      selectedLayer = 6;
+      selectedStatus = 0;
+    } else if (selectedP == "drainage" && selectedC == "Complete") {
+      selectedLayer = 6;
+      selectedStatus = 1;
+
+    } else if (selectedP == "Gas" && selectedC == "Incomplete") {
+      selectedLayer = 7;
+      selectedStatus = 0;
+    } else if (selectedP == "Gas" && selectedC == "Complete") {
+      selectedLayer = 7;
+      selectedStatus = 1;
+
+
     } else {
       selectedLayer = null;
     }
