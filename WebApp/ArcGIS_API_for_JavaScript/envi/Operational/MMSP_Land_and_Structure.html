@@ -44,24 +44,22 @@
         font-weight: 400;
         max-width: 2000px;
         font-style: normal;
-        font-size: 25px;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         color: white;
-        padding: 0px 0px 2px 12px;
+        padding: 0px 0px 0px 12px;
         height: 6vh;
-        border: solid 2.5px gray;
+        border: solid 3.5px gray;
         margin-bottom: 3px;
         display: grid;
+        vertical-align: middle;
         grid-template-columns: 40px 150fr 0fr 60fr 60fr;
       }
 
       #headerTitleDiv {
-          margin-top: 5px;
-          margin-bottom: 0px;
-          padding-bottom: 0px;
+        font-size: 2rem;
+        vertical-align: middle;
+        padding-top: 3px;
       }
-
-
 /* Dropdown list */
 #dropdownDiv {
     background-color: black;
@@ -69,6 +67,7 @@
     opacity: 1;
     color: white;
     font-weight: bold;
+    width: 20vw;
     margin-top: 8px;
 }
 
@@ -142,14 +141,16 @@
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
           }
     
-      #lotMoaChartdiv {
+      #lotMoaChartDiv {
           width: 100%;
-          height: 20vh;
+          height: 25vh;
           align-items: center;
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
           margin-bottom: 0;
           padding-bottom: 0;
-          }         
+          }
+          
+
 
       #chartTitleDiv {
         font-weight: 200;
@@ -168,20 +169,39 @@
       #chartPanel {
         background: rgb(0, 0, 0, 0);
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-        font-size: 17px;
         display: flex; flex-direction: column;
       }
 
+      #totalNumberLotDiv,
+      #totalNumberStrucDiv,
+      #handedoverNumberLotDiv,
+      #isfNumberStrucDiv {
+        font-size: 1.2rem;
+        padding-bottom: 5px;
+        padding-top: 1px;
+        font-family: 'Calibri';
+        font-weight: bold;
+        color:rgb(250, 246, 246);
+      }
+
+      #pteNumberLotDiv {
+        font-size: 1.2rem;
+        padding-bottom: 5px;
+        padding-top: 1px;
+        font-family: 'Calibri';
+        font-weight: bold;
+        color:rgb(60, 224, 10)
+      }
+
       #optionsDiv {
-        font-size: 14px;
         font-weight: normal;
         text-align: center;
         vertical-align: middle;
         color: white;
-        padding-top: 15px;
+        padding-top: 10px;
         line-height: 0.3;
         opacity: 0.8;
-        height: 9vh;
+        height: 9.5vh;
       }
 
 
@@ -262,14 +282,13 @@
 
       h2 {
         font-weight: 400;
+        height: 6vh;
+        background-color: green;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         font-style: normal;
-        font-size: 23px;
+        font-size: 2rem;
         color: white;
-        padding: 3px;
-        margin: 0px;
         width: 450px;
-        vertical-align: text-top;
       }
 
       img {
@@ -291,12 +310,12 @@
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         text-align: left;
         font-weight: normal;
-        font-size: 16px;
+        font-size: 1rem;
         padding-top: 20px;
         padding-bottom: 0px;
         margin: 0;
         width: 160px;
-        vertical-align: text-bottom;
+
       }
 
       h5 {
@@ -443,7 +462,7 @@
       .sassy-theme .esri-legend .esri-legend__layer-cell--info {
         background-color: black;
         color: white;
-        font-size: 12px;
+        font-size: 0.85rem;
       }
       
       .sassy-theme .esri-legend__layer-caption {
@@ -589,10 +608,17 @@ var basemap = new Basemap({
         var lotPteDiv = document.getElementById("lotPteDiv");
         var lotHandedOverDiv = document.getElementById("lotHandedOverDiv");
 
+        const totalNumberLotDiv = document.getElementById("totalNumberLotDiv");
+        const pteNumberLotDiv = document.getElementById("pteNumberLotDiv");
+        const handedoverNumberLotDiv = document.getElementById("handedoverNumberLotDiv");
+
          // Structure Statistics:
          var structureStatsDiv = document.getElementById("structureStatsDiv");
         var structureChartDiv = document.getElementById("structureChartDiv");
-        var structurePteDiv = document.getElementById("structurePteDiv");       
+        var structurePteDiv = document.getElementById("structurePteDiv");
+
+        const totalNumberStrucDiv = document.getElementById("totalNumberStrucDiv");
+        const isfNumberStrucDiv   = document.getElementById("isfNumberStrucDiv");   
 
 
         var chartTitleDiv = document.getElementById("chartTitleDiv");
@@ -1178,6 +1204,15 @@ updateChartLot().then(totalNumberOfLots);
 updateChartStructure().then(totalNumberOfStructures);
 // Click event handler for Lot, Structure, and Relocation
 
+// Label
+document.getElementById("headerTitleDiv").innerHTML = "Land Acquisition (MMSP)";
+
+totalNumberLotDiv.innerHTML = "Number of Lots";
+pteNumberLotDiv.innerHTML = "Number of PTE";
+handedoverNumberLotDiv.innerHTML = "Number of Handed-Over";
+totalNumberStrucDiv.innerHTML = "Number of Structures";
+isfNumberStrucDiv.innerHTML = "Number of Relocated ISF";
+
 
 
 //*******************************//
@@ -1762,6 +1797,7 @@ shadow.opacity = 0;
 let title = chart.titles.create();
 title.text = "Land Acquisition";
 title.fontSize = 20;
+title.fontWeight = "bold";
 title.fill = am4core.color("#ffffff");
 title.marginTop = 7;
 
@@ -2046,7 +2082,8 @@ hoverShadow.blur = 5;
 // Chart Title
 let title = chart.titles.create();
 title.text = "Strucure";
-title.fontSize = 25;
+title.fontSize = 20;
+title.fontWeight = "bold";
 title.fill = am4core.color("#ffffff");
 title.marginTop = 7;
 
@@ -2305,8 +2342,9 @@ labelBullet.locationX = 0.5;
 
   // Add chart title
 var title = chart.titles.create();
-title.text = "[bold]Mode of Acquisition[/]"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
-title.fontSize = 15;
+title.text = "Mode of Acquisition"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+title.fontWeight = "bold";
+title.fontSize = 16;
 title.fill = "#3ce00a";
 
 series.columns.template.adapter.add("fill", function(fill, target){
@@ -2473,8 +2511,8 @@ labelBullet.locationX = 0.5;
 
 // Add chart title
 var title = chart.titles.create();
-title.text = "[bold]Mode of Acquisition[/]"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
-title.fontSize = 15;
+title.text = "Mode of Acquisition"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+title.fontWeight = "bold";
 title.fill = "#3ce00a";
 
 series.columns.template.adapter.add("fill", function(fill, target){
@@ -2702,9 +2740,7 @@ var printExpand = new Expand ({
     <div id="applicationDiv">
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
-        <div id="headerTitleDiv">
-            <h2>Land Acquisition (MMSP)</h2>
-        </div>
+        <div id="headerTitleDiv"></div>
         <div class="dateDiv">
             <h4>As of February 14, 2022</h4>
         </div>
@@ -2736,16 +2772,16 @@ var printExpand = new Expand ({
             <div id="chartPanel">
                 <div id="chartdiv"></div>
                   <div id="optionsDiv" class="esri-widget">
-                    <div><b>Number of Lots</b></div>
+                    <div id="totalNumberLotDiv"></div>
                     <h6 id="totalNumberDiv"></h6>
                   </div>
                   <div id="lotMoaChartDiv"></div>
                   <div id="optionsDiv" class="esri-widget">
-                    <div><p class="h7"><b>PTE Lot</b></p></div>
+                    <div id="pteNumberLotDiv"></div>
                     <h6 id="lotPteDiv"></h6>
                   </div>
                   <div id="optionsDiv" class="esri-widget">
-                    <div><p class="h8"><b>Handed-Over Lot</b></p></div>
+                    <div id="handedoverNumberLotDiv"></div>
                     <h6 id="lotHandedOverDiv"></h6>
                   </div>
             </div>
@@ -2754,12 +2790,12 @@ var printExpand = new Expand ({
             <div id="structureChartPanel">
                 <div id="structureChartDiv"></div>
                 <div id="optionsDiv" class="esri-widget">
-                  <div><b>Number of Structures</b></div>
+                  <div id="totalNumberStrucDiv"></div>
                   <h6 id="structureTotalNumberDiv"></h6>
                 </div>
                   <div id="structureMoaChartDiv"></div>
                   <div id="optionsDiv" class="esri-widget">
-                    <div><p class="h8"><b>Relocated Lot (ISF)</b></p></div>
+                    <div id="isfNumberStrucDiv"></div>
                     <h6 id="isfDiv"></h6>
                   </div>
             </div>
