@@ -224,6 +224,26 @@
         display: flex; flex-direction: column;
       }
 
+      #titleNumberStrucISF,
+      #titleNumberLot {
+        font-size: 1.2rem;
+        padding-bottom: 5px;
+        padding-top: 1px;
+        font-family: 'Calibri';
+        font-weight: bold;
+        color:rgb(250, 246, 246);
+      }
+
+      #pteStrucTotalNumberDiv,
+      #pteLotTotalNumberDiv {
+        font-size: 1.2rem;
+        padding-bottom: 5px;
+        padding-top: 1px;
+        font-family: 'Calibri';
+        font-weight: bold;
+        color:rgb(60, 224, 10)
+      }
+
       #selectedButton {
         font-size: 15px;
         padding-top: 10px;
@@ -284,7 +304,7 @@
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         text-align: left;
         font-weight: normal;
-        font-size: 14px;
+        font-size: 1rem;
         padding-top: 20px;
         margin: 0;
         width: 160px;
@@ -465,7 +485,7 @@
       .sassy-theme .esri-legend .esri-legend__layer-cell--info {
         background-color: black;
         color: white;
-        font-size: 12px;
+        font-size: 0.85rem;
       }
 
       .sassy-theme .esri-legend__layer-caption {
@@ -626,6 +646,12 @@ var basemap = new Basemap({
 
         const utilTypesButton = document.getElementById("dataTypeInput");
 
+        const titleNumberStrucISF = document.getElementById("titleNumberStrucISF");
+        const titleNumberLot = document.getElementById("titleNumberLot");
+
+        const pteStrucTotalNumberDiv = document.getElementById("pteStrucTotalNumberDiv");
+        const pteLotTotalNumberDiv = document.getElementById("pteLotTotalNumberDiv");
+
         // hand
 
 //*******************************//
@@ -637,9 +663,12 @@ var labelChainage = new LabelClass({
   symbol: {
     type: "text",
     color: [85, 255, 0],
-    size: 25,
     haloColor: "black",
-    haloSize: 0.5
+    haloSize: 0.5,
+    font: {
+      size: 15,
+      weight: "bold"
+    }
   }
 });
 
@@ -648,10 +677,13 @@ var labelPierNo = new LabelClass({
   labelExpressionInfo: {expression: "$feature.PIER"},
   symbol: {
     type: "text",
-    color: [0, 112, 255],
-    size: 25,
+    color: [255, 255, 255],
     haloColor: "black",
-    haloSize: 0.5
+    haloSize: 0.5,
+    font: {
+      size: 15,
+      weight: "bold"
+    }
   }
 });
 
@@ -1581,10 +1613,16 @@ am4core.useTheme(am4themes_animated);
 
 // Setting of Chart Buttons------------------------------
 // Initial setting for chart: default = structure chart
+pteLotTotalNumberDiv.innerHTML = "Number of PTE";
+titleNumberLot.innerHTML = "Number of Lot";
+
 if (document.getElementById("Structure").checked = true) {
   reloISFLayer.visible = false;
   relocationPtLayer.visible = true;
     updateChartStructure().then(totalNumberOfStructures);
+
+    titleNumberStrucISF.innerHTML = "Number of Structure";
+    pteStrucTotalNumberDiv.innerHTML = "Number of PTE";
 }
 
 // When city, barangay, or priority is changed, I want a chart to return to Structure
@@ -2210,12 +2248,28 @@ function filterByType(e) {
   if(selectedType == "Structure") {
     reloISFLayer.visible = false;
     relocationPtLayer.visible = true;
-    updateChartStructure();
+
+    updateChartStructure().then(totalNumberOfStructures);
+    updateMoaChartStructure();
+    pteNumberStructure();
+
+    titleNumberStrucISF.innerHTML = "Number of Structure";
+    pteStrucTotalNumberDiv.innerHTML = "Number of PTE";
+
 
   } else if (selectedType == "ISF") {
     reloISFLayer.visible = true;
     relocationPtLayer.visible = false;
     updateChartISF();
+
+    structureTotalNumberDiv.innerHTML = "";
+    document.getElementById("structureMoaChartDiv").innerHTML = "";
+    document.getElementById("structurePteDiv").innerHTML = "";
+
+    titleNumberStrucISF.innerHTML = "Number of NLO/LO";
+    pteStrucTotalNumberDiv.innerHTML = "";
+
+
 
   }
 
@@ -2445,7 +2499,6 @@ var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
 hoverShadow.opacity = 0.7;
 hoverShadow.blur = 5;
 
-
   // Add a legend
   const LegendFontSizze = 14;
   chart.legend = new am4charts.Legend();
@@ -2464,9 +2517,10 @@ hoverShadow.blur = 5;
 // Chart Title
 var title = chart.titles.create();
 title.text = "Land"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
-title.fontSize = 18;
+title.fontSize = 20;
 title.fontWeight = "bold";
 title.fill = "#ffffff";
+title.marginTop = 5;
 
   var marker = chart.legend.markers.template.children.getIndex(0);
   var markerTemplate = chart.legend.markers.template;
@@ -2745,9 +2799,10 @@ chart.legend.marginRight = 0;
 // Chart Title
 var title = chart.titles.create();
 title.text = "Structure"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
-title.fontSize = 18;
+title.fontSize = 20;
 title.fontWeight = "bold";
 title.fill = "#ffffff";
+title.marginTop = 5;
 
 
   var marker = chart.legend.markers.template.children.getIndex(0);
@@ -3027,9 +3082,10 @@ chart.legend.marginRight = 0;
 // Chart Title
 var title = chart.titles.create();
 title.text = "ISF Relocation"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
-title.fontSize = 18;
+title.fontSize = 20;
 title.fontWeight = "bold";
 title.fill = "#ffffff";
+title.marginTop = 5;
 
 
   var marker = chart.legend.markers.template.children.getIndex(0);
@@ -3368,7 +3424,7 @@ labelBullet.locationX = 0.5;
 // Add chart title
 var title = chart.titles.create();
 title.text = "[bold]Mode of Acquisition[/]"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
-// title.fontSize = 15;
+title.fontSize = 15;
 title.fill = "#3ce00a";
 
 series.columns.template.adapter.add("fill", function(fill, target){
@@ -3599,7 +3655,7 @@ searchExpand.watch("expanded", function() {
             <h2>Land Acquisition (N2) for Contractor's Submission</h2>
         </div>
         <div class="dateDiv">
-            <h4>As of February 7, 2022</h4>
+            <h4>As of February 14, 2022</h4>
         </div>
         <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">City/Municipality:</label>
@@ -3633,30 +3689,28 @@ searchExpand.watch("expanded", function() {
         </div>
         <div class="boxD">
             <div id="chartPanel">
-                <div id="chartTitleDiv" class="esri-widget"></div>
                 <div id="chartdiv"></div>
                   <div id="optionsDiv" class="esri-widget">
-                    <div><b>Number of Lot</b></div>
+                    <div id="titleNumberLot"></div>
                     <h6 id="totalNumberDiv"></h6>
                   </div>
                   <div id="lotMoaChartDiv"></div>
                   <div id="optionsDiv" class="esri-widget">
-                    <div><p class="h7"><b>Number of PTE</b></p></div>
+                    <div id="pteLotTotalNumberDiv"></div>
                     <h6 id="lotPteDiv"></h6>
                   </div>
             </div>
         </div>
         <div class="boxE">
             <div id="structureChartPanel">
-                <div id="structureChartTitleDiv" class="esri-widget"></div>
                 <div id="structureChartDiv"></div>
                 <div id="optionsDiv" class="esri-widget">
-                    <div><b>Number of Structure</b></div>
+                  <div id="titleNumberStrucISF"></div>
                     <h6 id="structureTotalNumberDiv"></h6>
                   </div>
                   <div id="structureMoaChartDiv"></div>
                   <div id="optionsDiv" class="esri-widget">
-                    <div><p class="h7"><b>Number of PTE</b></p></div>
+                    <div id="pteStrucTotalNumberDiv"></div>
                     <h6 id="structurePteDiv"></h6>
                   </div>
             </div>
