@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>N2 Integrated Smart Map for Pre-Construction</title>
+<title>N2 Pre-Construction</title>
 
     <style>
       html,
@@ -42,7 +42,7 @@
 
       #headerDiv {
         font-weight: 400;
-        max-width: 2000px;
+        width: 100%;
         font-style: normal;
         font-size: 25px;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
@@ -51,7 +51,25 @@
         border: solid 2.5px gray;
         margin-bottom: 3px;
         display: grid;
-        grid-template-columns: 40px 250fr 0fr 0fr;
+        grid-template-columns: 40px 2fr 1fr 1fr 1fr;
+      }
+
+      #headerTitleDiv {
+        font-size: 1.8rem;
+        color: white;
+        width: 100%;
+      }
+
+      .dateDiv {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: left;
+        font-weight: normal;
+        font-size: 1rem;
+        padding-top: 20px;
+        margin: 0;
+        width: 160px;
+        vertical-align: text-bottom;
       }
 
       #viewDiv {
@@ -90,7 +108,7 @@
     opacity: 1;
     color: white;
     font-weight: bold;
-    width:50vw;
+    width: 24vw;
     text-align: right;
     padding-right:5px;
 }
@@ -147,7 +165,6 @@
 
       #cpButton {
         margin:0;
-        width: 400px;
         text-align: left;
         padding: 10px;
       }
@@ -200,9 +217,17 @@
 
 
       #dataTypeInput {
-        font-size: 17px;
+        font-size: 1.1rem;
         border:1px solid rgb(169,169,169, 0.5);
-        padding-top: 20px;
+        padding-top: 0px;
+        width:250px;
+      }
+
+      #treeCompensationDiv {
+        font-size: 1.1rem;
+        border:1px solid rgb(169,169,169, 0.5);
+        padding-top: 0px;
+        width:250px;
       }
 
       .advice {
@@ -1068,8 +1093,8 @@ let defaultSymbol = {
 
 function colorPriority() {
   return {
-    1: [255,0,0],
-    2: [255,255,0],
+    1: [255,255,0],
+    2: [112,173,71],
     3: [0,112,255]
   }
 }
@@ -1134,6 +1159,7 @@ function colorsCut() {
     4: [255,170,0]
   }
 }
+const colorsCompen = ["#33FF0000", "#33FFFF00", "#3371AB48"]; //[1:Non-Compensable, 2:For Processing, 3:Compensated]
 
 ///////////////////
 /////////////////////
@@ -1237,6 +1263,54 @@ let treeCuttingRenderer = {
     },
   ]
 };
+
+let treeCompensationRenderer = {
+  type: "unique-value",
+  valueExpression: "When($feature.Compensation == 1, 'nonCompensable', $feature.Compensation == 2, 'payp', \
+                         $feature.Compensation == 3, 'compensated', $feature.Compensation)",
+  uniqueValueInfos: [ //[1:Non-Compensable, 2:For Processing, 3:Compensated]
+    {
+      value: "nonCompensable",
+      type: "simple",
+      symbol: {
+      type: "simple-marker",
+      size: 5,
+      color: colorsCompen[0], // the first two letters dictate transparency.
+      outline: {
+        width: 0.5,
+        color: outlineColor
+      }
+      }
+    },
+    {
+      value: "payp",
+      type: "simple",
+      symbol: {
+      type: "simple-marker",
+      size: 5,
+      color: colorsCompen[1], // the first two letters dictate transparency.
+      outline: {
+        width: 0.5,
+        color: outlineColor
+      }
+      }
+    },
+    {
+      value: "compensated",
+      type: "simple",
+      symbol: {
+      type: "simple-marker",
+      size: 5,
+      color: colorsCompen[2], // the first two letters dictate transparency.
+      outline: {
+        width: 0.5,
+        color: outlineColor
+      }
+      }
+    }
+  ]
+};
+
 
 // Free and Clear
 
@@ -1751,7 +1825,7 @@ var structureLayer = new FeatureLayer({
 map.add(structureLayer);
 
 const colors = {
-          1: [255, 0, 197], // Dismantling/Clearing
+          1: [0, 197, 255], // Dismantling/Clearing
           2: [112, 173, 71], // Paid
           3: [0, 112, 255], // For Payment Processing
           4: [255, 255, 0], // For Legal Pass 
@@ -1858,6 +1932,54 @@ var stationLayer = new SceneLayer({
         });
         //stationLayer.listMode = "hide";
         map.add(stationLayer, 0);
+
+// Status of Relocation (Occupancy)
+var relocationPtLayer = new FeatureLayer({
+  portalItem: {
+    id: "dca1d785da0f458b8f87638a76918496",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 5,
+//renderer: occupancyRenderer,
+        outFields: ["*"],
+        title: "Structure (Occupancy Status)",
+        popupTemplate: {
+          title: "<p>{StrucID}</p>",
+          lastEditInfoEnabled: false,
+          returnGeometry: true,
+          content: [
+            {
+              type: "fields",
+              fieldInfos: [
+                {
+                  fieldName: "StrucOwner",
+                  label: "Structure Owner"
+                },
+                {
+                  fieldName: "Municipality"
+                },
+                {
+                  fieldName: "Barangay"
+                },
+                {
+                  fieldName: "Occupancy",
+                  label: "<p>Status for Relocation(structure)</p>"
+                },
+                {
+                  fieldName: "Name",
+                },
+                {
+                  fieldName: "Status",
+                  label: "Status of NLO/LO"
+                }
+              ]
+            }
+          ]
+        }
+});
+map.add(relocationPtLayer);
 
 // Priority Layter
 // Priority Lot
@@ -1980,6 +2102,61 @@ var treeCuttingLayer = new FeatureLayer ({
 });
 map.add(treeCuttingLayer);
 
+// Tree Compensation
+var compensationLayer = new FeatureLayer ({
+    portalItem: {
+    id: "4da5697d684f4babad15aedfe74c5b36",
+    portal: {
+        url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  outFields: ["*"],
+  title: "Status of Tree Compensation",
+  renderer: treeCompensationRenderer,
+  popupTemplate: {
+    title: "<h5>{Compensation}</h5>",
+    lastEditInfoEnabled: false,
+    returnGeometry: true,
+    content: [
+      {
+        type: "fields",
+        fieldInfos: [
+          {
+            fieldName: "ScientificName",
+            label: "Scientific Name"
+          },
+          {
+            fieldName: "CommonName",
+            label: "Common Name"
+          },
+          {
+            fieldName: "Province"
+          },
+          {
+            fieldName: "Municipality"
+          },
+          {
+            fieldName: "TreeNo",
+            label: "Tree No."
+          },
+          {
+            fieldName: "CP",
+            label: "<h5>CP</h5>"
+          },
+          {
+            fieldName: "Status",
+            label: "Status of Tree Cutting"
+          },
+          {
+            fieldName: "Conservation",
+            label: "Conservation Status"
+          },
+        ]
+      }
+    ]
+  }
+});
+map.add(compensationLayer);
 
 // Utility Point
 // To locate a symbol with callout on the ground, 
@@ -2379,6 +2556,29 @@ map.add(fncLayer,0);
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
+/*
+if (document.getElementById("Tree Cutting").checked = true) {
+  compensationLayer.visible = false;
+    treeCuttingLayer.visible = true;
+  updateChartCutting();
+}
+*/
+if (document.getElementById("Structure").checked = true) {
+  reloISFLayer.visible = false;
+  relocationPtLayer.visible = true;
+    updateChartStructure();
+
+}
+
+// When city, barangay, or priority is changed, I want a chart to return to Structure
+function backToStructureChart(){
+  document.getElementById("Structure").checked = true;
+    reloISFLayer.visible = false;
+    relocationPtLayer.visible = true;
+    updateChartStructure();
+}
+
+
         /////////////////////////////////////////////////////////////////////////////
 //*******************************//
 //      Progress Chart           //
@@ -2439,9 +2639,9 @@ handedOverLot();
 var opacityInput = document.getElementById("opacityInput");
 var utilChartDiv = document.getElementById("utilChartDiv");
 var structureChartDiv = document.getElementById("structureChartDiv");
-const treeUtilChartChangeButton = document.getElementById("dataTypeInput");
 
 const chartElement = document.getElementById("chartPanel");
+const chartElementStructure = document.getElementById("structureChartPanel");
 const chartElementTreeUL = document.getElementById("treeULchartPanel");
 
 var cpSelect = document.getElementById("cpSelect");
@@ -2533,6 +2733,7 @@ function getUniqueValues(values) {
     values.forEach(function(item, i) {
         if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
             uniqueValues.push(item);
+            //headerTitleDiv.innerHTML = uniqueValues;
         }
     });
     return uniqueValues;
@@ -2680,7 +2881,7 @@ cpSelect.addEventListener("change", function() {
 
   updateChartLot();
   updateChartStructure();
-    updateTreeCuttingLot();
+    updateChartCutting();
     updateChartCombine();
 
     view.whenLayerView(lotLayer).then(function (layerView) {
@@ -2724,6 +2925,7 @@ where: "CP = '" + type + "'"
 
 let concatView = [];
 
+// Event listener for Handed-Over date
 handoverdateSelect.addEventListener("change", function() {
   var type = event.target.value;
 
@@ -2731,7 +2933,7 @@ handoverdateSelect.addEventListener("change", function() {
 
     updateChartLot();
     updateChartStructure();
-    updateTreeCuttingLot();
+    updateChartCutting();
     updateChartCombine();
 
 
@@ -2801,7 +3003,48 @@ const ggg = results.features;
   }
 });
 
+// Event-listener for structure-ISF chart switch button
+const structureChartChangeButton= document.getElementById("dataTypeInput");
+const treeChartChangeButton = document.getElementById("treeCompensationDiv");
 
+// Tree Chart switch button
+/*
+treeChartChangeButton.addEventListener("change", filterByType);
+function filterByType(e) {
+  const selectedType = e.target.id;
+  if(selectedType == "Tree Cutting") {
+    compensationLayer.visible = false;
+    treeCuttingLayer.visible = true;
+
+    updateChartCutting();
+
+  } else if (selectedType == "Compensation") {
+    compensationLayer.visible = true;
+    treeCuttingLayer.visible = false;
+
+    updateChartCompensation();
+
+  }
+
+}
+*/
+
+structureChartChangeButton.addEventListener("change", filterByType);
+function filterByType(e) {
+  const selectedType = e.target.id;
+  if(selectedType == "Structure") {
+    reloISFLayer.visible = false;
+    relocationPtLayer.visible = true;
+    updateChartStructure();
+
+  } else if (selectedType == "ISF") {
+    reloISFLayer.visible = true;
+    relocationPtLayer.visible = false;
+    updateChartISF();
+
+  }
+
+}
 
 ////////////////////////////////////////////////////////////////////////////
 let cpArray = [];
@@ -2815,7 +3058,7 @@ let compileArrayLine = [];
 // As default, chart shows the progress of all the relocated layers (point + line)
   updateChartLot();
   updateChartStructure();
-    updateTreeCuttingLot();
+    updateChartCutting();
     updateChartCombine();
 
 
@@ -2936,7 +3179,7 @@ function createSlices(field, status){
 
   
   // Hover setting
-  pieSeries.tooltip.label.fontSize = 9;
+  pieSeries.tooltip.label.fontSize = 12;
 
   // Pie
 //pieSeries.alignLabels = false;
@@ -3138,7 +3381,7 @@ async function updateChartStructure() {
       {
         "StatusStruc": "Dismantling/Clearing",
         "status": clear,
-        "color": am4core.color("#FF00C5")
+        "color": am4core.color("#00C5FF")
       },
       {
         "StatusStruc": "Paid",
@@ -3353,6 +3596,284 @@ return totalNumberStructures;
 
 });  // End of queryFeature                 
 } // End of updateChartStructure()
+
+
+// ISF Chart
+async function updateChartISF() {
+  var total_relocated_lot = {
+    onStatisticField: "CASE WHEN StatusRC = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_relocated_lot",
+    statisticType: "sum"
+  };
+
+  var total_paid_lot = {
+    onStatisticField: "CASE WHEN StatusRC = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_paid_lot",
+    statisticType: "sum"
+  };
+
+  var total_payp_lot = {
+    onStatisticField: "CASE WHEN StatusRC = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_payp_lot",
+    statisticType: "sum"
+  };
+
+  var total_legalpass_lot = {
+    onStatisticField: "CASE WHEN StatusRC = 4 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_legalpass_lot",
+    statisticType: "sum"
+  };
+
+  var total_otc_lot = {
+    onStatisticField: "CASE WHEN StatusRC = 5 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_otc_lot",
+    statisticType: "sum"
+  };
+
+  var total_lbp_lot = {
+    onStatisticField: "CASE WHEN StatusRC = 6 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_lbp_lot",
+    statisticType: "sum"
+  };  
+
+  var query = reloISFLayer.createQuery();
+  query.outStatistics = [total_relocated_lot, total_paid_lot, total_payp_lot,
+                         total_legalpass_lot, total_otc_lot, total_lbp_lot];
+  query.returnGeometry = true;
+
+  return reloISFLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const clear = stats.total_relocated_lot;
+    const paid = stats.total_paid_lot;
+    const payp = stats.total_payp_lot;
+    const legalpass = stats.total_legalpass_lot;
+    const otc = stats.total_otc_lot;
+    const lbp = stats.total_lbp_lot;
+
+    var chart = am4core.create("structureChartDiv", am4charts.PieChart);
+
+
+    // Add data
+    chart.data = [
+      {
+        "StatusRC": "Relocated",
+        "status": clear,
+        "color": am4core.color("#FF00C5")
+      },
+      {
+        "StatusRC": "Paid",
+        "status": paid,
+        "color": am4core.color("#70AD47")   
+      },
+      {
+        "StatusRC": "For Payment Processing",
+        "status": payp,
+        "color": am4core.color("#0070FF") 
+      },
+      {
+        "StatusRC": "For Legal Pass",
+        "status": legalpass,
+        "color": am4core.color("#FFFF00")
+      },
+      {
+        "StatusRC": "For Appraisal/OtC/Requirements for Other Entitlements",
+        "status": otc,
+        "color": am4core.color("#FFAA00")    
+      },
+      {
+        "StatusRC": "LBP Account Opening",
+        "status": lbp,
+        "color": am4core.color("#FF0000")    
+      }
+  ];
+
+  // Set inner radius
+  chart.innerRadius = am4core.percent(30);
+
+  // Add and configure Series
+function createSlices(field, status) {
+  var pieSeries = chart.series.push(new am4charts.PieSeries());
+  pieSeries.dataFields.value = field;
+  pieSeries.dataFields.category = status;
+
+  pieSeries.slices.template.propertyFields.fill = "color";
+  pieSeries.slices.template.stroke = am4core.color("#fff");
+  pieSeries.slices.template.strokeWidth = 1;
+  pieSeries.slices.template.strokeOpacity = 1;
+
+  pieSeries.slices.template.adapter.add("fill", function(fill, target) {
+  var pattern = new am4core.LinePattern();
+  pattern.width = 7;
+  pattern.height = 7;
+  pattern.strokeWidth = 1.5;
+  pattern.stroke = target.dataItem.dataContext.color;
+  pattern.rotation = 135;
+  return pattern;
+});
+
+pieSeries.slices.template.background.adapter.add("fill", function(fill, target) {
+  return target.dataItem ? target.dataItem.dataContext.color : fill;
+});
+
+  pieSeries.slices.template
+  // change the cursor on hover to make it apparent the object can be interacted with
+  .cursorOverStyle = [
+    {
+      "property": "cursor",
+      "value": "pointer"
+    }
+  ];
+
+  
+  // Hover setting
+  pieSeries.tooltip.label.fontSize = 12;
+
+  // Pie
+//pieSeries.alignLabels = false;
+//pieSeries.labels.template.bent = false;
+pieSeries.labels.template.disabled = true;
+pieSeries.labels.template.radius = 3;
+pieSeries.labels.template.padding(0,0,0,0);
+pieSeries.labels.template.fontSize = 9;
+pieSeries.labels.template.fill = "#ffffff";
+
+// Ticks (a straight line)
+//pieSeries.ticks.template.disabled = true;
+pieSeries.ticks.template.fill = "#ffff00";
+
+// Create a base filter effect (as if it's not there) for the hover to return to
+var shadow = pieSeries.slices.template.filters.push(new am4core.DropShadowFilter);
+shadow.opacity = 0;
+
+
+
+// Create hover state
+var hoverState = pieSeries.slices.template.states.getKey("hover"); // normally we have to create the hover state, in this case it already exists
+
+// Slightly shift the shadow and make it more prominent on hover
+var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
+hoverShadow.opacity = 0.7;
+hoverShadow.blur = 5;
+
+
+  // Add a legend
+  const LegendFontSizze = 13;
+  chart.legend = new am4charts.Legend();
+
+  chart.legend.valueLabels.template.align = "right"
+  chart.legend.valueLabels.template.textAlign = "end";  
+  
+  //chart.legend.position = "bottom";
+  chart.legend.labels.template.fontSize = LegendFontSizze;
+  chart.legend.labels.template.fill = "#ffffff";
+  chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+  chart.legend.valueLabels.template.fontSize = LegendFontSizze; 
+  pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
+  //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+
+  chart.legend.horizontalGap = 0;
+chart.legend.marginLeft = 0;
+chart.legend.marginRight = 0;
+
+// Chart Title
+var title = chart.titles.create();
+title.text = "ISF Relocation"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+title.fontSize = 20;
+title.fontWeight = "bold";
+title.fill = "#ffffff";
+title.marginTop = 5;
+
+
+  var marker = chart.legend.markers.template.children.getIndex(0);
+  var markerTemplate = chart.legend.markers.template;
+marker.cornerRadius(12, 12, 12, 12);
+marker.strokeWidth = 1;
+marker.strokeOpacity = 1;
+marker.stroke = am4core.color("#ccc");
+
+// Change size of legend marker
+markerTemplate.width = 18;
+markerTemplate.height = 18;
+// This creates initial animation
+//pieSeries.hiddenState.properties.opacity = 1;
+//pieSeries.hiddenState.properties.endAngle = -90;
+//pieSeries.hiddenState.properties.startAngle = -90;
+
+// Click chart and filter, update maps
+pieSeries.slices.template.events.on("hit", filterByChart, this);
+function filterByChart(ev) {
+  const selectedD = ev.target.dataItem.category;
+
+  if (selectedD == "Relocated") {
+      selectedStatus = 1;
+  } else if (selectedD == "Paid") {
+    selectedStatus = 2;
+  } else if (selectedD == "For Payment Processing") {
+    selectedStatus = 3;
+  } else if (selectedD == "For Legal Pass") {
+    selectedStatus = 4;
+  } else if (selectedD == "For Appraisal/OtC/Requirements for Other Entitlements") {
+    selectedStatus = 5;
+  } else if (selectedD == "LBP Account Opening") {
+    selectedStatus = 6;
+  } else {
+    selectedStatus = null;
+  }
+
+  view.when(function() {
+    view.whenLayerView(reloISFLayer).then(function (layerView) {
+      chartLayerView = layerView;
+      chartElementStructure.style.visibility = "visible";
+
+      reloISFLayer.queryFeatures().then(function(results) {
+        const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i < rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            reloISFLayer.queryExtent(queryExt).then(function(result) {
+                if (result.extent) {
+                    view.goTo(result.extent)
+                }
+            });
+
+            if (highlightSelect) {
+                highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+
+            view.on("click", function() {
+            layerView.filter = null;
+            highlightSelect.remove();
+            });
+
+      }); // End of queryFeatures
+      layerView.filter = {
+    where: "StatusRC = " + selectedStatus
+  }
+
+    }); // End of view.whenLayerView
+
+
+  }); // End of view.when
+
+} // End of filterByChart
+} // End of createSlices function
+
+createSlices("status", "StatusRC");
+
+});  // End of queryFeature                 
+} // End of updateChartISF()
+
 
 
 
@@ -3815,7 +4336,7 @@ testUtilPtForCombineChart() // Promise
 
 ///////////////////////////////////////////////////////////////////
 // Tree Cutting Chart
-async function updateTreeCuttingLot() {
+async function updateChartCutting() {
     var total_cut_tree = {
         onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
         outStatisticFieldName: "total_cut_tree",
@@ -4038,6 +4559,328 @@ createSlices("status", "treeCut");
   }); // End of queryFeature
 } // End of updateTreeCuttingChart
 
+function updateChartCompensation() {
+      // N-01
+  var total_n01_paid = {
+    onStatisticField: "CASE WHEN (CP = 'N-01' and Compensation = 3) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_n01_paid",
+    statisticType: "sum"
+  };
+
+  var total_n01_payp = {
+    onStatisticField: "CASE WHEN (CP = 'N-01' and Compensation = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_n01_payp",
+    statisticType: "sum"
+  };
+
+  var total_n01_noncomp = {
+    onStatisticField: "CASE WHEN (CP = 'N-01' and Compensation = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_n01_noncomp",
+    statisticType: "sum"
+  };
+
+    // N-02
+  var total_n02_paid = {
+    onStatisticField: "CASE WHEN (CP = 'N-02' and Compensation = 3) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_n02_paid",
+    statisticType: "sum"
+  };
+
+  var total_n02_payp = {
+    onStatisticField: "CASE WHEN (CP = 'N-02' and Compensation = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_n02_payp",
+    statisticType: "sum"
+  };
+
+  var total_n02_noncomp = {
+    onStatisticField: "CASE WHEN (CP = 'N-02' and Compensation = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_n02_noncomp",
+    statisticType: "sum"
+  };
+
+  // N-03
+  var total_n03_paid = {
+    onStatisticField: "CASE WHEN (CP = 'N-03' and Compensation = 3) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_n03_paid",
+    statisticType: "sum"
+  };
+
+  var total_n03_payp = {
+    onStatisticField: "CASE WHEN (CP = 'N-03' and Compensation = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_n03_payp",
+    statisticType: "sum"
+  };
+
+  var total_n03_noncomp = {
+    onStatisticField: "CASE WHEN (CP = 'N-03' and Compensation = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_n03_noncomp",
+    statisticType: "sum"
+  };
+
+    // N-04
+  var total_n04_paid = {
+    onStatisticField: "CASE WHEN (CP = 'N-04' and Compensation = 3) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_n04_paid",
+    statisticType: "sum"
+  };
+
+  var total_n04_payp = {
+    onStatisticField: "CASE WHEN (CP = 'N-04' and Compensation = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_n04_payp",
+    statisticType: "sum"
+  };
+
+  var total_n04_noncomp = {
+    onStatisticField: "CASE WHEN (CP = 'N-04' and Compensation = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_n04_noncomp",
+    statisticType: "sum"
+  };
+
+  // N-05
+  var total_n05_paid = {
+    onStatisticField: "CASE WHEN (CP = 'N-05' and Compensation = 3) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_n05_paid",
+    statisticType: "sum"
+  };
+
+  var total_n05_payp = {
+    onStatisticField: "CASE WHEN (CP = 'N-05' and Compensation = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_n05_payp",
+    statisticType: "sum"
+  };
+
+  var total_n05_noncomp = {
+    onStatisticField: "CASE WHEN (CP = 'N-05' and Compensation = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_n05_noncomp",
+    statisticType: "sum"
+  };
+
+  var query = compensationLayer.createQuery();
+  query.outStatistics = [total_n01_paid, total_n01_payp, total_n01_noncomp,
+                         total_n02_paid, total_n02_payp, total_n02_noncomp,
+                         total_n03_paid, total_n03_payp, total_n03_noncomp,
+                         total_n04_paid, total_n04_payp, total_n04_noncomp,
+                         total_n05_paid, total_n05_payp, total_n05_noncomp];
+  query.returnGeometry = true;
+
+  compensationLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    /* N-01 */
+    const n01_paid = stats.total_n01_paid;
+    const n01_payp = stats.total_n01_payp;
+    const n01_noncomp = stats.total_n01_noncomp;
+
+    /* N-02 */
+    const n02_paid = stats.total_n02_paid;
+    const n02_payp = stats.total_n02_payp;
+    const n02_noncomp = stats.total_n02_noncomp;
+
+    /* N-03 */
+    const n03_paid = stats.total_n03_paid;
+    const n03_payp = stats.total_n03_payp;
+    const n03_noncomp = stats.total_n03_noncomp;
+
+    /* N-04 */
+    const n04_paid = stats.total_n04_paid;
+    const n04_payp = stats.total_n04_payp;
+    const n04_noncomp = stats.total_n04_noncomp;
+
+    /* N-05 */
+    const n05_paid = stats.total_n05_paid;
+    const n05_payp = stats.total_n05_payp;
+    const n05_noncomp = stats.total_n05_noncomp;
+
+    var chart = am4core.create("treeChartDiv", am4charts.XYChart);
+    chart.hiddenState.properties.opacity = 0;
+
+    // Add data
+    chart.data = [
+  {
+    category: "N-05",
+    value1: n05_paid,
+    value2: n05_payp,
+    value3: n05_noncomp
+  },
+  {
+    category: "N-04",
+    value1: n04_paid,
+    value2: n04_payp,
+    value3: n04_noncomp
+  },
+  {
+    category: "N-03",
+    value1: n03_paid,
+    value2: n03_payp,
+    value3: n03_noncomp
+  },
+  {
+    category: "N-02",
+    value1: n02_paid,
+    value2: n02_payp,
+    value3: n02_noncomp
+  },
+  {
+    category: "N-01",
+    value1: n01_paid,
+    value2: n01_payp,
+    value3: n01_noncomp
+  },
+];
+
+chart.colors.step = 2;
+chart.padding(10, 10, 10, 10);
+
+/// Legend
+const LegendFontSizze = 15;
+chart.legend = new am4charts.Legend();
+chart.legend.useDefaultMarker = true;
+var marker = chart.legend.markers.template.children.getIndex(0);
+marker.cornerRadius(12, 12, 12, 12);
+marker.strokeWidth = 1;
+marker.strokeOpacity = 1;
+marker.stroke = am4core.color("#ccc");
+
+var markerTemplate = chart.legend.markers.template;
+markerTemplate.width = 17;
+markerTemplate.height = 17;
+
+chart.legend.valueLabels.template.align = "right"
+chart.legend.valueLabels.template.textAlign = "end"; 
+
+ chart.legend.position = "bottom";
+ chart.legend.labels.template.fontSize = LegendFontSizze;
+  chart.legend.labels.template.fill = "#ffffff";
+  chart.legend.valueLabels.template.fill = am4core.color("#ffffff");
+
+var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+categoryAxis.dataFields.category = "category";
+categoryAxis.renderer.grid.template.location = 0;
+categoryAxis.renderer.labels.template.fontSize = 16;
+categoryAxis.renderer.labels.template.fill = "#ffffff";
+categoryAxis.renderer.minGridDistance = 5; //can change label
+
+var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+valueAxis.min = 0;
+valueAxis.max = 100;
+valueAxis.strictMinMax = true;
+valueAxis.calculateTotals = true;
+valueAxis.renderer.minWidth = 50;
+valueAxis.renderer.labels.template.fontSize = 13;
+valueAxis.renderer.labels.template.fill = "#ffffff";
+
+function createSeriesCompensation(field, name) {
+  var series = chart.series.push(new am4charts.ColumnSeries());
+  series.calculatePercent = true;
+  series.tooltip.label.fontSize = 14;
+  series.dataFields.valueX = field;
+  series.dataFields.categoryY = "category";
+  series.stacked = true;
+  series.dataFields.valueXShow = "totalPercent";
+  series.dataItems.template.locations.categoryY = 0.5;
+  series.name = name;
+  if (name == "Compensated"){
+    series.fill = am4core.color("#71AB48");
+  } else if (name == "For Processing") {
+    series.fill = am4core.color("#FFFF00");
+  } else if (name == "Non-Compensable") {
+    series.fill = am4core.color("#FF0000");
+  }
+  //const colorsCompen = ["#33FF0000", "#33FFFF00", "#3371AB48"];
+  series.columns.template.width = am4core.percent(60);
+  series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
+
+  // Click chart and filter, update maps
+  const chartElement = document.getElementById("chartPanel");
+  series.columns.template.events.on("hit", filterByChart, this);
+  function filterByChart(ev) {
+    const selectedC = ev.target.dataItem.component.name;
+    const selectedP = ev.target.dataItem.categoryY;
+    
+    if (selectedP == "N-01" && selectedC == "Compensated") {
+      selectedCP = 'N-01';
+      selectedCompensation = 3;
+    } else if (selectedP == "N-01" && selectedC == "For Processing") {
+      selectedCP = 'N-01';
+      selectedCompensation = 2;
+    } else if (selectedP == "N-01" && selectedC == "Non-Compensable") {
+      selectedCP = 'N-01';
+      selectedCompensation = 1;
+
+    } else if (selectedP == "N-02" && selectedC == "Compensated") {
+      selectedCP = 'N-02';
+      selectedCompensation = 3;
+    } else if (selectedP == "N-02" && selectedC == "For Processing") {
+      selectedCP = 'N-02';
+      selectedCompensation = 2;
+    } else if (selectedP == "N-02" && selectedC == "Non-Compensable") {
+      selectedCP = 'N-02';
+      selectedCompensation = 1;
+
+    } else if (selectedP == "N-03" && selectedC == "Compensated") {
+      selectedCP = 'N-03';
+      selectedCompensation = 3;
+    } else if (selectedP == "N-03" && selectedC == "For Processing") {
+      selectedCP = 'N-03';
+      selectedCompensation = 2;
+    } else if (selectedP == "N-03" && selectedC == "Non-Compensable") {
+      selectedCP = 'N-03';
+      selectedCompensation = 1;
+
+    } else if (selectedP == "N-04" && selectedC == "Compensated") {
+      selectedCP = 'N-04';
+      selectedCompensation = 3;
+    } else if (selectedP == "N-04" && selectedC == "For Processing") {
+      selectedCP = 'N-04';
+      selectedCompensation = 2;
+    } else if (selectedP == "N-04" && selectedC == "Non-Compensable") {
+      selectedCP = 'N-04';
+      selectedCompensation = 1;
+
+    } else if (selectedP == "N-05" && selectedC == "Compensated") {
+      selectedCP = 'N-05';
+      selectedCompensation = 3;
+    } else if (selectedP == "N-05" && selectedC == "For Processing") {
+      selectedCP = 'N-05';
+      selectedCompensation = 2;
+    } else if (selectedP == "N-05" && selectedC == "Non-Compensable") {
+      selectedCP = 'N-05';
+      selectedCompensation = 1;
+
+    } else {
+        selectedCP = null;
+    }
+
+    compensationLayer.definitionExpression = "CP = '" + selectedCP + "'" + " AND " + "Compensation = " + selectedCompensation;
+    zoomToLayer(compensationLayer);
+
+    view.on("click", function() {
+      compensationLayer.definitionExpression = null;
+    });
+
+
+
+  }; // End of filterbyChart function
+
+  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+  labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#000000");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 18;
+  labelBullet.locationX = 0.5;
+} // End of createSeriesCompensation function
+
+// Run createSeriesCompensation
+createSeriesCompensation("value1", "Compensated");
+createSeriesCompensation("value2", "For Processing");
+createSeriesCompensation("value3", "Non-Compensable");
+
+  }); // End of queryFeatures
+} // End of updateChartCompensation function
+
+
+
 }); // End of am4core.ready
 
 
@@ -4221,6 +5064,10 @@ var legend = new Legend({
       title: "ISF Relocation"
     },
     {
+      layer: relocationPtLayer,
+      title: "Occupancy"
+    },
+    {
       layer: treeCuttingLayer,
       title: "Tree Cutting Status"
     },
@@ -4393,17 +5240,27 @@ searchExpand.watch("expanded", function() {
   });
 
       });
+
+      /*
+          <div id="treeCompensationDiv" class="chartButtonClass">
+            <label for="treeCompensationDiv"></label>
+            <input type="radio" id="Tree Cutting" name="treeCompensationDiv" checked/> Tree Cutting
+            <input type="radio" id="Compensation" name="treeCompensationDiv"> Compensation
+          </div>
+
+      */
     </script>
   </head>
   <body class="sassy-theme">
     <div id="applicationDiv">
       <div id="headerDiv">
         <img src="https://EijiGorilla.github.io/Symbols/UtilitySymbol_smartmap_v2.png" width="30" height="30">
-        <div id="headerTitleDiv">
-          <h2>Status of Pre-Construction Activities (N2)</h2>
-        </div>
-          <div class="dateDiv">
-              <h4>As of February 14, 2022</h4>
+        <div id="headerTitleDiv">Status of Pre-Construction Activities (N2)</div>
+          <div class="dateDiv">As of February 21, 2022</div>
+          <div id="dataTypeInput" class="chartButtonClass">
+            <label for="dataTypeInput">Chart Switch:</label>
+            <input type="radio" id="Structure" name="dataTypeInput" checked/> Structure
+            <input type="radio" id="ISF" name="dataTypeInput"> ISF
           </div>
           <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">CP:</label>

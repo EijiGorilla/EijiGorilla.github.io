@@ -2352,26 +2352,33 @@ view.when(function() {
   var popup = view.popup;
   popup.viewModel.on("trigger-action", function(event) {
     if (event.action.id == "find-trees") {
-      var attributes = popup.viewModel.selectedFeature.attributes;
+
+      var attributes = popup.viewModel.selectedFeature.attributes; // all attributes of selected features
       var info = attributes.Id; //
-      var infoObjId = attributes.ID; //1
+      var infoObjId = attributes.ID; // We only need 'ID' (lot ID) attribute from LotLayer
+      // if DP199 lot is selected and click 'find-trees', infoObjId = DP199
 
       view.whenLayerView(compensationLayer).then(function(layerView) {
-        compensationLayer.queryFeatures().then(function(results) {
-          const ggg = results.features;
-          const rowN = ggg.length; //7
+        compensationLayer.queryFeatures().then(function(results) { // Query tree layer
+          const ggg = results.features; // all rows
+          const rowN = ggg.length; // number of rows
+
 
           //var rrr = results.features[0].attributes.Id;
           //var rrr = results.features[6].attributes.Id; // return Id of 7th row
-          
+          // ID_1 is related field with LotLayer, so ID_1 has lot ID information.
+
           var i;
           let objID = [];
             for (i=0; i < rowN; i++) {
-              if (results.features[i].attributes.ID_1 == infoObjId) {
+              if (results.features[i].attributes.ID_1 == infoObjId) { // Each row,
+              // if ID_1 (lot ID) matches with infoObjId (lot ID selected in lot layer),
+              // For example, DP199 
                   if (results.features[i].attributes.OBJECTID == infoObjId) {
                       continue;
                   }
-                  var obj = results.features[i].attributes.OBJECTID;
+                  var obj = results.features[i].attributes.OBJECTID; // if lot IDs are matched
+                  // between tree layer and lot layer, return the OBJECID to the objID list.
                   objID.push(obj);
                 }
             }
@@ -2384,7 +2391,9 @@ view.when(function() {
                 ownerContainer.appendChild(li);
             });
 
-            headerTitleDiv.innerHTML = objID;
+
+
+
 
       var queryExt = new Query({
         //objectIds: [1,2,3,4,5]
@@ -2405,6 +2414,7 @@ view.when(function() {
 
       view.on("click", function() {
         highlightSelect.remove();
+        ownerContainer.innerHTML = "";
 });
     }); // End of queryFeatures()
 }); // End of layerView
