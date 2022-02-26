@@ -126,26 +126,25 @@
       #chartPanel {
         background: rgb(0, 0, 0, 0);
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-        font-size: 17px;
         display: flex; flex-direction: column;
         width: 100%;
         height: 89vh;
       }
       
       #optionsDiv {
-        font-size: 20px;
         font-weight: normal;
         text-align: center;
         vertical-align: middle;
         color: white;
-        padding-top: 17px;
+        padding-top: 20px;
         line-height: 0.3;
         opacity: 0.8;
-        height: 13.9vh;
+        height: 14vh;
+        width: 100%
       }
 
       #optionsDiv b {
-        font-size: 25px;
+        font-size: 1.8rem;
         color: white;
       }
       
@@ -226,6 +225,7 @@
 
       #totalProgress {
         padding-top: 10px;
+        font-size: 2srem;
       }
 
       #menu {
@@ -590,11 +590,11 @@ const colorP = ["#FFE1E1E1", "#80FF0000", "#4D", "#4D", "#80", "#80", "#80", "#8
 // Legend Color for Structure Layer        
         const colors = {
           1: [225, 225, 225, 0], // 0% (To be Constructed)
-          2: [208, 209, 230, 0.8], // 1 - >25%
-          3: [166, 189, 219, 0.8], // 25 - >50%
-          4: [116, 169, 207, 0.8], // 50 - >75%
-          5: [43, 140, 190, 0.8], // 75%<
-          6: [4, 90, 141, 0.8], // 100% (Completed)
+          2: [208, 209, 230, 1], // 1 - >25%
+          3: [166, 189, 219, 1], // 25 - >50%
+          4: [116, 169, 207, 1], // 50 - >75%
+          5: [43, 140, 190, 1], // 75%<
+          6: [4, 90, 141, 1], // 100% (Completed)
           7: [255, 0, 0, 0.5], // Delayed
         };
         
@@ -979,8 +979,7 @@ function filterByTest(event) {
 }
 
 // Make sure that the attribute table has Type in the following order:
-// Inner Wall, Retaining Wall, Bottom Slab, Top Slab, and Pump Pit
-
+//
 function percentProgressValues() {
     var query = structureLayer.createQuery();
     query.where = "Type > 0";
@@ -991,12 +990,17 @@ function percentProgressValues() {
      const rowN = ggg.length;
 
      let progArray = [];
+     let temp = [];
+     let compiled = [];
      for (var i =0; i < rowN; i++) {
-       var perc = response.features[i].attributes.PercentProgress;
-       progArray.push(perc);
-     }
+      var type = response.features[i].attributes.Type;
+       compiled.push(type);
 
-     return progArray;
+       var perc = response.features[i].attributes.PercentProgress;
+       compiled.push(perc);
+
+     }
+     return compiled;
    });
 }
 
@@ -1007,20 +1011,35 @@ function showValue(progArray){
 percentProgressValues().then(showValue);
 */
 
-function updateChartShaft(progArray) {
+function updateChartShaft(compiled) {
+//headerTitleDiv.innerHTML = compiled;
+for (var i=0; i<10; i++) {
+  if (compiled[i] == 1) {
+    bottom_slab = compiled[i+1];
+  } else if (compiled[i] == 2) {
+    retain_wall = compiled[i+1];
+  } else if (compiled[i] == 3) {
+    inner_wall = compiled[i+1];
+  } else if (compiled[i] == 4) {
+    top_slab = compiled[i+1];
+  } else if (compiled[i] == 5) {
+    pump_pit = compiled[i+1];
+  }
+}
+//headerTitleDiv.innerHTML = bottom_slab + "," + retain_wall;
 // Completed
-const botslab_done = progArray[2];
-const rewall_done = progArray[1];
-const inwall_done = progArray[0];
-const topslab_done = progArray[3];
-const pumpit_done = progArray[4];
+const botslab_done = bottom_slab;
+const rewall_done = retain_wall;
+const inwall_done = inner_wall;
+const topslab_done = top_slab;
+const pumpit_done = pump_pit;
 
 // Non-Completed
-const botslab_none = 100 - progArray[2];
-const rewall_none = 100 - progArray[1];
-const inwall_none = 100 - progArray[0];
-const topslab_none = 100 - progArray[3];
-const pumpit_none = 100 - progArray[4];
+const botslab_none = 100 - botslab_done;
+const rewall_none = 100 - rewall_done;
+const inwall_none = 100 - inwall_done;
+const topslab_none = 100 - topslab_done;
+const pumpit_none = 100 - pumpit_done;
 
 
  // Chart //
@@ -1095,7 +1114,7 @@ title.marginBottom = 10;
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
 categoryAxis.dataFields.category = "category";
 categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 15;
+categoryAxis.renderer.labels.template.fontSize = 17;
 categoryAxis.renderer.labels.template.fill = "#ffffff";
 categoryAxis.renderer.minGridDistance = 5; //can change label
 
@@ -1105,7 +1124,7 @@ valueAxis.max = 100;
 valueAxis.strictMinMax = true;
 valueAxis.calculateTotals = true;
 valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 15;
+valueAxis.renderer.labels.template.fontSize = 17;
 valueAxis.renderer.labels.template.fill = "#ffffff";
 
 function createSeries(field, name) {
@@ -1127,7 +1146,7 @@ function createSeries(field, name) {
   labelBullet.label.text = "";
   labelBullet.label.fill = am4core.color("#ffffff");
   labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 15;
+  labelBullet.label.fontSize = 18;
   labelBullet.locationX = 0.5;
 
   } else if (name == "Completed"){
@@ -1137,17 +1156,62 @@ function createSeries(field, name) {
   labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
   labelBullet.label.fill = am4core.color("#ffffff");
   labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 15;
+  labelBullet.label.fontSize = 18;
   labelBullet.locationX = 0.5;
 
   }
   series.columns.template.width = am4core.percent(60);
-  series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
+  series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}%"
   series.columns.template.stroke = am4core.color("#ffffff");
   // Click chart and filter, update maps
   const chartElement = document.getElementById("chartPanel");
 
+  series.columns.template.events.on("hit", filterByChart, this);
+  function filterByChart(ev) {
+    //const selectedC = ev.target.dataItem.component.name;
+    const selectedP = ev.target.dataItem.categoryY;
 
+    // Bottom Slab
+    if (selectedP == "Bottom Slab") {
+      selectedLayer = 1;
+
+    // Retaining Wall
+    } else if (selectedP == "Retaining Wall") {
+      selectedLayer = 2;
+
+    // Inner Wall
+    } else if (selectedP == "Inner Wall") {
+      selectedLayer = 3;
+
+    // Top Slab
+    } else if (selectedP == "Top Slab") {
+      selectedLayer = 4;
+
+    // Pump pit
+  } else if (selectedP == "Pump Pit") {
+    selectedLayer = 5;
+
+    } else {
+      selectedLayer = null;
+    }
+
+    chartLayerView.filter = {
+      where: "Type = " + selectedLayer
+    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+    };
+
+  } // End of filterByChart
+
+  view.whenLayerView(structureLayer).then(function (layerView) {
+  chartLayerView = layerView;
+  
+  chartElement.style.visibility = "visible";
+ 
+// Listen to the click event on the map view and resets to default 
+view.on("click", function() {
+  chartLayerView.filter = null;
+});
+});
 
 
 } // End of createSeries function
@@ -1399,7 +1463,7 @@ function createSeries(field, name) {
   //labelBullet.label.fill = am4core.color("#00FFFFFF");
   labelBullet.label.fill = am4core.color("#000000");
   labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 15;
+  labelBullet.label.fontSize = 18;
   labelBullet.locationX = 0.5;
 
   } else if (name == "Under Construction"){
@@ -1408,7 +1472,7 @@ function createSeries(field, name) {
   labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
   labelBullet.label.fill = am4core.color("#ffffff");
   labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 15;
+  labelBullet.label.fontSize = 18;
   labelBullet.locationX = 0.5;
 
   } else if (name == "Completed"){
@@ -1417,7 +1481,7 @@ function createSeries(field, name) {
   labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
   labelBullet.label.fill = am4core.color("#ffffff");
   labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 15;
+  labelBullet.label.fontSize = 18;
   labelBullet.locationX = 0.5;
 
   } else {
@@ -1426,7 +1490,7 @@ function createSeries(field, name) {
   labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
   labelBullet.label.fill = am4core.color("#ffffff");
   labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 12;
+  labelBullet.label.fontSize = 18;
   labelBullet.locationX = 0.5;
   
   }
@@ -1503,7 +1567,7 @@ function createSeries(field, name) {
     }
 
     chartLayerView.filter = {
-      where: "Type2 = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+      where: "Type2 = " + selectedLayer
     //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
     };
 
