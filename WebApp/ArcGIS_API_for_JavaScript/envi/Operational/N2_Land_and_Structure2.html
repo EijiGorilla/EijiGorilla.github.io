@@ -727,6 +727,21 @@ var labelStation = new LabelClass({
   }
 });
 
+var priorityLabel = new LabelClass({
+  labelExpressionInfo: {expression: "$feature.LotID"},
+  symbol: {
+    type: "text",
+    color: "black",
+    haloColor: "white",
+    haloSize: 0.5,
+    font: {
+      size: 12,
+      weight: "bold"
+    }
+  }
+});
+
+
 
 //*****************************//
 //      Renderer Settings      //
@@ -986,11 +1001,11 @@ function colorPriority() {
 
 let lotPriorityRenderer = {
   type: "unique-value",
-  //field: "HandOverDate", // For 3D, including this works, but for 2D we need to remove this 
+  //field: "HandOverDate1", // For 3D, including this works, but for 2D we need to remove this 
   defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
-  valueExpression: "When($feature.HandOverDate == 'August 2022', '0', \
-                         $feature.HandOverDate == 'September 2022', '1', \
-                         $feature.HandOverDate == 'December 2022', '2', $feature.HandOverDate)",
+  valueExpression: "When($feature.HandOverDate1 == 'August 2022', '0', \
+                         $feature.HandOverDate1 == 'September 2022', '1', \
+                         $feature.HandOverDate1 == 'December 2022', '2', $feature.HandOverDate1)",
   uniqueValueInfos: [
   {
     // All features with value of "North" will be blue
@@ -1298,7 +1313,8 @@ var priorityLayer = new FeatureLayer ({
   },
   layerId: 1,
   renderer: lotPriorityRenderer,
-  definitionExpression: "HandOverDate IS NOT NULL",
+  labelingInfo: [priorityLabel],
+  definitionExpression: "HandOverDate1 IS NOT NULL",
   title: "Land (Hand-Over Dates)",
   popupEnabled: false
 });
@@ -1335,17 +1351,13 @@ var lotLayer = new FeatureLayer({
         title: "Land Acquisition (Status)",
         labelsVisible: false,
         popupTemplate: {
-          title: "<p>Lot No: {LotID}, <br>Status: {StatusLA}</br></p>",
+          title: "<p>Lot No: {LotID} <br>Hand-Over Date: {HandOverDate}</br><br>Handed-Over Area: {percentHandedOver} %</br></p>",
           lastEditInfoEnabled: false,
           returnGeometry: true,
           content: [
             {
               type: "fields",
               fieldInfos: [
-                {
-                  fieldName: "LandOwner",
-                  label: "Land Owner"
-                },
               {
                 fieldName: "LandUse",
                 label: "Land Use"
@@ -1355,6 +1367,10 @@ var lotLayer = new FeatureLayer({
                 },
                 {
                   fieldName: "Barangay"
+                },
+                {
+                  fieldName: "LandOwner",
+                  label: "Land Owner"
                 }
               ]
             }
@@ -1362,6 +1378,16 @@ var lotLayer = new FeatureLayer({
         }
 });
 map.add(lotLayer, 1);
+
+
+
+
+
+
+
+
+
+////////////////////////////////////
 
 // PNR
 var pnrLayer = new FeatureLayer({
@@ -1387,7 +1413,7 @@ var pnrLayer = new FeatureLayer({
               type: "fields",
               fieldInfos: [
                 {
-                  fieldName: "HandOverDate",
+                  fieldName: "HandOverDate1",
                   label: "Hand-Over Date"
                 },
                 {
@@ -1904,7 +1930,7 @@ function addToSelectQuery2(query2Values) {
 function getQuery3Values(response) {
   var featuresQuery3 = response.features;
   var query3Values = featuresQuery3.map(function(feature) {
-    return feature.attributes.HandOverDate;
+    return feature.attributes.HandOverDate1;
   });
   return query3Values;
 }
@@ -1936,7 +1962,7 @@ function addToSelectQuery3(query3Values) {
 function getQuery4Values(response) {
   var featuresQuery4 = response.features;
   var query4Values = featuresQuery4.map(function(feature) {
-    return feature.attributes.HandOverDate;
+    return feature.attributes.HandOverDate1;
   });
   return query4Values;
 }
@@ -2057,10 +2083,10 @@ function setMunicipalBarangayPriorityExpression() {
     pnrLayer.definitionExpression = null;
 
   } else if (municipal == 'None' && barang == 'None' && priori !== 'None') {
-    lotLayer.definitionExpression = "HandOverDate = '" + priori + "'";
-    //structureLayer.definitionExpression = "HandOverDate = '" + priori + "'";
-    priorityLayer.definitionExpression = "HandOverDate = '" + priori + "'";
-    pnrLayer.definitionExpression = "HandOverDate = '" + priori + "'";
+    lotLayer.definitionExpression = "HandOverDate1 = '" + priori + "'";
+    //structureLayer.definitionExpression = "HandOverDate1 = '" + priori + "'";
+    priorityLayer.definitionExpression = "HandOverDate1 = '" + priori + "'";
+    pnrLayer.definitionExpression = "HandOverDate1 = '" + priori + "'";
 
   } else if (municipal == 'None' && barang !== 'None' && priori == 'None') {
     lotLayer.definitionExpression = "Barangay = '" + barang + "'";
@@ -2070,10 +2096,10 @@ function setMunicipalBarangayPriorityExpression() {
     pnrLayer.definitionExpression = "Barangay = '" + barang + "'";
 
   } else if (municipal == 'None' && barang !== 'None' && priori !== 'None') {
-    lotLayer.definitionExpression = "Barangay = '" + barang + "'" + " AND " + "HandOverDate = '" + priori + "'";
+    lotLayer.definitionExpression = "Barangay = '" + barang + "'" + " AND " + "HandOverDate1 = '" + priori + "'";
     structureLayer.definitionExpression = "Barangay = '" + barang + "'";
-    priorityLayer.definitionExpression = "Barangay = '" + barang + "'" + " AND " + "HandOverDate = '" + priori + "'";
-    pnrLayer.definitionExpression = "Barangay = '" + barang + "'" + " AND " + "HandOverDate = '" + priori + "'"; 
+    priorityLayer.definitionExpression = "Barangay = '" + barang + "'" + " AND " + "HandOverDate1 = '" + priori + "'";
+    pnrLayer.definitionExpression = "Barangay = '" + barang + "'" + " AND " + "HandOverDate1 = '" + priori + "'"; 
 
   } else if (municipal !== 'None' && barang == 'None' && priori == 'None') {
     lotLayer.definitionExpression = "Municipality = '" + municipal + "'";
@@ -2083,10 +2109,10 @@ function setMunicipalBarangayPriorityExpression() {
     pnrLayer.definitionExpression = "Municipality = '" + municipal + "'";
 
   } else if (municipal !== 'None' && barang == 'None' && priori !== 'None') {
-    lotLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "HandOverDate = '" + priori + "'";
+    lotLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "HandOverDate1 = '" + priori + "'";
     structureLayer.definitionExpression = "Municipality = '" + municipal + "'";
-    priorityLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "HandOverDate = '" + priori + "'";
-    pnrLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "HandOverDate = '" + priori + "'";
+    priorityLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "HandOverDate1 = '" + priori + "'";
+    pnrLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "HandOverDate1 = '" + priori + "'";
 
   } else if (municipal !== 'None' && barang !== 'None' && priori == 'None') {
     lotLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'";
@@ -2096,10 +2122,10 @@ function setMunicipalBarangayPriorityExpression() {
     pnrLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'";
 
   } else {
-    lotLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'" + " AND " + "HandOverDate = '" + priori + "'";
+    lotLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'" + " AND " + "HandOverDate1 = '" + priori + "'";
     structureLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'";
-    priorityLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'" + " AND " + "HandOverDate = '" + priori + "'";
-    pnrLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'" + " AND " + "HandOverDate = '" + priori + "'";
+    priorityLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'" + " AND " + "HandOverDate1 = '" + priori + "'";
+    pnrLayer.definitionExpression = "Municipality = '" + municipal + "'" + " AND " + "Barangay = '" + barang + "'" + " AND " + "HandOverDate1 = '" + priori + "'";
   }
 
 
@@ -2132,9 +2158,10 @@ municipalSelect.addEventListener("change", function() {
     pteNumberStructure();
 
     backToStructureChart();
-
-
     zoomToLayer(lotLayer);
+
+    
+    
 
 });
 
@@ -2252,7 +2279,7 @@ let arrLviews = [];
 
     for(var i = 0; i < arrLviews.length; i++) {
       arrLviews[i].filter = {
-        where: "HandOverDate = '" + type + "'"
+        where: "HandOverDate1 = '" + type + "'"
       }
     }
 });
@@ -2275,6 +2302,7 @@ function filterByType(e) {
     updateChartStructure().then(totalNumberOfStructures);
     updateMoaChartStructure();
     pteNumberStructure();
+    updateChartLot().then(totalNumberOfLots);
 
     titleNumberStrucISF.innerHTML = "Number of Structure";
     pteStrucTotalNumberDiv.innerHTML = "Number of PTE";
@@ -2284,19 +2312,24 @@ function filterByType(e) {
     reloISFLayer.visible = true;
     relocationPtLayer.visible = false;
     updateChartISF();
+    combinedAffectedHandedOverAreaChart();
 
     structureTotalNumberDiv.innerHTML = "";
     document.getElementById("structureMoaChartDiv").innerHTML = "";
     document.getElementById("structurePteDiv").innerHTML = "";
 
-    titleNumberStrucISF.innerHTML = "Number of NLO/LO";
+    //titleNumberStrucISF.innerHTML = "Number of NLO/LO";
     pteStrucTotalNumberDiv.innerHTML = "";
+    titleNumberStrucISF.innerHTML = "";
 
 
 
   }
 
 }
+
+
+
 
 
 //////////////////
@@ -2375,6 +2408,342 @@ var totalNumberDiv = document.getElementById("totalNumberDiv");
 var structureTotalNumberDiv = document.getElementById("structureTotalNumberDiv");
 
 //////////////////// Pie Chart ///////////////////////////////////////////////////
+// Percent lots handed over in area by CP
+// First, compile affected and handed-over areas for each CP
+function n01AffectedHandedOverArea(){
+  var total_n01_affected = {
+    onStatisticField: "AffectedArea",
+    outStatisticFieldName: "total_n01_affected",
+    statisticType: "sum"
+  };
+
+  var total_n01_handedover = {
+    onStatisticField: "HandOverArea",
+    outStatisticFieldName: "total_n01_handedover",
+    statisticType: "sum"
+  };
+
+  var query = lotLayer.createQuery();
+  query.outStatistics = [total_n01_affected, total_n01_handedover];
+  query.where = "CP = 'N-01'";
+  query.returnGeometry = true;
+
+  return lotLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const affected = stats.total_n01_affected;
+    const handedover = stats.total_n01_handedover;
+    const perc = ((handedover/affected)*100).toFixed(0);
+
+    const compileArray1 = [perc]
+  
+    return compileArray1
+  });
+}
+
+function n02AffectedHandedOverArea(compileArray1){
+  var total_n02_affected = {
+    onStatisticField: "AffectedArea",
+    outStatisticFieldName: "total_n02_affected",
+    statisticType: "sum"
+  };
+
+  var total_n02_handedover = {
+    onStatisticField: "HandOverArea",
+    outStatisticFieldName: "total_n02_handedover",
+    statisticType: "sum"
+  };
+
+  var query = lotLayer.createQuery();
+  query.outStatistics = [total_n02_affected, total_n02_handedover];
+  query.where = "CP = 'N-02'";
+  query.returnGeometry = true;
+
+  return lotLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const affected = stats.total_n02_affected;
+    const handedover = stats.total_n02_handedover;
+    const perc = ((handedover/affected)*100).toFixed(0);
+
+    const compileArray2 = [compileArray1[0], perc]
+    
+  
+    return compileArray2
+  });
+}
+
+function n03AffectedHandedOverArea(compileArray2){
+  var total_n03_affected = {
+    onStatisticField: "AffectedArea",
+    outStatisticFieldName: "total_n03_affected",
+    statisticType: "sum"
+  };
+
+  var total_n03_handedover = {
+    onStatisticField: "HandOverArea",
+    outStatisticFieldName: "total_n03_handedover",
+    statisticType: "sum"
+  };
+
+  var query = lotLayer.createQuery();
+  query.outStatistics = [total_n03_affected, total_n03_handedover];
+  query.where = "CP = 'N-03'";
+  query.returnGeometry = true;
+
+  return lotLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const affected = stats.total_n03_affected;
+    const handedover = stats.total_n03_handedover;
+    const perc = ((handedover/affected)*100).toFixed(0);
+
+    const compileArray3 = [compileArray2[0], compileArray2[1], perc]; // handedover
+  
+    return compileArray3
+  });
+}
+
+function n04AffectedHandedOverArea(compileArray3){
+  var total_n04_affected = {
+    onStatisticField: "AffectedArea",
+    outStatisticFieldName: "total_n04_affected",
+    statisticType: "sum"
+  };
+
+  var total_n04_handedover = {
+    onStatisticField: "HandOverArea",
+    outStatisticFieldName: "total_n04_handedover",
+    statisticType: "sum"
+  };
+
+  var query = lotLayer.createQuery();
+  query.outStatistics = [total_n04_affected, total_n04_handedover];
+  query.where = "CP = 'N-04'";
+  query.returnGeometry = true;
+
+  return lotLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const affected = stats.total_n04_affected;
+    const handedover = stats.total_n04_handedover;
+    const perc = ((handedover/affected)*100).toFixed(0);
+
+    const compileArray4 = [compileArray3[0], compileArray3[1], compileArray3[2], perc]; // handedover
+  
+    return compileArray4
+  });
+}
+
+function n05AffectedHandedOverArea(compileArray4){
+  var total_n05_affected = {
+    onStatisticField: "AffectedArea",
+    outStatisticFieldName: "total_n05_affected",
+    statisticType: "sum"
+  };
+
+  var total_n05_handedover = {
+    onStatisticField: "HandOverArea",
+    outStatisticFieldName: "total_n05_handedover",
+    statisticType: "sum"
+  };
+
+  var query = lotLayer.createQuery();
+  query.outStatistics = [total_n05_affected, total_n05_handedover];
+  query.where = "CP = 'N-05'";
+  query.returnGeometry = true;
+
+  return lotLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const affected = stats.total_n05_affected;
+    const handedover = stats.total_n05_handedover;
+    const perc = ((handedover/affected)*100).toFixed(0);
+
+    const compileArray5 = [compileArray4[0], compileArray4[1], compileArray4[2], compileArray4[3], perc]; // handedover
+
+    return compileArray5
+  });
+}
+
+
+
+// Now use the above compiled values
+function percentHandedOverLotByCPChart(compileArray5) {
+
+        // N-01
+        const n01_perc = compileArray5[0];
+        const n01_other = 0;
+
+        // N-02
+        const n02_perc = compileArray5[1];
+        const n02_other = 0;
+
+        // N-03
+        const n03_perc = compileArray5[2];
+        const n03_other = 0;
+
+        // N-04
+        const n04_perc = compileArray5[3];
+        const n04_other = 0;
+
+        // N-05
+        const n05_perc = compileArray5[4];
+        const n05_other = 0;
+
+ // Chart //
+var chart = am4core.create("chartdiv", am4charts.XYChart);
+chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
+
+chart.data = [
+  {
+    category: "N-05",
+    value1: n05_perc,
+    value2: 0,
+  },
+  {
+    category: "N-04",
+    value1: n04_perc,
+    value2: 0,
+  },
+  {
+    category: "N-03",
+    value1: n03_perc,
+    value2: 0,
+  },
+  {
+    category: "N-02",
+    value1: n02_perc,
+    value2: 0,
+  },
+  {
+    category: "N-01",
+    value1: n01_perc,
+    value2: 0,
+  }
+];
+ 
+chart.colors.step = 2;
+chart.padding(10, 10, 10, 10);
+// Legend
+const LegendFontSizze = 16;
+chart.legend = new am4charts.Legend();
+//chart.legend.labels.template.disabled = true;
+chart.legend.disabled = true;
+chart.legend.valueLabels.template.align = "right"
+  chart.legend.valueLabels.template.textAlign = "end";  
+
+chart.legend.position = "bottom";
+chart.legend.labels.template.fontSize = LegendFontSizze;
+chart.legend.labels.template.fill = "#ffffff";
+chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+chart.legend.valueLabels.template.fontSize = LegendFontSizze;
+
+// Chart Title
+var title = chart.titles.create();
+title.text = "Handed-Over Area"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+title.fontSize = 20;
+title.fontWeight = "bold";
+title.fill = "#ffffff";
+
+
+var marker = chart.legend.markers.template.children.getIndex(0);
+var markerTemplate = chart.legend.markers.template;
+marker.cornerRadius(12, 12, 12, 12);
+marker.strokeWidth = 1;
+marker.strokeOpacity = 1;
+marker.stroke = am4core.color("#ccc");
+
+// Change size of legend marker
+markerTemplate.width = 16;
+markerTemplate.height = 16;
+
+  // Add chart title
+//  var title = chart.titles.create();
+//title.text = "Construction Progress"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+//title.fontSize = 20;
+//title.fill = "#3ce00a";
+
+
+var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+categoryAxis.dataFields.category = "category";
+categoryAxis.renderer.grid.template.location = 0;
+categoryAxis.renderer.labels.template.fontSize = 20;
+categoryAxis.renderer.labels.template.fill = "#ffffff";
+categoryAxis.renderer.minGridDistance = 5; //can change label
+
+var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+valueAxis.min = 0;
+valueAxis.max = 100;
+valueAxis.strictMinMax = true;
+valueAxis.calculateTotals = true;
+valueAxis.renderer.minWidth = 50;
+valueAxis.renderer.labels.template.fontSize = 0;
+valueAxis.renderer.labels.template.fill = "#ffffff";
+
+
+function createSeries(field, name) {
+  var series = chart.series.push(new am4charts.ColumnSeries());
+  series.calculatePercent = true;
+  series.dataFields.valueX = field;
+  series.dataFields.categoryY = "category";
+  series.stacked = true;
+  series.dataFields.valueXShow = "totalPercent";
+  //series.calculatePercent = false;
+  series.dataItems.template.locations.categoryY = 0.5;
+
+  // Bar chart line color and width
+  series.columns.template.stroke = am4core.color("#ffffff");
+  series.columns.template.strokeWidth = 1.5;
+  series.name = name;
+
+  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+
+  if (name == "Handed-Over"){
+    series.fill = am4core.color("#0070ff");
+    
+  labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#00FFFFFF");
+  labelBullet.label.fill = am4core.color("#FFFFFF");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 19;
+  labelBullet.locationX = 0.5;
+
+  } else if (name == "Affected Area"){
+    series.fill = am4core.color("#000000");
+    labelBullet.locationX = 0.5;
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+  labelBullet.label.fill = am4core.color("#FF000000");
+  labelBullet.interactionsEnabled = false;
+  labelBullet.label.fontSize = 20;
+  labelBullet.locationX = 0.5;
+
+  } 
+  series.columns.template.width = am4core.percent(60);
+  series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
+ 
+  
+  // Click chart and filter, update maps
+  const chartElement = document.getElementById("chartPanel");
+  
+} // End of createSeries function
+
+createSeries("value1", "Handed-Over");
+createSeries("value2", "Affected Area");
+
+} // end of updateChart()  
+
+async function combinedAffectedHandedOverAreaChart() {
+  n01AffectedHandedOverArea()
+  .then(n02AffectedHandedOverArea)
+  .then(n03AffectedHandedOverArea)
+  .then(n04AffectedHandedOverArea)
+  .then(n05AffectedHandedOverArea)
+  .then(percentHandedOverLotByCPChart)
+}
+
+
 // Lot Chart
 async function updateChartLot() {
  var total_handedover_lot = {
@@ -3547,7 +3916,7 @@ var searchWidget = new Search({
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.title === "Chainage" || item.title === "Pier No." || item.title === "Free and Clear"){
+              if (item.title === "Chainage" || item.title === "Pier No." || item.title === "Land (Free and Clear)"){
                 item.visible = false
               }
             }
@@ -3566,6 +3935,11 @@ var legend = new Legend({
     {
       layer: lotLayer,
       title: "Land Acquisition (Status)"
+    },
+    {
+      layer: fncLayer,
+      title: "Land (Free and Clear)"
+
     },
     {
       layer: structureLayer,
@@ -3674,7 +4048,7 @@ searchExpand.watch("expanded", function() {
         <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
         <div id="headerTitleDiv"></div>
         <div class="dateDiv">
-            <h4>As of February 21, 2022</h4>
+            <h4>As of February 24, 2022</h4>
         </div>
         <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">City/Municipality:</label>
@@ -3700,8 +4074,8 @@ searchExpand.watch("expanded", function() {
         <div class="boxC">
           <div id="dataTypeInput" class="chartButtonClass">
             <label for="dataTypeInput">Chart Switch:</label>
-            <input type="radio" id="Structure" name="dataTypeInput" checked/> Structure
-            <input type="radio" id="ISF" name="dataTypeInput"> ISF
+            <input type="radio" id="Structure" name="dataTypeInput" checked/> Land/Structure
+            <input type="radio" id="ISF" name="dataTypeInput"> Handed-Over Area/ISF
           </div>
             <div id="viewDiv">
             </div>
