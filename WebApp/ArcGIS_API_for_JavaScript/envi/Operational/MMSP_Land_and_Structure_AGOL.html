@@ -798,6 +798,47 @@ let poSectionBoxRenderer = {
   ]
 };
 
+
+// ISF
+const colorsCompen = ["#267300", "#FF0000"]; //[1:Non-Compensable, 2:For Processing, 3:Compensated]
+const outlineColor = "white";
+
+let isfRenderer = {
+  type: "unique-value",
+  valueExpression: "When($feature.RELOCATION == 'RELOCATED', 'Relocated', \
+                         $feature.RELOCATION == 'FOR RELOCATION', 'Unrelocated', $feature.RELOCATION)",
+  uniqueValueInfos: [ //[1:Non-Compensable, 2:For Processing, 3:Compensated]
+    {
+      value: "Relocated",
+      label: "Relocated",
+      type: "simple",
+      symbol: {
+      type: "simple-marker",
+      size: 9,
+      color: colorsCompen[0], // the first two letters dictate transparency.
+      outline: {
+        width: 1.5,
+        color: outlineColor
+      }
+      }
+    },
+    {
+      value: "Unrelocated",
+      label: "For Relocation",
+      type: "simple",
+      symbol: {
+      type: "simple-marker",
+      size: 9,
+      color: colorsCompen[1], // the first two letters dictate transparency.
+      outline: {
+        width: 1.5,
+        color: outlineColor
+      }
+      }
+    }
+  ]
+};
+
 // Fill symbol color for Structure Layer (Status of Structure)
 const colors = {
           1: [255, 0, 197], // Dismantling/Clearing
@@ -1148,16 +1189,7 @@ var priorityLayer = new FeatureLayer ({
 map.add(priorityLayer, 0);
 
 // ISF
-let isfRenderer = {
-    type: "simple-marker",
-    style: "circle",
-    color: "green",
-    size: 10,
-    outline: {
-        color: "white",
-        width: 1
-    }
-};
+
 
 
 var isfLayer = new FeatureLayer ({
@@ -1165,6 +1197,7 @@ var isfLayer = new FeatureLayer ({
         id: "5a0b175a1f214b5394e26ff554bf8b79"
     },
     layerId: 20,
+    renderer: isfRenderer,
     title: "ISF (Relocated)",
     outFields: ["*"],
     labelsVisible: false
@@ -1372,7 +1405,7 @@ function setLotMunicipalOnlyExpression(newValue) {
     lotLayer.definitionExpression = "Station = '" + newValue + "'";
     priorityLayer.definitionExpression = "Station = '" + newValue + "'";
     isfLayer.definitionExpression = "Station = '" + newValue + "'";
-    structureLayer.definitionExpression = "Station = '" + newValue + "'";
+    structureLayer.definitionExpression = "STATION = '" + newValue + "'";
   }
 
     if (!lotLayer.visible) {
@@ -1398,7 +1431,7 @@ function setLotMunicipalExpression(newValue, newValue2) {
     } else if (newValue2 == 'None' && newValue !== 'None') {
         lotLayer.definitionExpression = "Station = '" + newValue + "'";
         isfLayer.definitionExpression = "Station = '" + newValue + "'";
-        structureLayer.definitionExpression = "Station = '" + newValue + "'";
+        structureLayer.definitionExpression = "STATION = '" + newValue + "'";
 
     } else if (newValue2 == 'Priority1' && newValue == 'None') {
         lotLayer.definitionExpression = "Priority3 = 1";
@@ -1444,12 +1477,12 @@ function setLotDefinitionExpression(newValue1, newValue2){
   } else if (newValue1 !== 'None' && newValue2 == 1) {
     lotLayer.definitionExpression = "Station = '" + newValue1 + "'" + " AND " + "Priority3 = " + newValue2;
     isfLayer.definitionExpression = "Station = '" + newValue1 + "'";
-    structureLayer.definitionExpression = "Station = '" + newValue1 + "'";
+    structureLayer.definitionExpression = "STATION = '" + newValue1 + "'";
 
   } else if (newValue1 !== 'None' && newValue2 == 0) {
     lotLayer.definitionExpression = "Station = '" + newValue1 + "'";
     isfLayer.definitionExpression = "Station = '" + newValue1 + "'";
-    structureLayer.definitionExpression = "Station = '" + newValue1 + "'";
+    structureLayer.definitionExpression = "STATION = '" + newValue1 + "'";
 
   }
    if(!lotLayer.visible){
@@ -2543,6 +2576,15 @@ var searchWidget = new Search({
       outFields: ["ID"],
       name: "Lot No",
       placeholder: "example: DP89"
+  },
+  {
+    layer: structureLayer,
+      searchFields: ["Id_1"],
+      displayField: "Id",
+      exactMatch: false,
+      outFields: ["Id_1"],
+      name: "Structure ID",
+      placeholder: "example: QH-MMSP-02-01-S045C"
   }
 ]
 });
