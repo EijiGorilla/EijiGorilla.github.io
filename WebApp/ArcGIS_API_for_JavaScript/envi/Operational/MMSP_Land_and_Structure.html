@@ -792,6 +792,46 @@ let poSectionBoxRenderer = {
   ]
 };
 
+// ISF
+const colorsCompen = ["#267300", "#FF0000"]; //[1:Non-Compensable, 2:For Processing, 3:Compensated]
+const outlineColor = "white";
+
+let isfRenderer = {
+  type: "unique-value",
+  valueExpression: "When($feature.RELOCATION == 'RELOCATED', 'Relocated', \
+                         $feature.RELOCATION == 'FOR RELOCATION', 'Unrelocated', $feature.RELOCATION)",
+  uniqueValueInfos: [ //[1:Non-Compensable, 2:For Processing, 3:Compensated]
+    {
+      value: "Relocated",
+      label: "Relocated",
+      type: "simple",
+      symbol: {
+      type: "simple-marker",
+      size: 9,
+      color: colorsCompen[0], // the first two letters dictate transparency.
+      outline: {
+        width: 1.5,
+        color: outlineColor
+      }
+      }
+    },
+    {
+      value: "Unrelocated",
+      label: "For Relocation",
+      type: "simple",
+      symbol: {
+      type: "simple-marker",
+      size: 9,
+      color: colorsCompen[1], // the first two letters dictate transparency.
+      outline: {
+        width: 1.5,
+        color: outlineColor
+      }
+      }
+    }
+  ]
+}
+
 // Fill symbol color for Structure Layer (Status of Structure)
 const colors = {
           1: [255, 0, 197], // Dismantling/Clearing
@@ -1047,11 +1087,11 @@ var lotLayer = new FeatureLayer({
                 {
                     fieldName: "Priority3",
                     label: "Priority"
-                },
-                {
-                    fieldName: "StrucStatus",
-                    label: "<p>Status of Structure</p>"
-                },
+                }
+                //{
+                //    fieldName: "StrucStatus",
+                //    label: "<p>Status of Structure</p>"
+                //},
               ]
             }
           ]
@@ -1116,7 +1156,7 @@ var structureLayer = new FeatureLayer({
         title: "Status of Structure",
         outFields: ["*"],
         popupTemplate: {
-          title: "<p>{ID}</p>",
+          title: "<p>Structure ID: {Id_1}</p>" ,
           lastEditInfoEnabled: false,
           returnGeometry: true,
           content: [
@@ -1124,12 +1164,12 @@ var structureLayer = new FeatureLayer({
               type: "fields",
               fieldInfos: [
                 {
+                  fieldName: "CN",
+                  label: "Lot No."
+                },
+                {
                   fieldName: "Status",
                   label: "<p>Status of Structure</p>"
-                },               
-                {
-                  fieldName: "ID",
-                  label: "Lot ID"
                 }
               ]
             }
@@ -1186,6 +1226,7 @@ var priorityLayer = new FeatureLayer ({
 map.add(priorityLayer, 0);
 
 // ISF
+
 var isfLayer = new FeatureLayer ({
     portalItem: {
         id: "a2e32eb82db84b3a8006e1c1e2cd7874",
@@ -1195,6 +1236,7 @@ var isfLayer = new FeatureLayer ({
     },
     title: "ISF",
     outFields: ["*"],
+    renderer: isfRenderer,
     labelsVisible: false
 });
 map.add(isfLayer);
@@ -2560,7 +2602,7 @@ updateMoaChartStructure();
 var searchWidget = new Search({
   view: view,
   locationEnabled: false,
-  allPlaceholder: "LotID, StructureID, Chainage",
+  allPlaceholder: "LotID, StructureID",
   includeDefaultSources: false,
   sources: [
     {
@@ -2571,6 +2613,15 @@ var searchWidget = new Search({
       outFields: ["ID"],
       name: "Lot No",
       placeholder: "example: DP89"
+  },
+  {
+    layer: structureLayer,
+      searchFields: ["Id_1"],
+      displayField: "Id",
+      exactMatch: false,
+      outFields: ["Id_1"],
+      name: "Structure ID",
+      placeholder: "example: QH-MMSP-02-01-S045C"
   }
 ]
 });
