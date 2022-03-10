@@ -185,6 +185,7 @@
         color:rgb(250, 246, 246);
       }
 
+
       #pteNumberLotDiv {
         font-size: 1.4vw;
         padding-bottom: 5px;
@@ -197,12 +198,11 @@
       #optionsDiv {
         font-weight: normal;
         text-align: center;
-        vertical-align: middle;
         color: white;
         padding-top: 10px;
         line-height: 0.3;
         opacity: 0.8;
-        height: 9.5vh;
+        height: 9.7vh;
       }
 
 
@@ -330,20 +330,49 @@
         text-align: center;
         font-weight: normal;
         font-size: 2.6vw;
-        margin-top: 20px;
-        padding: 0px 0px 5px 0px;
+        background-color: green;
         }
+
+        #totalNumberDiv,
+        #lotPteDiv,
+        #structureTotalNumberDiv,
+        #isfDiv {
+          color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: center;
+        font-weight: normal;
+        font-size: 2.6vw;
+        height: 8vh;
+        padding-top: 10%;
+        }
+
+        #lotHandedOverDiv {
+          color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: center;
+        font-weight: normal;
+        font-size: 2.6vw;
+        height: 8vh;
+        padding-top: 6%;
+        }
+
 
 
       #totalProgress {
         padding-top: 10px;
       }
 
-      #menu {
-        padding: 3px 3px 3px 3px;
-        background-color: black;
-        color: white;
+
+
+      #handedOverButton {
+        text-align: center;
+        margin-left: 35px;
       }
+
+      .handedoverButtonClass {
+          display: flex;
+      }
+
 
       .cpButtonClass {
           font-style: normal;
@@ -352,6 +381,8 @@
           color: white;
           text-align: center;
           margin-top: 14px;
+          display: flex;
+
           }
 
           #dataTypeInput {
@@ -1627,7 +1658,88 @@ priorityButton.addEventListener("change", function(event) {
   });
 
 
+// Handed-Over filter button
+opacityInput.addEventListener("change", function(event) {
+    if (event.target.checked) {
+        //lotLayer.definitionExpression = "HandOver = 1";
+        view.when(function() {
 
+    view.whenLayerView(lotLayer).then(function (layerView) {
+      lotLayer.queryFeatures().then(function(results) {
+        const ggg = results.features;
+            const rowN = ggg.length;
+
+            let objID = [];
+            for (var i=0; i < rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+
+            var queryExt = new Query({
+                objectIds: objID
+            });
+
+            lotLayer.queryExtent(queryExt).then(function(result) {
+                if (result.extent) {
+                    view.goTo(result.extent)
+                }
+            });
+
+            highlightSelect = layerView.highlight(objID);
+
+
+      }); // End of queryFeatures
+      layerView.filter = {
+    where: "HandedOver = 1"
+  }
+    }); // End of view.whenLayerView
+
+    
+  }); // End of view.when
+
+    } else {
+        view.when(function() {
+
+view.whenLayerView(lotLayer).then(function (layerView) {
+  lotLayer.queryFeatures().then(function(results) {
+    const ggg = results.features;
+        const rowN = ggg.length;
+
+        let objID = [];
+        for (var i=0; i < rowN; i++) {
+            var obj = results.features[i].attributes.OBJECTID;
+            objID.push(obj);
+        }
+
+        var queryExt = new Query({
+            objectIds: objID
+        });
+
+        lotLayer.queryExtent(queryExt).then(function(result) {
+            if (result.extent) {
+                view.goTo(result.extent)
+            }
+        });
+
+        if (highlightSelect) {
+            highlightSelect.remove();
+        }
+
+  }); // End of queryFeatures
+  layerView.filter = {
+where: "HandedOver = null || HandedOver = 1"
+}
+}); // End of view.whenLayerView
+
+
+}); // End of view.when
+    }
+    
+
+});
+
+
+//
 
 view.when(function() {
 
@@ -2832,16 +2944,21 @@ var printExpand = new Expand ({
                 <div id="chartdiv"></div>
                   <div id="optionsDiv" class="esri-widget">
                     <div id="totalNumberLotDiv"></div>
-                    <h6 id="totalNumberDiv"></h6>
+                    <div id="totalNumberDiv"></div>
                   </div>
                   <div id="lotMoaChartDiv"></div>
                   <div id="optionsDiv" class="esri-widget">
                     <div id="pteNumberLotDiv"></div>
-                    <h6 id="lotPteDiv"></h6>
+                    <div id="lotPteDiv"></div>
                   </div>
                   <div id="optionsDiv" class="esri-widget">
-                    <div id="handedoverNumberLotDiv"></div>
-                    <h6 id="lotHandedOverDiv"></h6>
+                    <div id="handedOverButton" class="handedOverButtonClass">
+                      <div id="handedoverNumberLotDiv"></div>
+                      <div id="menu" class="esri-widget">
+                        <input type="checkbox" id="opacityInput" unchecked />
+                      </div>
+                    </div>
+                    <div id="lotHandedOverDiv"></div>
                   </div>
             </div>
         </div>
@@ -2850,12 +2967,12 @@ var printExpand = new Expand ({
                 <div id="structureChartDiv"></div>
                 <div id="optionsDiv" class="esri-widget">
                   <div id="totalNumberStrucDiv"></div>
-                  <h6 id="structureTotalNumberDiv"></h6>
+                  <div id="structureTotalNumberDiv"></div>
                 </div>
                   <div id="structureMoaChartDiv"></div>
                   <div id="optionsDiv" class="esri-widget">
                     <div id="isfNumberStrucDiv"></div>
-                    <h6 id="isfDiv"></h6>
+                    <div id="isfDiv"></div>
                   </div>
             </div>
         </div>
