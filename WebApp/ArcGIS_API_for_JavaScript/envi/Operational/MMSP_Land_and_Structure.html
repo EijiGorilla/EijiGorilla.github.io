@@ -479,7 +479,7 @@
       .sassy-theme .esri-input,
       .sassy-theme .esri-layer-list,
       .sassy-theme .esri-widget a {
-        background-color: rgb(0, 0, 0, 0.7);
+        background-color: rgb(0, 0, 0, 0);
         color: #fff;
       }
 
@@ -1082,8 +1082,101 @@ var stationLayer = new FeatureLayer({
 
 // Relocation Status point layer
 
-
+////////////////////////////
 // Land 
+//StatusNVS3
+let lotDefaultSymbol = {
+  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+  color: [0,0,0,0],
+  style: "solid",
+  outline: {  // autocasts as new SimpleLineSymbol()
+    color: [110, 110, 110],
+    width: 0.7
+  }
+};
+
+function colorLotReqs(){
+  return {
+    1: [112,173,71],
+    2: [0,112,255],
+    3: [255,255,0],
+    4: [255,170,0],
+    5: [255,0,0],
+    6: [0,0,0,0]
+  }
+}
+
+let lotLayerRenderer = {
+  type: "unique-value",
+  //field: "StatusLA",
+  defaultSymbol: lotDefaultSymbol,  // autocasts as new SimpleFillSymbol()
+  valueExpression: "When($feature.StatusNVS3 == 1, '1',$feature.StatusNVS3 == 2, '2', $feature.StatusNVS3 == 3, '3', \
+                         $feature.StatusNVS3 == 4, '4', $feature.StatusNVS3 == 5, '5', \
+                         $feature.StatusNVS3 == 6, '6', $feature.StatusNVS3)",
+  uniqueValueInfos: [
+  {
+    // All features with value of "North" will be blue
+    value: "1",
+    label: "Paid",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[1],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "2",
+    label: "For Payment Processing",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[2],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "3",
+    label: "For Legal Pass",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[3],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "4",
+    label: "For Appraisal/Offer to Buy",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[4],
+    }
+  },
+  {
+    // All features with value of "North" will be blue
+    value: "5",
+    label: "For Expro",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[5],
+    }
+  }
+  /*
+  {
+    // All features with value of "North" will be blue
+    value: "others",
+    label: "Others",
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: colorLotReqs()[6],
+      outline: {
+        width: 2,
+        color: "grey"
+      }
+    }
+  }
+  */
+  ]
+}
+
 var lotLayer = new FeatureLayer({
   portalItem: {
     id: "032432d931624de9bf5ff03f1f9d7016",
@@ -1096,6 +1189,7 @@ var lotLayer = new FeatureLayer({
         title: "Status of Land Acquisition",
         //labelsVisible: false,
         labelingInfo: [labelClass],
+        renderer: lotLayerRenderer,
         popupTemplate: {
           title: "<p>{Id}</p>",
           lastEditInfoEnabled: false,
@@ -1130,6 +1224,8 @@ var lotLayer = new FeatureLayer({
 });
 map.add(lotLayer, 0);
 
+//////////////////////////////////////////
+/*
 var lotBoundary = new FeatureLayer({
   portalItem: {
     id: "032432d931624de9bf5ff03f1f9d7016",
@@ -1175,7 +1271,7 @@ var lotBoundary = new FeatureLayer({
         }
 });
 map.add(lotBoundary, 0);
-
+*/
 // structure boundary
 function colorStructureReqs(){
   return {
