@@ -274,6 +274,10 @@
     display: none;
   }
 
+  ::-webkit-scrollbar {
+    display: none;
+    }
+
     </style>
 
 <link
@@ -324,7 +328,9 @@ href="https://js.arcgis.com/4.22/esri/themes/dark/main.css"
         "esri/widgets/Compass",
         "esri/layers/ElevationLayer",
         "esri/Ground",
-        "esri/widgets/BasemapToggle"
+        "esri/widgets/BasemapToggle",
+        "esri/popup/content/ImageMediaInfo",
+        "esri/popup/content/AttachmentsContent"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -334,7 +340,7 @@ href="https://js.arcgis.com/4.22/esri/themes/dark/main.css"
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol,
                   TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
-                  FeatureTable, Compass, ElevationLayer, Ground, BasemapToggle) {
+                  FeatureTable, Compass, ElevationLayer, Ground, BasemapToggle, ImageMediaInfo, AttachmentsContent) {
 
 let chartLayerView;
 ////////////////////////////////////////////////////
@@ -426,6 +432,46 @@ var basemap = new Basemap({
 //*******************************//
 // Label Class Property Settings //
 //*******************************//
+// site photo labels
+var sitePhotoLabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d",// autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: {
+                  color: "orange"
+                },
+                size: 15,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 40,
+              maxWorldLength: 100,
+              minWorldLength: 20
+            },
+            callout: {
+              type: "line",
+              size: 0.5,
+              color: [0, 0, 0],
+              border: {
+                color: [255, 255, 255, 0.7]
+              }
+            }
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: 'DefaultValue($feature.Description, "no data")'
+          }
+        });
+
         // Station labels
         var stationLabelClass = new LabelClass({
           symbol: {
@@ -616,6 +662,38 @@ var constBoundary = new FeatureLayer({
 });
 constBoundary.listMode = "hide";
 map.add(constBoundary);
+
+// photo points
+var photoLayer = new SceneLayer({
+  portalItem: {
+    id: "bdd70c2220ff47aeb67f13a90ce7fb0e",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  labelingInfo: [sitePhotoLabelClass],
+  popupTemplate: {
+    lastEditInfoEnabled: false,
+    returnGeometry: true,
+    content: [
+      {
+        type: "media",
+        mediaInfos: [
+          {
+            title: "TBM Shaft",
+            type: "image",
+            caption: "As of 2022/03/21",
+            value: {
+              sourceURL: "https://EijiGorilla.github.io/Symbols/TBM_Shaft_sample.png"
+            }
+          }
+        ]
+      }
+    ]
+    }
+
+    });
+map.add(photoLayer,1);
 
 // Station point feature
 
