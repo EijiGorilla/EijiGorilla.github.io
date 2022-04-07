@@ -158,10 +158,84 @@ var basemap = new Basemap({
           });
 
         view.ui.add("menu", "bottom-left");
+
+// Label Class
+        // Station labels
+        var labelClass = new LabelClass({
+          symbol: {
+            type: "label-3d",// autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: {
+                  color: [255, 170, 0]
+                },
+                size: 20,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  //weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 40,
+              maxWorldLength: 100,
+              minWorldLength: 20
+            },
+
+
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: "$feature.Station"
+            //value: "{TEXTSTRING}"
+        }
+        });
+
+        // Station Symbol
+        function stationsSymbol(name) {
+          return {
+            type: "web-style", // autocasts as new WebStyleSymbol()
+            name: name,
+            styleName: "EsriIconsStyle"//EsriRealisticTransportationStyle, EsriIconsStyle
+          };
+        }
+
+        // Station Renderer
+        var stationsRenderer = {
+          type: "unique-value", // autocasts as new UniqueValueRenderer()
+          field: "Station",
+          defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
+        };
+        
+// Station Layer
+var stationLayer = new SceneLayer({
+            portalItem: {
+                id: "207cb34b8a324b40985b5805862c4b29",
+                portal: {
+                  url: "https://gis.railway-sector.com/portal"
+                }
+            },
+             labelingInfo: [labelClass],
+             renderer: stationsRenderer,
+             elevationInfo: {
+                 // this elevation mode will place points on top of
+                 // buildings or other SceneLayer 3D objects
+                 mode: "relative-to-ground"
+                 },
+             definitionExpression: "Extension = 'N2'"
+              //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
+        });
+        stationLayer.listMode = "hide";
+        map.add(stationLayer, 0);
+
 // Station structures
 const buildingLayer = new BuildingSceneLayer({
   portalItem: {
-    id: "fe5519380ffe491a8369f7173998a461",
+    id: "052adae41dfd4f0ab0e0c54a766e30b1",
   portal: {
     url: "https://gis.railway-sector.com/portal"
   }
