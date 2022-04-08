@@ -599,12 +599,12 @@ var view = new MapView({
 });
 
 // Basemap toggle widget
-const toggle = new BasemapToggle({
+const TOGGLE = new BasemapToggle({
   view: view,
   nextBaseMap: "hybrid"
 });
 
-view.ui.add(toggle, "top-right");
+view.ui.add(TOGGLE, "top-right");
 
 function shiftCamera(deg) {
   var camera = view.camera.clone();
@@ -1409,71 +1409,71 @@ function zoomToLayer(layer) {
 
 // 2. Number of PTE
 function pteNumberLot(){
-  var total_pte_lot = {
+  var totalPteLot = {
     onStatisticField: "CASE WHEN PTE = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_pte_lot",
+    outStatisticFieldName: "totalPteLot",
     statisticType: "sum"
   };
   var query = lotLayer.createQuery();
-  query.outStatistics = [total_pte_lot];
+  query.outStatistics = [totalPteLot];
   query.returnGeometry = true;
 
   lotLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
-    const pte = stats.total_pte_lot;
-    lotPteDiv.innerHTML = pte;
+    const PTE_TOTAL = stats.totalPteLot;
+    lotPteDiv.innerHTML = PTE_TOTAL;
   });
 } 
 pteNumberLot();
 
 // 3. Number of handed-over lots
 function handedOverNumberLot(){
-  var total_handedover_lot = {
+  var totalHandedOverLot = {
     onStatisticField: "CASE WHEN HandedOver = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_handedover_lot",
+    outStatisticFieldName: "totalHandedOverLot",
     statisticType: "sum"
   }
 var query = lotLayer.createQuery();
-query.outStatistics = [total_handedover_lot];
+query.outStatistics = [totalHandedOverLot];
 query.returnGeometry = true;
 
 lotLayer.queryFeatures(query).then(function(response){
   var stats = response.features[0].attributes;
 
-  const handedover = stats.total_handedover_lot;
-  lotHandedOverDiv.innerHTML = handedover;
+  const HAND_OVER_TOTAL = stats.totalHandedOverLot;
+  lotHandedOverDiv.innerHTML = HAND_OVER_TOTAL;
 });
 }
 handedOverNumberLot();
 
 // 5. Number of Relocation (ISF) and Percent
 function isfNumber() {
-    var total_isf_relo = {
+    var totalRelo = {
         onStatisticField: "CASE WHEN RELOCATION = 'RELOCATED' THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_isf_relo",
+        outStatisticFieldName: "totalRelo",
         statisticType: "sum"
     };
-    var total_isf = {
+    var totalIsf = {
         onStatisticField: "RELOCATION",
-        outStatisticFieldName: "total_isf",
+        outStatisticFieldName: "totalIsf",
         statisticType: "count"
     };
 
     var query = isfLayer.createQuery();
-    query.outStatistics = [total_isf_relo, total_isf];
+    query.outStatistics = [totalRelo, totalIsf];
     query.returnGeometry = true;
 
     isfLayer.queryFeatures(query).then(function(response) {
         var stats = response.features[0].attributes;
-        const isf_relo = stats.total_isf_relo;
-        const isf_total = stats.total_isf;
-        const perc = (isf_relo/isf_total)*100;
+        const ISF_RELO = stats.totalRelo;
+        const ISF_TOTAL = stats.totalIsf;
+        const PERCENT = (ISF_RELO/ISF_TOTAL)*100;
 
-        if (isf_relo == null) {
+        if (ISF_RELO == null) {
           isfDiv.innerHTML = 0 + " (" + 0 + " %" + ")";
         } else {
-          isfDiv.innerHTML = isf_relo + " (" + perc + "%" + ")";
+          isfDiv.innerHTML = ISF_RELO + " (" + PERCENT + "%" + ")";
         }
     });
 }
@@ -2718,17 +2718,17 @@ var searchWidget = new Search({
       outFields: ["ID"],
       name: "Lot No",
       placeholder: "example: DP89"
-  },
-  {
-    layer: structureLayer,
+    },
+    {
+      layer: structureLayer,
       searchFields: ["Id_1"],
       displayField: "Id",
       exactMatch: false,
       outFields: ["Id_1"],
       name: "Structure ID",
       placeholder: "example: QH-MMSP-02-01-S045C"
-  }
-]
+    }
+  ]
 });
 
 // Create Expand widge for Search widget
