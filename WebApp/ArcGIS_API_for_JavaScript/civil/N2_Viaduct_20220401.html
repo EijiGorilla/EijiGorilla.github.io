@@ -62,12 +62,7 @@
         border: solid 2.5px gray;
         margin-bottom: 3px;
         display: grid;
-        grid-template-columns: 250fr 0fr 0fr;
-      }
-
-      #headerTitleDiv {
-        font-size: 2.3vw;
-        vertical-align: middle;
+        grid-template-columns: 40px 250fr 0fr 0fr;
       }
 
       .boxA {
@@ -108,18 +103,7 @@
 
       #chartdiv {
           width: 100%;
-          height: 72vh;
-          }
-
-          #monthlyProgressChartDiv {
-            position: absolute;
-            width: 60vw;
-          height: 20vh;
-            background-color: rgb(0,0,0,0);
-            z-index: 99;
-            bottom: 0;
-            left:13vw;
-            
+          height: 65vh;
           }
       
       #cpButton {
@@ -131,7 +115,7 @@
       .cpButtonClass {
           font-style: normal;
           width: 300px;
-          font-size: 1.4vw;
+          font-size: 16px;
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
           color: white;
           text-align: center;
@@ -215,7 +199,7 @@
 
       #menu {
         padding: 3px 3px 3px 3px;
-        background-color: rgb(0,0,0,0.3);
+        background-color: black;
         color: white;
       }
 
@@ -369,7 +353,7 @@
         }
 
         // Setup UI
-
+        var chartTitleDiv = document.getElementById("chartTitleDiv");
         var headerDiv = document.getElementById("headerDiv");
         var headerTitleDiv = document.getElementById("headerTitleDiv");
         var applicationDiv = document.getElementById("applicationDiv");
@@ -748,15 +732,15 @@ const cpButtonElement = document.getElementById("cpButton");
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
-
+const chartTitleLabel = "Construction Progress";
 // Default label
 
+chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
 if (document.getElementById("N-01").checked = true) {
     viaductLayer.definitionExpression = "CP = 'N-01'";
     PierNoLayer.definitionExpression = "CP = 'N-01'";
     zoomToLayer(viaductLayer);
-
-    MonthlyProgressChart();
+    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-01" + "</p>";
   updateChart();
   perCpProgress();
 }
@@ -769,7 +753,7 @@ function filterByTest(event) {
   if(selectedID === "N-01") {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
     PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
- 
+    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart();
     perCpProgress();
@@ -777,7 +761,7 @@ function filterByTest(event) {
   } else if (selectedID === "N-02") {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
     PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
-
+    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart();
     perCpProgress();
@@ -785,7 +769,7 @@ function filterByTest(event) {
   } else if (selectedID === "N-03") {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
     PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
-
+    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart();
     perCpProgress();
@@ -793,248 +777,12 @@ function filterByTest(event) {
   } else if (selectedID === "N-04") {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
     PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
- 
+    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart(); 
     perCpProgress();
 }
 }
-
-//////////////////////////////////// Time line bar charts //////////////////////////////////
-const monthlyProgressChartDiv = document.getElementById("monthlyProgressChartDiv");
-function MonthlyProgressChart(){
-
-/////////////
-const pile_2021 = {1: [1], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [2], 8: [52], 9: [120], 10: [195], 11: [292], 12: [187]};
-const pileC_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [1], 10: [2], 11: [9], 12: [7]};
-const pier_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [5], 12: [5]};
-const pierH_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-const precast_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [1]};
-const pile_2022 = {1: [173], 2: [122], 3: [79], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-const pileC_2022 = {1: [10], 2: [15], 3: [8], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-const pier_2022 = {1: [5], 2: [8], 3: [8], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-const pierH_2022 = {1: [], 2: [3], 3: [8], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-const precast_2022 = {1: [1], 2: [], 3: [4], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-
-// Create chart instance
-var chart = am4core.create("monthlyProgressChartDiv", am4charts.XYChart);
-
-
-
-// Add data
-chart.data = [
-  {
-  date: new Date(2020, 12), // Jan. 2021
-  value1: pile_2021[1],
-  value2: pileC_2021[1],
-  value3: pier_2021[1],
-  value4: pierH_2021[1],
-  value5: precast_2022[1]
-  
-},
-{
-  date: new Date(2021, 1),
-  value1: pile_2021[2],
-  value2: pileC_2021[2],
-  value3: pier_2021[2],
-  value4: pierH_2021[2],
-  value5: precast_2021[2]
-},
-{
-  date: new Date(2021, 2),
-  value1: pile_2021[3],
-  value2: pileC_2021[3],
-  value3: pier_2021[3],
-  value4: pierH_2021[3],
-  value5: precast_2021[3]
-},
-{
-  date: new Date(2021, 3),
-  value1: pile_2021[4],
-  value2: pileC_2021[4],
-  value3: pier_2021[4],
-  value4: pierH_2021[4],
-  value5: precast_2021[4]
-},
-{
-  date: new Date(2021, 4),
-  value1: pile_2021[5],
-  value2: pileC_2021[5],
-  value3: pier_2021[5],
-  value4: pierH_2021[5],
-  value5: precast_2021[5]
-},
-{
-  date: new Date(2021, 5),
-  value1: pile_2021[6],
-  value2: pileC_2021[6],
-  value3: pier_2021[6],
-  value4: pierH_2021[6],
-  value5: precast_2021[6]
-},
-{
-  date: new Date(2021, 6),
-  value1: pile_2021[7],
-  value2: pileC_2021[7],
-  value3: pier_2021[7],
-  value4: pierH_2021[7],
-  value5: precast_2021[7]
-},
-{
-  date: new Date(2021, 7),
-  value1: pile_2021[8],
-  value2: pileC_2021[8],
-  value3: pier_2021[8],
-  value4: pierH_2021[8],
-  value5: precast_2021[8]
-},
-{
-  date: new Date(2021, 8),
-  value1: pile_2021[9],
-  value2: pileC_2021[9],
-  value3: pier_2021[9],
-  value4: pierH_2021[9],
-  value5: precast_2021[9]
-},
-{
-  date: new Date(2021, 9),
-  value1: pile_2021[10],
-  value2: pileC_2021[10],
-  value3: pier_2021[10],
-  value4: pierH_2021[10],
-  value5: precast_2021[10]
-},
-{
-  date: new Date(2021, 10),
-  value1: pile_2021[11],
-  value2: pileC_2021[11],
-  value3: pier_2021[11],
-  value4: pierH_2021[11],
-  value5: precast_2021[11]
-},
-{
-  date: new Date(2021, 11),
-  value1: pile_2021[12],
-  value2: pileC_2021[12],
-  value3: pier_2021[12],
-  value4: pierH_2021[12],
-  value5: precast_2021[12]
-},
-{
-  date: new Date(2021, 12),
-  value1: pile_2022[1],
-  value2: pileC_2022[1],
-  value3: pier_2022[1],
-  value4: pierH_2022[1],
-  value5: precast_2022[1]
-},
-{
-  date: new Date(2022, 1),
-  value1: pile_2022[2],
-  value2: pileC_2022[2],
-  value3: pier_2022[2],
-  value4: pierH_2022[2],
-  value5: precast_2022[2]
-},
-{
-  date: new Date(2022, 2),
-  value1: pile_2022[3],
-  value2: pileC_2022[3],
-  value3: pier_2022[3],
-  value4: pierH_2022[3],
-  value5: precast_2022[3]
-},
-{
-  date: new Date(2022, 3),
-  value1: pile_2022[4],
-  value2: pileC_2022[4],
-  value3: pier_2022[4],
-  value4: pierH_2022[4],
-  value5: precast_2022[4]
-}
-];
-
-const LegendFontSizze = 14;
-chart.legend = new am4charts.Legend();
-
-chart.legend.valueLabels.template.align = "right"
-  chart.legend.valueLabels.template.textAlign = "end";  
-
-chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = LegendFontSizze;
-chart.legend.labels.template.fill = "#ffffff";
-chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
-chart.legend.valueLabels.template.fontSize = LegendFontSizze;
-
-
-var marker = chart.legend.markers.template.children.getIndex(0);
-var markerTemplate = chart.legend.markers.template;
-marker.cornerRadius(12, 12, 12, 12);
-marker.strokeWidth = 1;
-marker.strokeOpacity = 1;
-marker.stroke = am4core.color("#ccc");
-
-// Change size of legend marker
-markerTemplate.width = 16;
-markerTemplate.height = 16;
-
-// Create axes
-var categoryAxis = chart.xAxes.push(new am4charts.DateAxis());
-categoryAxis.dataFields.category = "date";
-categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 10;
-categoryAxis.renderer.labels.template.fill = "#ffffff";
-categoryAxis.renderer.minGridDistance = 5; //can change label
-categoryAxis.baseInterval = {
-  "timeUnit": "month",
-  "count": 1
-};
-var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-valueAxis.renderer.inside = true;
-valueAxis.renderer.labels.template.disabled = true;
-valueAxis.min = 0;
-
-// Create series
-function createSeries(field, name) {
-  
-  // Set up series
-  var series = chart.series.push(new am4charts.ColumnSeries());
-  series.name = name;
-  series.dataFields.valueY = field;
-  series.dataFields.dateX = "date";
-  series.sequencedInterpolation = true;
-
-
-  
-  // Make it stacked
-  series.stacked = true;
-  
-  // Configure columns
-  series.columns.template.width = am4core.percent(60);
-  series.columns.template.tooltipText = "[bold]{name}[/]\n[font-size:14px]{categoryX}: {valueY}";
-  
-  // Add label
-  /*
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-  labelBullet.label.text = "{valueY}";
-  labelBullet.locationY = 0.5;
-  labelBullet.label.hideOversized = true;
-  */
-  return series;
-}
-
-createSeries("value1", "Pile");
-createSeries("value2", "Pile Cap");
-createSeries("value3", "Pier");
-createSeries("value4", "Pier Head");
-createSeries("value5", "Precast");
-// Create scrollbars
-//chart.scrollbarX = new am4core.Scrollbar();
-//chart.scrollbarY = new am4core.Scrollbar();
-
-}
-////////////////////////////
 
 
 // Pile
@@ -1273,15 +1021,6 @@ categoryAxis.renderer.grid.template.location = 0;
 categoryAxis.renderer.labels.template.fontSize = 20;
 categoryAxis.renderer.labels.template.fill = "#ffffff";
 categoryAxis.renderer.minGridDistance = 5; //can change label
-categoryAxis.renderer.inversed = true;
-    categoryAxis.renderer.grid.template.disabled = true;
-    categoryAxis.renderer.grid.template.strokeOpacity = 1;
-    categoryAxis.renderer.grid.template.stroke = am4core.color("#FFFFFF");
-    categoryAxis.renderer.grid.template.strokeWidth = 1.5;
-    categoryAxis.renderer.line.strokeOpacity = 1;
-    categoryAxis.renderer.line.strokeWidth = 1.5;
-    categoryAxis.renderer.line.stroke = am4core.color("#FFFFFF");
-
 
 var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
 valueAxis.min = 0;
@@ -1291,20 +1030,7 @@ valueAxis.calculateTotals = true;
 valueAxis.renderer.minWidth = 50;
 valueAxis.renderer.labels.template.fontSize = 14;
 valueAxis.renderer.labels.template.fill = "#ffffff";
-valueAxis.renderer.line.strokeOpacity = 1;
-    valueAxis.renderer.line.strokeWidth = 1.5;
-    valueAxis.renderer.line.stroke = am4core.color("#FFFFFF");
 
-
-
-      // Chart Title
-      let title = chart.titles.create();
-      title.text = "Construction Progress";
-      title.fontSize = 27;
-      title.fontWeight = "bold";
-      title.fill = am4core.color("#ffffff");
-      title.marginTop = 3;
-      title.marginBottom = 10;
 
 function createSeries(field, name) {
   var series = chart.series.push(new am4charts.ColumnSeries());
@@ -1316,8 +1042,8 @@ function createSeries(field, name) {
   series.dataItems.template.locations.categoryY = 0.5;
 
   // Bar chart line color and width
-  series.columns.template.stroke = am4core.color("#000000");
-  //series.columns.template.strokeWidth = 1.5;
+  series.columns.template.stroke = am4core.color("#ffffff");
+  series.columns.template.strokeWidth = 1.5;
   series.name = name;
 
   var labelBullet = series.bullets.push(new am4charts.LabelBullet());
@@ -1326,9 +1052,8 @@ function createSeries(field, name) {
     series.fill = am4core.color("#000000");
     
   labelBullet.locationX = 0.5;
-  labelBullet.label.text = "";
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
   //labelBullet.label.fill = am4core.color("#00FFFFFF");
-  labelBullet.label.text = "";
   labelBullet.label.fill = am4core.color("#000000");
   labelBullet.interactionsEnabled = false;
   labelBullet.label.fontSize = 20;
@@ -1337,7 +1062,7 @@ function createSeries(field, name) {
   } else if (name == "Under Construction"){
     series.fill = am4core.color("#c2c2c2");
     labelBullet.locationX = 0.5;
-  labelBullet.label.text = "";
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
   labelBullet.label.fill = am4core.color("#ffffff");
   labelBullet.interactionsEnabled = false;
   labelBullet.label.fontSize = 20;
@@ -1355,7 +1080,7 @@ function createSeries(field, name) {
   } else {
     series.fill = am4core.color("#ff0000"); // delayed
     labelBullet.locationX = 0.5;
-  labelBullet.label.text = "";
+  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
   labelBullet.label.fill = am4core.color("#ffffff");
   labelBullet.interactionsEnabled = false;
   labelBullet.label.fontSize = 20;
@@ -1514,12 +1239,6 @@ view.when(function () {
           view.ui.add(editor, "top-right");
         });
 */
-// Monthly Progress Chart 
-const progressExpand = new Expand({
-  view: view,
-  content: document.getElementById("monthlyProgressChartDiv"),
-  expandIconClass: "esri-icon-filter"
-});
 
 
 //
@@ -1561,7 +1280,7 @@ var legendExpand = new Expand({
     group: "bottom-right"
 });
 view.ui.add(legendExpand, {
-    position: "top-right"
+    position: "bottom-right"
 });
 
 var layerListExpand = new Expand ({
@@ -1571,7 +1290,7 @@ var layerListExpand = new Expand ({
             group: "bottom-left"
         });
         view.ui.add(layerListExpand, {
-            position: "top-left"
+            position: "bottom-left"
         });
 
         view.ui.empty("top-left");
@@ -1686,13 +1405,16 @@ view.ui.add(compassWidget, "top-left");
   <body class="sassy-theme">
     <div id="applicationDiv">
       <div id="headerDiv">
-        <div id="headerTitleDiv">N2 Viaduct Construction</div>
+        <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
+        <div id="headerTitleDiv">
+            <h2>N2 Viaduct Construction</h2>
+        </div>
         <div class="dateDiv">
             <h4>As of April 8, 2022</h4>
         </div>
         <div class="cpButtonBox">
           <div id="cpButton" class="cpButtonClass">
-              <label for="cpButton"></label>
+              <label for="cpButton">CP</label>
               <input type="radio" id="N-01" name="cpButton" checked/> N-01
               <input type="radio" id="N-02" name="cpButton"> N-02
               <input type="radio" id="N-03" name="cpButton"> N-03
@@ -1712,14 +1434,14 @@ view.ui.add(compassWidget, "top-left");
         </div>
         <div class="boxA">
           <div id="chartPanel">
+            <div id="chartTitleDiv" class="esri-widget">Construction Progress</div>
             <div id="chartdiv"></div>
             <div id="optionsDiv" class="esri-widget">
-                <div><b>Total Progress</b></div>
+                <div><b>Total Progress (%)</b></div>
                 <h6 id="totalProgress"></h6>
               </div>
         </div>
         </div>
-        <div id="monthlyProgressChartDiv"></div>
     </div>
     </div>
   </body>
