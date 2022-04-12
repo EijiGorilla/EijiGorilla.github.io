@@ -414,9 +414,9 @@ var pierNoLabelClass = new LabelClass({
               {
                 type: "text", // autocasts as new TextSymbol3DLayer()
                 material: {
-                  color: [255, 170, 0]
+                  color: "white"
                 },
-                size: 15,
+                size: 10,
                 color: "black",
                 haloColor: "black",
                 haloSize: 1,
@@ -496,7 +496,7 @@ const colors = {
 // Station Layer
 var stationLayer = new SceneLayer({
             portalItem: {
-                id: "207cb34b8a324b40985b5805862c4b29",
+                id: "88cf803249374a18980f02dbe22957f8",
                 portal: {
                   url: "https://gis.railway-sector.com/portal"
                 }
@@ -598,7 +598,7 @@ const viadTemplate = {
 
 var viaductLayer = new SceneLayer({
    portalItem: {
-            id: "a9c0878766964fa794cc67bbf38b7a09",
+            id: "7f77b58724084437b69b1457a0ffc50a",
             portal: {
               url: "https://gis.railway-sector.com/portal"
             }
@@ -608,28 +608,9 @@ var viaductLayer = new SceneLayer({
           mode: "absolute-height" //absolute-height, relative-to-ground
         },
             title: "Viaduct sample",
-            outFields: ["*"],
+            outFields: ["*"]
             // when filter using date, example below. use this format
             //definitionExpression: "EndDate = date'2020-6-3'"
-            /*
-            popupTemplate: {
-              title: "{Status1}",
-              content: [
-                {
-                  type: "fields",
-                  fieldInfos: [
-                    {
-                      fieldName: "Type",
-                    },
-                    {
-                      fieldName: "PierNumber",
-                      label: "Pier No."
-                    }
-                  ]
-                }
-              ]
-            }
-            */
           });
           viaductLayer.listMode = "hide";
           map.add(viaductLayer);
@@ -676,9 +657,8 @@ var viaductLayer = new SceneLayer({
 //      Progress Chart           //
 //*******************************//
 // Total progress //
-function perCpProgress() {
 var total_complete = {
-  onStatisticField: "CASE WHEN Status1 = 4 THEN 1 ELSE 0 END",
+  onStatisticField: "CASE WHEN (Status1 = 4 or Status1 = 5 or Status1 = 6 or Status1 = 7 or Status1 = 8) THEN 1 ELSE 0 END",
   outStatisticFieldName: "total_complete",
   statisticType: "sum"
 };
@@ -698,8 +678,6 @@ viaductLayer.queryFeatures(query).then(function(response) {
   const total_obs = stats.total_obs;
   document.getElementById("totalProgress").innerHTML = ((total_complete/total_obs)*100).toFixed(1) + " %";
 });
-}
-perCpProgress();
 
 /* Function for zooming to selected layers */
 function zoomToLayer(layer) {
@@ -727,11 +705,9 @@ const chartTitleLabel = "Construction Progress";
 chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
 if (document.getElementById("N-01").checked = true) {
     viaductLayer.definitionExpression = "CP = 'N-01'";
-    PierNoLayer.definitionExpression = "CP = 'N-01'";
     zoomToLayer(viaductLayer);
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "N-01" + "</p>";
   updateChart();
-  perCpProgress();
 }
 
 // click event handler for choices
@@ -745,7 +721,6 @@ function filterByTest(event) {
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart();
-    perCpProgress();
 
   } else if (selectedID === "N-02") {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
@@ -753,7 +728,6 @@ function filterByTest(event) {
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart();
-    perCpProgress();
 
   } else if (selectedID === "N-03") {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
@@ -761,7 +735,6 @@ function filterByTest(event) {
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart();
-    perCpProgress();
 
   } else if (selectedID === "N-04") {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
@@ -769,7 +742,6 @@ function filterByTest(event) {
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(viaductLayer);
     updateChart(); 
-    perCpProgress();
 }
 }
 
@@ -809,7 +781,7 @@ var total_pilecap_underC = {
     statisticType: "sum"
     };
 var total_pilecap_done = {
-    onStatisticField: "CASE WHEN (Type = 2 and Status1 = 4) THEN 1 ELSE 0 END",  // service field for 2015 population
+    onStatisticField: "CASE WHEN (Type = 2 and Status1 = 5) THEN 1 ELSE 0 END",  // service field for 2015 population
     outStatisticFieldName: "total_pilecap_done",
     statisticType: "sum"
     };
@@ -831,7 +803,7 @@ var total_pier_underC = {
     statisticType: "sum"
     };
 var total_pier_done = {
-    onStatisticField: "CASE WHEN (Type = 3 and Status1 = 4) THEN 1 ELSE 0 END",  // service field for 2015 population
+    onStatisticField: "CASE WHEN (Type = 3 and Status1 = 6) THEN 1 ELSE 0 END",  // service field for 2015 population
     outStatisticFieldName: "total_pier_done",
     statisticType: "sum"
     };
@@ -853,7 +825,7 @@ var total_pierhead_underC = {
     statisticType: "sum"
     };
 var total_pierhead_done = {
-    onStatisticField: "CASE WHEN (Type = 4 and Status1 = 4) THEN 1 ELSE 0 END",  // service field for 2015 population
+    onStatisticField: "CASE WHEN (Type = 4 and Status1 = 7) THEN 1 ELSE 0 END",  // service field for 2015 population
     outStatisticFieldName: "total_pierhead_done",
     statisticType: "sum"
     };
@@ -875,7 +847,7 @@ var total_precast_underC = {
     statisticType: "sum"
     };
 var total_precast_done = {
-    onStatisticField: "CASE WHEN (Type = 5 and Status1 = 4) THEN 1 ELSE 0 END",  // service field for 2015 population
+    onStatisticField: "CASE WHEN (Type = 5 and Status1 = 8) THEN 1 ELSE 0 END",  // service field for 2015 population
     outStatisticFieldName: "total_precast_done",
     statisticType: "sum"
     };
@@ -1094,7 +1066,7 @@ function createSeries(field, name) {
       selectedStatus = 3;
     } else if (selectedP == "Precast" && selectedC == "Completed") {
       selectedLayer = 5;
-      selectedStatus = 4;
+      selectedStatus = 8;
     } else if (selectedP == "Pier head" && selectedC == "To be Constructed") {
       selectedLayer = 4;
       selectedStatus = 1;
@@ -1106,7 +1078,7 @@ function createSeries(field, name) {
       selectedStatus = 3;
     } else if (selectedP == "Pier head" && selectedC == "Completed") {
       selectedLayer = 4;
-      selectedStatus = 4;
+      selectedStatus = 7;
     } else if (selectedP == "Pier" && selectedC == "To be Constructed") {
       selectedLayer = 3;
       selectedStatus = 1;
@@ -1118,7 +1090,7 @@ function createSeries(field, name) {
       selectedStatus = 3;
     } else if (selectedP == "Pier" && selectedC == "Completed") {
       selectedLayer = 3;
-      selectedStatus = 4;
+      selectedStatus = 6;
     } else if (selectedP == "Pilecap" && selectedC == "To be Constructed") {
       selectedLayer = 2;
       selectedStatus = 1;
@@ -1130,7 +1102,7 @@ function createSeries(field, name) {
       selectedStatus = 3;
     } else if (selectedP == "Pilecap" && selectedC == "Completed") {
       selectedLayer = 2;
-      selectedStatus = 4;
+      selectedStatus = 5;
     } else if (selectedP == "Pile" && selectedC == "To be Constructed") {
       selectedLayer = 1;
       selectedStatus = 1;
@@ -1392,7 +1364,7 @@ view.ui.add(compassWidget, "top-left");
             <h2>Status of Viaduct Construction (N2)</h2>
         </div>
         <div class="dateDiv">
-            <h4>As of December 16, 2021</h4>
+            <h4>As of November 25, 2021</h4>
         </div>
         <div class="cpButtonBox">
           <div id="cpButton" class="cpButtonClass">

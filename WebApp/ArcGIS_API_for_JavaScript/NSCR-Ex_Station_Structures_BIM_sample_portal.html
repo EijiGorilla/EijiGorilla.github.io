@@ -1,0 +1,267 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
+  -->
+<title>Station Structure (PO Section)</title>
+
+    <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    #menu {
+      padding: 0.8em;
+      max-width: 250px;
+    }
+
+    </style>
+
+<link
+rel="stylesheet"
+href="https://js.arcgis.com/4.23/esri/themes/dark/main.css"
+/>
+<!-- Resources -->
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<script src="https://js.arcgis.com/4.23/"></script>
+
+    <script>
+      require([
+        "esri/Basemap",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/views/SceneView",
+        "esri/layers/FeatureLayer",
+        "esri/views/layers/support/FeatureFilter",
+        "esri/layers/SceneLayer",
+        "esri/layers/Layer",
+        "esri/layers/TileLayer",
+        "esri/layers/VectorTileLayer",
+        "esri/layers/support/LabelClass",
+        "esri/symbols/LabelSymbol3D",
+        "esri/WebMap",
+        "esri/WebScene",
+        "esri/portal/PortalItem",
+        "esri/portal/Portal",
+        "esri/widgets/TimeSlider",
+        "esri/widgets/Legend",
+        "esri/widgets/LayerList",
+        "esri/widgets/Fullscreen",
+        "esri/tasks/GeometryService",
+        "esri/tasks/support/Query",
+        "esri/tasks/QueryTask",
+        "esri/renderers/smartMapping/statistics/summaryStatistics",
+        "esri/tasks/support/StatisticDefinition",
+        "esri/symbols/WebStyleSymbol",
+        "esri/TimeExtent",
+        "esri/widgets/Expand",
+        "esri/widgets/Editor",
+        "esri/renderers/UniqueValueRenderer",
+        "esri/widgets/support/DatePicker",
+        "esri/widgets/FeatureTable",
+        "esri/widgets/Compass",
+        "esri/layers/ElevationLayer",
+        "esri/Ground",
+        "esri/layers/BuildingSceneLayer",
+        "esri/widgets/BuildingExplorer"
+      ], function(Basemap, Map, MapView, SceneView, 
+                  FeatureLayer, FeatureFilter,
+                  SceneLayer, Layer, TileLayer, VectorTileLayer,
+                  LabelClass, LabelSymbol3D, WebMap,
+                  WebScene, PortalItem, Portal,
+                  TimeSlider, Legend, LayerList, Fullscreen,
+                  GeometryService, Query, QueryTask, summaryStatistics,
+                  StatisticDefinition, WebStyleSymbol,
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
+                  FeatureTable, Compass, ElevationLayer, Ground,
+                  BuildingSceneLayer, BuildingExplorer) {
+
+
+////////////////////////////////////////////////////
+var basemap = new Basemap({
+        baseLayers: [
+          new VectorTileLayer({
+            portalItem: {
+              id: "3a62040541b84f528da3ac7b80cf4a63" 
+            }
+          })
+        ]
+      });
+      
+      // Add custom DEM to the default elevation layer of esri
+      const worldElevation = new ElevationLayer({
+        url: "//elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
+        });
+
+        var map = new Map({
+              basemap: basemap, // "streets-night-vector", 
+              ground: "world-elevation"
+        }); 
+         
+        var view = new SceneView({
+            map: map,
+            container: "viewDiv",
+            viewingMode: "local",
+            camera: {
+                position: {
+                    x: 120.57930,
+                    y: 15.18,
+                    z: 500
+                    },
+                    tilt: 65
+                    },
+            environment: {
+                background: {
+                    type: "color", // autocasts as new ColorBackground()
+                    color: [0, 0, 0, 1]
+                    },
+                    // disable stars
+                    starsEnabled: false,
+                    //disable atmosphere
+                    atmosphereEnabled: false
+                    }
+        });
+
+        // See-through-Ground        
+        view.when(function() {
+          // allow navigation above and below the ground
+          map.ground.navigationConstraint = {
+            type: "none"
+          };
+          // the webscene has no basemap, so set a surfaceColor on the ground
+          map.ground.surfaceColor = "#fff";
+          // to see through the ground, set the ground opacity to 0.4
+          map.ground.opacity = 0.9; //
+        });
+
+                // See through Gound
+                document
+          .getElementById("opacityInput")
+          .addEventListener("change", function(event) {
+            //map.ground.opacity = event.target.checked ? 0.1 : 0.9;
+            map.ground.opacity = event.target.checked ? 0.1 : 0.6;
+          });
+
+        view.ui.add("menu", "bottom-left");
+
+// Label Class
+        // Station labels
+        var labelClass = new LabelClass({
+          symbol: {
+            type: "label-3d",// autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: {
+                  color: [255, 170, 0]
+                },
+                size: 20,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  //weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 40,
+              maxWorldLength: 100,
+              minWorldLength: 20
+            },
+
+
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: "$feature.Station"
+            //value: "{TEXTSTRING}"
+        }
+        });
+
+        // Station Symbol
+        function stationsSymbol(name) {
+          return {
+            type: "web-style", // autocasts as new WebStyleSymbol()
+            name: name,
+            styleName: "EsriIconsStyle"//EsriRealisticTransportationStyle, EsriIconsStyle
+          };
+        }
+
+        // Station Renderer
+        var stationsRenderer = {
+          type: "unique-value", // autocasts as new UniqueValueRenderer()
+          field: "Station",
+          defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
+        };
+        
+// Station Layer
+var stationLayer = new SceneLayer({
+            portalItem: {
+                id: "207cb34b8a324b40985b5805862c4b29",
+                portal: {
+                  url: "https://gis.railway-sector.com/portal"
+                }
+            },
+             labelingInfo: [labelClass],
+             renderer: stationsRenderer,
+             elevationInfo: {
+                 // this elevation mode will place points on top of
+                 // buildings or other SceneLayer 3D objects
+                 mode: "relative-to-ground"
+                 },
+             definitionExpression: "Extension = 'N2'"
+              //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
+        });
+        stationLayer.listMode = "hide";
+        map.add(stationLayer, 0);
+
+// Station structures
+const buildingLayer = new BuildingSceneLayer({
+  portalItem: {
+    id: "052adae41dfd4f0ab0e0c54a766e30b1",
+  portal: {
+    url: "https://gis.railway-sector.com/portal"
+  }
+},
+        title: "Adminis"
+      });
+      map.add(buildingLayer);
+
+const buildingExplorer = new BuildingExplorer({
+  view: view,
+  layers: [buildingLayer]
+});
+view.ui.add(buildingExplorer, "top-right");
+
+
+      });
+
+
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+    <div id="menu" class="esri-widget">
+      <input type="checkbox" id="opacityInput" unchecked />
+      <label for="opacityInput">See through ground</label>
+    </div>
+  </body>
+</html>

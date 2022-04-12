@@ -239,14 +239,14 @@
 
 <link
 rel="stylesheet"
-href="https://js.arcgis.com/4.22/esri/themes/dark/main.css"
+href="https://js.arcgis.com/4.20/esri/themes/dark/main.css"
 />
 <!-- Resources -->
 <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
 <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-<script src="https://js.arcgis.com/4.22/"></script>
+<script src="https://js.arcgis.com/4.20/"></script>
 
     <script>
       require([
@@ -391,7 +391,7 @@ var basemap = new Basemap({
                 material: {
                   color: "white"
                 },
-                size: 15,
+                size: 12,
                 color: "black",
                 haloColor: "black",
                 haloSize: 1,
@@ -571,7 +571,7 @@ map.add(constBoundary);
 // Station point feature
 var stationLayer = new SceneLayer({
           portalItem: {
-            id: "03d0b7081f1f4c5eb195f2d6a380a969",
+            id: "5a92db39aea445788dc07bb0627b8f44",
             portal: {
               url: "https://gis.railway-sector.com/portal"
             },
@@ -612,7 +612,7 @@ var stationLayer = new SceneLayer({
 // Structure Layer
         var structureLayer = new SceneLayer({ //structureLayer
           portalItem: {
-            id: "1122b4b745cf467b9eaaa8cf7dd1bbf3",
+            id: "60ade09ffac7478191626b85e6127583",
             portal: {
               url: "https://gis.railway-sector.com/portal"
             }
@@ -689,8 +689,7 @@ var stationLayer = new SceneLayer({
 //*******************************//
 
 // Total progress //
-function priProgress(){
-  var total_complete = {
+var total_complete = {
   onStatisticField: "CASE WHEN Status >= 4 THEN 1 ELSE 0 END",
   outStatisticFieldName: "total_complete",
   statisticType: "sum"
@@ -711,9 +710,6 @@ structureLayer.queryFeatures(query).then(function(response) {
   const total_obs = stats.total_obs;
   document.getElementById("totalProgress").innerHTML = ((total_complete/total_obs)*100).toFixed(1) + " %";
 });
-}
-priProgress();
-
 
 /* Function for zooming to selected layers */
 function zoomToLayer(layer) {
@@ -753,21 +749,18 @@ function filterByTest(event) {
     structureLayer.definitionExpression = "Name = 1";
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(structureLayer);
-    priProgress();
     updateChart();
 
   } else if (selectedID === "LRS") {
     structureLayer.definitionExpression = "Name = 2";
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
     zoomToLayer(structureLayer);
-    priProgress();
     updateChart(); 
 
 } else if (selectedID === "None") {
     structureLayer.definitionExpression = null;
     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
     zoomToLayer(structureLayer);
-    priProgress();
     updateChart(); 
 }
 } // End of filterByTest
@@ -1259,28 +1252,6 @@ var total_tensionbrace_delayed = {
     statisticType: "sum"
     };
 
-        // Rubble concrete
-var total_rubblec_tobeC = {
-    onStatisticField: "CASE WHEN (Type = 23 and Status = 1) THEN 1 ELSE 0 END", 
-    outStatisticFieldName: "total_rubblec_tobeC",
-    statisticType: "sum"
-    };
-var total_rubblec_underC = {
-    onStatisticField: "CASE WHEN (Type = 23 and Status = 2) THEN 1 ELSE 0 END",  
-    outStatisticFieldName: "total_rubblec_underC",
-    statisticType: "sum"
-    };
-var total_rubblec_done = {
-    onStatisticField: "CASE WHEN (Type = 23 and Status = 4) THEN 1 ELSE 0 END", 
-    outStatisticFieldName: "total_rubblec_done",
-    statisticType: "sum"
-    };   
-var total_rubblec_delayed = {
-    onStatisticField: "CASE WHEN (Type = 23 and Status = 3) THEN 1 ELSE 0 END", 
-    outStatisticFieldName: "total_rubblec_delayed",
-    statisticType: "sum"
-    };
-
 var query = structureLayer.createQuery();
 query.outStatistics = [total_beam_tobeC, total_beam_underC, total_beam_done, total_beam_delayed,
                        total_column_tobeC, total_column_underC, total_column_done, total_column_delayed,
@@ -1303,8 +1274,7 @@ query.outStatistics = [total_beam_tobeC, total_beam_underC, total_beam_done, tot
                        total_rail_tobeC, total_rail_underC, total_rail_done, total_rail_delayed,
                        total_sleepers_tobeC, total_sleepers_underC, total_sleepers_done, total_sleepers_delayed,
                        total_rafter_tobeC, total_rafter_underC, total_rafter_done, total_rafter_delayed,
-                       total_tensionbrace_tobeC, total_tensionbrace_underC, total_tensionbrace_done, total_tensionbrace_delayed,
-                       total_rubblec_tobeC, total_rubblec_underC, total_rubblec_done, total_rubblec_delayed];
+                       total_tensionbrace_tobeC, total_tensionbrace_underC, total_tensionbrace_done, total_tensionbrace_delayed];
 query.returnGeometry = true;
 
 structureLayer.queryFeatures(query).then(function(response) {
@@ -1442,25 +1412,12 @@ structureLayer.queryFeatures(query).then(function(response) {
   const tensionbrace_done = stats.total_tensionbrace_done;
   const tensionbrace_delayed = stats.total_tensionbrace_delayed;
 
-        // Rubble Concrete
-        const rubblec_tobeC = stats.total_rubblec_tobeC;
-  const rubblec_underC = stats.total_rubblec_underC;
-  const rubblec_done = stats.total_rubblec_done;
-  const rubblec_delayed = stats.total_rubblec_delayed;
-
 
  // Chart //
  var chart = am4core.create("chartdiv", am4charts.XYChart);
 chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
 
 chart.data = [
-{
-    category: "Rubble Concrete",
-    value1: rubblec_done,
-    value2: rubblec_underC,
-    value3: rubblec_tobeC,
-    value4: rubblec_delayed
-  },
 {
     category: "Tension Brace",
     value1: tensionbrace_done,
@@ -2040,20 +1997,6 @@ function createSeries(field, name) {
       selectedLayer = 22;
       selectedStatus = 4;
 
-          // Rubble Concrete
-        } else if (selectedP == "Rubble Concrete" && selectedC == "To be Constructed") {
-      selectedLayer = 23;
-      selectedStatus = 1;
-    } else if (selectedP == "Rubble Concrete" && selectedC == "Under Construction") {
-      selectedLayer = 23;
-      selectedStatus = 2;
-    } else if (selectedP == "Rubble Concrete" && selectedC == "Delayed") {
-      selectedLayer = 23;
-      selectedStatus = 3;
-    } else if (selectedP == "Rubble Concrete" && selectedC == "Completed") {
-      selectedLayer = 23;
-      selectedStatus = 4;
-
     } else {
       selectedLayer = null;
     }
@@ -2189,7 +2132,7 @@ var layerListExpand = new Expand ({
             <h2>Status of Depot Building Construction</h2>
         </div>
         <div class="dateDiv">
-            <h4>As of December 20, 2021</h4>
+            <h4>As of November 23, 2021</h4>
         </div>
         <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">Building:</label>
