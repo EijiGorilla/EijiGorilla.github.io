@@ -42,18 +42,33 @@
       }
 
       #headerDiv {
-        font-weight: 400;
-        max-width: 2000px;
         font-style: normal;
-        font-size: 25px;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         color: white;
         padding: 10px 0px 2px 12px;
         border: solid 2.5px gray;
         margin-bottom: 3px;
         display: grid;
-        grid-template-columns: 40px 140fr 1fr 27fr;
+        grid-template-columns: 160fr 40fr 27fr;
       }
+
+      #headerTitleDiv {
+        font-size: 2.3vw;
+
+      }
+
+      .dateDiv {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: left;
+        font-weight: normal;
+        font-size: 1vw;
+        padding-top: 20px;
+        margin: 0;
+        width: 180px;
+        vertical-align: text-bottom;
+      }
+
 /* Dropdown list */
 #dropdownDiv {
     background-color: black;
@@ -91,7 +106,7 @@
 
       #chartdiv {
           width: 100%;
-          height: 65vh;
+          height: 70vh;
           align-items: center;
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
           }
@@ -117,6 +132,17 @@
         width: 100%;
         height: 88vh;
       }
+
+      #monthlyProgressChartDiv {
+            position: absolute;
+            width: 60vw;
+          height: 20vh;
+            background-color: rgb(0,0,0,0);
+            z-index: 99;
+            bottom: 1.5%;
+            left:13vw;
+            
+          }
       
       #optionsDiv {
         font-size: 2vw;
@@ -385,7 +411,6 @@ var basemap = new Basemap({
         }
 
         // Setup UI
-        var chartTitleDiv = document.getElementById("chartTitleDiv");
         var headerDiv = document.getElementById("headerDiv");
         var headerTitleDiv = document.getElementById("headerTitleDiv");
         var applicationDiv = document.getElementById("applicationDiv");
@@ -807,10 +832,7 @@ const DropdownValue = document.getElementById("valSelect");
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
-const chartTitleLabel = "Construction Progress (%)";
-
 // Default selection = 'None'
-chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "All Stations" + "</p>";
 structureLayer.definitionExpression = null;
 zoomToLayer(structureLayer);
 updateChart();
@@ -823,42 +845,39 @@ function filterByTest(event) {
 
     if (selectedID === "Quirino Highway") {
     structureLayer.definitionExpression = "Station = 2";
-    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(structureLayer);
     updateChart();
     perStationProgress();
 
   } else if (selectedID === "Tandang Sora") {
     structureLayer.definitionExpression = "Station = 3";
-    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(structureLayer);
     updateChart();
     perStationProgress();
 
   } else if (selectedID === "North Avenue") {
     structureLayer.definitionExpression = "Station = 4";
-    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
     zoomToLayer(structureLayer);
     updateChart(); 
     perStationProgress();
 
   } else if (selectedID === "Quezon Avenue") {
     structureLayer.definitionExpression = "Station = 5";
-    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
+    
     zoomToLayer(structureLayer);
     updateChart(); 
     perStationProgress();   
     
   } else if (selectedID === "East Avenue") {
     structureLayer.definitionExpression = "Station = 6";
-    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
+    
     zoomToLayer(structureLayer);
     updateChart(); 
     perStationProgress();
 
   } else if (selectedID === "Anonas") {
     structureLayer.definitionExpression = "Station = 7";
-    chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedID + "</p>";
+    
     zoomToLayer(structureLayer);
     updateChart(); 
     perStationProgress();   
@@ -872,7 +891,249 @@ function filterByTest(event) {
 }
 } // End of filterByTest
 
- // D-Wall 
+//////////////////////////////////// Time line bar charts //////////////////////////////////
+const monthlyProgressChartDiv = document.getElementById("monthlyProgressChartDiv");
+function MonthlyProgressChart(){
+
+/////////////
+const dwall_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [8]};
+const column_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const slab_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const kingpost_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [75], 11: [153], 12: [116]};
+const secantp_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const dwall_2022 = {1: [9], 2: [19], 3: [26], 4: [7], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const column_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const slab_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const kingpost_2022 = {1: [10], 2: [], 3: [16], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const secantp_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+
+// Create chart instance
+var chart = am4core.create("monthlyProgressChartDiv", am4charts.XYChart);
+
+
+
+// Add data
+chart.data = [
+  {
+  date: new Date(2020, 12), // Jan. 2021
+  value1: dwall_2021[1],
+  value2: column_2021[1],
+  value3: slab_2021[1],
+  value4: kingpost_2021[1],
+  value5: secantp_2022[1]
+  
+},
+{
+  date: new Date(2021, 1),
+  value1: dwall_2021[2],
+  value2: column_2021[2],
+  value3: slab_2021[2],
+  value4: kingpost_2021[2],
+  value5: secantp_2021[2]
+},
+{
+  date: new Date(2021, 2),
+  value1: dwall_2021[3],
+  value2: column_2021[3],
+  value3: slab_2021[3],
+  value4: kingpost_2021[3],
+  value5: secantp_2021[3]
+},
+{
+  date: new Date(2021, 3),
+  value1: dwall_2021[4],
+  value2: column_2021[4],
+  value3: slab_2021[4],
+  value4: kingpost_2021[4],
+  value5: secantp_2021[4]
+},
+{
+  date: new Date(2021, 4),
+  value1: dwall_2021[5],
+  value2: column_2021[5],
+  value3: slab_2021[5],
+  value4: kingpost_2021[5],
+  value5: secantp_2021[5]
+},
+{
+  date: new Date(2021, 5),
+  value1: dwall_2021[6],
+  value2: column_2021[6],
+  value3: slab_2021[6],
+  value4: kingpost_2021[6],
+  value5: secantp_2021[6]
+},
+{
+  date: new Date(2021, 6),
+  value1: dwall_2021[7],
+  value2: column_2021[7],
+  value3: slab_2021[7],
+  value4: kingpost_2021[7],
+  value5: secantp_2021[7]
+},
+{
+  date: new Date(2021, 7),
+  value1: dwall_2021[8],
+  value2: column_2021[8],
+  value3: slab_2021[8],
+  value4: kingpost_2021[8],
+  value5: secantp_2021[8]
+},
+{
+  date: new Date(2021, 8),
+  value1: dwall_2021[9],
+  value2: column_2021[9],
+  value3: slab_2021[9],
+  value4: kingpost_2021[9],
+  value5: secantp_2021[9]
+},
+{
+  date: new Date(2021, 9),
+  value1: dwall_2021[10],
+  value2: column_2021[10],
+  value3: slab_2021[10],
+  value4: kingpost_2021[10],
+  value5: secantp_2021[10]
+},
+{
+  date: new Date(2021, 10),
+  value1: dwall_2021[11],
+  value2: column_2021[11],
+  value3: slab_2021[11],
+  value4: kingpost_2021[11],
+  value5: secantp_2021[11]
+},
+{
+  date: new Date(2021, 11),
+  value1: dwall_2021[12],
+  value2: column_2021[12],
+  value3: slab_2021[12],
+  value4: kingpost_2021[12],
+  value5: secantp_2021[12]
+},
+{
+  date: new Date(2021, 12),
+  value1: dwall_2022[1],
+  value2: column_2022[1],
+  value3: slab_2022[1],
+  value4: kingpost_2022[1],
+  value5: secantp_2022[1]
+},
+{
+  date: new Date(2022, 1),
+  value1: dwall_2022[2],
+  value2: column_2022[2],
+  value3: slab_2022[2],
+  value4: kingpost_2022[2],
+  value5: secantp_2022[2]
+},
+{
+  date: new Date(2022, 2),
+  value1: dwall_2022[3],
+  value2: column_2022[3],
+  value3: slab_2022[3],
+  value4: kingpost_2022[3],
+  value5: secantp_2022[3]
+},
+{
+  date: new Date(2022, 3),
+  value1: dwall_2022[4],
+  value2: column_2022[4],
+  value3: slab_2022[4],
+  value4: kingpost_2022[4],
+  value5: secantp_2022[4]
+}
+];
+
+const LegendFontSizze = 14;
+chart.legend = new am4charts.Legend();
+
+chart.legend.valueLabels.template.align = "right"
+  chart.legend.valueLabels.template.textAlign = "end";  
+
+chart.legend.position = "bottom";
+chart.legend.labels.template.fontSize = LegendFontSizze;
+chart.legend.labels.template.fill = "#ffffff";
+chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+chart.legend.valueLabels.template.fontSize = LegendFontSizze;
+
+
+var marker = chart.legend.markers.template.children.getIndex(0);
+var markerTemplate = chart.legend.markers.template;
+marker.cornerRadius(12, 12, 12, 12);
+marker.strokeWidth = 1;
+marker.strokeOpacity = 1;
+marker.stroke = am4core.color("#ccc");
+
+// Change size of legend marker
+markerTemplate.width = 16;
+markerTemplate.height = 16;
+
+// Create axes
+var categoryAxis = chart.xAxes.push(new am4charts.DateAxis());
+categoryAxis.dataFields.category = "date";
+categoryAxis.renderer.grid.template.location = 0;
+categoryAxis.renderer.grid.template.location = 0;
+categoryAxis.renderer.labels.template.fontSize = 10;
+categoryAxis.renderer.labels.template.fill = "#ffffff";
+categoryAxis.renderer.minGridDistance = 5; //can change label
+categoryAxis.baseInterval = {
+  "timeUnit": "month",
+  "count": 1
+};
+var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+valueAxis.renderer.inside = true;
+valueAxis.renderer.labels.template.disabled = true;
+valueAxis.min = 0;
+
+// Create series
+function createSeries(field, name) {
+  
+  // Set up series
+  var series = chart.series.push(new am4charts.ColumnSeries());
+  series.name = name;
+  series.dataFields.valueY = field;
+  series.dataFields.dateX = "date";
+  series.sequencedInterpolation = true;
+
+
+  
+  // Make it stacked
+  series.stacked = true;
+  
+  // Configure columns
+  series.columns.template.width = am4core.percent(60);
+  series.columns.template.tooltipText = "[bold]{name}[/]\n[font-size:14px]{categoryX}: {valueY}";
+  
+  // Add label
+  /*
+  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+  labelBullet.label.text = "{valueY}";
+  labelBullet.locationY = 0.5;
+  labelBullet.label.hideOversized = true;
+  */
+  return series;
+}
+
+createSeries("value1", "D-Wall");
+createSeries("value2", "Column");
+createSeries("value3", "Slab");
+createSeries("value4", "King Post");
+createSeries("value5", "Secant Pile");
+// Create scrollbars
+//chart.scrollbarX = new am4core.Scrollbar();
+//chart.scrollbarY = new am4core.Scrollbar();
+
+}
+MonthlyProgressChart();
+////////////////////////////
+
+
+
+
+
+
+ // For Monitoring Chart
  function updateChart() {
   var total_dwall_tobeC = {
     onStatisticField: "CASE WHEN (Type = 1 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
@@ -1031,6 +1292,7 @@ structureLayer.queryFeatures(query).then(function(response) {
 
  // Chart //
  var chart = am4core.create("chartdiv", am4charts.XYChart);
+ chart.responsive.enabled = true;
 chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
 
 chart.data = [
@@ -1098,6 +1360,15 @@ marker.stroke = am4core.color("#ccc");
 markerTemplate.width = 16;
 markerTemplate.height = 16;
 
+  // Add chart title
+var title = chart.titles.create();
+title.text = "Construction Progress"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+title.fontSize = 27;
+      title.fontWeight = "bold";
+      title.fill = am4core.color("#ffffff");
+      title.marginTop = 3;
+      title.marginBottom = 10;
+
 // Category Axis
 var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
 categoryAxis.dataFields.category = "category";
@@ -1105,15 +1376,27 @@ categoryAxis.renderer.grid.template.location = 0;
 categoryAxis.renderer.labels.template.fontSize = 20;
 categoryAxis.renderer.labels.template.fill = "#ffffff";
 categoryAxis.renderer.minGridDistance = 5; //can change label
+categoryAxis.renderer.inversed = true;
+    categoryAxis.renderer.grid.template.disabled = true;
+    categoryAxis.renderer.grid.template.strokeOpacity = 1;
+    categoryAxis.renderer.grid.template.stroke = am4core.color("#FFFFFFFF");
+    categoryAxis.renderer.grid.template.strokeWidth = 1.5;
+    categoryAxis.renderer.line.strokeOpacity = 1;
+    categoryAxis.renderer.line.strokeWidth = 0;
+    categoryAxis.renderer.line.stroke = am4core.color("#FFFFFFFF");
 
+// Value axis
 var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
 valueAxis.min = 0;
 valueAxis.max = 100;
 valueAxis.strictMinMax = true;
 valueAxis.calculateTotals = true;
 valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 13;
+valueAxis.renderer.labels.template.fontSize = 14;
 valueAxis.renderer.labels.template.fill = "#ffffff";
+valueAxis.renderer.line.strokeOpacity = 1;
+    valueAxis.renderer.line.strokeWidth = 0;
+    valueAxis.renderer.line.stroke = am4core.color("#FFFFFF");
 
 function createSeries(field, name) {
   var series = chart.series.push(new am4charts.ColumnSeries());
@@ -1126,7 +1409,7 @@ function createSeries(field, name) {
 
   // Bar chart line color and width
   series.columns.template.stroke = am4core.color("#ffffff");
-  series.columns.template.strokeWidth = 1.5;
+  series.columns.template.strokeWidth = 0.1;
   series.name = name;
 
   var labelBullet = series.bullets.push(new am4charts.LabelBullet());
@@ -1285,8 +1568,6 @@ createSeries("value4", "To be Constructed");
 }); // End of queryFeatures function
  }
 
- updateChart();
-
 }); // End of am4Core.ready()
 
 /////////////////// EDITOR widget ////////////////
@@ -1303,8 +1584,6 @@ view.when(function () {
           view.ui.add(editor, "bottom-right");
         });
 */
-
-
 
 
 
@@ -1347,7 +1626,7 @@ var legendExpand = new Expand({
     group: "bottom-right"
 });
 view.ui.add(legendExpand, {
-    position: "bottom-right"
+    position: "top-right"
 });
 
 var layerListExpand = new Expand ({
@@ -1357,7 +1636,7 @@ var layerListExpand = new Expand ({
             group: "bottom-left"
         });
         view.ui.add(layerListExpand, {
-            position: "bottom-left"
+            position: "top-left"
         });
 
         view.ui.empty("top-left");
@@ -1405,13 +1684,8 @@ var layerListExpand = new Expand ({
   <body class="sassy-theme">
     <div id="applicationDiv">
       <div id="headerDiv">
-        <img src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol_v2.png" width="37" height="35">
-        <div id="headerTitleDiv">
-            <h2>Station Structure (PO Section)</h2>
-        </div>
-        <div class="dateDiv">
-            <h4>As of April 11, 2022</h4>
-        </div>
+        <div id="headerTitleDiv">MMSP Station Structure</div>
+        <div class="dateDiv">As of April 11, 2022</div>
         <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">Station:</label>
             <select class="esri-widget" id="valSelect">
@@ -1436,14 +1710,14 @@ var layerListExpand = new Expand ({
         </div>
         <div class="boxA">
           <div id="chartPanel">
-            <div id="chartTitleDiv" class="esri-widget"> Construction Progress</div>
             <div id="chartdiv"></div>
               <div id="optionsDiv" class="esri-widget">
-                <div><b>Total Progress (%)</b></div>
+                <div><b>Total Progress</b></div>
                 <h6 id="totalProgress"></h6>
               </div>
         </div>
         </div>
+        <div id="monthlyProgressChartDiv"></div>
       </div>
     </div>
   </body>
