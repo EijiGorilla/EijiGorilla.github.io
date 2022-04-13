@@ -478,38 +478,34 @@ am4core.useTheme(am4themes_animated);
 // Calculate Statistcis
 // Land, Structure, and ISF
 
+//////////////////////////////////////////
+
+//////////////////////////////////////////
+
 /// 1. Land
 function laFigureLot() {
-    var total_number_lot = {
-    onStatisticField: "LotID",
-    outStatisticFieldName: "total_number_lot",
-    statisticType: "count"
-  };
-
-  var total_handover_lot = {
-    onStatisticField: "CASE WHEN HandOver = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_handover_lot",
+  var total_affected_area = {
+    onStatisticField: "AffectedArea",
+    outStatisticFieldName: "total_affected_area",
     statisticType: "sum"
-  };
+  }
 
-  var total_paidd_lot = {
-    onStatisticField: "CASE WHEN StatusLA = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_paidd_lot",
+  var total_handover_area = {
+    onStatisticField: "HandOverArea",
+    outStatisticFieldName: "total_handover_area",
     statisticType: "sum"
   };
 
   var query = lotLayer.createQuery();
-  query.outStatistics = [total_number_lot, total_handover_lot, total_paidd_lot];
+  query.outStatistics = [total_affected_area, total_handover_area];
   query.returnGeometry = true;
 
   lotLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
-    const totalnumberLot = stats.total_number_lot;
-    const handover = stats.total_handover_lot;
-    const paidd = stats.total_paidd_lot;
-
-    const LOT_HANDOVER_PERC = (handover/totalnumberLot)*100;
+    const affected = stats.total_affected_area;
+    const handedOver = stats.total_handover_area;
+    const LOT_HANDOVER_PERC = (handedOver/affected)*100;
 
 // create chart
 var chart = am4core.create("landChartDiv", am4charts.GaugeChart);
@@ -604,13 +600,12 @@ title.fill = TOP_TITLE_COL;
 
 // Add bottom label
 var label = chart.chartContainer.createChild(am4core.Label);
-label.text = "[bold]HANDED-OVER";
+label.text = "[bold]HANDED-OVER AREA";
 label.fontSize = 15;
 label.align = "center";
 label.fill = BOTTOM_LABEL_COL;
 label.marginTop = -10;
 label.marginBottom = 0;
-
 
 });
 }
