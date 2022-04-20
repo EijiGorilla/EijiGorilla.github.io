@@ -233,32 +233,87 @@ var stationLayer = new SceneLayer({
         map.add(stationLayer, 0);
 
 // Station structures
-const buildingLayer = new BuildingSceneLayer({
+const structureLayer = new BuildingSceneLayer({
   portalItem: {
-    id: "052adae41dfd4f0ab0e0c54a766e30b1",
+    id: "ade2ef9788d84db384e93182f5bd1473",
   portal: {
     url: "https://gis.railway-sector.com/portal"
   }
 },
         title: "Adminis"
       });
-      map.add(buildingLayer);
+      map.add(structureLayer);
 
 const buildingExplorer = new BuildingExplorer({
   view: view,
-  layers: [buildingLayer]
+  layers: [structureLayer]
 });
 view.ui.add(buildingExplorer, "top-right");
 
+///////////////////////////////////////////////////////
+var totalProgress = document.getElementById("totalProgress");
+
+function perStationProgress() {
+  var total_complete = {
+  onStatisticField: "CASE WHEN (Status = 4 or Status = 5 or Status = 6 or Status = 7 or Status = 8) THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_complete",
+  statisticType: "sum"
+};
+
+var total_obs = {
+  onStatisticField: "Status",
+  outStatisticFieldName: "total_obs",
+  statisticType: "count"
+};
+var query = structureLayer.createQuery();
+query.outStatistics = [total_complete, total_obs];
+query.returnGeometry = true;
+structureLayer.queryFeatures(query).then(function(response) {
+  var stats = response.features[0].attributes;
+
+  const total_complete = stats.total_complete;
+  const total_obs = stats.total_obs;
+  totalProgress.innerHTML = ((total_complete/total_obs)*100).toFixed(1) + " %";
+});
+}
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////
+var layerList = new LayerList({
+            view: view,
+            listItemCreatedFunction: function(event) {
+              const item = event.item;
+              if (item.title === "Chainage"){
+                item.visible = false
+              }
+            }
+          });
+          var layerListExpand = new Expand ({
+            view: view,
+            content: layerList,
+            expandIconClass: "esri-icon-visible",
+            group: "bottom-left"
+        });
+        view.ui.add(layerListExpand, {
+            position: "bottom-left"
+        });
+
 
       });
-
-
     </script>
   </head>
 
   <body>
     <div id="viewDiv"></div>
+    <div id="totalProgress" class="esri-widget"></div>
     <div id="menu" class="esri-widget">
       <input type="checkbox" id="opacityInput" unchecked />
       <label for="opacityInput">See through ground</label>

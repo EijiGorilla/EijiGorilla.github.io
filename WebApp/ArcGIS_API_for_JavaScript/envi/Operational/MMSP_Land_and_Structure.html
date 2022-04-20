@@ -471,7 +471,7 @@
       .sassy-theme .esri-input,
       .sassy-theme .esri-layer-list,
       .sassy-theme .esri-widget a {
-        background-color: rgb(0, 0, 0, 0);
+        background-color: rgb(0, 0, 0, 0.2);
         color: #fff;
       }
       
@@ -648,7 +648,7 @@ var isfDiv = document.getElementById("isfDiv");
 // Priority Lot Button 
 //var priorityButton = document.getElementById("dataTypeInput");
 
-// Station dropdown list
+// Station1 dropdown list
 var stationSelect = document.getElementById("valSelect");
 
 
@@ -954,7 +954,7 @@ let ConstructionBoundaryFill = {
 };
 
 
-// Station Box Renderer -----------------------
+// Station1 Box Renderer -----------------------
 let poSectionBoxRenderer = {
   type: "unique-value",
   field: "Layer",
@@ -1009,7 +1009,7 @@ let poSectionBoxRenderer = {
       }
     },
     {
-      value: "Station Platform",
+      value: "Station1 Platform",
       symbol: {
         type: "simple-fill",
         color: [240, 204, 230],
@@ -1021,7 +1021,7 @@ let poSectionBoxRenderer = {
       }
     },
     {
-      value: "Station Box",
+      value: "Station1 Box",
       symbol: {
         type: "simple-fill",
         color: [0, 0, 0, 0],
@@ -1218,7 +1218,7 @@ var senateBoundaryLayer = new FeatureLayer ({
 //senateBoundaryLayer.list = "hide";
 map.add(senateBoundaryLayer);
 
-// Station box
+// Station1 box
 var poSectionBoxLayer = new FeatureLayer ({
   portalItem: {
     id: "b0cf28b499a54de7b085725bca08deee",
@@ -1235,7 +1235,7 @@ var poSectionBoxLayer = new FeatureLayer ({
 map.add(poSectionBoxLayer);
 
 
-// Station point feature
+// Station1 point feature
 var stationLayer = new FeatureLayer({
     portalItem: {
     id: "b0cf28b499a54de7b085725bca08deee",
@@ -1278,15 +1278,11 @@ var lotLayer = new FeatureLayer({
             label: "Land Owner"
           },
           {
-            fieldName: "Station"
+            fieldName: "Station1"
           },
           {
             fieldName: "StatusNVS3",
             label: "<p>Status of Land Acquisition</p>"
-          },
-          {
-            fieldName: "Priority3",
-            label: "Priority"
           }
         ]
       }
@@ -1332,6 +1328,7 @@ map.add(structureLayer);
 structureLayer.visible = true;
 
 // Priority Lot
+/*
 var priorityLayer = new FeatureLayer ({
     portalItem: {
     id: "032432d931624de9bf5ff03f1f9d7016",
@@ -1346,6 +1343,7 @@ var priorityLayer = new FeatureLayer ({
   popupEnabled: false
 });
 map.add(priorityLayer, 0);
+*/
 
 // ISF
 var isfLayer = new FeatureLayer ({
@@ -1391,7 +1389,8 @@ isfNumberStrucDiv.innerHTML = "Relocated ISF";
 function zoomToLayer(layer) {
   return layer.queryExtent().then(function(response) {
     view.goTo(response.extent, { //response.extent
-      speedFactor: 2
+      speedFactor: 2,
+      zoom: 17
     }).catch(function(error) {
       if (error.name != "AbortError") {
         console.error(error);
@@ -1488,16 +1487,16 @@ function thousands_separators(num)
   }
 
 
-//--------------  Create and Update Contents in Station Dropwdown List ---------------//
+//--------------  Create and Update Contents in Station1 Dropwdown List ---------------//
 //--------------  Update Priority Button and Handed-Over Lots ---------------//
 //--------------  Query and Filter Lot and Structure Layers -----------------//
 
-// Return an array of unique values in the 'Station' field of lot Layer
+// Return an array of unique values in the 'Station1' field of lot Layer
 // Query all features from lot layer
 view.when(function() {
-    return lotLayer.when(function() {
-        var query = lotLayer.createQuery();
-        return lotLayer.queryFeatures(query);
+    return stationLayer.when(function() {
+        var query = stationLayer.createQuery();
+        return stationLayer.queryFeatures(query);
     });
 })
 .then(getValues)
@@ -1514,16 +1513,16 @@ view.when(function() {
 .then(getUniqueValues)
 .then(addToSelect)
 
-//Return an array of all the values in the 'Station' field'
+//Return an array of all the values in the 'Station1' field'
 function getValues(response) {
     var features = response.features;
     var values = features.map(function(feature) {
-        return feature.attributes.Station;
+        return feature.attributes.Station1;
     });
     return values;
 }
 
-// Return an array of unique values in the 'Station' field of the lot Layer
+// Return an array of unique values in the 'Station1' field of the lot Layer
 function getUniqueValues(values) {
     var uniqueValues = [];
 
@@ -1535,7 +1534,7 @@ function getUniqueValues(values) {
     return uniqueValues;
 }
 
-// Add the unique values to the Station select element. this will allow the user
+// Add the unique values to the Station1 select element. this will allow the user
 // to filter lot layer by stations.
 function addToSelect(values) {
     values.sort();
@@ -1554,15 +1553,15 @@ function setLotMunicipalOnlyExpression(newValue) {
 
     if (newValue == 'None') {
     lotLayer.definitionExpression = null;
-    priorityLayer.definitionExpression = null;
     isfLayer.definitionExpression = null;
     structureLayer.definitionExpression = null;
+    constBoundary.definitionExpression = null;
 
   } else {
-    lotLayer.definitionExpression = "Station = '" + newValue + "'";
-    priorityLayer.definitionExpression = "Station = '" + newValue + "'";
-    isfLayer.definitionExpression = "Station = '" + newValue + "'";
-    structureLayer.definitionExpression = "STATION = '" + newValue + "'";
+    lotLayer.definitionExpression = "Station1 = '" + newValue + "'";
+    isfLayer.definitionExpression = "Station1 = '" + newValue + "'";
+    structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
+    constBoundary.definitionExpression = "Station1 = '" + newValue + "'";
   }
 
     if (!lotLayer.visible) {
@@ -1572,87 +1571,6 @@ function setLotMunicipalOnlyExpression(newValue) {
     return queryForLotGeometries();
 }
 
-// This function filteres data when both station and priority buttons are updated.
-function setLotMunicipalExpression(newValue, newValue2) {
-    // newValue: station names
-    // newValue2: priority = 1
-    if (newValue2 == undefined && newValue == 'None') {
-        lotLayer.definitionExpression = null;
-        isfLayer.definitionExpression = null;
-        structureLayer.definitionExpression = null;
-
-    } else if (newValue2 == undefined && newValue !== 'None') {
-        lotLayer.definitionExpression = null;
-        isfLayer.definitionExpression = null;
-        structureLayer.definitionExpression = null;
-
-    } else if (newValue2 == 'None' && newValue == 'None') {
-        lotLayer.definitionExpression = null;
-        isfLayer.definitionExpression = null;
-        structureLayer.definitionExpression = null;
-
-    } else if (newValue2 == 'None' && newValue !== 'None') {
-        lotLayer.definitionExpression = "Station = '" + newValue + "'";
-        isfLayer.definitionExpression = "Station = '" + newValue + "'";
-        structureLayer.definitionExpression = "STATION = '" + newValue + "'";
-
-    } else if (newValue2 == 'Priority1' && newValue == 'None') {
-        lotLayer.definitionExpression = "Priority3 = 1";
-
-    } else if (newValue2 == 'Priority1' && newValue !== 'None') {
-        lotLayer.definitionExpression = "Station = '" + newValue + "'" + " AND " + "Priority3 = 1";
-        isfLayer.definitionExpression = "Station = '" + newValue + "'";
-
-    }
-
-    /*
-    if (newValue == 'None') {
-    lotLayer.definitionExpression = null;
-    priorityLayer.definitionExpression = null;
-
-  } else {
-    lotLayer.definitionExpression = "Station = '" + newValue + "'";
-    priorityLayer.definitionExpression = "Station = '" + newValue + "'";
-  }
-   */
-    if (!lotLayer.visible) {
-        lotLayer.visible = true;
-    }
-    
-    return queryForLotGeometries();
-}
-
-
-// This function filteres data when both station and priority buttons are updated.
-function setLotDefinitionExpression(newValue1, newValue2){
-    // newValue1 = staion names
-    // newValue2 = 1st Priority (1)
-
-    //headerTitleDiv.innerHTML = newValue1 + ", " + newValue2;
-  if(newValue1 == 'None' && newValue2 == 1){
-    lotLayer.definitionExpression = "Priority3 = " + newValue2;
-
-  } else if (newValue1 == 'None' && newValue2 == 0){
-    lotLayer.definitionExpression = null;
-    isfLayer.definitionExpression = null;
-    structureLayer.definitionExpression = null;
-
-  } else if (newValue1 !== 'None' && newValue2 == 1) {
-    lotLayer.definitionExpression = "Station = '" + newValue1 + "'" + " AND " + "Priority3 = " + newValue2;
-    isfLayer.definitionExpression = "Station = '" + newValue1 + "'";
-    structureLayer.definitionExpression = "STATION= '" + newValue1 + "'";
-
-  } else if (newValue1 !== 'None' && newValue2 == 0) {
-    lotLayer.definitionExpression = "Station = '" + newValue1 + "'";
-    isfLayer.definitionExpression = "Station = '" + newValue1 + "'";
-    structureLayer.definitionExpression = "STATION = '" + newValue1 + "'";
-
-  }
-   if(!lotLayer.visible){
-    lotLayer.visible = true;
-  }
-  return queryForLotGeometries();
-}
 
 function queryForLotGeometries() {
     var lotQuery = lotLayer.createQuery();
@@ -1688,9 +1606,9 @@ stationSelect.addEventListener("change", function() {
     isfNumber();
     handedOverNumberLot();
 
-    filterLotStation();
+    filterLotStation1();
 
-    zoomToLayer(lotLayer);
+    zoomToLayer(constBoundary);
 });
 
 // Handed-Over filter button
@@ -1770,13 +1688,13 @@ opacityInput.addEventListener("change", function(event) {
 });
 
 // Filter lot and ISF layers
-function filterLotStation() {
+function filterLotStation1() {
   var query2 = lotLayer.createQuery();
   query2.where = lotLayer.definitionExpression; // use filtered stations
 
 }
 
-function filterIsfStation() {
+function filterIsfStation1() {
   var query2 = isfLayer.createQuery();
   query2.where = isfLayer.definitionExpression; // use filtered isf
 }
@@ -1855,6 +1773,18 @@ view.when(function() {
 
 // ------------------ PIE CHART FOR LOT ----------------------//
 async function updateChartLot() {
+  // First, define statuses
+  function Status_Name_Lot(){
+  return {
+    1: "Paid",
+    2: "For Payment Processing",
+    3: "For Legal Pass",
+    4: "For Appraisal/Offer to Buy",
+    5: "For Expro",
+    6: "For Dismissal"
+  }
+}
+
   var totalPaidLot = {
     onStatisticField: "CASE WHEN StatusNVS3 = 1 THEN 1 ELSE 0 END",
     outStatisticFieldName: "totalPaidLot",
@@ -1913,32 +1843,32 @@ async function updateChartLot() {
     // Add data
     chart.data = [
       {
-        "StatusNVS3": "Paid",
+        "StatusNVS3": Status_Name_Lot()[1],
         "status": PAID,
         "color": am4core.color("#70AD47")
       },
       {
-        "StatusNVS3": "For Payment Processing",
+        "StatusNVS3": Status_Name_Lot()[2],
         "status": PAYP,
         "color": am4core.color("#0070FF")   
       },
       {
-        "StatusNVS3": "For Legal Pass",
+        "StatusNVS3": Status_Name_Lot()[3],
         "status": LEGALPASS,
         "color": am4core.color("#FFFF00") 
       },
       {
-        "StatusNVS3": "For Appraisal/Offer to Buy",
+        "StatusNVS3": Status_Name_Lot()[4],
         "status": OTB,
         "color": am4core.color("#FFAA00")
       },
       {
-       "StatusNVS3": "For Expro",
+       "StatusNVS3": Status_Name_Lot()[5],
         "status": EXPRO,
         "color": am4core.color("#FF0000")    
      },
       {
-        "StatusNVS3": "For Dismissal",
+        "StatusNVS3": Status_Name_Lot()[6],
        "status": DISMISSAL,
        "color": am4core.color("#00734C")    
       }
@@ -2035,17 +1965,17 @@ async function updateChartLot() {
       pieSeries.slices.template.events.on("hit", filterByChart, this);
       function filterByChart(ev) {
         const SELECTED = ev.target.dataItem.category;
-        if (SELECTED == "Paid") {
+        if (SELECTED == Status_Name_Lot()[1]) {
           selectedStatus = 1;
-        } else if (SELECTED == "For Payment Processing") {
+        } else if (SELECTED == Status_Name_Lot()[2]) {
           selectedStatus = 2;
-        } else if (SELECTED == "For Legal Pass") {
+        } else if (SELECTED == Status_Name_Lot()[3]) {
           selectedStatus = 3;
-        } else if (SELECTED == "For Appraisal/Offer to Buy") {
+        } else if (SELECTED == Status_Name_Lot()[4]) {
           selectedStatus = 4;
-        } else if (SELECTED == "For Expro") {
+        } else if (SELECTED == Status_Name_Lot()[5]) {
           selectedStatus = 5;
-        } else if (SELECTED == "For Dismissal") {
+        } else if (SELECTED == Status_Name_Lot()[6]) {
           selectedStatus = 6;
         } else {
           selectedStatus = null;
@@ -2106,6 +2036,16 @@ function totalNumberOfLots(TOTAL_NUMBER_LOTS) {
 
 // ------------------ PIE CHART FOR STRUCTURE ----------------------//
 async function updateChartStructure() {
+  function Status_Name_Structure(){
+  return {
+    1: "Paid",
+    2: "For Payment Processing",
+    3: "For Legal Pass",
+    4: "For Appraisal/Offer to Buy",
+    5: "For Expro",
+    6: "Quit Claim"
+  }
+}
   var totalPaidStruc = {
     onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
     outStatisticFieldName: "totalPaidStruc",
@@ -2165,32 +2105,32 @@ async function updateChartStructure() {
     // Add data
     chart.data = [
     {
-        "StrucStatus": "Paid",
+        "StrucStatus": Status_Name_Structure()[1],
         "status": PAID,
         "color": am4core.color("#70AD47")   
     },
     {
-      "StrucStatus": "For Payment Processing",
+      "StrucStatus": Status_Name_Structure()[2],
       "status": PAYP,
       "color": am4core.color("#0070FF")   
     },
     {
-      "StrucStatus": "For Legal Pass",
+      "StrucStatus": Status_Name_Structure()[3],
       "status": LEGALPASS,
       "color": am4core.color("#FFFF00")   
     },
     {
-      "StrucStatus": "For Appraisal/Offer to Buy",
+      "StrucStatus": Status_Name_Structure()[4],
       "status": OTB,
       "color": am4core.color("#FFAA00")   
     },
     {
-      "StrucStatus": "For Expro",
+      "StrucStatus": Status_Name_Structure()[5],
       "status": EXPRO,
       "color": am4core.color("#FF0000") 
     },
     {
-      "StrucStatus": "Quit Claim",
+      "StrucStatus": Status_Name_Structure()[6],
       "status": QUITC,
       "color": am4core.color("#00734C")
     },
@@ -2310,17 +2250,17 @@ pieSeries.slices.template.events.on("hit", filterByChart, this);
 function filterByChart(ev) {
   const SELECTED = ev.target.dataItem.category;
 
-  if (SELECTED == "Paid") {
+  if (SELECTED == Status_Name_Structure()[1]) {
       selectedStatus = 1;
-  } else if (SELECTED == "For Payment Processing") {
+  } else if (SELECTED == Status_Name_Structure()[2]) {
     selectedStatus = 2;
-  } else if (SELECTED == "For Legal pass") {
+  } else if (SELECTED == Status_Name_Structure()[3]) {
     selectedStatus = 3;
-  } else if (SELECTED == "For Appraisal/Offer to Buy") {
+  } else if (SELECTED == Status_Name_Structure()[4]) {
     selectedStatus = 4;
-  } else if (SELECTED == "For Expro") {
+  } else if (SELECTED == Status_Name_Structure()[5]) {
     selectedStatus = 5;
-  } else if (SELECTED == "Quit Claim") {
+  } else if (SELECTED == Status_Name_Structure()[6]) {
     selectedStatus = 6;
   } else {
     selectedStatus = null;
@@ -2330,7 +2270,7 @@ function filterByChart(ev) {
   view.when(function() {
     view.whenLayerView(structureLayer).then(function (layerView) {
       chartLayerView = layerView;
-      CHART_ELEMENTStructure.style.visibility = "visible";
+      CHART_ELEMENT.style.visibility = "visible";
 
       structureLayer.queryFeatures().then(function(results) {
         const RESULT_LENGTH= results.features;
@@ -2767,10 +2707,6 @@ var legend = new Legend({
   view: view,
   container: legendDiv,
   layerInfos: [
-  {
-    layer: priorityLayer,
-    title: "Priority"
-  },
   {
     layer: lotLayer,
     title: "Status of Parcellary"
