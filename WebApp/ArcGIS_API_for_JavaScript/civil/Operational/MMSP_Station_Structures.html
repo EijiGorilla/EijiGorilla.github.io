@@ -434,7 +434,7 @@ var basemap = new Basemap({
                 material: {
                   color: "white"
                 },
-                size: 18,
+                size: 15,
                 color: "black",
                 haloColor: "black",
                 haloSize: 1,
@@ -503,7 +503,7 @@ var basemap = new Basemap({
 //      Renderer Settings      //
 //*****************************// 
 // Station Symbol
-        function stationsSymbol(name) {
+function stationsSymbol(name) {
           return {
             type: "web-style", // autocasts as new WebStyleSymbol()
             name: name,
@@ -841,6 +841,99 @@ structureLayer.definitionExpression = null;
 zoomToLayer(structureLayer);
 updateChart();
 
+////////////////////////////////////////////
+// Return an array of unique values in the 'Station1' field of lot Layer
+// Query all features from lot layer
+view.when(function() {
+    return stationLayer.when(function() {
+        var query = stationLayer.createQuery();
+        return stationLayer.queryFeatures(query);
+    });
+})
+.then(getValues)
+.then(getUniqueValues)
+.then(addToSelect)
+
+//Return an array of all the values in the 'Station1' field'
+function getValues(response) {
+    var features = response.features;
+    var values = features.map(function(feature) {
+        return feature.attributes.Station1;
+    });
+    return values;
+}
+
+// Return an array of unique values in the 'Station1' field of the lot Layer
+function getUniqueValues(values) {
+    var uniqueValues = [];
+
+    values.forEach(function(item, i) {
+        if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
+            uniqueValues.push(item);
+        }
+    });
+    return uniqueValues;
+}
+
+// Add the unique values to the Station1 select element. this will allow the user
+// to filter lot layer by stations.
+function addToSelect(values) {
+    values.sort();
+    values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
+    values.forEach(function(value) {
+        var option = document.createElement("option");
+        option.text = value;
+        DropdownValue.add(option);
+    });
+   return setLotMunicipalExpression(DropdownValue.value);
+}
+
+// Set the definition expression on the lot layer to reflect the selecction of the user
+// This is activated, only when station is updated in the dropdown list (not priority)
+function setLotMunicipalOnlyExpression(newValue) {
+  if (newValue == 'None') {
+    structureLayer.definitionExpression = null;
+  } else {
+    structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
+  }
+
+    if (!structureLayer.visible) {
+      structureLayer.visible = true;
+    }
+    
+    return queryForLotGeometries();
+}
+
+
+function queryForLotGeometries() {
+    var lotQuery = structureLayer.createQuery();
+
+    return structureLayer.queryFeatures(lotQuery).then(function(response) {
+        lotGeometries = response.features.map(function(feature) {
+            return feature.geometry;
+        });
+        return lotGeometries;
+    });
+
+  }
+
+// Statino Dropdown list Event Listener
+DropdownValue.addEventListener("change", function() {
+    zoomToLayer(structureLayer);
+    setLotMunicipalOnlyExpression();
+    updateChart();
+    filterStationStructure();
+    perStationProgress();
+
+});
+
+// Filter structure layer
+function filterStationStructure() {
+  var query = structureLayer.createQuery();
+  query.where = structureLayer.definitionExpression; // use filtered stations
+
+}
+/////////////////////////////////////////////////////////////////////////
 
 // click event handler for choices
 DropdownValue.addEventListener("click", filterByTest);
