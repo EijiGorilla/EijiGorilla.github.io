@@ -187,6 +187,7 @@
             id: "10df2279f9684e4a9f6a7f08febac2a9" // world imagery
           }
         });
+        worldImagery.listMode = "hide";
 
         worldImagery.when(() => {
           worldImagery.sublayers.forEach((layer) => {
@@ -239,16 +240,6 @@ let textSymbol = {
             },
             title: "Hospital Damage Rating",
             layerId: 4,
-            outFields: ["*"]
-        });
-
-        var ukrainBoundary = new FeatureLayer({
-          portalItem: {
-                id:"5319d21523614a2ea5e0018854e90c34"
-            },
-            title: "Country Boundary",
-            //labelingInfo: [textSymbol],
-            layerId: 1,
             outFields: ["*"]
         });
 
@@ -312,8 +303,11 @@ var ukrainBoundary = new FeatureLayer({
             title: "Boundary",
             //labelingInfo: [textSymbol],
             layerId: 1,
-            outFields: ["*"]
+            outFields: ["*"],
+            labelsVisible: false
         });
+        ukrainBoundary.listMode = "hide";
+        
 
 ukrainBoundary.renderer = {
 type: "simple", // autocasts as new SimpleRenderer()
@@ -327,12 +321,14 @@ symbol: textSymbol
           },
           outFields: ["*"]
         });
+        countries.listMode = "hide";
 
         // clicked country feature will be added to this layer
         const graphicsLayer = new GraphicsLayer({
           blendMode: "destination-in",
           title: "layer"
         });
+        graphicsLayer.listMode = "hide";
 
         const tileLayer = new TileLayer({
           portalItem: {
@@ -340,6 +336,7 @@ symbol: textSymbol
             id: "10df2279f9684e4a9f6a7f08febac2a9" // world imagery
           }
         });
+        tileLayer.listMode = "hide";
         tileLayer.when(() => {
           tileLayer.sublayers.forEach((layer) => {
             if (layer.popupEnabled === true) {
@@ -359,7 +356,7 @@ symbol: textSymbol
           ],
           opacity: 0 // initially this layer will be transparent
         });
-
+groupLayer.listMode = "hide";
 
         var map = new Map({
           layers: [worldImagery, groupLayer,ukrainBoundary, populationLayer,majorRoadLayer,bridgeLayer,hospitalLayer,hospitalCostLayer,populatedPlaceLayer]
@@ -1025,6 +1022,7 @@ var legend = new Legend({
   }
 ]
 });
+/*
 var legendExpand = new Expand({
     view: view,
     content: legend,
@@ -1034,7 +1032,7 @@ var legendExpand = new Expand({
 view.ui.add(legendExpand, {
     position: "bottom-left"
 });
-
+*/
 
 // Layer list
 var layerList = new LayerList({
@@ -1043,6 +1041,13 @@ var layerList = new LayerList({
     const item = event.item;
     if (item.title === "Major Road" || item.title === "Bridge Damage Rating" || item.title === "Populated Place"){
       item.visible = false
+    }
+    if (item.layer.type !== "group"){
+      // don't show legend twice
+      item.panel = {
+        content: "legend",
+        open: true
+      };
     }
   }
 });
