@@ -193,7 +193,8 @@
         const worldImagery = new TileLayer({
           portalItem: {
             id: "10df2279f9684e4a9f6a7f08febac2a9" // world imagery
-          }
+          },
+          popupEnabled: false
         });
         worldImagery.listMode = "hide";
 
@@ -250,7 +251,7 @@ let textSymbol = {
             layerId: 4,
             outFields: ["*"],
             popupTemplate: {
-              title: "Damage Status: <h6>{Damage}</h6> <br>Restoration Cost: {Cost}</br>",
+              title: "Damage Status: {Damage} <br>Restoration Cost: {Cost}</br>",
               returnGeometry: true,
               content: [
                 {
@@ -275,7 +276,11 @@ var hospitalCostLayer = new FeatureLayer({
             },
             title: "Hospital Restoration Cost",
             layerId: 36,
-            outFields: ["*"]
+            outFields: ["*"],
+            popupTemplate: {
+              title: "Restoration Cost for this hospital is ${Cost}",
+              returnGeometry: true
+            }
         });
 
 // Bridge Damage Rating
@@ -285,7 +290,11 @@ var bridgeLayer = new FeatureLayer({
             },
             title: "Bridge Damage Rating",
             layerId: 33,
-            outFields: ["*"]
+            outFields: ["*"],
+            popupTemplate: {
+              title: "Damage Status of ths Bridge: {Damage}",
+              returnGeometry: true
+            }
         });
 
 // Populated places layer
@@ -295,7 +304,30 @@ var populatedPlaceLayer = new FeatureLayer({
             },
             title: "Populated Place",
             layerId: 37,
-            outFields: ["*"]
+            outFields: ["*"],
+            popupTemplate: {
+              title: "{name_EN}",
+              returnGeometry: true,
+              content: [
+                {
+                  type: "fields",
+                  fieldInfos: [
+                    {
+                      fieldName: "Population_HDX_2001",
+                      label: "Population"
+                    },
+                    {
+                      fieldName: "Admin 1 Pcode",
+                      label: "Admin 1 Pcode"
+                    },
+                    {
+                      fieldName: "Admin 1 Name EN",
+                      label: "Admin 1 Name"
+                    }
+                  ]
+                }
+              ]
+            }
 });
 
 // Population
@@ -305,8 +337,22 @@ var populationLayer = new FeatureLayer({
             },
             title: "Population",
             layerId: 32,
-            popupEnabled: false,
-            outFields: ["*"]
+            outFields: ["*"],
+            popupTemplate: {
+              title: "Total population in this Admin {admin1Name_en}: {SUM_Population_HDX_2001}",
+              returnGeometry: true,
+              content: [
+                {
+                  type: "fields",
+                  fieldInfos: [
+                    {
+                      fieldName: "admin1Pcode",
+                      label: "Admin 1 Pcode"
+                    }
+                  ]
+                }
+              ]
+            }
 });
 
 // Major Road network
@@ -329,7 +375,8 @@ var ukrainBoundary = new FeatureLayer({
             //labelingInfo: [textSymbol],
             layerId: 1,
             outFields: ["*"],
-            labelsVisible: false
+            labelsVisible: false,
+            popupEnabled: false
         });
         ukrainBoundary.listMode = "hide";
         
@@ -344,7 +391,8 @@ symbol: textSymbol
           portalItem: {
             id: "53a1e68de7e4499cad77c80daba46a94"
           },
-          outFields: ["*"]
+          outFields: ["*"],
+          popupEnabled: false
         });
         countries.listMode = "hide";
 
@@ -384,7 +432,7 @@ symbol: textSymbol
 groupLayer.listMode = "hide";
 
         var map = new Map({
-          layers: [worldImagery, groupLayer,ukrainBoundary, populationLayer,majorRoadLayer,bridgeLayer,hospitalLayer,hospitalCostLayer,populatedPlaceLayer]
+          layers: [worldImagery, groupLayer,ukrainBoundary, populationLayer,majorRoadLayer,bridgeLayer,hospitalCostLayer,hospitalLayer,populatedPlaceLayer]
         });
 
         var view = new MapView({
