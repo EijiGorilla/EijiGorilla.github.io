@@ -65,6 +65,21 @@
         overflow: hidden;
       }
 
+      #valSelect {
+        margin: 5px 0px 0px 0px;
+      }
+      
+      #dropdownDiv {
+        background-color: black;
+        font-size: 1.1vw;
+        opacity: 1;
+        color: white;
+        font-weight: bold;
+        height: 4vh;
+        width: 20vw;
+        margin-top: 8px;
+      }
+
       .boxA {
         border: solid 2px gray;
         display: flex; flex-direction: Column;
@@ -79,7 +94,7 @@
         font-weight: 200;
         text-align: center;
         font-style: normal;
-        font-size: 20px;
+        font-size: 1.8vw;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         color: white;
         margin-top: 5px;
@@ -211,14 +226,14 @@
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.18/esri/themes/dark/main.css"
+      href="https://js.arcgis.com/4.23/esri/themes/dark/main.css"
     />
     <!-- Resources -->
     <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
     <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-    <script src="https://js.arcgis.com/4.18/"></script>
+    <script src="https://js.arcgis.com/4.23/"></script>
 
     <script>
       require([
@@ -319,6 +334,10 @@ var basemap = new Basemap({
         var applicationDiv = document.getElementById("applicationDiv");
         const treeTCP_ProcesTypeButton = document.getElementById("dataTypeInput");
         var commentDiv = document.getElementById("commentDiv");
+        var CHART_ELEMENT = document.getElementById("chartPanel");
+
+        // Station1 dropdown list
+var stationSelect = document.getElementById("valSelect");
 
 
 ///// Renderer ///
@@ -358,7 +377,7 @@ let defaultLotSymbol = {
 
 let lotRenderer = {
     type: "unique-value",
-    field: "StatusNVS3",
+    field: "TCP_Proces",
     defaultSymbol: defaultLotSymbol,
     uniqueValueInfos: [
         {
@@ -436,8 +455,17 @@ let lotRenderer = {
     ]
 };
 //
-const colorsCut = ["#3371AB48", "#330073FF", "#33FFFF00", "#33FFAA00", "#33FF0000", "#333288BD", "#335E4FA2"];
-const colorsNoClear = ["#71AB48", "#0073FF", "#FFFF00", "#FFAA00", "#FF0000", "#3288BD", "#5E4FA2"];
+function colorsCut(){
+  return {
+    1: [113,171,72,0.8],
+2: [94,79,162,0.8],
+3: [255,255,0,0.8],
+4: [255,170,0,0.8],
+5: [0,115,255,0.8],
+6: [50,136,189,0.8],
+7: [255,0,0,0.8],
+  }
+}
 
 const outlineColor = "gray";
 
@@ -455,7 +483,7 @@ let treeCuttingRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[0], // the first two letters dictate transparency.
+      color: colorsCut()[1], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -469,7 +497,7 @@ let treeCuttingRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[6], // the first two letters dictate transparency.
+      color: colorsCut()[2], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -483,7 +511,7 @@ let treeCuttingRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[2], // the first two letters dictate transparency.
+      color: colorsCut()[3], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -497,7 +525,7 @@ let treeCuttingRenderer = {
       symbol: {
       type: "simple-marker",
       size: 4,
-      color: colorsCut[3], // the first two letters dictate transparency.
+      color: colorsCut()[4], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -511,7 +539,7 @@ let treeCuttingRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[1], // the first two letters dictate transparency.
+      color: colorsCut()[5], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -525,7 +553,7 @@ let treeCuttingRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[5], // the first two letters dictate transparency.
+      color: colorsCut()[6], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -539,7 +567,7 @@ let treeCuttingRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[4], // the first two letters dictate transparency.
+      color: colorsCut()[7], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -548,6 +576,19 @@ let treeCuttingRenderer = {
     }
   ]
 };
+
+//
+function colorsCompen(){
+  return {
+    1: [0,115,255,0.8],
+2: [255,255,0,0.8],
+3: [50,136,189,0.8],
+4: [255,170,0,0.8],
+5: [113,171,72,0.8],
+6: [255,0,0,0.8],
+7: [94,79,162,0.8],
+  }
+}
 
 
 let treeTree_CompeRenderer = {
@@ -564,7 +605,7 @@ let treeTree_CompeRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[1], // the first two letters dictate transparency.
+      color: colorsCompen()[1], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -578,7 +619,7 @@ let treeTree_CompeRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[2], // the first two letters dictate transparency.
+      color: colorsCompen()[2], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -592,7 +633,7 @@ let treeTree_CompeRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[5], // the first two letters dictate transparency.
+      color: colorsCompen()[3], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -605,8 +646,8 @@ let treeTree_CompeRenderer = {
       type: "simple",
       symbol: {
       type: "simple-marker",
-      size: 4,
-      color: colorsCut[3], // the first two letters dictate transparency.
+      size: 5,
+      color: colorsCompen()[4], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -619,8 +660,8 @@ let treeTree_CompeRenderer = {
       type: "simple",
       symbol: {
       type: "simple-marker",
-      size: 4,
-      color: colorsCut[0], // the first two letters dictate transparency.
+      size: 5,
+      color: colorsCompen()[5], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -633,8 +674,8 @@ let treeTree_CompeRenderer = {
       type: "simple",
       symbol: {
       type: "simple-marker",
-      size: 4,
-      color: colorsCut[4], // the first two letters dictate transparency.
+      size: 5,
+      color: colorsCompen()[6], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -647,8 +688,8 @@ let treeTree_CompeRenderer = {
       type: "simple",
       symbol: {
       type: "simple-marker",
-      size: 4,
-      color: colorsCut[6], // the first two letters dictate transparency.
+      size: 5,
+      color: colorsCompen()[7], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -670,7 +711,7 @@ let treePermitRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[0], // the first two letters dictate transparency.
+      color: colorsCut()[1], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -684,7 +725,7 @@ let treePermitRenderer = {
       symbol: {
       type: "simple-marker",
       size: 5,
-      color: colorsCut[4], // the first two letters dictate transparency.
+      color: colorsCut()[5], // the first two letters dictate transparency.
       outline: {
         width: 0.5,
         color: outlineColor
@@ -697,6 +738,21 @@ let treePermitRenderer = {
 //*******************************//
 // Import Layers                 //
 //*******************************//
+// Station1 point feature
+var stationLayer = new FeatureLayer({
+    portalItem: {
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 1,
+  definitionExpression: "Project = 'MMSP'"
+              //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
+});
+stationLayer.listMode = "hide";
+map.add(stationLayer, 0);
+
 // Construction boundary
 var constBoundary = new FeatureLayer({
   portalItem: {
@@ -765,7 +821,7 @@ var lotLayer = new FeatureLayer({
                     label: "Lot No."
                   },
                   {
-                      fieldName: "StatusNVS3",
+                      fieldName: "TCP_Proces",
                       label: "Status of Land Acquisition"
                   },
                   {
@@ -793,7 +849,7 @@ var lotLayer = new FeatureLayer({
           outFields: ["*"]
         });
         lotLayer.listMode = "hide";
-        map.add(lotLayer);
+        map.add(lotLayer,1);
 
 // Tree Cutting
 var treeCuttingLayer = new FeatureLayer ({
@@ -825,10 +881,6 @@ var treeCuttingLayer = new FeatureLayer ({
         type: "fields",
         fieldInfos: [
           {
-            fieldName: "ID_1",
-            label: "CN"
-          },
-          {
             fieldName: "Scientific",
             label: "Scientific Name"
           },
@@ -848,7 +900,7 @@ var treeCuttingLayer = new FeatureLayer ({
             fieldName: "City"
           },
           {
-            fieldName: "ID",
+            fieldName: "Id",
             label: "Tree ID"
           },
           {
@@ -857,14 +909,14 @@ var treeCuttingLayer = new FeatureLayer ({
           },
           {
               fieldName: "Remarks2",
-              label: "Tree Permit"
+              label: "Remarks"
           }
         ]
       }
     ]
   }
 });
-map.add(treeCuttingLayer);
+map.add(treeCuttingLayer,2);
 
 // Tree Tree_Compe
 var compensationLayer = new FeatureLayer ({
@@ -912,7 +964,7 @@ var compensationLayer = new FeatureLayer ({
             fieldName: "City"
           },
           {
-            fieldName: "ID",
+            fieldName: "Id",
             label: "Tree ID"
           },
           {
@@ -921,14 +973,14 @@ var compensationLayer = new FeatureLayer ({
           },
           {
               fieldName: "Remarks2",
-              label: "Tree Permit"
+              label: "Remarks"
           }
         ]
       }
     ]
   }
 });
-map.add(compensationLayer);
+map.add(compensationLayer,1);
 
 
 // Tree Tree_Compe
@@ -977,7 +1029,7 @@ var permitLayer = new FeatureLayer ({
             fieldName: "City"
           },
           {
-            fieldName: "ID",
+            fieldName: "Id",
             label: "Tree ID"
           },
           {
@@ -986,14 +1038,14 @@ var permitLayer = new FeatureLayer ({
           },
           {
             fieldName: "Remarks2",
-            label: "Permit"
+            label: "Remarks"
           }
         ]
       }
     ]
   }
 });
-map.add(permitLayer);
+map.add(permitLayer,1);
 /////////////////////////////////////////////////////////////////////////////////////
 //*******************************//
 //      Progress Chart           //
@@ -1027,6 +1079,112 @@ if (document.getElementById("Tree Cutting").checked = true) {
 
 }
 
+//// Station dropdown List
+// Return an array of unique values in the 'Station1' field of lot Layer
+// Query all features from lot layer
+view.when(function() {
+    return stationLayer.when(function() {
+        var query = stationLayer.createQuery();
+        return stationLayer.queryFeatures(query);
+    });
+})
+.then(getValues)
+.then(getUniqueValues)
+.then(addToSelect)
+
+//Return an array of all the values in the 'Station1' field'
+function getValues(response) {
+    var features = response.features;
+    var values = features.map(function(feature) {
+        return feature.attributes.Station1;
+    });
+    return values;
+}
+
+// Return an array of unique values in the 'Station1' field of the lot Layer
+function getUniqueValues(values) {
+    var uniqueValues = [];
+
+    values.forEach(function(item, i) {
+        if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
+            uniqueValues.push(item);
+        }
+    });
+    return uniqueValues;
+}
+
+// Add the unique values to the Station1 select element. this will allow the user
+// to filter lot layer by stations.
+function addToSelect(values) {
+    values.sort();
+    values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
+    values.forEach(function(value) {
+        var option = document.createElement("option");
+        option.text = value;
+        stationSelect.add(option);
+    });
+   return setLotMunicipalExpression(stationSelect.value);
+}
+
+// Set the definition expression on the lot layer to reflect the selecction of the user
+// This is activated, only when station is updated in the dropdown list (not priority)
+function setLotMunicipalOnlyExpression(newValue) {
+
+    if (newValue == 'None') {
+      compensationLayer.definitionExpression = null;
+      treeCuttingLayer.definitionExpression = null;
+      permitLayer.definitionExpression = null;
+      constBoundary.definitionExpression = null;
+
+  } else {
+    compensationLayer.definitionExpression = "Station1 = '" + newValue + "'";
+      treeCuttingLayer.definitionExpression = "Station1 = '" + newValue + "'";
+      permitLayer.definitionExpression = "Station1 = '" + newValue + "'";
+      constBoundary.definitionExpression = "Station1 = '" + newValue + "'";
+  }
+
+    if (!treeCuttingLayer.visible) {
+      treeCuttingLayer.visible = true;
+    }
+    
+    return queryForLotGeometries();
+}
+
+
+function queryForLotGeometries() {
+    var lotQuery = treeCuttingLayer.createQuery();
+
+    return treeCuttingLayer.queryFeatures(lotQuery).then(function(response) {
+        lotGeometries = response.features.map(function(feature) {
+            return feature.geometry;
+        });
+        return lotGeometries;
+    });
+    
+  }
+
+// Statino Dropdown list Event Listener
+stationSelect.addEventListener("change", function() {
+    var type = event.target.value;
+    var target = event.target;
+
+    // Update All charts and numbers
+    setLotMunicipalOnlyExpression(type);
+    updateChartCutting();
+
+    filterLotStation1();
+
+    zoomToLayer(constBoundary);
+});
+
+// Filter lot and ISF layers
+function filterLotStation1() {
+  var query2 = treeCuttingLayer.createQuery();
+  query2.where = treeCuttingLayer.definitionExpression; // use filtered stations
+
+}
+
+///////////
 treeTCP_ProcesTypeButton.addEventListener("change", filterByType);
 function filterByType(e) {
   const selectedType = e.target.id;
@@ -1062,1209 +1220,745 @@ function filterByType(e) {
 }
 
 async function updateChartCutting() {
-      // Depot
-  var total_depot_tcpapp = {
-    onStatisticField: "CASE WHEN (Station = 2 and TCP_Proces = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_tcpapp",
+  function tree_cutting_status(){
+    return {
+      1: "For TCP Application",
+    2: "Submitted to DENR",
+    3: "With Permit-Not Yet Cut",
+    4: "With Permit-Not Yet Earthballed",
+    5: "Cut",
+    6: "Earthballed",
+    7: "TCP Expired"
+    }
+  }
+
+  var total_tcpapp = {
+    onStatisticField: "CASE WHEN TCP_Proces = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_tcpapp",
     statisticType: "sum"
   };
 
-  var total_depot_denr = {
-    onStatisticField: "CASE WHEN (Station = 2 and TCP_Proces = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_denr",
+  var total_denr = {
+    onStatisticField: "CASE WHEN TCP_Proces = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_denr",
     statisticType: "sum"
   };
 
-  var total_depot_permitcut = {
-    onStatisticField: "CASE WHEN (Station = 2 and TCP_Proces = 3) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_permitcut",
+  var total_permitcut = {
+    onStatisticField: "CASE WHEN TCP_Proces = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_permitcut",
     statisticType: "sum"
   };
 
-  var total_depot_permitearthb = {
-    onStatisticField: "CASE WHEN (Station = 2 and TCP_Proces = 4) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_permitearthb",
+  var total_permitearthb = {
+    onStatisticField: "CASE WHEN TCP_Proces = 4 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_permitearthb",
     statisticType: "sum"
   };
 
-  var total_depot_cut = {
-    onStatisticField: "CASE WHEN (Station = 2 and TCP_Proces = 5) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_cut",
+  var total_cut = {
+    onStatisticField: "CASE WHEN TCP_Proces = 5 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_cut",
     statisticType: "sum"
   };
 
-  var total_depot_earthb = {
-    onStatisticField: "CASE WHEN (Station = 2 and TCP_Proces = 6) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_earthb",
+  var total_earthb = {
+    onStatisticField: "CASE WHEN TCP_Proces = 6 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_earthb",
     statisticType: "sum"
   };
 
-  var total_depot_tcpexp = {
-    onStatisticField: "CASE WHEN (Station = 2 and TCP_Proces = 7) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_tcpexp",
+  var total_tcpexp = {
+    onStatisticField: "CASE WHEN TCP_Proces = 7 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_tcpexp",
     statisticType: "sum"
   };
-
-    // Quirino Highway
-  var total_quirino_tcpapp = {
-    onStatisticField: "CASE WHEN (Station = 3 and TCP_Proces = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_tcpapp",
-    statisticType: "sum"
-  };
-
-  var total_quirino_denr = {
-    onStatisticField: "CASE WHEN (Station = 3 and TCP_Proces = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_denr",
-    statisticType: "sum"
-  };
-
-  var total_quirino_permitcut = {
-    onStatisticField: "CASE WHEN (Station = 3 and TCP_Proces = 3) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_permitcut",
-    statisticType: "sum"
-  };
-
-  var total_quirino_permitearthb = {
-    onStatisticField: "CASE WHEN (Station = 3 and TCP_Proces = 4) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_permitearthb",
-    statisticType: "sum"
-  };
-
-  var total_quirino_cut = {
-    onStatisticField: "CASE WHEN (Station = 3 and TCP_Proces = 5) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_cut",
-    statisticType: "sum"
-  };
-
-  var total_quirino_earthb = {
-    onStatisticField: "CASE WHEN (Station = 3 and TCP_Proces = 6) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_earthb",
-    statisticType: "sum"
-  };
-
-  var total_quirino_tcpexp = {
-    onStatisticField: "CASE WHEN (Station = 3 and TCP_Proces = 7) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_tcpexp",
-    statisticType: "sum"
-  };
-
-
-  // Tandang Sora
-  var total_tandang_tcpapp = {
-    onStatisticField: "CASE WHEN (Station = 4 and TCP_Proces = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_tcpapp",
-    statisticType: "sum"
-  };
-
-  var total_tandang_denr = {
-    onStatisticField: "CASE WHEN (Station = 4 and TCP_Proces = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_denr",
-    statisticType: "sum"
-  };
-
-  var total_tandang_permitcut = {
-    onStatisticField: "CASE WHEN (Station = 4 and TCP_Proces = 3) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_permitcut",
-    statisticType: "sum"
-  };
-
-  var total_tandang_permitearthb = {
-    onStatisticField: "CASE WHEN (Station = 4 and TCP_Proces = 4) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_permitearthb",
-    statisticType: "sum"
-  };
-
-  var total_tandang_cut = {
-    onStatisticField: "CASE WHEN (Station = 4 and TCP_Proces = 5) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_cut",
-    statisticType: "sum"
-  };
-
-  var total_tandang_earthb = {
-    onStatisticField: "CASE WHEN (Station = 4 and TCP_Proces = 6) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_earthb",
-    statisticType: "sum"
-  };
-
-  var total_tandang_tcpexp = {
-    onStatisticField: "CASE WHEN (Station = 4 and TCP_Proces = 7) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_tcpexp",
-    statisticType: "sum"
-  };
-
-    // North Avenue
-  var total_northave_tcpapp = {
-    onStatisticField: "CASE WHEN (Station = 5 and TCP_Proces = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_tcpapp",
-    statisticType: "sum"
-  };
-
-  var total_northave_denr = {
-    onStatisticField: "CASE WHEN (Station = 5 and TCP_Proces = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_denr",
-    statisticType: "sum"
-  };
-
-  var total_northave_permitcut = {
-    onStatisticField: "CASE WHEN (Station = 5 and TCP_Proces = 3) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_permitcut",
-    statisticType: "sum"
-  };
-
-  var total_northave_permitearthb = {
-    onStatisticField: "CASE WHEN (Station = 5 and TCP_Proces = 4) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_permitearthb",
-    statisticType: "sum"
-  };
-
-  var total_northave_cut = {
-    onStatisticField: "CASE WHEN (Station = 5 and TCP_Proces = 5) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_cut",
-    statisticType: "sum"
-  };
-
-  var total_northave_earthb = {
-    onStatisticField: "CASE WHEN (Station = 5 and TCP_Proces = 6) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_earthb",
-    statisticType: "sum"
-  };
-
-  var total_northave_tcpexp = {
-    onStatisticField: "CASE WHEN (Station = 5 and TCP_Proces = 7) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_tcpexp",
-    statisticType: "sum"
-  };
-
 
   var query = treeCuttingLayer.createQuery();
-  query.outStatistics = [total_depot_tcpapp, total_depot_denr, total_depot_permitcut, total_depot_permitearthb, total_depot_cut, total_depot_earthb, total_depot_tcpexp,
-                         total_quirino_tcpapp, total_quirino_denr, total_quirino_permitcut, total_quirino_permitearthb, total_quirino_cut, total_quirino_earthb, total_quirino_tcpexp,
-                         total_tandang_tcpapp, total_tandang_denr, total_tandang_permitcut, total_tandang_permitearthb, total_tandang_cut, total_tandang_earthb, total_tandang_tcpexp,
-                         total_northave_tcpapp, total_northave_denr, total_northave_permitcut, total_northave_permitearthb, total_northave_cut, total_northave_earthb, total_northave_tcpexp];
+  query.outStatistics = [total_tcpapp, total_denr, total_permitcut,
+                         total_permitearthb, total_cut, total_earthb, total_tcpexp];
   query.returnGeometry = true;
 
   treeCuttingLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
-    /* Depot */
-    const depot_tcpapp = stats.total_depot_tcpapp;
-    const depot_denr = stats.total_depot_denr;
-    const depot_permitcut = stats.total_depot_permitcut;
-    const depot_permitearthb = stats.total_depot_permitearthb;
-    const depot_cut = stats.total_depot_cut;
-    const depot_earthb = stats.total_depot_earthb;
-    const depot_tcpexp = stats.total_depot_tcpexp;
+    const depot_tcpapp = stats.total_tcpapp;
+    const depot_denr = stats.total_denr;
+    const depot_permitcut = stats.total_permitcut;
+    const depot_permitearthb = stats.total_permitearthb;
+    const depot_cut = stats.total_cut;
+    const depot_earthb = stats.total_earthb;
+    const depot_tcpexp = stats.total_tcpexp;
 
-
-    /* Quirino Highway */
-    const quirino_tcpapp = stats.total_quirino_tcpapp;
-    const quirino_denr = stats.total_quirino_denr;
-    const quirino_permitcut = stats.total_quirino_permitcut;
-    const quirino_permitearthb = stats.total_quirino_permitearthb;
-    const quirino_cut = stats.total_quirino_cut;
-    const quirino_earthb = stats.total_quirino_earthb;
-    const quirino_tcpexp = stats.total_quirino_tcpexp;
-
-    /* Tandang Sora */
-    const tandang_tcpapp = stats.total_tandang_tcpapp;
-    const tandang_denr = stats.total_tandang_denr;
-    const tandang_permitcut = stats.total_tandang_permitcut;
-    const tandang_permitearthb = stats.total_tandang_permitearthb;
-    const tandang_cut = stats.total_tandang_cut;
-    const tandang_earthb = stats.total_tandang_earthb;
-    const tandang_tcpexp = stats.total_tandang_tcpexp;
-
-    /* North Avenue */
-    const northave_tcpapp = stats.total_northave_tcpapp;
-    const northave_denr = stats.total_northave_denr;
-    const northave_permitcut = stats.total_northave_permitcut;
-    const northave_permitearthb = stats.total_northave_permitearthb;
-    const northave_cut = stats.total_northave_cut;
-    const northave_earthb = stats.total_northave_earthb;
-    const northave_tcpexp = stats.total_northave_tcpexp;
-
-    var chart = am4core.create("chartdiv", am4charts.XYChart);
+    var chart = am4core.create("chartdiv", am4charts.PieChart);
     chart.hiddenState.properties.opacity = 0;
 
     // Add data
     chart.data = [
-    {
-    category: "North Avenue",
-    value1: northave_tcpapp,
-    value2: northave_denr,
-    value3: northave_permitcut,
-    value4: northave_permitearthb,
-    value5: northave_cut,
-    value6: northave_earthb,
-    value7: northave_tcpexp
-  },
-  {
-    category: "Tandang Sora",
-    value1: tandang_tcpapp,
-    value2: tandang_denr,
-    value3: tandang_permitcut,
-    value4: tandang_permitearthb,
-    value5: tandang_cut,
-    value6: tandang_earthb,
-    value7: tandang_tcpexp
-  },
-  {
-    category: "Quirino Highway",
-    value1: quirino_tcpapp,
-    value2: quirino_denr,
-    value3: quirino_permitcut,
-    value4: quirino_permitearthb,
-    value5: quirino_cut,
-    value6: quirino_earthb,
-    value7: quirino_tcpexp
-  },
-  {
-    category: "Depot",
-    value1: depot_tcpapp,
-    value2: depot_denr,
-    value3: depot_permitcut,
-    value4: depot_permitearthb,
-    value5: depot_cut,
-    value6: depot_earthb,
-    value7: depot_tcpexp
-  }
-];
+      {
+        "TCP_Proces": tree_cutting_status()[1],
+        "status": depot_tcpapp,
+        "color": am4core.color("#71AB48")
+      },
+      {
+        "TCP_Proces": tree_cutting_status()[2],
+        "status": depot_denr,
+        "color": am4core.color("#5E4FA2")   
+      },
+      {
+        "TCP_Proces": tree_cutting_status()[3],
+        "status": depot_permitcut,
+        "color": am4core.color("#FFFF00") 
+      },
+      {
+        "TCP_Proces": tree_cutting_status()[4],
+        "status": depot_permitearthb,
+        "color": am4core.color("#FFAA00")
+      },
+      {
+       "TCP_Proces": tree_cutting_status()[5],
+        "status": depot_cut,
+        "color": am4core.color("#0073FF")    
+     },
+      {
+        "TCP_Proces": tree_cutting_status()[6],
+       "status": depot_earthb,
+       "color": am4core.color("#3288BD")    
+      },
+      {
+        "TCP_Proces": tree_cutting_status()[7],
+       "status": depot_tcpexp,
+       "color": am4core.color("#FF0000")    
+      }
+    ];
 
-chart.colors.step = 2;
-chart.padding(10, 10, 10, 0);
-
-// Legend
-const LegendFontSizze = 15;
-chart.legend = new am4charts.Legend();
-chart.legend.useDefaultMarker = true;
-chart.legend.labels.template.maxWidth = 350;
-//chart.legend.labels.template.truncate = false;
-chart.legend.labels.template.wrap = true;
-
-var marker = chart.legend.markers.template.children.getIndex(0);
-marker.cornerRadius(12, 12, 12, 12);
-marker.strokeWidth = 1;
-marker.strokeOpacity = 1;
-marker.stroke = am4core.color("#ccc");
-
-var markerTemplate = chart.legend.markers.template;
-markerTemplate.width = 17;
-markerTemplate.height = 17;
-
-chart.legend.valueLabels.template.align = "right"
-chart.legend.valueLabels.template.textAlign = "end"; 
-
- chart.legend.position = "bottom";
- chart.legend.labels.template.fontSize = LegendFontSizze;
-  chart.legend.labels.template.fill = "#ffffff";
-  chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
- 
-  
-var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-categoryAxis.dataFields.category = "category";
-categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 16;
-categoryAxis.renderer.labels.template.fill = "#ffffff";
-categoryAxis.renderer.minGridDistance = 5; //can change label
-
-var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
-valueAxis.min = 0;
-valueAxis.max = 100;
-valueAxis.strictMinMax = true;
-valueAxis.calculateTotals = true;
-valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 14;
-valueAxis.renderer.labels.template.fill = "#ffffff";
-
-function createSeriesCutting(field, name) {
-  var series = chart.series.push(new am4charts.ColumnSeries());
-  series.calculatePercent = true;
-  series.tooltip.label.fontSize = 14;
-  series.dataFields.valueX = field;
-  series.dataFields.categoryY = "category";
-  series.stacked = true;
-  series.dataFields.valueXShow = "totalPercent";
-  series.dataItems.template.locations.categoryY = 0.5;
-  series.name = name;
-  if (name == "For TCP Application"){
-    series.fill = am4core.color(colorsNoClear[0]);
-  } else if (name == "Submitted to DENR") {
-    series.fill = am4core.color(colorsNoClear[6]);
-  } else if (name == "With Permit-Not Yet Cut") {
-    series.fill = am4core.color(colorsNoClear[2]);
-  } else if (name == "With Permit-Not Yet Earthballed") {
-    series.fill = am4core.color(colorsNoClear[3]);
-  } else if (name == "Cut") {
-    series.fill = am4core.color(colorsNoClear[1]);
-  }  else if (name == "Earthballed") {
-    series.fill = am4core.color(colorsNoClear[5]);
-  }  else if (name == "TCP Expired") {
-    series.fill = am4core.color(colorsNoClear[4]);
-  }
-
-
-  series.columns.template.width = am4core.percent(60);
-  series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
-
-
-  // Click chart and filter, update maps
-  const chartElement = document.getElementById("chartPanel");
-  series.columns.template.events.on("hit", filterByChart, this);
-  function filterByChart(ev) {
-    const selectedC = ev.target.dataItem.component.name;
-    const selectedP = ev.target.dataItem.categoryY;
     
-    if (selectedP == "Depot" && selectedC == "For TCP Application") {
-      selectedStation = 2;
-      selectedTCP_Proces = 1;
-    } else if (selectedP == "Depot" && selectedC == "Submitted to DENR") {
-      selectedStation = 2;
-      selectedTCP_Proces = 2;
-    } else if (selectedP == "Depot" && selectedC == "With Permit-Not Yet Cut") {
-      selectedStation = 2;
-      selectedTCP_Proces = 3;
-    } else if (selectedP == "Depot" && selectedC == "With Permit-Not Yet Earthballed") {
-      selectedStation = 2;
-      selectedTCP_Proces = 4;
-    } else if (selectedP == "Depot" && selectedC == "Cut") {
-      selectedStation = 2;
-      selectedTCP_Proces = 5;
-    } else if (selectedP == "Depot" && selectedC == "Earthballed") {
-      selectedStation = 2;
-      selectedTCP_Proces = 6;
-    } else if (selectedP == "Depot" && selectedC == "TCP Expired") {
-      selectedStation = 2;
-      selectedTCP_Proces = 7;
+    // Set inner radius
+    chart.innerRadius = am4core.percent(30);
+    
+    // Add and configure Series
+    function createSlices(field, status){
+      var pieSeries = chart.series.push(new am4charts.PieSeries());
+      pieSeries.dataFields.value = field;
+      pieSeries.dataFields.category = status;
+      
+      pieSeries.slices.template.propertyFields.fill = "color";
+      pieSeries.slices.template.stroke = am4core.color("#fff");
+      pieSeries.slices.template.strokeWidth = 1;
+      pieSeries.slices.template.strokeOpacity = 1;
+      pieSeries.slices.template
+      // change the cursor on hover to make it apparent the object can be interacted with
+      .cursorOverStyle = [
+        {
+          "property": "cursor",
+          "value": "pointer"
+        }
+      ];
+      
+      // Hover setting
+      pieSeries.tooltip.label.fontSize = 9;
+      
+      // Pie
+      //pieSeries.alignLabels = false;
+      //pieSeries.labels.template.bent = false;
+      pieSeries.labels.template.disabled = true;
+      pieSeries.labels.template.radius = 3;
+      pieSeries.labels.template.padding(0,0,0,0);
+      pieSeries.labels.template.fontSize = 9;
+      pieSeries.labels.template.fill = "#ffffff";
 
-    } else if (selectedP == "Quirino Highway" && selectedC == "For TCP Application") {
-      selectedStation = 3;
-      selectedTCP_Proces = 1;
-    } else if (selectedP == "Quirino Highway" && selectedC == "Submitted to DENR") {
-      selectedStation = 3;
-      selectedTCP_Proces = 2;
-    } else if (selectedP == "Quirino Highway" && selectedC == "With Permit-Not Yet Cut") {
-      selectedStation = 3;
-      selectedTCP_Proces = 3;
-    } else if (selectedP == "Quirino Highway" && selectedC == "With Permit-Not Yet Earthballed") {
-      selectedStation = 3;
-      selectedTCP_Proces = 4;
-    } else if (selectedP == "Quirino Highway" && selectedC == "Cut") {
-      selectedStation = 3;
-      selectedTCP_Proces = 5;
-    } else if (selectedP == "Quirino Highway" && selectedC == "Earthballed") {
-      selectedStation = 3;
-      selectedTCP_Proces = 6;
-    } else if (selectedP == "Quirino Highway" && selectedC == "TCP Expired") {
-      selectedStation = 3;
-      selectedTCP_Proces = 7;
+      // Ticks (a straight line)
+      //pieSeries.ticks.template.disabled = true;
+      pieSeries.ticks.template.fill = "#ffff00";
+      
+      // Create a base filter effect (as if it's not there) for the hover to return to
+      var shadow = pieSeries.slices.template.filters.push(new am4core.DropShadowFilter);
+      shadow.opacity = 0;
+      
+      // Chart Title
+      /*
+      let title = chart.titles.create();
+      title.text = "Tree Cutting";
+      title.fontSize = 20;
+      title.fontWeight = "bold";
+      title.fill = am4core.color("#ffffff");
+      title.marginTop = 7;
+*/
+      // Create hover state
+      var hoverState = pieSeries.slices.template.states.getKey("hover"); // normally we have to create the hover state, in this case it already exists
 
-    } else if (selectedP == "Tandang Sora" && selectedC == "For TCP Application") {
-      selectedStation = 4;
-      selectedTCP_Proces = 1;
-    } else if (selectedP == "Tandang Sora" && selectedC == "Submitted to DENR") {
-      selectedStation = 4;
-      selectedTCP_Proces = 2;
-    } else if (selectedP == "Tandang Sora" && selectedC == "With Permit-Not Yet Cut") {
-      selectedStation = 4;
-      selectedTCP_Proces = 3;
-    } else if (selectedP == "Tandang Sora" && selectedC == "With Permit-Not Yet Earthballed") {
-      selectedStation = 4;
-      selectedTCP_Proces = 4;
-    } else if (selectedP == "Tandang Sora" && selectedC == "Cut") {
-      selectedStation = 4;
-      selectedTCP_Proces = 5;
-    } else if (selectedP == "Tandang Sora" && selectedC == "Earthballed") {
-      selectedStation = 4;
-      selectedTCP_Proces = 6;
-    } else if (selectedP == "Tandang Sora" && selectedC == "TCP Expired") {
-      selectedStation = 4;
-      selectedTCP_Proces = 7;
+      // Slightly shift the shadow and make it more prominent on hover
+      var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
+      hoverShadow.opacity = 0.7;
+      hoverShadow.blur = 5;
+      
+      // Add a legend
+      const LEGEND_FONT_SIZE = 15;
+      chart.legend = new am4charts.Legend();
+      chart.legend.valueLabels.template.align = "right"
+      chart.legend.valueLabels.template.textAlign = "end";
+      
+      //chart.legend.position = "bottom";
+      chart.legend.labels.template.fontSize = LEGEND_FONT_SIZE;
+      chart.legend.labels.template.fill = "#ffffff";
+      chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+      chart.legend.valueLabels.template.fontSize = LEGEND_FONT_SIZE; 
+      pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
+      //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+      
+      /// Define marker symbols properties
+      var marker = chart.legend.markers.template.children.getIndex(0);
+      var markerTemplate = chart.legend.markers.template;
+      marker.cornerRadius(12, 12, 12, 12);
+      marker.strokeWidth = 1;
+      marker.strokeOpacity = 1;
+      marker.stroke = am4core.color("#ccc");
+      markerTemplate.width = 18;
+      markerTemplate.height = 18;
+      
+      // This creates initial animation
+      //pieSeries.hiddenState.properties.opacity = 1;
+      //pieSeries.hiddenState.properties.endAngle = -90;
+      //pieSeries.hiddenState.properties.startAngle = -90;
+      
+      // Click chart and filter, update maps
+      pieSeries.slices.template.events.on("hit", filterByChart, this);
+      function filterByChart(ev) {
+        const SELECTED = ev.target.dataItem.category;
+        if (SELECTED == tree_cutting_status()[1]) {
+          selectedStatus = 1;
+        } else if (SELECTED == tree_cutting_status()[2]) {
+          selectedStatus = 2;
+        } else if (SELECTED == tree_cutting_status()[3]) {
+          selectedStatus = 3;
+        } else if (SELECTED == tree_cutting_status()[4]) {
+          selectedStatus = 4;
+        } else if (SELECTED == tree_cutting_status()[5]) {
+          selectedStatus = 5;
+        } else if (SELECTED == tree_cutting_status()[6]) {
+          selectedStatus = 6;
+        } else if (SELECTED == tree_cutting_status()[7]) {
+          selectedStatus = 7;
+        } else {
+          selectedStatus = null;
+        }
+        
+        view.when(function() {
+          view.whenLayerView(treeCuttingLayer).then(function (layerView) {
+            chartLayerView = layerView;
+            CHART_ELEMENT.style.visibility = "visible";
+            
+            treeCuttingLayer.queryFeatures().then(function(results) {
+              const RESULT_LENGTH = results.features;
+              const ROW_N = RESULT_LENGTH.length;
 
-    } else if (selectedP == "North Avenue" && selectedC == "For TCP Application") {
-      selectedStation = 5;
-      selectedTCP_Proces = 1;
-    } else if (selectedP == "North Avenue" && selectedC == "Submitted to DENR") {
-      selectedStation = 5;
-      selectedTCP_Proces = 2;
-    } else if (selectedP == "North Avenue" && selectedC == "With Permit-Not Yet Cut") {
-      selectedStation = 5;
-      selectedTCP_Proces = 3;
-    } else if (selectedP == "North Avenue" && selectedC == "With Permit-Not Yet Earthballed") {
-      selectedStation = 5;
-      selectedTCP_Proces = 4;
-    } else if (selectedP == "North Avenue" && selectedC == "Cut") {
-      selectedStation = 5;
-      selectedTCP_Proces = 5;
-    } else if (selectedP == "North Avenue" && selectedC == "Earthballed") {
-      selectedStation = 5;
-      selectedTCP_Proces = 6;
-    } else if (selectedP == "North Avenue" && selectedC == "TCP Expired") {
-      selectedStation = 5;
-      selectedTCP_Proces = 7;
+              let objID = [];
+              for (var i=0; i < ROW_N; i++) {
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
+              }
 
-    } else {
-        selectedStation = null;
-        selectedTCP_Proces = null;
-    }
+              var queryExt = new Query({
+                 objectIds: objID
+              });
 
-    treeCuttingLayer.definitionExpression = "Station = " + selectedStation + " AND " + "TCP_Proces = " + selectedTCP_Proces;
-    zoomToLayer(treeCuttingLayer);
+              treeCuttingLayer.queryExtent(queryExt).then(function(result) {
+                  if (result.extent) {
+                      view.goTo(result.extent)
+                  }
+              });
 
-    view.on("click", function() {
-            treeCuttingLayer.definitionExpression = null;
-    });
+              if (highlightSelect) {
+                  highlightSelect.remove();
+              }
+              highlightSelect = layerView.highlight(objID);
 
+              view.on("click", function() {
+                layerView.filter = null;
+                highlightSelect.remove();
+              });
+            }); // End of queryFeatures
+            layerView.filter = {
+              where: "TCP_Proces = " + selectedStatus
+            }
+          }); // End of view.whenLayerView
+        }); // End of view.when
+      } // End of filterByChart
+    } // End of createSlices function
 
-
-  }; // End of filterbyChart function
-
-  // 
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-  labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#000000");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 18;
-  labelBullet.locationX = 0.5;
-
-
-  
-} // End of createSeries function
-
-// Run createSeries
-createSeriesCutting("value1", "For TCP Application");
-createSeriesCutting("value2", "Submitted to DENR");
-createSeriesCutting("value3", "With Permit-Not Yet Cut");
-createSeriesCutting("value4", "With Permit-Not Yet Earthballed");
-createSeriesCutting("value5", "Cut");
-createSeriesCutting("value6", "Earthballed");
-createSeriesCutting("value7", "TCP Expired");
-
+    createSlices("status", "TCP_Proces");
   }); // End of queryFeatures
 } // End of updateChartCutting function
 
 
-
+// Tree Compensation
 async function updateChartTreeComp() {
-      // Depot
-  var total_depot_otc = {
-    onStatisticField: "CASE WHEN (Station = 2 and Tree_Compe = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_otc",
+  function tree_compen_status(){
+    return {
+      1: "For Appraisal/OtC",
+    2: "For Legal Pass",
+    3: "For Payment Processing",
+    4: "For Check Issuance",
+    5: "Paid",
+    6: "No Compensation",
+    7: "For Donation"
+    }
+  }
+
+  var total_appraisal = {
+    onStatisticField: "CASE WHEN Tree_Compe = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_appraisal",
     statisticType: "sum"
   };
 
-  var total_depot_legalpass = {
-    onStatisticField: "CASE WHEN (Station = 2 and Tree_Compe = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_legalpass",
+  var total_legalpass = {
+    onStatisticField: "CASE WHEN Tree_Compe = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_legalpass",
     statisticType: "sum"
   };
 
-  var total_depot_payp = {
-    onStatisticField: "CASE WHEN (Station = 2 and Tree_Compe = 3) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_payp",
+  var total_payp = {
+    onStatisticField: "CASE WHEN Tree_Compe = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_payp",
     statisticType: "sum"
   };
 
-  var total_depot_checkissue = {
-    onStatisticField: "CASE WHEN (Station = 2 and Tree_Compe = 4) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_checkissue",
+  var total_checkissue = {
+    onStatisticField: "CASE WHEN Tree_Compe = 4 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_checkissue",
     statisticType: "sum"
   };
 
-  var total_depot_paid = {
-    onStatisticField: "CASE WHEN (Station = 2 and Tree_Compe = 5) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_paid",
+  var total_paid = {
+    onStatisticField: "CASE WHEN Tree_Compe = 5 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_paid",
     statisticType: "sum"
   };
 
-  var total_depot_nocomp = {
-    onStatisticField: "CASE WHEN (Station = 2 and Tree_Compe = 6) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_nocomp",
+  var total_nocompen = {
+    onStatisticField: "CASE WHEN Tree_Compe = 6 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_nocompen",
     statisticType: "sum"
   };
 
-  var total_depot_donate = {
-    onStatisticField: "CASE WHEN (Station = 2 and Tree_Compe = 7) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_donate",
+  var total_donation = {
+    onStatisticField: "CASE WHEN Tree_Compe = 7 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_donation",
     statisticType: "sum"
   };
-
-    // Quirino Highway
-  var total_quirino_otc = {
-    onStatisticField: "CASE WHEN (Station = 3 and Tree_Compe = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_otc",
-    statisticType: "sum"
-  };
-
-  var total_quirino_legalpass = {
-    onStatisticField: "CASE WHEN (Station = 3 and Tree_Compe = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_legalpass",
-    statisticType: "sum"
-  };
-
-  var total_quirino_payp = {
-    onStatisticField: "CASE WHEN (Station = 3 and Tree_Compe = 3) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_payp",
-    statisticType: "sum"
-  };
-
-  var total_quirino_checkissue = {
-    onStatisticField: "CASE WHEN (Station = 3 and Tree_Compe = 4) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_checkissue",
-    statisticType: "sum"
-  };
-
-  var total_quirino_paid = {
-    onStatisticField: "CASE WHEN (Station = 3 and Tree_Compe = 5) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_paid",
-    statisticType: "sum"
-  };
-
-  var total_quirino_nocomp = {
-    onStatisticField: "CASE WHEN (Station = 3 and Tree_Compe = 6) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_nocomp",
-    statisticType: "sum"
-  };
-
-  var total_quirino_donate = {
-    onStatisticField: "CASE WHEN (Station = 3 and Tree_Compe = 7) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_donate",
-    statisticType: "sum"
-  };
-
-
-  // Tandang Sora
-  var total_tandang_otc = {
-    onStatisticField: "CASE WHEN (Station = 4 and Tree_Compe = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_otc",
-    statisticType: "sum"
-  };
-
-  var total_tandang_legalpass = {
-    onStatisticField: "CASE WHEN (Station = 4 and Tree_Compe = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_legalpass",
-    statisticType: "sum"
-  };
-
-  var total_tandang_payp = {
-    onStatisticField: "CASE WHEN (Station = 4 and Tree_Compe = 3) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_payp",
-    statisticType: "sum"
-  };
-
-  var total_tandang_checkissue = {
-    onStatisticField: "CASE WHEN (Station = 4 and Tree_Compe = 4) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_checkissue",
-    statisticType: "sum"
-  };
-
-  var total_tandang_paid = {
-    onStatisticField: "CASE WHEN (Station = 4 and Tree_Compe = 5) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_paid",
-    statisticType: "sum"
-  };
-
-  var total_tandang_nocomp = {
-    onStatisticField: "CASE WHEN (Station = 4 and Tree_Compe = 6) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_nocomp",
-    statisticType: "sum"
-  };
-
-  var total_tandang_donate = {
-    onStatisticField: "CASE WHEN (Station = 4 and Tree_Compe = 7) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_donate",
-    statisticType: "sum"
-  };
-
-    // North Avenue
-  var total_northave_otc = {
-    onStatisticField: "CASE WHEN (Station = 5 and Tree_Compe = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_otc",
-    statisticType: "sum"
-  };
-
-  var total_northave_legalpass = {
-    onStatisticField: "CASE WHEN (Station = 5 and Tree_Compe = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_legalpass",
-    statisticType: "sum"
-  };
-
-  var total_northave_payp = {
-    onStatisticField: "CASE WHEN (Station = 5 and Tree_Compe = 3) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_payp",
-    statisticType: "sum"
-  };
-
-  var total_northave_checkissue = {
-    onStatisticField: "CASE WHEN (Station = 5 and Tree_Compe = 4) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_checkissue",
-    statisticType: "sum"
-  };
-
-  var total_northave_paid = {
-    onStatisticField: "CASE WHEN (Station = 5 and Tree_Compe = 5) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_paid",
-    statisticType: "sum"
-  };
-
-  var total_northave_nocomp = {
-    onStatisticField: "CASE WHEN (Station = 5 and Tree_Compe = 6) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_nocomp",
-    statisticType: "sum"
-  };
-
-  var total_northave_donate = {
-    onStatisticField: "CASE WHEN (Station = 5 and Tree_Compe = 7) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_donate",
-    statisticType: "sum"
-  };
-
 
   var query = compensationLayer.createQuery();
-  query.outStatistics = [total_depot_otc, total_depot_legalpass, total_depot_payp, total_depot_checkissue, total_depot_paid, total_depot_nocomp, total_depot_donate,
-                         total_quirino_otc, total_quirino_legalpass, total_quirino_payp, total_quirino_checkissue, total_quirino_paid, total_quirino_nocomp, total_quirino_donate,
-                         total_tandang_otc, total_tandang_legalpass, total_tandang_payp, total_tandang_checkissue, total_tandang_paid, total_tandang_nocomp, total_tandang_donate,
-                         total_northave_otc, total_northave_legalpass, total_northave_payp, total_northave_checkissue, total_northave_paid, total_northave_nocomp, total_northave_donate];
+  query.outStatistics = [total_appraisal, total_legalpass, total_payp,
+                         total_checkissue, total_paid, total_nocompen, total_donation];
   query.returnGeometry = true;
 
   compensationLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
-    /* Depot */
-    const depot_otc = stats.total_depot_otc;
-    const depot_legalpass = stats.total_depot_legalpass;
-    const depot_payp = stats.total_depot_payp;
-    const depot_checkissue = stats.total_depot_checkissue;
-    const depot_paid = stats.total_depot_paid;
-    const depot_nocomp = stats.total_depot_nocomp;
-    const depot_donate = stats.total_depot_donate;
+    const depot_tcpapp = stats.total_appraisal;
+    const depot_denr = stats.total_legalpass;
+    const depot_permitcut = stats.total_payp;
+    const depot_permitearthb = stats.total_checkissue;
+    const depot_cut = stats.total_paid;
+    const depot_earthb = stats.total_nocompen;
+    const depot_tcpexp = stats.total_donation;
 
-
-    /* Quirino Highway */
-    const quirino_otc = stats.total_quirino_otc;
-    const quirino_legalpass = stats.total_quirino_legalpass;
-    const quirino_payp = stats.total_quirino_payp;
-    const quirino_checkissue = stats.total_quirino_checkissue;
-    const quirino_paid = stats.total_quirino_paid;
-    const quirino_nocomp = stats.total_quirino_nocomp;
-    const quirino_donate = stats.total_quirino_donate;
-
-    /* Tandang Sora */
-    const tandang_otc = stats.total_tandang_otc;
-    const tandang_legalpass = stats.total_tandang_legalpass;
-    const tandang_payp = stats.total_tandang_payp;
-    const tandang_checkissue = stats.total_tandang_checkissue;
-    const tandang_paid = stats.total_tandang_paid;
-    const tandang_nocomp = stats.total_tandang_nocomp;
-    const tandang_donate = stats.total_tandang_donate;
-
-    /* North Avenue */
-    const northave_otc = stats.total_northave_otc;
-    const northave_legalpass = stats.total_northave_legalpass;
-    const northave_payp = stats.total_northave_payp;
-    const northave_checkissue = stats.total_northave_checkissue;
-    const northave_paid = stats.total_northave_paid;
-    const northave_nocomp = stats.total_northave_nocomp;
-    const northave_donate = stats.total_northave_donate;
-
-    var chart = am4core.create("chartdiv", am4charts.XYChart);
+    var chart = am4core.create("chartdiv", am4charts.PieChart);
     chart.hiddenState.properties.opacity = 0;
 
     // Add data
     chart.data = [
-    {
-    category: "North Avenue",
-    value1: northave_otc,
-    value2: northave_legalpass,
-    value3: northave_payp,
-    value4: northave_checkissue,
-    value5: northave_paid,
-    value6: northave_nocomp,
-    value7: northave_donate
-  },
-  {
-    category: "Tandang Sora",
-    value1: tandang_otc,
-    value2: tandang_legalpass,
-    value3: tandang_payp,
-    value4: tandang_checkissue,
-    value5: tandang_paid,
-    value6: tandang_nocomp,
-    value7: tandang_donate
-  },
-  {
-    category: "Quirino Highway",
-    value1: quirino_otc,
-    value2: quirino_legalpass,
-    value3: quirino_payp,
-    value4: quirino_checkissue,
-    value5: quirino_paid,
-    value6: quirino_nocomp,
-    value7: quirino_donate
-  },
-  {
-    category: "Depot",
-    value1: depot_otc,
-    value2: depot_legalpass,
-    value3: depot_payp,
-    value4: depot_checkissue,
-    value5: depot_paid,
-    value6: depot_nocomp,
-    value7: depot_donate
-  }
-];
+      {
+        "Tree_Compe": tree_compen_status()[1],
+        "status": depot_tcpapp,
+        "color": am4core.color("#0073FF")
+      },
+      {
+        "Tree_Compe": tree_compen_status()[2],
+        "status": depot_denr,
+        "color": am4core.color("#FFFF00")   
+      },
+      {
+        "Tree_Compe": tree_compen_status()[3],
+        "status": depot_permitcut,
+        "color": am4core.color("#3288BD") 
+      },
+      {
+        "Tree_Compe": tree_compen_status()[4],
+        "status": depot_permitearthb,
+        "color": am4core.color("#FFAA00")
+      },
+      {
+       "Tree_Compe": tree_compen_status()[5],
+        "status": depot_cut,
+        "color": am4core.color("#71AB48")    
+     },
+      {
+        "Tree_Compe": tree_compen_status()[6],
+       "status": depot_earthb,
+       "color": am4core.color("#FF0000") 
+      },
+      {
+        "Tree_Compe": tree_compen_status()[7],
+       "status": depot_tcpexp,
+       "color": am4core.color("#5E4FA2")    
+      }
+    ];
 
-chart.colors.step = 2;
-chart.padding(10, 10, 10, 0);
-
-// Legend
-const LegendFontSizze = 15;
-chart.legend = new am4charts.Legend();
-chart.legend.useDefaultMarker = true;
-var marker = chart.legend.markers.template.children.getIndex(0);
-marker.cornerRadius(12, 12, 12, 12);
-marker.strokeWidth = 1;
-marker.strokeOpacity = 1;
-marker.stroke = am4core.color("#ccc");
-
-var markerTemplate = chart.legend.markers.template;
-markerTemplate.width = 17;
-markerTemplate.height = 17;
-
-chart.legend.valueLabels.template.align = "right"
-chart.legend.valueLabels.template.textAlign = "end"; 
-
- chart.legend.position = "bottom";
- chart.legend.labels.template.fontSize = LegendFontSizze;
-  chart.legend.labels.template.fill = "#ffffff";
-  chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
- 
-  
-var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-categoryAxis.dataFields.category = "category";
-categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 16;
-categoryAxis.renderer.labels.template.fill = "#ffffff";
-categoryAxis.renderer.minGridDistance = 5; //can change label
-
-var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
-valueAxis.min = 0;
-valueAxis.max = 100;
-valueAxis.strictMinMax = true;
-valueAxis.calculateTotals = true;
-valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 14;
-valueAxis.renderer.labels.template.fill = "#ffffff";
-
-function createSeriesCompensation(field, name) {
-  var series = chart.series.push(new am4charts.ColumnSeries());
-  series.calculatePercent = true;
-  series.tooltip.label.fontSize = 14;
-  series.dataFields.valueX = field;
-  series.dataFields.categoryY = "category";
-  series.stacked = true;
-  series.dataFields.valueXShow = "totalPercent";
-  series.dataItems.template.locations.categoryY = 0.5;
-  series.name = name;
-  if (name == "For Appraisal/OtC"){
-    series.fill = am4core.color(colorsNoClear[1]);
-  } else if (name == "For Legal Pass") {
-    series.fill = am4core.color(colorsNoClear[2]);
-  } else if (name == "For Payment Processing") {
-    series.fill = am4core.color(colorsNoClear[5]);
-  } else if (name == "For Check Issuance") {
-    series.fill = am4core.color(colorsNoClear[3]);
-  } else if (name == "Paid") {
-    series.fill = am4core.color(colorsNoClear[0]);
-  }  else if (name == "No Compensation") {
-    series.fill = am4core.color(colorsNoClear[4]);
-  }  else if (name == "For Donation") {
-    series.fill = am4core.color(colorsNoClear[6]);
-  }
-
-
-  series.columns.template.width = am4core.percent(60);
-  series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
-
-
-  // Click chart and filter, update maps
-  const chartElement = document.getElementById("chartPanel");
-  series.columns.template.events.on("hit", filterByChart, this);
-  function filterByChart(ev) {
-    const selectedC = ev.target.dataItem.component.name;
-    const selectedP = ev.target.dataItem.categoryY;
     
-    if (selectedP == "Depot" && selectedC == "For Appraisal/OtC") {
-      selectedStation = 2;
-      selectedTree_Compe = 1;
-    } else if (selectedP == "Depot" && selectedC == "For Legal Pass") {
-      selectedStation = 2;
-      selectedTree_Compe = 2;
-    } else if (selectedP == "Depot" && selectedC == "For Payment Processing") {
-      selectedStation = 2;
-      selectedTree_Compe = 3;
-    } else if (selectedP == "Depot" && selectedC == "For Check Issuance") {
-      selectedStation = 2;
-      selectedTree_Compe = 4;
-    } else if (selectedP == "Depot" && selectedC == "Paid") {
-      selectedStation = 2;
-      selectedTree_Compe = 5;
-    } else if (selectedP == "Depot" && selectedC == "No Compensation") {
-      selectedStation = 2;
-      selectedTree_Compe = 6;
-    } else if (selectedP == "Depot" && selectedC == "For Donation") {
-      selectedStation = 2;
-      selectedTree_Compe = 7;
+    // Set inner radius
+    chart.innerRadius = am4core.percent(30);
+    
+    // Add and configure Series
+    function createSlices(field, status){
+      var pieSeries = chart.series.push(new am4charts.PieSeries());
+      pieSeries.dataFields.value = field;
+      pieSeries.dataFields.category = status;
+      
+      pieSeries.slices.template.propertyFields.fill = "color";
+      pieSeries.slices.template.stroke = am4core.color("#fff");
+      pieSeries.slices.template.strokeWidth = 1;
+      pieSeries.slices.template.strokeOpacity = 1;
+      pieSeries.slices.template
+      // change the cursor on hover to make it apparent the object can be interacted with
+      .cursorOverStyle = [
+        {
+          "property": "cursor",
+          "value": "pointer"
+        }
+      ];
+      
+      // Hover setting
+      pieSeries.tooltip.label.fontSize = 9;
+      
+      // Pie
+      //pieSeries.alignLabels = false;
+      //pieSeries.labels.template.bent = false;
+      pieSeries.labels.template.disabled = true;
+      pieSeries.labels.template.radius = 3;
+      pieSeries.labels.template.padding(0,0,0,0);
+      pieSeries.labels.template.fontSize = 9;
+      pieSeries.labels.template.fill = "#ffffff";
 
-    } else if (selectedP == "Quirino Highway" && selectedC == "For Appraisal/OtC") {
-      selectedStation = 3;
-      selectedTree_Compe = 1;
-    } else if (selectedP == "Quirino Highway" && selectedC == "For Legal Pass") {
-      selectedStation = 3;
-      selectedTree_Compe = 2;
-    } else if (selectedP == "Quirino Highway" && selectedC == "For Payment Processing") {
-      selectedStation = 3;
-      selectedTree_Compe = 3;
-    } else if (selectedP == "Quirino Highway" && selectedC == "For Check Issuance") {
-      selectedStation = 3;
-      selectedTree_Compe = 4;
-    } else if (selectedP == "Quirino Highway" && selectedC == "Paid") {
-      selectedStation = 3;
-      selectedTree_Compe = 5;
-    } else if (selectedP == "Quirino Highway" && selectedC == "No Compensation") {
-      selectedStation = 3;
-      selectedTree_Compe = 6;
-    } else if (selectedP == "Quirino Highway" && selectedC == "For Donation") {
-      selectedStation = 3;
-      selectedTree_Compe = 7;
+      // Ticks (a straight line)
+      //pieSeries.ticks.template.disabled = true;
+      pieSeries.ticks.template.fill = "#ffff00";
+      
+      // Create a base filter effect (as if it's not there) for the hover to return to
+      var shadow = pieSeries.slices.template.filters.push(new am4core.DropShadowFilter);
+      shadow.opacity = 0;
+      
+      // Chart Title
+      /*
+      let title = chart.titles.create();
+      title.text = "Tree Cutting";
+      title.fontSize = 20;
+      title.fontWeight = "bold";
+      title.fill = am4core.color("#ffffff");
+      title.marginTop = 7;
+*/
+      // Create hover state
+      var hoverState = pieSeries.slices.template.states.getKey("hover"); // normally we have to create the hover state, in this case it already exists
 
-    } else if (selectedP == "Tandang Sora" && selectedC == "For Appraisal/OtC") {
-      selectedStation = 4;
-      selectedTree_Compe = 1;
-    } else if (selectedP == "Tandang Sora" && selectedC == "For Legal Pass") {
-      selectedStation = 4;
-      selectedTree_Compe = 2;
-    } else if (selectedP == "Tandang Sora" && selectedC == "For Payment Processing") {
-      selectedStation = 4;
-      selectedTree_Compe = 3;
-    } else if (selectedP == "Tandang Sora" && selectedC == "For Check Issuance") {
-      selectedStation = 4;
-      selectedTree_Compe = 4;
-    } else if (selectedP == "Tandang Sora" && selectedC == "Paid") {
-      selectedStation = 4;
-      selectedTree_Compe = 5;
-    } else if (selectedP == "Tandang Sora" && selectedC == "No Compensation") {
-      selectedStation = 4;
-      selectedTree_Compe = 6;
-    } else if (selectedP == "Tandang Sora" && selectedC == "For Donation") {
-      selectedStation = 4;
-      selectedTree_Compe = 7;
+      // Slightly shift the shadow and make it more prominent on hover
+      var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
+      hoverShadow.opacity = 0.7;
+      hoverShadow.blur = 5;
+      
+      // Add a legend
+      const LEGEND_FONT_SIZE = 15;
+      chart.legend = new am4charts.Legend();
+      chart.legend.valueLabels.template.align = "right"
+      chart.legend.valueLabels.template.textAlign = "end";
+      
+      //chart.legend.position = "bottom";
+      chart.legend.labels.template.fontSize = LEGEND_FONT_SIZE;
+      chart.legend.labels.template.fill = "#ffffff";
+      chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+      chart.legend.valueLabels.template.fontSize = LEGEND_FONT_SIZE; 
+      pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
+      //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+      
+      /// Define marker symbols properties
+      var marker = chart.legend.markers.template.children.getIndex(0);
+      var markerTemplate = chart.legend.markers.template;
+      marker.cornerRadius(12, 12, 12, 12);
+      marker.strokeWidth = 1;
+      marker.strokeOpacity = 1;
+      marker.stroke = am4core.color("#ccc");
+      markerTemplate.width = 18;
+      markerTemplate.height = 18;
+      
+      // This creates initial animation
+      //pieSeries.hiddenState.properties.opacity = 1;
+      //pieSeries.hiddenState.properties.endAngle = -90;
+      //pieSeries.hiddenState.properties.startAngle = -90;
+      
+      // Click chart and filter, update maps
+      pieSeries.slices.template.events.on("hit", filterByChart, this);
+      function filterByChart(ev) {
+        const SELECTED = ev.target.dataItem.category;
+        if (SELECTED == tree_compen_status()[1]) {
+          selectedStatus = 1;
+        } else if (SELECTED == tree_compen_status()[2]) {
+          selectedStatus = 2;
+        } else if (SELECTED == tree_compen_status()[3]) {
+          selectedStatus = 3;
+        } else if (SELECTED == tree_compen_status()[4]) {
+          selectedStatus = 4;
+        } else if (SELECTED == tree_compen_status()[5]) {
+          selectedStatus = 5;
+        } else if (SELECTED == tree_compen_status()[6]) {
+          selectedStatus = 6;
+        } else if (SELECTED == tree_compen_status()[7]) {
+          selectedStatus = 7;
+        } else {
+          selectedStatus = null;
+        }
+        
+        view.when(function() {
+          view.whenLayerView(compensationLayer).then(function (layerView) {
+            chartLayerView = layerView;
+            CHART_ELEMENT.style.visibility = "visible";
+            
+            compensationLayer.queryFeatures().then(function(results) {
+              const RESULT_LENGTH = results.features;
+              const ROW_N = RESULT_LENGTH.length;
 
-    } else if (selectedP == "North Avenue" && selectedC == "For Appraisal/OtC") {
-      selectedStation = 5;
-      selectedTree_Compe = 1;
-    } else if (selectedP == "North Avenue" && selectedC == "For Legal Pass") {
-      selectedStation = 5;
-      selectedTree_Compe = 2;
-    } else if (selectedP == "North Avenue" && selectedC == "For Payment Processing") {
-      selectedStation = 5;
-      selectedTree_Compe = 3;
-    } else if (selectedP == "North Avenue" && selectedC == "For Check Issuance") {
-      selectedStation = 5;
-      selectedTree_Compe = 4;
-    } else if (selectedP == "North Avenue" && selectedC == "Paid") {
-      selectedStation = 5;
-      selectedTree_Compe = 5;
-    } else if (selectedP == "North Avenue" && selectedC == "No Compensation") {
-      selectedStation = 5;
-      selectedTree_Compe = 6;
-    } else if (selectedP == "North Avenue" && selectedC == "For Donation") {
-      selectedStation = 5;
-      selectedTree_Compe = 7;
+              let objID = [];
+              for (var i=0; i < ROW_N; i++) {
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
+              }
 
-    } else {
-        selectedStation = null;
-        selectedTree_Compe = null;
-    }
+              var queryExt = new Query({
+                 objectIds: objID
+              });
 
-    compensationLayer.definitionExpression = "Station = " + selectedStation + " AND " + "Tree_Compe = " + selectedTree_Compe;
-    zoomToLayer(compensationLayer);
+              compensationLayer.queryExtent(queryExt).then(function(result) {
+                  if (result.extent) {
+                      view.goTo(result.extent)
+                  }
+              });
 
-    view.on("click", function() {
-            compensationLayer.definitionExpression = null;
-    });
+              if (highlightSelect) {
+                  highlightSelect.remove();
+              }
+              highlightSelect = layerView.highlight(objID);
 
+              view.on("click", function() {
+                layerView.filter = null;
+                highlightSelect.remove();
+              });
+            }); // End of queryFeatures
+            layerView.filter = {
+              where: "Tree_Compe = " + selectedStatus
+            }
+          }); // End of view.whenLayerView
+        }); // End of view.when
+      } // End of filterByChart
+    } // End of createSlices function
 
-
-  }; // End of filterbyChart function
-
-  // 
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-  labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#000000");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 18;
-  labelBullet.locationX = 0.5;
-
-
-  
-} // End of createSeries function
-
-// Run createSeries
-createSeriesCompensation("value1", "For Appraisal/OtC");
-createSeriesCompensation("value2", "For Legal Pass");
-createSeriesCompensation("value3", "For Payment Processing");
-createSeriesCompensation("value4", "For Check Issuance");
-createSeriesCompensation("value5", "Paid");
-createSeriesCompensation("value6", "No Compensation");
-createSeriesCompensation("value7", "For Donation");
-
+    createSlices("status", "Tree_Compe");
   }); // End of queryFeatures
-} // End of updateChartCutting function
+} // End of updateChartTreeComp
 
+
+// Tree Permit
 async function updateChartPermit() {
-      // Depot
-  var total_depot_permit = {
-    onStatisticField: "CASE WHEN (Station = 2 and Remarks2 = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_permit",
+  function tree_permit_status(){
+    return {
+      1: "With Permit",
+    2: "Without Permit"
+    }
+  }
+
+  var total_permit = {
+    onStatisticField: "CASE WHEN Remarks2 = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_permit",
     statisticType: "sum"
   };
 
-  var total_depot_nopermit = {
-    onStatisticField: "CASE WHEN (Station = 2 and Remarks2 = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_depot_nopermit",
-    statisticType: "sum"
-  };
-
-
-    // Quirino Highway
-  var total_quirino_permit = {
-    onStatisticField: "CASE WHEN (Station = 3 and Remarks2 = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_permit",
-    statisticType: "sum"
-  };
-
-  var total_quirino_nopermit = {
-    onStatisticField: "CASE WHEN (Station = 3 and Remarks2 = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_quirino_nopermit",
-    statisticType: "sum"
-  };
-
-
-  // Tandang Sora
-  var total_tandang_permit = {
-    onStatisticField: "CASE WHEN (Station = 4 and Remarks2 = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_permit",
-    statisticType: "sum"
-  };
-
-  var total_tandang_nopermit = {
-    onStatisticField: "CASE WHEN (Station = 4 and Remarks2 = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tandang_nopermit",
-    statisticType: "sum"
-  };
-
-
-    // North Avenue
-  var total_northave_permit = {
-    onStatisticField: "CASE WHEN (Station = 5 and Remarks2 = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_permit",
-    statisticType: "sum"
-  };
-
-  var total_northave_nopermit = {
-    onStatisticField: "CASE WHEN (Station = 5 and Remarks2 = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_northave_nopermit",
+  var total_nopermit = {
+    onStatisticField: "CASE WHEN Remarks2 = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_nopermit",
     statisticType: "sum"
   };
 
   var query = permitLayer.createQuery();
-  query.outStatistics = [total_depot_permit, total_depot_nopermit,
-                         total_quirino_permit, total_quirino_nopermit,
-                         total_tandang_permit, total_tandang_nopermit,
-                         total_northave_permit, total_northave_nopermit];
+  query.outStatistics = [total_permit, total_nopermit];
   query.returnGeometry = true;
 
   permitLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
-    /* Depot */
-    const depot_permit = stats.total_depot_permit;
-    const depot_nopermit = stats.total_depot_nopermit;
+    const withPermit = stats.total_permit;
+    const noPermit = stats.total_nopermit;
 
-    /* Quirino Highway */
-    const quirino_permit = stats.total_quirino_permit;
-    const quirino_nopermit = stats.total_quirino_nopermit;
-
-    /* Tandang Sora */
-    const tandang_permit = stats.total_tandang_permit;
-    const tandang_nopermit = stats.total_tandang_nopermit;
-
-    /* North Avenue */
-    const northave_permit = stats.total_northave_permit;
-    const northave_nopermit = stats.total_northave_nopermit;
-
-    var chart = am4core.create("chartdiv", am4charts.XYChart);
+    var chart = am4core.create("chartdiv", am4charts.PieChart);
     chart.hiddenState.properties.opacity = 0;
 
     // Add data
     chart.data = [
-    {
-    category: "North Avenue",
-    value1: northave_permit,
-    value2: northave_nopermit,
-  },
-  {
-    category: "Tandang Sora",
-    value1: tandang_permit,
-    value2: tandang_nopermit,
-  },
-  {
-    category: "Quirino Highway",
-    value1: quirino_permit,
-    value2: quirino_nopermit,
-  },
-  {
-    category: "Depot",
-    value1: depot_permit,
-    value2: depot_nopermit,
-  }
-];
+      {
+        "Remarks2": tree_permit_status()[1],
+        "status": withPermit,
+        "color": am4core.color("#71AB48")
+      },
+      {
+        "Remarks2": tree_permit_status()[2],
+        "status": noPermit,
+        "color": am4core.color("#FF0000")   
+      }
+    ];
 
-chart.colors.step = 2;
-chart.padding(10, 10, 10, 0);
-
-// Legend
-const LegendFontSizze = 15;
-chart.legend = new am4charts.Legend();
-chart.legend.useDefaultMarker = true;
-var marker = chart.legend.markers.template.children.getIndex(0);
-marker.cornerRadius(12, 12, 12, 12);
-marker.strokeWidth = 1;
-marker.strokeOpacity = 1;
-marker.stroke = am4core.color("#ccc");
-
-var markerTemplate = chart.legend.markers.template;
-markerTemplate.width = 17;
-markerTemplate.height = 17;
-
-chart.legend.valueLabels.template.align = "right"
-chart.legend.valueLabels.template.textAlign = "end"; 
-
- chart.legend.position = "bottom";
- chart.legend.labels.template.fontSize = LegendFontSizze;
-  chart.legend.labels.template.fill = "#ffffff";
-  chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
- 
-  
-var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-categoryAxis.dataFields.category = "category";
-categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 16;
-categoryAxis.renderer.labels.template.fill = "#ffffff";
-categoryAxis.renderer.minGridDistance = 5; //can change label
-
-var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
-valueAxis.min = 0;
-valueAxis.max = 100;
-valueAxis.strictMinMax = true;
-valueAxis.calculateTotals = true;
-valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 14;
-valueAxis.renderer.labels.template.fill = "#ffffff";
-
-function createSeriesPermit(field, name) {
-  var series = chart.series.push(new am4charts.ColumnSeries());
-  series.calculatePercent = true;
-  series.tooltip.label.fontSize = 20;
-  series.dataFields.valueX = field;
-  series.dataFields.categoryY = "category";
-  series.stacked = true;
-  series.dataFields.valueXShow = "totalPercent";
-  series.dataItems.template.locations.categoryY = 0.5;
-  series.name = name;
-  if (name == "With Permit"){
-    series.fill = am4core.color(colorsNoClear[0]);
-  } else if (name == "Without Permit") {
-    series.fill = am4core.color(colorsNoClear[4]);
-  }
-
-  series.columns.template.width = am4core.percent(60);
-  series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
-
-
-  // Click chart and filter, update maps
-  const chartElement = document.getElementById("chartPanel");
-  series.columns.template.events.on("hit", filterByChart, this);
-  function filterByChart(ev) {
-    const selectedC = ev.target.dataItem.component.name;
-    const selectedP = ev.target.dataItem.categoryY;
     
-    if (selectedP == "Depot" && selectedC == "With Permit") {
-      selectedStation = 2;
-      selectedRemarks = 1;
-    } else if (selectedP == "Depot" && selectedC == "Without Permit") {
-      selectedStation = 2;
-      selectedRemarks = 2;
+    // Set inner radius
+    chart.innerRadius = am4core.percent(30);
+    
+    // Add and configure Series
+    function createSlices(field, status){
+      var pieSeries = chart.series.push(new am4charts.PieSeries());
+      pieSeries.dataFields.value = field;
+      pieSeries.dataFields.category = status;
+      
+      pieSeries.slices.template.propertyFields.fill = "color";
+      pieSeries.slices.template.stroke = am4core.color("#fff");
+      pieSeries.slices.template.strokeWidth = 1;
+      pieSeries.slices.template.strokeOpacity = 1;
+      pieSeries.slices.template
+      // change the cursor on hover to make it apparent the object can be interacted with
+      .cursorOverStyle = [
+        {
+          "property": "cursor",
+          "value": "pointer"
+        }
+      ];
+      
+      // Hover setting
+      pieSeries.tooltip.label.fontSize = 9;
+      
+      // Pie
+      //pieSeries.alignLabels = false;
+      //pieSeries.labels.template.bent = false;
+      pieSeries.labels.template.disabled = true;
+      pieSeries.labels.template.radius = 3;
+      pieSeries.labels.template.padding(0,0,0,0);
+      pieSeries.labels.template.fontSize = 9;
+      pieSeries.labels.template.fill = "#ffffff";
 
-    } else if (selectedP == "Quirino Highway" && selectedC == "With Permit") {
-      selectedStation = 3;
-      selectedRemarks = 1;
-    } else if (selectedP == "Quirino Highway" && selectedC == "Without Permit") {
-      selectedStation = 3;
-      selectedRemarks = 2;
+      // Ticks (a straight line)
+      //pieSeries.ticks.template.disabled = true;
+      pieSeries.ticks.template.fill = "#ffff00";
+      
+      // Create a base filter effect (as if it's not there) for the hover to return to
+      var shadow = pieSeries.slices.template.filters.push(new am4core.DropShadowFilter);
+      shadow.opacity = 0;
+      
+      // Chart Title
+      /*
+      let title = chart.titles.create();
+      title.text = "Tree Cutting";
+      title.fontSize = 20;
+      title.fontWeight = "bold";
+      title.fill = am4core.color("#ffffff");
+      title.marginTop = 7;
+*/
+      // Create hover state
+      var hoverState = pieSeries.slices.template.states.getKey("hover"); // normally we have to create the hover state, in this case it already exists
 
-    } else if (selectedP == "Tandang Sora" && selectedC == "With Permit") {
-      selectedStation = 4;
-      selectedRemarks = 1;
-    } else if (selectedP == "Tandang Sora" && selectedC == "Without Permit") {
-      selectedStation = 4;
-      selectedRemarks = 2;
+      // Slightly shift the shadow and make it more prominent on hover
+      var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
+      hoverShadow.opacity = 0.7;
+      hoverShadow.blur = 5;
+      
+      // Add a legend
+      const LEGEND_FONT_SIZE = 15;
+      chart.legend = new am4charts.Legend();
+      chart.legend.valueLabels.template.align = "right"
+      chart.legend.valueLabels.template.textAlign = "end";
+      
+      //chart.legend.position = "bottom";
+      chart.legend.labels.template.fontSize = LEGEND_FONT_SIZE;
+      chart.legend.labels.template.fill = "#ffffff";
+      chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+      chart.legend.valueLabels.template.fontSize = LEGEND_FONT_SIZE; 
+      pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
+      //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+      
+      /// Define marker symbols properties
+      var marker = chart.legend.markers.template.children.getIndex(0);
+      var markerTemplate = chart.legend.markers.template;
+      marker.cornerRadius(12, 12, 12, 12);
+      marker.strokeWidth = 1;
+      marker.strokeOpacity = 1;
+      marker.stroke = am4core.color("#ccc");
+      markerTemplate.width = 18;
+      markerTemplate.height = 18;
+      
+      // This creates initial animation
+      //pieSeries.hiddenState.properties.opacity = 1;
+      //pieSeries.hiddenState.properties.endAngle = -90;
+      //pieSeries.hiddenState.properties.startAngle = -90;
+      
+      // Click chart and filter, update maps
+      pieSeries.slices.template.events.on("hit", filterByChart, this);
+      function filterByChart(ev) {
+        const SELECTED = ev.target.dataItem.category;
+        if (SELECTED == tree_permit_status()[1]) {
+          selectedStatus = 1;
+        } else if (SELECTED == tree_permit_status()[2]) {
+          selectedStatus = 2;
+        } else {
+          selectedStatus = null;
+        }
+        
+        view.when(function() {
+          view.whenLayerView(permitLayer).then(function (layerView) {
+            chartLayerView = layerView;
+            CHART_ELEMENT.style.visibility = "visible";
+            
+            permitLayer.queryFeatures().then(function(results) {
+              const RESULT_LENGTH = results.features;
+              const ROW_N = RESULT_LENGTH.length;
 
-    } else if (selectedP == "North Avenue" && selectedC == "With Permit") {
-      selectedStation = 5;
-      selectedRemarks = 1;
-    } else if (selectedP == "North Avenue" && selectedC == "Without Permit") {
-      selectedStation = 5;
-      selectedRemarks = 2;
+              let objID = [];
+              for (var i=0; i < ROW_N; i++) {
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
+              }
 
-    } else {
-        selectedStation = null;
-        selectedRemarks = null;
-    }
+              var queryExt = new Query({
+                 objectIds: objID
+              });
 
-    permitLayer.definitionExpression = "Station = " + selectedStation + " AND " + "Remarks2 = " + selectedRemarks;
-    zoomToLayer(permitLayer);
+              permitLayer.queryExtent(queryExt).then(function(result) {
+                  if (result.extent) {
+                      view.goTo(result.extent)
+                  }
+              });
 
-    view.on("click", function() {
-            permitLayer.definitionExpression = null;
-    });
+              if (highlightSelect) {
+                  highlightSelect.remove();
+              }
+              highlightSelect = layerView.highlight(objID);
 
+              view.on("click", function() {
+                layerView.filter = null;
+                highlightSelect.remove();
+              });
+            }); // End of queryFeatures
+            layerView.filter = {
+              where: "Remarks2 = " + selectedStatus
+            }
+          }); // End of view.whenLayerView
+        }); // End of view.when
+      } // End of filterByChart
+    } // End of createSlices function
 
-
-  }; // End of filterbyChart function
-
-  // 
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-  labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#000000");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 18;
-  labelBullet.locationX = 0.5;
-
-
-  
-} // End of createSeries function
-
-// Run createSeries
-createSeriesPermit("value1", "With Permit");
-createSeriesPermit("value2", "Without Permit");
-
+    createSlices("status", "Remarks2");
   }); // End of queryFeatures
-} // End of updateChartPermit function
-
+} // End of updateChartPermit
 }); // End of am4core.ready
 
 //*****************************//
@@ -2639,6 +2333,10 @@ view.ui.add(legendExpand, {
         </div>
           <div class="dateDiv">
               <h4>As of May 10, 2022</h4>
+          </div>
+          <div class="esri-widget" id="dropdownDiv">
+            <label for="sel-options">Station:</label>
+            <select id="valSelect" class="esri-widget" width="150" style="width: 150px"></select>
           </div>
       </div>
       <div class="container">
