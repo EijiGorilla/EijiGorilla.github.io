@@ -1173,9 +1173,9 @@ var poSectionBoxLayer = new FeatureLayer ({
 map.add(poSectionBoxLayer);
 
 // Station Layer:-------------------
-        var stationLayer = new SceneLayer({
+var stationLayer = new SceneLayer({
           portalItem: {
-            id: "03d0b7081f1f4c5eb195f2d6a380a969",
+            id: "6d8d606fee5841ea80fa133adbb028fc",
             portal: {
               url: "https://gis.railway-sector.com/portal"
             },
@@ -1196,7 +1196,7 @@ map.add(poSectionBoxLayer);
 
 // Utility Point
 // To locate a symbol with callout on the ground, 
-// If basemap elevation layer is on, use "relative-to-scene"
+// If basemap elevation layer is on, use "relative-to-ground"
 // If basemap elevatio layer is off, use "absolute-height"
 /* 3D Web Style */
 
@@ -1213,7 +1213,7 @@ var testUtilPt = new FeatureLayer({
    labelsVisible: false,
    renderer: utilTypePtRenderer,
    elevationInfo: {
-     mode: "relative-to-scene",
+     mode: "relative-to-ground",
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
@@ -1271,7 +1271,7 @@ testUtilPt.visible = true;
 
 /* Symbols with callout */
 // To locate a symbol with callout on the ground, 
-// If basemap elevation layer is on, use "relative-to-scene"
+// If basemap elevation layer is on, use "relative-to-ground"
 // If basemap elevatio layer is off, use "absolute-height"
 
 var testUtilPt1 = new FeatureLayer({
@@ -1284,7 +1284,7 @@ var testUtilPt1 = new FeatureLayer({
   layerId: 1,
   title: "Utility Point",
   elevationInfo: {
-     mode: "relative-to-scene",
+     mode: "relative-to-ground",
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
@@ -1354,7 +1354,7 @@ testUtilPt1.visible = true;
    layerId: 2,
    title: "Relocation Plan (Line)",
    elevationInfo: {
-     mode: "relative-to-scene",
+     mode: "relative-to-ground",
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
@@ -1544,7 +1544,7 @@ var testLine1 = new FeatureLayer({
    layerId: 2,
    title: "Utility Line",
    elevationInfo: {
-     mode: "relative-to-scene",
+     mode: "relative-to-ground",
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
@@ -1602,6 +1602,94 @@ var testLine1 = new FeatureLayer({
 
  map.add(testLine1);
 
+ // Station Structure
+ const colors = {
+          1: [225, 225, 225, 0], // To be Constructed (white)
+          2: [130, 130, 130, 0.3], // Under Construction
+          3: [255, 0, 0, 0.6], // Delayed
+          4: [0, 197, 255, 0.5], // Completed
+        };
+
+ var structureLayer = new SceneLayer({ //structureLayer
+          portalItem: {
+            id: "09f1e6d86cf34567bebcd22afcad8b4b",
+            portal: {
+              url: "https://gis.railway-sector.com/portal"
+            }
+          },
+          elevationInfo: {
+     mode: "relative-to-ground",
+     //offset: 0
+   },
+   title: "Station Structure",
+          popupTemplate: {
+     title: "<h5>{Status}</h5>",
+     lastEditInfoEnabled: false,
+     returnGeometry: true,
+     content: [
+       {
+         type: "fields",
+         fieldInfos: [
+           {
+             fieldName: "Type",
+             label: "Type of Structure"
+           },
+           {
+             fieldName: "ID",
+             label: "Structure ID",
+           },
+           {
+             fieldName: "Status",
+             label: "Construction Status"
+           }
+         ]
+       }
+     ]
+   },
+            elevationInfo: {
+                mode: "absolute-height",
+                offset: 0
+            },
+            title: "Station Structure"
+            // when filter using date, example below. use this format
+            //definitionExpression: "EndDate = date'2020-6-3'"
+        });
+        structureLayer.listMode = "hide";
+        map.add(structureLayer, 1);
+
+        function renderStructureLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "Status"
+          });
+
+          for (let property in colors) {
+            if (colors.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "mesh-3d",
+                  symbolLayers: [
+                    {
+                      type: "fill",
+                      material: {
+                        color: colors[property],
+                        colorMixMode: "replace"
+                      },
+                      edges: {
+                        type: "solid", // autocasts as new SolidEdges3D()
+                        color: [225, 225, 225, 0.8]
+                        }
+                    }
+                  ]
+                 }
+              });
+            }
+          }
+
+          structureLayer.renderer = renderer;
+        }
+
+        renderStructureLayer();
 
 /////////////////////////////////////////////////////////////////////////////////////
 //*******************************//
@@ -1727,9 +1815,9 @@ totalProgressAll();
 var stationSelect = document.getElementById("valSelect");
 
 view.when(function() {
-    return testUtilPt.when(function() {
-        var query = testUtilPt.createQuery();
-        return testUtilPt.queryFeatures(query);
+    return constBoundary.when(function() {
+        var query = constBoundary.createQuery();
+        return constBoundary.queryFeatures(query);
     });
 })
 .then(getValues)
@@ -1780,8 +1868,9 @@ function setLotMunicipalOnlyExpression(newValue) {
       testUtilPt1.definitionExpression = "Station1 = '" + newValue + "'";
       testLine.definitionExpression = "Station1 = '" + newValue + "'";
       testLine1.definitionExpression = "Station1 = '" + newValue + "'";
-      
-      zoomToLayer(testUtilPt);
+      constBoundary.definitionExpression = "Station1 = '" + newValue + "'";
+
+      zoomToLayer(constBoundary);
     
     return queryForLotGeometries();
 }
