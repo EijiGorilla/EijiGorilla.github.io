@@ -1191,7 +1191,7 @@ var testUtilPt = new FeatureLayer({
    outFields: ["*"],
    renderer: utilTypePtRenderer,
    elevationInfo: {
-     mode: "relative-to-scene",
+     mode: "relative-to-ground",
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
@@ -1262,7 +1262,7 @@ var testUtilPt1 = new FeatureLayer({
    outFields: ["*"],
    renderer: utilReloSymbolRenderer,
    elevationInfo: {
-     mode: "relative-to-scene",
+     mode: "relative-to-ground",
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
@@ -1329,7 +1329,7 @@ map.add(testUtilPt1);
   layerId: 3,
    title: "Relocation Plan (Line)",
    elevationInfo: {
-     mode: "relative-to-scene",
+     mode: "relative-to-ground",
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
@@ -1486,7 +1486,7 @@ var testLine1 = new FeatureLayer({
   layerId: 3,
    title: "testLine",
    elevationInfo: {
-     mode: "relative-to-scene",
+     mode: "relative-to-ground",
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
@@ -1543,158 +1543,87 @@ var testLine1 = new FeatureLayer({
  });
  map.add(testLine1);
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// FOR EXPERIMENT
-// Utility Point Existing (this is real dataset)
-/* 3D web Style*/
+ // Viaduct Layer
+ const colorsViaduct = {
+          1: [225, 225, 225, 0.1], // To be Constructed (white)
+          2: [130, 130, 130, 0.5], // Under Construction
+          3: [255, 0, 0, 0.8], // Delayed
+          4: [0, 112, 255, 0.8], // Bored Pile
+          5: [0, 112, 255, 0.8], // Pile cap
+          6: [0, 112, 255, 0.8], // Pier
+          7: [0, 112, 255, 0.8], // Pier head
+          8: [0, 112, 255, 0.8], // Pre-cast
+        };
 
-/*
- var utilPointExist1 = new FeatureLayer({
-            portalItem: {
-                id: "816c6332f99a4c6f8d27183d9d56c758" // 816c6332f99a4c6f8d27183d9d56c758
-            },
-            title: "Existing Points",
-            elevationInfo: {
-              mode: "relative-to-scene",
-              unit: "meters"
-              //offset: 0
-            },
-            renderer: utilExistSymbolRenderer,//utilExistSymbolRenderer,
-            popupTemplate: {
-              title: "{Company}",
-              lastEditInfoEnabled: false,
-              returnGeometry: true,
-              content: [
-                {
-                  type: "fields",
-                  fieldInfos: [
-                    {
-                      fieldName: "UtilType",
-                      label: "Utility Type"
-                    }
-                  ]
-                }
-              ]
+ var viaductLayer = new SceneLayer({
+   portalItem: {
+            id: "a17403d9c7de46b282437f30b66bfdca",
+            portal: {
+              url: "https://gis.railway-sector.com/portal"
             }
-        });
-        //utilPointExist1.listMode = "hide";
-        map.add(utilPointExist1, 5);
-
-
-
-        var utilPointExist2 = new FeatureLayer({
-            portalItem: {
-                id: "816c6332f99a4c6f8d27183d9d56c758"
-            },
-            title: "Existing Points (3D)",
-            elevationInfo: {
-              mode: "on-the-ground",
-              unit: "meters"
-              //offset: 0
-            },
-            renderer: utilTypePtRenderer
-        });
-        utilPointExist2.listMode = "hide";
-        map.add(utilPointExist2);
-  
-// Utility Line Existing (this is real dataset)
-
-var utilLineExist = new FeatureLayer({
-            portalItem: {
-                id: "98fe86a7d2de4565a3b20e848a9b90c6"
-            },
-            title: "Existing Line",
-            elevationInfo: {
-              mode: "relative-to-scene",
-              featureExpressionInfo: {
-                expression: "$feature.Height"
-              },
-              unit: "meters"
-            },
+          },
+         // popupTemplate: viadTemplate,
+          elevationInfo: {
+          mode: "absolute-height" //absolute-height, relative-to-ground
+        },
+            title: "Viaduct",
             outFields: ["*"],
             popupTemplate: {
-              title: "{Company}",
-              lastEditInfoEnabled: false,
-              returnGeometry: true,
-              content: [
-                {
-                  type: "fields",
-                  fieldInfos: [
-                    {
-                      fieldName: "UtilType",
-                      label: "Utility Type"
-                    }
-                  ]
-                }
-              ]
-            }
-        });
-        //utilLineExist.listMode = "hide";
-        map.add(utilLineExist, 6);
+     title: "<h5>{Status1}</h5>",
+     lastEditInfoEnabled: false,
+     returnGeometry: true,
+     content: [
+       {
+         type: "fields",
+         fieldInfos: [
+           {
+             fieldName: "Type",
+             label: "Type of Structure"
+           },
+           {
+             fieldName: "PierNumber",
+             Label: "Pier No."
+           }
+         ]
+       }
+     ]
+   }     
+          });
+          map.add(viaductLayer);
 
-        function rendertestLineExisting() {
+          function renderViaductLayer() {
           const renderer = new UniqueValueRenderer({
-            field: "UtilType"
+            field: "Status1"
           });
 
-          for (let property in colorsExisting) {
-            if (property == 1) {
-              if (colorsExisting.hasOwnProperty(property)) {
+          for (let property in colorsViaduct) {
+            if (colorsViaduct.hasOwnProperty(property)) {
               renderer.addUniqueValueInfo({
                 value: property,
                 symbol: {
-                  type: "line-3d",
+                  type: "mesh-3d",
                   symbolLayers: [
                     {
-                      type: "path",
-                      profile: options1.profile,
+                      type: "fill",
                       material: {
-                        color: colorsExisting[property]
+                        color: colorsViaduct[property],
+                        colorMixMode: "replace"
                       },
-                      width: options1.width,
-                      height: options1.height,
-                      join: options1.join,
-                      cap: options1.cap,
-                      anchor: "bottom",
-                      profileRotation: options1.profileRotation
+                      edges: {
+                        type: "solid", // autocasts as new SolidEdges3D()
+                        color: [225, 225, 225, 0.3]
+                        }
                     }
                   ]
-                }
+                 }
               });
             }
-            } else {// end of 'property == '1'
-            if (colorsExisting.hasOwnProperty(property)) {
-              renderer.addUniqueValueInfo({
-                value: property,
-                symbol: {
-                  type: "line-3d",
-                  symbolLayers: [
-                    {
-                      type: "path",
-                      profile: options.profile,
-                      material: {
-                        color: colorsExisting[property]
-                      },
-                      width: options.width,
-                      height: options.height,
-                      join: options.join,
-                      cap: options.cap,
-                      anchor: "bottom",
-                      profileRotation: options.profileRotation
-                    }
-                  ]
-                }
-              });
-            }
-            }
-            
-
           }
 
-          utilLineExist.renderer = renderer;
+          viaductLayer.renderer = renderer;
         }
-        rendertestLineExisting();
-*/
+
+        renderViaductLayer();
 
 /////////////////////////////////////////////////////////////////////////////////////
 //*******************************//
@@ -1912,6 +1841,7 @@ testUtilPt.definitionExpression = "CP = '" + newValue + "'";
     testUtilPt1.definitionExpression = "CP = '" + newValue + "'";
     testLine.definitionExpression = "CP = '" + newValue + "'";
     testLine1.definitionExpression = "CP = '" + newValue + "'";
+    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
 
     zoomToLayer(testUtilPt);
   
@@ -1924,78 +1854,50 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
 // newValue2: Utility Type
 // newValue3: target date
 
-    if(newValue1 == 'None' && newValue2 == 'None' && newValue3 == 'None'){
-    testUtilPt.definitionExpression = null;
-    testUtilPt1.definitionExpression = null;
-    testLine.definitionExpression = null;
-    testLine1.definitionExpression = null;
-
-     } else if (newValue1 == 'None' && newValue2 == 'None' && newValue3 !== 'None') {
-    testUtilPt.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "TargetDate = '" + newValue3 + "'";
-
-    testLine.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testLine1.definitionExpression = "TargetDate = '" + newValue3 + "'";
-
-    } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 == 'None'){
-    testUtilPt.definitionExpression = null;
-    testUtilPt1.definitionExpression = null;
-    testLine.definitionExpression = "Type = '" + newValue2 + "'";
-    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
-
-  } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 !== 'None'){
-    testUtilPt.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testLine.definitionExpression = "Type = '" + newValue2 + "'";
-    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
-//5
-  } else if(newValue1 == 'None' && newValue2 == "Line" && newValue3 == 'None'){
-    testLine.definitionExpression = null;
-    testLine1.definitionExpression = null;
-    testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
-    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
-//6
-} else if(newValue1 == 'None' && newValue2 == "Line" && newValue3 !== 'None'){
-    testLine.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testLine1.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testUtilPt.definitionExpression = "Type = '" + newValue2 + "'"
-    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'" 
-//7
-  } else if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 == 'None'){
+    if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 == 'None'){
     testLine.definitionExpression = "CP = '" + newValue1 + "'";
     testLine1.definitionExpression = "CP = '" + newValue1 + "'";
     testUtilPt.definitionExpression = "CP = '" + newValue1 + "'";
-    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'"; 
+    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'";
+    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
 //8
   } else if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 !== 'None'){
     testLine.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
     testLine1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
     testUtilPt.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
     testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
+    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
 //9
   } else if(newValue1 !== 'None' && newValue2 == 'Point' && newValue3 == 'None'){
     testLine.definitionExpression = "Type = '" + newValue2 + "'";
     testLine1.definitionExpression = "Type = '" + newValue2 + "'";
     testUtilPt.definitionExpression = "CP = '" + newValue1 + "'";
     testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'";
+    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
+
 //10
   } else if(newValue1 !== 'None' && newValue2 == 'Point' && newValue3 !== 'None'){
     testLine.definitionExpression = "Type = '" + newValue2 + "'";
     testLine1.definitionExpression = "Type = '" + newValue2 + "'";
     testUtilPt.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
     testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
+    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
+
 //11
   } else if(newValue1 !== 'None' && newValue2 == 'Line' && newValue3 == 'None'){
     testLine.definitionExpression = "CP = '" + newValue1 + "'";
     testLine1.definitionExpression = "CP = '" + newValue1 + "'";
     testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
     testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
+    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
+
 //12
   } else if(newValue1 !== 'None' && newValue2 == 'Line' && newValue3 !== 'None'){
     testLine.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
     testLine1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
     testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
     testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
+    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
   }
     return queryForLotGeometries
   }
@@ -2006,44 +1908,7 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
 // newValue3: target date
 
 //1    //headerTitleDiv.innerHTML = newValue1 + ", " + newValue2;
-    if(newValue1 == 'None' && newValue2 == 'None' && newValue3 == 'None'){
-    testUtilPt.definitionExpression = null;
-    testUtilPt1.definitionExpression = null;
-    testLine.definitionExpression = null;
-    testLine1.definitionExpression = null;
-//2
-     } else if (newValue1 == 'None' && newValue2 == 'None' && newValue3 !== 'None') {
-    testUtilPt.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "TargetDate = '" + newValue3 + "'";
-
-    testLine.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testLine1.definitionExpression = "TargetDate = '" + newValue3 + "'";
-//3
-    } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 == 'None'){
-    testUtilPt.definitionExpression = null;
-    testUtilPt1.definitionExpression = null;
-    testLine.definitionExpression = "Type = '" + newValue2 + "'";
-    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
-//4
-  } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 !== 'None'){
-    testUtilPt.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testLine.definitionExpression = "Type = '" + newValue2 + "'";
-    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
-//5
-  } else if(newValue1 == 'None' && newValue2 == "Line" && newValue3 == 'None'){
-    testLine.definitionExpression = null;
-    testLine1.definitionExpression = null;
-    testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
-    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
-//6
-  } else if(newValue1 == 'None' && newValue2 == "Line" && newValue3 !== 'None'){
-    testLine.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testLine1.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testUtilPt.definitionExpression = "Type = '" + newValue2 + "'"
-    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'"
-//7
-  } else if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 == 'None'){
+    if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 == 'None'){
     testLine.definitionExpression = "CP = '" + newValue1 + "'";
     testLine1.definitionExpression = "CP = '" + newValue1 + "'";
     testUtilPt.definitionExpression = "CP = '" + newValue1 + "'";
@@ -3359,7 +3224,7 @@ view.when(function () {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.title === "Chainage" || item.title === "Pier No"){
+              if (item.title === "Chainage" || item.title === "Viaduct" || item.title === "Pier No"){
                 item.visible = false
               }
             }
