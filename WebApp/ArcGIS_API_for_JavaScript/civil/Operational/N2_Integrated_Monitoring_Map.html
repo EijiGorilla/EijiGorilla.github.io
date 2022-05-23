@@ -1845,7 +1845,7 @@ var structureLayer = new FeatureLayer({
     }
   },
   layerId: 6,
-        title: "Status of Structure",
+        title: "Existing Structure",
         outFields: ["*"],
         elevationInfo: {
           mode: "on-the-ground"
@@ -1931,7 +1931,7 @@ var reloISFLayer = new FeatureLayer({
   layerId: 4,
   renderer: isfRenderer,
         outFields: ["*"],
-        title: "Status for Relocation (ISF)",
+        title: "ISF Relocation",
         popupTemplate: {
           title: "<p>{StrucID}</p>",
           lastEditInfoEnabled: false,
@@ -2071,7 +2071,7 @@ var lotLayer = new FeatureLayer({
   layerId: 7,
   renderer:lotLayerRenderer,
         outFields: ["*"],
-        title: "Land Acquisition (Status)",
+        title: "Land Acquisition",
         labelsVisible: false,
         elevationInfo: {
           mode: "on-the-ground"
@@ -2118,7 +2118,7 @@ var treeCuttingLayer = new FeatureLayer ({
     }
   },
   outFields: ["*"],
-  title: "Status of Tree Cutting",
+  title: "Tree Cutting",
   renderer: treeCuttingRenderer,
   popupTemplate: {
     title: "<h5>Tree Cutting Status: {Status}</h5>",
@@ -2174,7 +2174,7 @@ var compensationLayer = new FeatureLayer ({
     }
   },
   outFields: ["*"],
-  title: "Status oi Tree Compensation",
+  title: "Tree Compensation",
   renderer: treeCompensationRenderer,
   popupTemplate: {
     title: "<h5>Compensation Status: {Compensation}</h5>",
@@ -2639,7 +2639,7 @@ var viaductLayer = new SceneLayer({
           elevationInfo: {
           mode: "absolute-height" //absolute-height, relative-to-ground
         },
-            title: "Viaduct sample",
+            title: "Viaduct",
             outFields: ["*"],
             // when filter using date, example below. use this format
             //definitionExpression: "EndDate = date'2020-6-3'"
@@ -2666,7 +2666,6 @@ var viaductLayer = new SceneLayer({
    }
       */      
           });
-          viaductLayer.listMode = "hide";
           map.add(viaductLayer);
 
           function renderViaductLayer() {
@@ -2701,22 +2700,7 @@ var viaductLayer = new SceneLayer({
           viaductLayer.renderer = renderer;
         }
 
-        renderViaductLayer();
-
-// Station Structure
-const buildingLayer = new BuildingSceneLayer({
-  portalItem: {
-    id: "80d2aa519ad94055a732b9daee4b1154",
-  portal: {
-    url: "https://gis.railway-sector.com/portal"
-  }
-},
-outFields: ["*"],
-title: "N2 Station Structures"
-
-      });
-//map.add(buildingLayer);
-
+        renderViaductLayer()
 
 
 // Start of am4core
@@ -2724,6 +2708,7 @@ am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
 // Default
+/*
 function defaultRendering(){
     lotLayer.definitionExpression = "CP = 'N-01'";
     priorityLayer.definitionExpression = "CP = 'N-01'";
@@ -2735,15 +2720,15 @@ function defaultRendering(){
     testLine1.definitionExpression = "CP = 'N-01'";
     viaductLayer.definitionExpression = "CP = 'N-01'";
     zoomToLayer(viaductLayer);
-  updateChartLot();
-  updateChartStructure();
-    updateChartCutting();
-    updateChartCompensation();
+    
+    updateChartLot();
+    updateChartStructure();
+    updateChartISF();
     updateChartCombine();
 
-    backToStructureChart();
+    //backToStructureChart();
 }
-defaultRendering();
+*/
 /*
 if (document.getElementById("Tree Cutting").checked = true) {
   compensationLayer.visible = false;
@@ -2751,24 +2736,28 @@ if (document.getElementById("Tree Cutting").checked = true) {
   updateChartCutting();
 }
 */
-if (document.getElementById("Structure").checked = true) {
-  reloISFLayer.visible = false;
+if (document.getElementById("Land").checked = true) {
+  reloISFLayer.visible = true;
   relocationPtLayer.visible = true;
+
+    updateChartLot();
     updateChartStructure();
+    updateChartISF();
+    updateChartCombine();
 
 }
 
 // When city, barangay, or priority is changed, I want a chart to return to Structure
 function backToStructureChart(){
-  document.getElementById("Structure").checked = true;
-    reloISFLayer.visible = false;
+  document.getElementById("Land").checked = true;
+    reloISFLayer.visible = true;
     relocationPtLayer.visible = true;
 
-    treeCuttingLayer.visible = true;
+    treeCuttingLayer.visible = false;
     compensationLayer.visible = false;
 
     updateChartStructure();
-    updateChartCutting();
+    updateChartISF();
 }
 
 
@@ -2942,6 +2931,7 @@ function addToSelect(values) {
         option.text = value;
         cpSelect.add(option);
     });
+    return setMunicipalOnlyExpression(cpSelect.value);
 }
 
 /// 2.2. HandOverDate
@@ -2978,6 +2968,23 @@ function addToSelectQuery2(query2Values) {
   //return setLotBarangayExpression(handoverdateSelect.value);
 }
 
+// Initial state
+function setMunicipalOnlyExpression(newValue) {
+ 
+    lotLayer.definitionExpression = "CP = '" + newValue + "'";
+    priorityLayer.definitionExpression = "CP = '" + newValue + "'";
+    treeCuttingLayer.definitionExpression = "CP = '" + newValue + "'";
+    compensationLayer.definitionExpression = "CP = '" + newValue + "'";
+    testUtilPt.definitionExpression = "CP = '" + newValue + "'";
+    testUtilPt1.definitionExpression = "CP = '" + newValue + "'";
+    testLine.definitionExpression = "CP = '" + newValue + "'";
+    testLine1.definitionExpression = "CP = '" + newValue + "'";
+    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
+
+    zoomToLayer(lotLayer);
+
+    return queryForLotGeometries();
+}
 
 
 // Set the definition expression on the lot layer
@@ -2986,18 +2993,6 @@ function addToSelectQuery2(query2Values) {
 function setMunicipalExpression() {
   var municipal = cpSelect.options[cpSelect.selectedIndex].value;
 
-  if (municipal == 'None') {
-    lotLayer.definitionExpression = null;
-    priorityLayer.definitionExpression = null;
-    treeCuttingLayer.definitionExpression = null;
-    compensationLayer.definitionExpression = null;
-    testUtilPt.definitionExpression = null;
-    testUtilPt1.definitionExpression = null;
-    testLine.definitionExpression = null;
-    testLine1.definitionExpression = null;
-    viaductLayer.definitionExpression = null;
-
-  } else {
     lotLayer.definitionExpression = "CP = '" + municipal + "'";
     priorityLayer.definitionExpression = "CP = '" + municipal + "'";
     treeCuttingLayer.definitionExpression = "CP = '" + municipal + "'";
@@ -3007,7 +3002,6 @@ function setMunicipalExpression() {
     testLine.definitionExpression = "CP = '" + municipal + "'";
     testLine1.definitionExpression = "CP = '" + municipal + "'";
     viaductLayer.definitionExpression = "CP = '" + municipal + "'";
-  }
 
   //var barang = handoverdateSelect.options[handoverdateSelect.selectedIndex].value;
   if (!lotLayer.visible) {
@@ -3020,22 +3014,10 @@ function setMunicipalExpression() {
 function setMunicipalBarangDefinitionExpression() {
   var municipal = cpSelect.options[cpSelect.selectedIndex].value;
   var barang = handoverdateSelect.options[handoverdateSelect.selectedIndex].value;
-
-
+   
  // headerTitleDiv.innerHTML = municipal + ", " + barang;
 
-  if (municipal == 'None' && barang == 'None') {
-    lotLayer.definitionExpression = null;
-    priorityLayer.definitionExpression = null;
-    treeCuttingLayer.definitionExpression = null;
-    compensationLayer.definitionExpression = null;
-    testUtilPt.definitionExpression = null;
-    testUtilPt1.definitionExpression = null;
-    testLine.definitionExpression = null;
-    testLine1.definitionExpression = null;
-    viaductLayer.definitionExpression = null;
-
-  } else if (municipal !== 'None' && barang == 'None') {
+  if (municipal !== 'None' && barang == 'None') {
     lotLayer.definitionExpression = "CP = '" + municipal + "'";
     priorityLayer.definitionExpression = "CP = '" + municipal + "'";
     treeCuttingLayer.definitionExpression = "CP = '" + municipal + "'";
@@ -3080,17 +3062,29 @@ cpSelect.addEventListener("change", function() {
     var type = event.target.value;
     var target = event.target;
 
+    setMunicipalOnlyExpression();
     setMunicipalExpression();
     filterLotMunicipality();
+
+    filterUtilPt();
+filterUtilPt1();
+filterUtilLine();
+filterUtilLine1();
+filterLotLayer();
+filterPriorityLayer();
+filterTreeCuttingLayer();
+filterTreeCompenLayer();
+filterViaductLayer();
 
 
   updateChartLot();
   updateChartStructure();
+    updateChartISF();
     updateChartCutting();
     updateChartCompensation();
     updateChartCombine();
 
-    backToStructureChart();
+    //backToStructureChart();
 
     view.whenLayerView(lotLayer).then(function (layerView) {
   lotLayer.queryFeatures().then(function(results) {
@@ -3130,12 +3124,14 @@ where: "CP = '" + type + "'"
 
 });
 
-
 let concatView = [];
 
 // Event listener for Handed-Over date
 handoverdateSelect.addEventListener("change", function() {
   var type = event.target.value;
+
+  //setCPTargetDateAll();
+  
 
   setMunicipalBarangDefinitionExpression();
 
@@ -3146,7 +3142,7 @@ handoverdateSelect.addEventListener("change", function() {
     updateChartCombine();
 
 
-backToStructureChart();
+//backToStructureChart();
 
 view.when(function() {
 view.whenLayerView(lotLayer).then(function (layerView) {
@@ -3243,28 +3239,68 @@ function filterByType(e) {
 structureChartChangeButton.addEventListener("change", filterByType);
 function filterByType(e) {
   const selectedType = e.target.id;
-  if(selectedType == "Structure") {
-    reloISFLayer.visible = false;
-    relocationPtLayer.visible = true;
-    treeCuttingLayer.visible = true;
-    compensationLayer.visible = false;
-
-    updateChartCutting();
+  if(selectedType == "Land") {
+    
     updateChartStructure();
+    updateChartISF();
     
 
-  } else if (selectedType == "ISF") {
-    reloISFLayer.visible = true;
-    relocationPtLayer.visible = false;
-    treeCuttingLayer.visible = false;
-    compensationLayer.visible = true;
+  } else if (selectedType == "Tree") {
 
-    updateChartISF();
+    updateChartCutting();
     updateChartCompensation();
 
   }
 
 }
+
+
+// Filter
+function filterUtilPt() {
+  var query2 = testUtilPt.createQuery();
+  query2.where = testUtilPt.definitionExpression; // use filtered municipality. is this correct?
+}
+
+function filterUtilPt1() {
+  var query2 = testUtilPt1.createQuery();
+  query2.where = testUtilPt1.definitionExpression; // use filtered municipality. is this correct?
+}
+
+function filterUtilLine() {
+  var query2 = testLine.createQuery();
+  query2.where = testLine.definitionExpression; // use filtered municipality. is this correct?
+}
+
+function filterUtilLine1() {
+  var query2 = testLine1.createQuery();
+  query2.where = testLine1.definitionExpression; // use filtered municipality. is this correct?
+}
+
+function filterLotLayer() {
+  var query2 = lotLayer.createQuery();
+  query2.where = lotLayer.definitionExpression; // use filtered municipality. is this correct?
+}
+
+function filterPriorityLayer() {
+  var query2 = priorityLayer.createQuery();
+  query2.where = priorityLayer.definitionExpression; // use filtered municipality. is this correct?
+}
+
+function filterTreeCuttingLayer() {
+  var query2 = treeCuttingLayer.createQuery();
+  query2.where = treeCuttingLayer.definitionExpression; // use filtered municipality. is this correct?
+}
+
+function filterTreeCompenLayer() {
+  var query2 = compensationLayer.createQuery();
+  query2.where = compensationLayer.definitionExpression; // use filtered municipality. is this correct?
+}
+
+function filterViaductLayer() {
+  var query2 = viaductLayer.createQuery();
+  query2.where = viaductLayer.definitionExpression; // use filtered municipality. is this correct?
+}
+
 
 ////////////////////////////////////////////////////////////////////////////
 let cpArray = [];
@@ -3276,12 +3312,6 @@ let compileArrayPoint = [];
 let compileArrayLine = [];
 
 // As default, chart shows the progress of all the relocated layers (point + line)
-  updateChartLot();
-  updateChartStructure();
-    updateChartCutting();
-    updateChartCombine();
-
-
 
 // Lot Chart
 async function updateChartLot() {
@@ -3871,7 +3901,7 @@ async function updateChartISF() {
     const otc = stats.total_otc_lot;
     const lbp = stats.total_lbp_lot;
 
-    var chart = am4core.create("structureChartDiv", am4charts.PieChart);
+    var chart = am4core.create("treeChartDiv", am4charts.PieChart);
 
 
     // Add data
@@ -4594,7 +4624,7 @@ async function updateChartCutting() {
       const submit = stats.total_submit_tree;
       const ongoing = stats.total_ongoing_tree;
 
-      var chart = am4core.create("treeChartDiv", am4charts.PieChart);
+      var chart = am4core.create("structureChartDiv", am4charts.PieChart);
 
       chart.data = [
           {
@@ -5145,7 +5175,7 @@ view.when(function () {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.title === "Chainage" || item.title === "Existing Points" || item.title === "Existing Line" || item.title === "Pier No"){
+              if (item.title === "Chainage" || item.title === "Viaduct" || item.title === "Pier No"){
                 item.visible = false
               }
             }
@@ -5170,7 +5200,7 @@ var legend = new Legend({
     },
     {
       layer: structureLayer,
-      title: "Status of Structure"
+      title: "Existing Structure"
     },
     {
       layer: reloISFLayer,
@@ -5182,7 +5212,7 @@ var legend = new Legend({
     },
     {
       layer: treeCuttingLayer,
-      title: "Tree Cutting Status"
+      title: "Tree Cutting"
     },
     {
       layer: pnrLayer,
@@ -5369,8 +5399,8 @@ searchExpand.watch("expanded", function() {
       <div id="headerDiv">
         <div id="headerTitleDiv">Integrated Monitoring Map (N2)</div>
           <div id="dataTypeInput" class="chartButtonClass">
-            <input type="radio" id="Structure" name="dataTypeInput" checked/> Structure/Tree Cut
-            <input type="radio" id="ISF" name="dataTypeInput"> ISF/Tree Compen
+            <input type="radio" id="Land" name="dataTypeInput" checked/> Land/Structure/ISF
+            <input type="radio" id="Tree" name="dataTypeInput"> Tree Cut/Tree Compen
           </div>
           <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">CP:</label>
