@@ -413,7 +413,7 @@ var utilPointLayer = new FeatureLayer({
         url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 1,
+  layerId: 4,
   title: "Utility Point",
    outFields: ["*"],
    elevationInfo: {
@@ -429,7 +429,7 @@ var utilLineLayer = new FeatureLayer({
         url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 2,
+  layerId: 5,
    title: "Utility Line",
    elevationInfo: {
      mode: "relative-to-scene",
@@ -1150,8 +1150,39 @@ treeCompensationFigure();
 
 // Utility Relocation
 
+/// 2. Utility Line
+function utilityLineFigure() {
+    var total_number_utilline = {
+    onStatisticField: "LAYER",
+    outStatisticFieldName: "total_number_utilline",
+    statisticType: "count"
+  };
+  var total_completed_utilline = {
+    onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_completed_utilline",
+    statisticType: "sum"
+  };
+
+  var query = utilLineLayer.createQuery();
+  query.outStatistics = [total_number_utilline, total_completed_utilline];
+  query.returnGeometry = true;
+
+ return utilLineLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const totalnumber = stats.total_number_utilline;
+    const totalcomplete = stats.total_completed_utilline;
+
+    const compileArray = [totalnumber,totalcomplete];
+
+    return compileArray;
+
+  });
+}
+utilityLineFigure();
+
 /// 1. Utility Point
-function utilityPointFigure() {
+function utilityPointFigure(compileArray) {
   var total_number_utilpoint = {
     onStatisticField: "LAYER",
     outStatisticFieldName: "total_number_utilpoint",
@@ -1173,7 +1204,10 @@ function utilityPointFigure() {
     const totalnumber = stats.total_number_utilpoint;
     const totalcomplete = stats.total_completed_utilpoint;
 
-    const UTIL_PT_COMPLETED_PERC = (totalcomplete/totalnumber)*100;
+    const grandTotal = totalnumber + compileArray[0];
+    const grandComplete = totalcomplete + compileArray[1];
+
+    const UTIL_PT_COMPLETED_PERC = (grandComplete/grandTotal)*100;
 
 // create chart
 var chart = am4core.create("utilityPointChartDiv", am4charts.GaugeChart);
@@ -1259,7 +1293,7 @@ hand.fillOpacity = 0.5;
 
 // Add chart title
 var title = chart.titles.create();
-title.text = "[bold]UTILITY POINT";
+title.text = "[bold]UTILITY";
 title.fontSize = 30;
 title.align = "center";
 title.marginBottom = -15;
@@ -1277,139 +1311,8 @@ label.marginBottom = 0;
 
   });
 }
-utilityPointFigure();
+utilityLineFigure().then(utilityPointFigure);
 
-
-/// 2. Utility Line
-
-function utilityLineFigure() {
-    var total_number_utilline = {
-    onStatisticField: "LAYER",
-    outStatisticFieldName: "total_number_utilline",
-    statisticType: "count"
-  };
-  var total_completed_utilline = {
-    onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_completed_utilline",
-    statisticType: "sum"
-  };
-
-  var query = utilLineLayer.createQuery();
-  query.outStatistics = [total_number_utilline, total_completed_utilline];
-  query.returnGeometry = true;
-
-  utilLineLayer.queryFeatures(query).then(function(response) {
-    var stats = response.features[0].attributes;
-
-    const totalnumber = stats.total_number_utilline;
-    const totalcomplete = stats.total_completed_utilline;
-
-    const UTIL_LINE_COMPLETED_PERC = (totalcomplete/totalnumber)*100;
-
-// create chart
-var chart = am4core.create("utilityLineChartDiv", am4charts.GaugeChart);
-chart.innerRadius = am4core.percent(82);
-chart.responsive.enabled = true;
-
-/**
- * Normal axis
- */
-
-var axis = chart.xAxes.push(new am4charts.ValueAxis());
-axis.min = 0;
-axis.max = 100;
-axis.strictMinMax = true;
-axis.renderer.radius = am4core.percent(80);
-axis.renderer.inside = true;
-axis.renderer.line.strokeOpacity = 1;
-axis.renderer.ticks.template.disabled = false
-axis.renderer.ticks.template.strokeOpacity = 1;
-axis.renderer.ticks.template.length = 10;
-axis.renderer.grid.template.disabled = true;
-axis.renderer.labels.template.radius = 40;
-axis.renderer.labels.template.adapter.add("text", function(text) {
-  return text + "";
-})
-
-/**
- * Axis for ranges
- */
-
-var colorSet = new am4core.ColorSet();
-
-var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
-axis2.min = 0;
-axis2.max = 100;
-axis2.strictMinMax = true;
-axis2.renderer.labels.template.disabled = true;
-axis2.renderer.ticks.template.disabled = true;
-axis2.renderer.grid.template.disabled = true;
-
-var range0 = axis2.axisRanges.create();
-range0.value = 0;
-range0.endValue = UTIL_LINE_COMPLETED_PERC;
-range0.axisFill.fillOpacity = 1;
-range0.axisFill.fill = am4core.color("#00C3FF");
-
-var range1 = axis2.axisRanges.create();
-range1.value = UTIL_LINE_COMPLETED_PERC;
-range1.endValue = 100;
-range1.axisFill.fillOpacity = 1;
-range1.axisFill.fill = am4core.color("#C5C5C5");
-range1.axisFill.fillOpacity = 0.3;
-
-/**
- * Label
- */
-var label = chart.radarContainer.createChild(am4core.Label);
-label.isMeasured = false;
-label.fontSize = 45;
-label.x = am4core.percent(50);
-label.y = am4core.percent(100);
-label.horizontalCenter = "middle";
-label.verticalCenter = "bottom";
-
-const LABEL_TEXT = UTIL_LINE_COMPLETED_PERC.toFixed(0).toString() + "%";
-label.text = LABEL_TEXT;
-label.fill =  am4core.color("#00C3FF");
-
-
-/**
- * Hand
- */
-
-var hand = chart.hands.push(new am4charts.ClockHand());
-hand.axis = axis2;
-hand.innerRadius = am4core.percent(70);
-hand.startWidth = 10;
-hand.pin.disabled = true;
-hand.value = UTIL_LINE_COMPLETED_PERC;
-hand.fill = am4core.color("#000000");
-hand.fillOpacity = 0.5;
-
-
-// Add chart title
-var title = chart.titles.create();
-title.text = "[bold]UTILITY LINE";
-title.fontSize = 30;
-title.align = "center";
-title.marginBottom = -15;
-title.marginTop = 10;
-title.fill = TOP_TITLE_COL;
-
-// Add bottom label
-var label = chart.chartContainer.createChild(am4core.Label);
-label.text = "[bold]COMPLETED";
-label.fontSize = 20;
-label.align = "center";
-label.fill = BOTTOM_LABEL_COL;
-label.marginTop = -10;
-label.marginBottom = 0;
-
-
-  });
-}
-utilityLineFigure();
 
 }); // end am4core.ready() 
 
