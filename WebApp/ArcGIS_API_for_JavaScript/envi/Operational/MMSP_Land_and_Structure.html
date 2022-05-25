@@ -471,7 +471,7 @@
       .sassy-theme .esri-input,
       .sassy-theme .esri-layer-list,
       .sassy-theme .esri-widget a {
-        background-color: rgb(0, 0, 0, 0.2);
+        background-color: rgb(0, 0, 0, 0.5);
         color: #fff;
       }
       
@@ -1376,8 +1376,10 @@ am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
 // Default Lot Renders when map is opened.
-updateChartLot().then(totalNumberOfLots);
-updateChartStructure().then(totalNumberOfStructures);
+updateChartLot();
+totalNumberOfLots();
+updateChartStructure();
+totalNumberOfStructures();
 
 // Default Labels
 document.getElementById("headerTitleDiv").innerHTML = "Land Acquisition (MMSP)";
@@ -1408,6 +1410,43 @@ function zoomToLayer(layer) {
 //// 3. Number of Handed-Over Lots
 //// 4. Number of Structures
 //// 5. Number of Relocated ISF
+
+// 1. Total number of lots
+function totalNumberOfLots(){
+  var totalLot = {
+    onStatisticField: "ID",
+    outStatisticFieldName: "totalLot",
+    statisticType: "count"
+  };
+  var query = lotLayer.createQuery();
+  query.outStatistics = [totalLot];
+  query.returnGeometry = true;
+
+  lotLayer.queryFeatures(query).then(function(response){
+    var stats = response.features[0].attributes;
+
+    const LOT_TOTAL = stats.totalLot;
+    totalNumberDiv.innerHTML = LOT_TOTAL;
+  })
+}
+
+function totalNumberOfStructures(){
+  var totalStructure = {
+    onStatisticField: "Id",
+    outStatisticFieldName: "totalStructure",
+    statisticType: "count"
+  };
+  var query = structureLayer.createQuery();
+  query.outStatistics = [totalStructure];
+  query.returnGeometry = true;
+
+  structureLayer.queryFeatures(query).then(function(response){
+    var stats = response.features[0].attributes;
+
+    const STRUCTURE_TOTAL = stats.totalStructure;
+    structureTotalNumberDiv.innerHTML = STRUCTURE_TOTAL;
+  });
+}
 
 // 2. Number of PTE
 function pteNumberLot(){
@@ -1601,8 +1640,10 @@ stationSelect.addEventListener("change", function() {
 
     // Update All charts and numbers
     setLotMunicipalOnlyExpression(type);
-    updateChartLot().then(totalNumberOfLots);
-    updateChartStructure().then(totalNumberOfStructures);
+    updateChartLot();
+    totalNumberOfLots();
+    updateChartStructure();
+    totalNumberOfStructures();
     updateMoaChartLot();
     updateMoaChartStructure();
     pteNumberLot();
@@ -1829,7 +1870,7 @@ async function updateChartLot() {
                          totalOtbLot, totalExproLot, totalDismissalLot];
   query.returnGeometry = true;
 
-  return lotLayer.queryFeatures(query).then(function(response) {
+  lotLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
     const PAID = stats.totalPaidLot;
@@ -1838,8 +1879,6 @@ async function updateChartLot() {
     const OTB = stats.totalOtbLot;
     const EXPRO = stats.totalExproLot;
     const DISMISSAL = stats.totalDismissalLot;
-
-    const TOTAL_NUMBER_LOTS = PAID + PAYP + LEGALPASS + OTB + EXPRO + DISMISSAL;
 
     var chart = am4core.create("chartdiv", am4charts.PieChart);
     
@@ -2029,13 +2068,13 @@ async function updateChartLot() {
 
     createSlices("status", "StatusNVS3");
     
-    return TOTAL_NUMBER_LOTS;
+    //return TOTAL_NUMBER_LOTS;
   }); // End of queryFeatures
 } // End of updateChartLot()
 
-function totalNumberOfLots(TOTAL_NUMBER_LOTS) {
-  totalNumberDiv.innerHTML = thousands_separators(TOTAL_NUMBER_LOTS);
-}
+//function totalNumberOfLots(TOTAL_NUMBER_LOTS) {
+//  totalNumberDiv.innerHTML = thousands_separators(TOTAL_NUMBER_LOTS);
+//}
 
 // ------------------ PIE CHART FOR STRUCTURE ----------------------//
 async function updateChartStructure() {
@@ -2090,7 +2129,7 @@ async function updateChartStructure() {
                          totalOtbStruc, totalExproStruc, totalQuitcStruc];
   query.returnGeometry = true;
 
-  return structureLayer.queryFeatures(query).then(function(response) {
+  structureLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
     const PAID = stats.totalPaidStruc;
@@ -2099,8 +2138,6 @@ async function updateChartStructure() {
     const OTB = stats.totalOtbStruc;
     const EXPRO = stats.totalExproStruc;
     const QUITC = stats.totalQuitcStruc;
-
-    const TOTAL_NUMBER_STRUCTURE = PAID + PAYP + LEGALPASS + OTB + EXPRO + QUITC;
 
     var chart = am4core.create("structureChartDiv", am4charts.PieChart);
 
@@ -2316,14 +2353,12 @@ function filterByChart(ev) {
 
 createSlices("status", "StrucStatus");
 
-return TOTAL_NUMBER_STRUCTURE;
-
 });  // End of queryFeature                 
 } // End of updateChartStructure()
 
-function totalNumberOfStructures(TOTAL_NUMBER_STRUCTURE) {
-  structureTotalNumberDiv.innerHTML = thousands_separators(TOTAL_NUMBER_STRUCTURE);
-}
+//function totalNumberOfStructures(TOTAL_NUMBER_STRUCTURE) {
+//  structureTotalNumberDiv.innerHTML = thousands_separators(TOTAL_NUMBER_STRUCTURE);
+//}
 
 
 // ----------------- BAR CHART FOR MOA LOT ----------------- //
