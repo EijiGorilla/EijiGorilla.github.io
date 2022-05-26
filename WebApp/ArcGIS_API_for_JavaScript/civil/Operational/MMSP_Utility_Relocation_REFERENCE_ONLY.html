@@ -243,14 +243,14 @@
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.21/esri/themes/dark/main.css"
+      href="https://js.arcgis.com/4.23/esri/themes/dark/main.css"
     />
     <!-- Resources -->
     <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
     <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-    <script src="https://js.arcgis.com/4.21/"></script>
+    <script src="https://js.arcgis.com/4.23/"></script>
 
     <script>
       require([
@@ -287,7 +287,10 @@
         "esri/layers/ElevationLayer",
         "esri/Ground",
         "esri/widgets/Compass",
-        "esri/widgets/BasemapToggle"
+        "esri/widgets/BasemapToggle",
+        "esri/widgets/DirectLineMeasurement3D",
+        "esri/widgets/Measurement",
+        "esri/views/interactive/snapping/SnappingOptions"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -295,7 +298,8 @@
                   WebScene, PortalItem, Portal, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol, Expand, Editor,
-                  UniqueValueRenderer, Sublayer, Search, ElevationLayer, Ground, Compass, BasemapToggle) {
+                  UniqueValueRenderer, Sublayer, Search, ElevationLayer,
+                  Ground, Compass, BasemapToggle, DirectLineMeasurement3D, Measurement, SnappingOptions) {
 
 let chartLayerView;
   
@@ -825,11 +829,11 @@ var utilTypePtRenderer = {
             },
             {
               value: "Water Meter", // update later
-              symbol: customSymbol3D("3D_Drain_Box")
+              symbol: customSymbol3D("3D_Water_Meter")
             },
             {
               value: "Gate Valve", // update later
-              symbol: customSymbol3D("3D_Drain_Box")
+              symbol: customSymbol3D("3D_Water_Valve")
             },
             {
               value: "Valve", // update later
@@ -1179,6 +1183,19 @@ const colorsRelocation = {
  //*****************************//
 //      Layer Import           //
 //*****************************//
+var boundaryBox = new SceneLayer({
+  portalItem: {
+    id: "8b7bf1a430da4195977c077b15cc5e35",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  elevationInfo:{
+    mode: "relative-to-ground"
+  }
+});
+map.add(boundaryBox);
+
 
 // Construction Boundary
 var constBoundary = new FeatureLayer({
@@ -1909,6 +1926,7 @@ function setLotMunicipalOnlyExpression(newValue) {
       testLine.definitionExpression = "Station1 = '" + newValue + "'";
       testLine1.definitionExpression = "Station1 = '" + newValue + "'";
       constBoundary.definitionExpression = "Station1 = '" + newValue + "'";
+      structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
 
       zoomToLayer(constBoundary);          
     return queryForLotGeometries();
@@ -1940,18 +1958,21 @@ function setLotMunicipalExpression(newValue, newValue2) {
       testUtilPt1.definitionExpression = "Station1 = '" + newValue + "'";
       testLine.definitionExpression = "Station1 = '" + newValue + "'";
       testLine1.definitionExpression = "Station1 = '" + newValue + "'";
+      structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
 
     } else if (newValue !== 'None' && newValue2 == 'Point') {
       testUtilPt.definitionExpression = "Station1 = '" + newValue + "'";
       testUtilPt1.definitionExpression = "Station1 = '" + newValue + "'";
       testLine.definitionExpression = "Type = '" + newValue2 + "'";
     testLine1.definitionExpression = "Type = '" + newValue2 + "'";
+    structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
 
     } else if (newValue !== 'None' && newValue2 == 'Line') {
       testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
     testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
       testLine.definitionExpression = "Station1 = '" + newValue + "'";
       testLine1.definitionExpression = "Station1 = '" + newValue + "'";
+      structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
     } 
     return queryForLotGeometries
   }
@@ -1985,6 +2006,7 @@ function setLotMunicipalExpression(newValue, newValue2) {
 
     testUtilPt.definitionExpression = "Station1 = '" + newValue1 + "'";
     testUtilPt1.definitionExpression = "Station1 = '" + newValue1 + "'";
+    structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
 
   } else if (newValue1 !== 'None' && newValue2 == "Line") {
     testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
@@ -1992,6 +2014,7 @@ function setLotMunicipalExpression(newValue, newValue2) {
 
     testLine.definitionExpression = "Station1 = '" + newValue1 + "'";
     testLine1.definitionExpression = "Station1 = '" + newValue1 + "'";
+    structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
 
   }  else if (newValue1 !== 'None' && newValue2 == "None") {
     testUtilPt.definitionExpression = "Station1 = '" + newValue1 + "'";
@@ -2000,6 +2023,7 @@ function setLotMunicipalExpression(newValue, newValue2) {
     testLine.definitionExpression = "Station1 = '" + newValue1 + "'";
     testLine1.definitionExpression = "Station1 = '" + newValue1 + "'";
 
+    structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
   }
   return queryForLotGeometries();
 }
@@ -3784,7 +3808,21 @@ var layerListExpand = new Expand ({
 //      Search Widget          //
 //*****************************//
 
+  // Measurement
+/*
+  let measurement = new DirectLineMeasurement3D({
+    view: view
+  });
+  view.ui.add(measurement, "top-left");
+*/
 
+/*
+let measurement = new Measurement({
+  view: view,
+  activeTool: "distance"
+});
+view.ui.add(measurement, "bottom-left");
+*/
 
 var searchWidget = new Search({
   view: view,
@@ -3836,6 +3874,8 @@ searchExpand.watch("expanded", function() {
       searchWidget.searchTerm = null;
     }
   });
+
+
 
       });
     </script>
