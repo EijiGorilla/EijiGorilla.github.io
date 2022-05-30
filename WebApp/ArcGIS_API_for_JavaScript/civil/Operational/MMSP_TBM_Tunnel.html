@@ -237,7 +237,8 @@
         "esri/TimeExtent",
         "esri/layers/ElevationLayer",
         "esri/Ground",
-        "esri/widgets/Search"
+        "esri/widgets/Search",
+        "esri/widgets/BasemapToggle"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -247,7 +248,8 @@
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol,
                   TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
-                  FeatureTable, Compass, TimeExtent, ElevationLayer, Ground, Search) {
+                  FeatureTable, Compass, TimeExtent, ElevationLayer, Ground, Search,
+                  BasemapToggle) {
 
 let chartLayerView;
 //const features = [];
@@ -308,6 +310,13 @@ let chartLayerView;
                     atmosphereEnabled: false
                     }
         });
+
+        const toggle = new BasemapToggle({
+          view: view,
+          nextBaseMap: "hybrid"
+        });
+
+        view.ui.add(toggle, "top-right");
 
         //
         function shiftCamera(deg) {
@@ -703,6 +712,49 @@ var obstructionRenderer = {
 //*******************************//
 // Import Layers                 //
 //*******************************//       
+// Construction boundary
+// Construction boundary
+let ConstructionBoundaryFill = {
+                type: "unique-value",
+                valueExpression: "When($feature.MappingBoundary == 1, 'Boundary',$feature.MappingBoundary)",
+                uniqueValueInfos: [
+                    {
+                        value: "Boundary",
+                        symbol: {
+                            type: "simple-fill",
+                            color: [0, 0, 0,0],
+                            outline: {
+                                width: 2.5,
+                                color: [220,220,220],
+                                style: "short-dash"
+                            }
+                        }
+                    }
+
+                ]
+};
+
+
+// Construction Boundary
+var constBoundary = new FeatureLayer({
+  portalItem: {
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 4,
+  outFields: ["*"],
+  renderer: ConstructionBoundaryFill,
+  definitionExpression: "MappingBoundary = 1",
+  title: "Construction Boundary",
+  elevationInfo: {
+     mode: "on-the-ground",
+  },
+  popupEnabled: false
+});
+constBoundary.listMode = "hide";
+map.add(constBoundary);
 
 // Station Layer:-------------------
 var stationLayer = new SceneLayer({
