@@ -55,7 +55,7 @@
       }
 
       #headerTitleDiv {
-        font-size: 2.5vw;
+        font-size: 2.8vw;
         color: white;
         width: 40vw;
       }
@@ -199,7 +199,7 @@
         margin:0;
           padding-top: 1;
           height:31px;
-        background-color: rgb(0, 0, 0, 0);
+        background-color: rgb(0, 0, 0, 0.8);
         color: white;
         text-align: right;
       }
@@ -373,8 +373,7 @@ p {
         "esri/widgets/Search",
         "esri/widgets/Compass",
         "esri/widgets/BasemapToggle",
-        "esri/popup/support/FieldInfoFormat",
-        "esri/layers/BuildingSceneLayer"
+        "esri/popup/support/FieldInfoFormat"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -382,8 +381,7 @@ p {
                   WebScene, PortalItem, Portal, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol, Expand, Editor,
-                  UniqueValueRenderer, Sublayer, Search, Compass, BasemapToggle, FieldInfoFormat,
-                  BuildingSceneLayer) {
+                  UniqueValueRenderer, Sublayer, Search, Compass, BasemapToggle, FieldInfoFormat) {
 
 let chartLayerView;
   const features = [];
@@ -993,7 +991,7 @@ var utilReloSymbolRenderer = {
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/Relocatd.png",
                 "#D13470",
-                30,
+                28,
                 "Relocation"
                 )
             },
@@ -1003,7 +1001,7 @@ var utilReloSymbolRenderer = {
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/Utility_Relocated_Completed_Symbol.png",
                 "#D13470",
-                30,
+                28,
                 "Relocation"
                 )
             },
@@ -1845,7 +1843,7 @@ var structureLayer = new FeatureLayer({
     }
   },
   layerId: 6,
-        title: "Existing Structure",
+        title: "Status of Structure",
         outFields: ["*"],
         elevationInfo: {
           mode: "on-the-ground"
@@ -1931,7 +1929,7 @@ var reloISFLayer = new FeatureLayer({
   layerId: 4,
   renderer: isfRenderer,
         outFields: ["*"],
-        title: "ISF Relocation",
+        title: "Status for Relocation (ISF)",
         popupTemplate: {
           title: "<p>{StrucID}</p>",
           lastEditInfoEnabled: false,
@@ -2071,7 +2069,7 @@ var lotLayer = new FeatureLayer({
   layerId: 7,
   renderer:lotLayerRenderer,
         outFields: ["*"],
-        title: "Land Acquisition",
+        title: "Land Acquisition (Status)",
         labelsVisible: false,
         elevationInfo: {
           mode: "on-the-ground"
@@ -2118,7 +2116,7 @@ var treeCuttingLayer = new FeatureLayer ({
     }
   },
   outFields: ["*"],
-  title: "Tree Cutting",
+  title: "Status of Tree Cutting",
   renderer: treeCuttingRenderer,
   popupTemplate: {
     title: "<h5>Tree Cutting Status: {Status}</h5>",
@@ -2174,7 +2172,7 @@ var compensationLayer = new FeatureLayer ({
     }
   },
   outFields: ["*"],
-  title: "Tree Compensation",
+  title: "Status oi Tree Compensation",
   renderer: treeCompensationRenderer,
   popupTemplate: {
     title: "<h5>Compensation Status: {Compensation}</h5>",
@@ -2223,7 +2221,7 @@ map.add(compensationLayer);
 
 // Utility Point
 // To locate a symbol with callout on the ground, 
-// If basemap elevation layer is on, use "relative-to-ground"
+// If basemap elevation layer is on, use "relative-to-scene"
 // If basemap elevatio layer is off, use "absolute-height"
 /* 3D Web Style */
 
@@ -2239,7 +2237,7 @@ var testUtilPt = new FeatureLayer({
    outFields: ["*"],
    renderer: utilTypePtRenderer,
    elevationInfo: {
-     mode: "relative-to-ground",
+     mode: "relative-to-scene",
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
@@ -2295,7 +2293,7 @@ map.add(testUtilPt, 3);
 
 /* Symbols with callout */
 // To locate a symbol with callout on the ground, 
-// If basemap elevation layer is on, use "relative-to-ground"
+// If basemap elevation layer is on, use "relative-to-scene"
 // If basemap elevatio layer is off, use "absolute-height"
 
 var testUtilPt1 = new FeatureLayer({
@@ -2310,7 +2308,7 @@ var testUtilPt1 = new FeatureLayer({
    outFields: ["*"],
    renderer: utilReloSymbolRenderer,
    elevationInfo: {
-     mode: "relative-to-ground",
+     mode: "relative-to-scene",
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
@@ -2377,7 +2375,7 @@ map.add(testUtilPt1);
   layerId: 2,
    title: "Utility Line",
    elevationInfo: {
-     mode: "relative-to-ground",
+     mode: "relative-to-scene",
      featureExpressionInfo: {
        expression: "$feature.height"
   },
@@ -2534,7 +2532,7 @@ var testLine1 = new FeatureLayer({
   layerId: 2,
    title: "Utility Line",
    elevationInfo: {
-     mode: "relative-to-ground",
+     mode: "relative-to-scene",
      featureExpressionInfo: {
        expression: "$feature.height"
   },
@@ -2615,120 +2613,10 @@ map.add(fncLayer,0);
 // Viaduct
 // 0.1: more transparent, 0.9: not transparent
 
-
-// Viaduct Layer
-const colorsViaduct = {
-          1: [225, 225, 225, 0.1], // To be Constructed (white)
-          2: [130, 130, 130, 0.5], // Under Construction
-          3: [255, 0, 0, 0.8], // Delayed
-          4: [0, 112, 255, 0.8], // Bored Pile
-          5: [0, 112, 255, 0.8], // Pile cap
-          6: [0, 112, 255, 0.8], // Pier
-          7: [0, 112, 255, 0.8], // Pier head
-          8: [0, 112, 255, 0.8], // Pre-cast
-        };
-
-var viaductLayer = new SceneLayer({
-   portalItem: {
-            id: "a9c0878766964fa794cc67bbf38b7a09",
-            portal: {
-              url: "https://gis.railway-sector.com/portal"
-            }
-          },
-         // popupTemplate: viadTemplate,
-          elevationInfo: {
-          mode: "absolute-height" //absolute-height, relative-to-ground
-        },
-            title: "Viaduct",
-            outFields: ["*"],
-            // when filter using date, example below. use this format
-            //definitionExpression: "EndDate = date'2020-6-3'"
-            /*
-            popupTemplate: {
-     title: "<h5>{Status1}</h5>",
-     lastEditInfoEnabled: false,
-     returnGeometry: true,
-     content: [
-       {
-         type: "fields",
-         fieldInfos: [
-           {
-             fieldName: "Type",
-             label: "Type of Structure"
-           },
-           {
-             fieldName: "PierNumber",
-             Label: "Pier No."
-           }
-         ]
-       }
-     ]
-   }
-      */      
-          });
-          map.add(viaductLayer);
-
-          function renderViaductLayer() {
-          const renderer = new UniqueValueRenderer({
-            field: "Status1"
-          });
-
-          for (let property in colorsViaduct) {
-            if (colorsViaduct.hasOwnProperty(property)) {
-              renderer.addUniqueValueInfo({
-                value: property,
-                symbol: {
-                  type: "mesh-3d",
-                  symbolLayers: [
-                    {
-                      type: "fill",
-                      material: {
-                        color: colorsViaduct[property],
-                        colorMixMode: "replace"
-                      },
-                      edges: {
-                        type: "solid", // autocasts as new SolidEdges3D()
-                        color: [225, 225, 225, 0.3]
-                        }
-                    }
-                  ]
-                 }
-              });
-            }
-          }
-
-          viaductLayer.renderer = renderer;
-        }
-
-        renderViaductLayer()
-
-
 // Start of am4core
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
-// Default
-/*
-function defaultRendering(){
-    lotLayer.definitionExpression = "CP = 'N-01'";
-    priorityLayer.definitionExpression = "CP = 'N-01'";
-    treeCuttingLayer.definitionExpression = "CP = 'N-01'";
-    compensationLayer.definitionExpression = "CP = 'N-01'";
-    testUtilPt.definitionExpression = "CP = 'N-01'";
-    testUtilPt1.definitionExpression = "CP = 'N-01'";
-    testLine.definitionExpression = "CP = 'N-01'";
-    testLine1.definitionExpression = "CP = 'N-01'";
-    viaductLayer.definitionExpression = "CP = 'N-01'";
-    zoomToLayer(viaductLayer);
-    
-    updateChartLot();
-    updateChartStructure();
-    updateChartISF();
-    updateChartCombine();
-
-    //backToStructureChart();
-}
-*/
 /*
 if (document.getElementById("Tree Cutting").checked = true) {
   compensationLayer.visible = false;
@@ -2736,29 +2624,27 @@ if (document.getElementById("Tree Cutting").checked = true) {
   updateChartCutting();
 }
 */
-if (document.getElementById("Land").checked = true) {
-  reloISFLayer.visible = true;
+if (document.getElementById("Structure").checked = true) {
+  reloISFLayer.visible = false;
   relocationPtLayer.visible = true;
-
-    updateChartLot();
     updateChartStructure();
-    updateChartISF();
-    updateChartCombine();
 
 }
 
 // When city, barangay, or priority is changed, I want a chart to return to Structure
 function backToStructureChart(){
-  document.getElementById("Land").checked = true;
-    reloISFLayer.visible = true;
+  document.getElementById("Structure").checked = true;
+    reloISFLayer.visible = false;
     relocationPtLayer.visible = true;
 
-    treeCuttingLayer.visible = false;
+    treeCuttingLayer.visible = true;
     compensationLayer.visible = false;
 
     updateChartStructure();
-    updateChartISF();
+    updateChartCutting();
 }
+
+
 
 
         /////////////////////////////////////////////////////////////////////////////
@@ -2925,13 +2811,12 @@ function getUniqueValues(values) {
 // to filter lot layer by CP.
 function addToSelect(values) {
     values.sort();
-    //values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
+    values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
     values.forEach(function(value) {
         var option = document.createElement("option");
         option.text = value;
         cpSelect.add(option);
     });
-    return setMunicipalOnlyExpression(cpSelect.value);
 }
 
 /// 2.2. HandOverDate
@@ -2968,23 +2853,6 @@ function addToSelectQuery2(query2Values) {
   //return setLotBarangayExpression(handoverdateSelect.value);
 }
 
-// Initial state
-function setMunicipalOnlyExpression(newValue) {
- 
-    lotLayer.definitionExpression = "CP = '" + newValue + "'";
-    priorityLayer.definitionExpression = "CP = '" + newValue + "'";
-    treeCuttingLayer.definitionExpression = "CP = '" + newValue + "'";
-    compensationLayer.definitionExpression = "CP = '" + newValue + "'";
-    testUtilPt.definitionExpression = "CP = '" + newValue + "'";
-    testUtilPt1.definitionExpression = "CP = '" + newValue + "'";
-    testLine.definitionExpression = "CP = '" + newValue + "'";
-    testLine1.definitionExpression = "CP = '" + newValue + "'";
-    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
-
-    zoomToLayer(lotLayer);
-
-    return queryForLotGeometries();
-}
 
 
 // Set the definition expression on the lot layer
@@ -2993,6 +2861,17 @@ function setMunicipalOnlyExpression(newValue) {
 function setMunicipalExpression() {
   var municipal = cpSelect.options[cpSelect.selectedIndex].value;
 
+  if (municipal == 'None') {
+    lotLayer.definitionExpression = null;
+    priorityLayer.definitionExpression = null;
+    treeCuttingLayer.definitionExpression = null;
+    compensationLayer.definitionExpression = null;
+    testUtilPt.definitionExpression = null;
+    testUtilPt1.definitionExpression = null;
+    testLine.definitionExpression = null;
+    testLine1.definitionExpression = null;
+
+  } else {
     lotLayer.definitionExpression = "CP = '" + municipal + "'";
     priorityLayer.definitionExpression = "CP = '" + municipal + "'";
     treeCuttingLayer.definitionExpression = "CP = '" + municipal + "'";
@@ -3001,7 +2880,7 @@ function setMunicipalExpression() {
     testUtilPt1.definitionExpression = "CP = '" + municipal + "'";
     testLine.definitionExpression = "CP = '" + municipal + "'";
     testLine1.definitionExpression = "CP = '" + municipal + "'";
-    viaductLayer.definitionExpression = "CP = '" + municipal + "'";
+  }
 
   //var barang = handoverdateSelect.options[handoverdateSelect.selectedIndex].value;
   if (!lotLayer.visible) {
@@ -3014,10 +2893,21 @@ function setMunicipalExpression() {
 function setMunicipalBarangDefinitionExpression() {
   var municipal = cpSelect.options[cpSelect.selectedIndex].value;
   var barang = handoverdateSelect.options[handoverdateSelect.selectedIndex].value;
-   
+
+
  // headerTitleDiv.innerHTML = municipal + ", " + barang;
 
-  if (municipal !== 'None' && barang == 'None') {
+  if (municipal == 'None' && barang == 'None') {
+    lotLayer.definitionExpression = null;
+    priorityLayer.definitionExpression = null;
+    treeCuttingLayer.definitionExpression = null;
+    compensationLayer.definitionExpression = null;
+    testUtilPt.definitionExpression = null;
+    testUtilPt1.definitionExpression = null;
+    testLine.definitionExpression = null;
+    testLine1.definitionExpression = null;
+
+  } else if (municipal !== 'None' && barang == 'None') {
     lotLayer.definitionExpression = "CP = '" + municipal + "'";
     priorityLayer.definitionExpression = "CP = '" + municipal + "'";
     treeCuttingLayer.definitionExpression = "CP = '" + municipal + "'";
@@ -3026,7 +2916,6 @@ function setMunicipalBarangDefinitionExpression() {
     testUtilPt1.definitionExpression = "CP = '" + municipal + "'";
     testLine.definitionExpression = "CP = '" + municipal + "'";
     testLine1.definitionExpression = "CP = '" + municipal + "'";
-    viaductLayer.definitionExpression = "CP = '" + municipal + "'";
 
   } else if (municipal == 'None' && barang !== 'None') {
     lotLayer.definitionExpression = "HandOverDate1 = '" + barang + "'";
@@ -3037,7 +2926,6 @@ function setMunicipalBarangDefinitionExpression() {
     testUtilPt1.definitionExpression = null;
     testLine.definitionExpression = null;
     testLine1.definitionExpression = null;
-    viaductLayer.definitionExpression = null;
 
   } else if (municipal !== 'None' && barang !== 'None') {
     lotLayer.definitionExpression = "CP = '" + municipal + "'" + " AND " + "HandOverDate1 = '" + barang + "'";
@@ -3062,24 +2950,12 @@ cpSelect.addEventListener("change", function() {
     var type = event.target.value;
     var target = event.target;
 
-    setMunicipalOnlyExpression();
     setMunicipalExpression();
     filterLotMunicipality();
-
-    filterUtilPt();
-filterUtilPt1();
-filterUtilLine();
-filterUtilLine1();
-filterLotLayer();
-filterPriorityLayer();
-filterTreeCuttingLayer();
-filterTreeCompenLayer();
-filterViaductLayer();
 
 
   updateChartLot();
   updateChartStructure();
-    updateChartISF();
     updateChartCutting();
     updateChartCompensation();
     updateChartCombine();
@@ -3124,14 +3000,12 @@ where: "CP = '" + type + "'"
 
 });
 
+
 let concatView = [];
 
 // Event listener for Handed-Over date
 handoverdateSelect.addEventListener("change", function() {
   var type = event.target.value;
-
-  //setCPTargetDateAll();
-  
 
   setMunicipalBarangDefinitionExpression();
 
@@ -3142,7 +3016,7 @@ handoverdateSelect.addEventListener("change", function() {
     updateChartCombine();
 
 
-//backToStructureChart();
+backToStructureChart();
 
 view.when(function() {
 view.whenLayerView(lotLayer).then(function (layerView) {
@@ -3239,68 +3113,28 @@ function filterByType(e) {
 structureChartChangeButton.addEventListener("change", filterByType);
 function filterByType(e) {
   const selectedType = e.target.id;
-  if(selectedType == "Land") {
-    
-    updateChartStructure();
-    updateChartISF();
-    
-
-  } else if (selectedType == "Tree") {
+  if(selectedType == "Structure") {
+    reloISFLayer.visible = false;
+    relocationPtLayer.visible = true;
+    treeCuttingLayer.visible = true;
+    compensationLayer.visible = false;
 
     updateChartCutting();
+    updateChartStructure();
+    
+
+  } else if (selectedType == "ISF") {
+    reloISFLayer.visible = true;
+    relocationPtLayer.visible = false;
+    treeCuttingLayer.visible = false;
+    compensationLayer.visible = true;
+
+    updateChartISF();
     updateChartCompensation();
 
   }
 
 }
-
-
-// Filter
-function filterUtilPt() {
-  var query2 = testUtilPt.createQuery();
-  query2.where = testUtilPt.definitionExpression; // use filtered municipality. is this correct?
-}
-
-function filterUtilPt1() {
-  var query2 = testUtilPt1.createQuery();
-  query2.where = testUtilPt1.definitionExpression; // use filtered municipality. is this correct?
-}
-
-function filterUtilLine() {
-  var query2 = testLine.createQuery();
-  query2.where = testLine.definitionExpression; // use filtered municipality. is this correct?
-}
-
-function filterUtilLine1() {
-  var query2 = testLine1.createQuery();
-  query2.where = testLine1.definitionExpression; // use filtered municipality. is this correct?
-}
-
-function filterLotLayer() {
-  var query2 = lotLayer.createQuery();
-  query2.where = lotLayer.definitionExpression; // use filtered municipality. is this correct?
-}
-
-function filterPriorityLayer() {
-  var query2 = priorityLayer.createQuery();
-  query2.where = priorityLayer.definitionExpression; // use filtered municipality. is this correct?
-}
-
-function filterTreeCuttingLayer() {
-  var query2 = treeCuttingLayer.createQuery();
-  query2.where = treeCuttingLayer.definitionExpression; // use filtered municipality. is this correct?
-}
-
-function filterTreeCompenLayer() {
-  var query2 = compensationLayer.createQuery();
-  query2.where = compensationLayer.definitionExpression; // use filtered municipality. is this correct?
-}
-
-function filterViaductLayer() {
-  var query2 = viaductLayer.createQuery();
-  query2.where = viaductLayer.definitionExpression; // use filtered municipality. is this correct?
-}
-
 
 ////////////////////////////////////////////////////////////////////////////
 let cpArray = [];
@@ -3312,6 +3146,12 @@ let compileArrayPoint = [];
 let compileArrayLine = [];
 
 // As default, chart shows the progress of all the relocated layers (point + line)
+  updateChartLot();
+  updateChartStructure();
+    updateChartCutting();
+    updateChartCombine();
+
+
 
 // Lot Chart
 async function updateChartLot() {
@@ -3901,7 +3741,7 @@ async function updateChartISF() {
     const otc = stats.total_otc_lot;
     const lbp = stats.total_lbp_lot;
 
-    var chart = am4core.create("treeChartDiv", am4charts.PieChart);
+    var chart = am4core.create("structureChartDiv", am4charts.PieChart);
 
 
     // Add data
@@ -4367,26 +4207,15 @@ categoryAxis.renderer.grid.template.location = 0;
 categoryAxis.renderer.labels.template.fontSize = 15;
 categoryAxis.renderer.labels.template.fill = "#ffffff";
 categoryAxis.renderer.minGridDistance = 5; //can change label
-categoryAxis.renderer.inversed = true;
-    categoryAxis.renderer.grid.template.disabled = true;
-    categoryAxis.renderer.grid.template.strokeOpacity = 1;
-    categoryAxis.renderer.grid.template.stroke = am4core.color("#FFFFFFFF");
-    categoryAxis.renderer.grid.template.strokeWidth = 1.5;
-    categoryAxis.renderer.line.strokeOpacity = 1;
-    categoryAxis.renderer.line.strokeWidth = 0;
-    categoryAxis.renderer.line.stroke = am4core.color("#FFFFFFFF");
 
-    var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
 valueAxis.min = 0;
 valueAxis.max = 100;
 valueAxis.strictMinMax = true;
 valueAxis.calculateTotals = true;
 valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 14;
+valueAxis.renderer.labels.template.fontSize = 15;
 valueAxis.renderer.labels.template.fill = "#ffffff";
-valueAxis.renderer.line.strokeOpacity = 1;
-    valueAxis.renderer.line.strokeWidth = 0;
-    valueAxis.renderer.line.stroke = am4core.color("#FFFFFF");
 
 var marker = chart.legend.markers.template.children.getIndex(0);
   var markerTemplate = chart.legend.markers.template;
@@ -4419,8 +4248,8 @@ series.dataItems.template.locations.categoryY = 0.5;
 
 // Bar chart line color and width
 series.columns.template.stroke = am4core.color("#ffffff");
-  series.columns.template.strokeWidth = 0.1;
-  series.name = name;
+series.columns.template.strokeWidth = 1;
+series.name = name;
 
 var labelBullet = series.bullets.push(new am4charts.LabelBullet());
 
@@ -4635,7 +4464,7 @@ async function updateChartCutting() {
       const submit = stats.total_submit_tree;
       const ongoing = stats.total_ongoing_tree;
 
-      var chart = am4core.create("structureChartDiv", am4charts.PieChart);
+      var chart = am4core.create("treeChartDiv", am4charts.PieChart);
 
       chart.data = [
           {
@@ -5186,7 +5015,7 @@ view.when(function () {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.title === "Chainage" || item.title === "Viaduct" || item.title === "Pier No"){
+              if (item.title === "Chainage" || item.title === "Existing Points" || item.title === "Existing Line" || item.title === "Pier No"){
                 item.visible = false
               }
             }
@@ -5211,7 +5040,7 @@ var legend = new Legend({
     },
     {
       layer: structureLayer,
-      title: "Existing Structure"
+      title: "Status of Structure"
     },
     {
       layer: reloISFLayer,
@@ -5223,7 +5052,7 @@ var legend = new Legend({
     },
     {
       layer: treeCuttingLayer,
-      title: "Tree Cutting"
+      title: "Tree Cutting Status"
     },
     {
       layer: pnrLayer,
@@ -5408,10 +5237,10 @@ searchExpand.watch("expanded", function() {
   <body class="sassy-theme">
     <div id="applicationDiv">
       <div id="headerDiv">
-        <div id="headerTitleDiv">Integrated Monitoring Map (N2)</div>
+        <div id="headerTitleDiv">Pre-Construction Activities (N2)</div>
           <div id="dataTypeInput" class="chartButtonClass">
-            <input type="radio" id="Land" name="dataTypeInput" checked/> Land/Structure/ISF
-            <input type="radio" id="Tree" name="dataTypeInput"> Tree Cut/Tree Compen
+            <input type="radio" id="Structure" name="dataTypeInput" checked/> Structure/Tree Cut
+            <input type="radio" id="ISF" name="dataTypeInput"> ISF/Tree Compen
           </div>
           <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">CP:</label>
@@ -5440,6 +5269,7 @@ searchExpand.watch("expanded", function() {
           <div id="treeChartDiv"></div>
       </div>
   </div>
+
       </div>
     </div>
   </body>
