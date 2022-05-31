@@ -2609,6 +2609,91 @@ var fncLayer = new FeatureLayer ({
 });
 map.add(fncLayer,0);
 
+// Viaduct Layer
+const colorsViaduct = {
+          1: [225, 225, 225, 0.1], // To be Constructed (white)
+          2: [130, 130, 130, 0.5], // Under Construction
+          3: [255, 0, 0, 0.8], // Delayed
+          4: [0, 112, 255, 0.8], // Bored Pile
+          5: [0, 112, 255, 0.8], // Pile cap
+          6: [0, 112, 255, 0.8], // Pier
+          7: [0, 112, 255, 0.8], // Pier head
+          8: [0, 112, 255, 0.8], // Pre-cast
+        };
+
+var viaductLayer = new SceneLayer({
+   portalItem: {
+            id: "a9c0878766964fa794cc67bbf38b7a09",
+            portal: {
+              url: "https://gis.railway-sector.com/portal"
+            }
+          },
+         // popupTemplate: viadTemplate,
+          elevationInfo: {
+          mode: "absolute-height" //absolute-height, relative-to-ground
+        },
+            title: "Viaduct",
+            outFields: ["*"],
+            // when filter using date, example below. use this format
+            //definitionExpression: "EndDate = date'2020-6-3'"
+            /*
+            popupTemplate: {
+     title: "<h5>{Status1}</h5>",
+     lastEditInfoEnabled: false,
+     returnGeometry: true,
+     content: [
+       {
+         type: "fields",
+         fieldInfos: [
+           {
+             fieldName: "Type",
+             label: "Type of Structure"
+           },
+           {
+             fieldName: "PierNumber",
+             Label: "Pier No."
+           }
+         ]
+       }
+     ]
+   }
+      */      
+          });
+          map.add(viaductLayer);
+
+          function renderViaductLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "Status1"
+          });
+
+          for (let property in colorsViaduct) {
+            if (colorsViaduct.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "mesh-3d",
+                  symbolLayers: [
+                    {
+                      type: "fill",
+                      material: {
+                        color: colorsViaduct[property],
+                        colorMixMode: "replace"
+                      },
+                      edges: {
+                        type: "solid", // autocasts as new SolidEdges3D()
+                        color: [225, 225, 225, 0.3]
+                        }
+                    }
+                  ]
+                 }
+              });
+            }
+          }
+
+          viaductLayer.renderer = renderer;
+        }
+
+        renderViaductLayer()
 
 // Viaduct
 // 0.1: more transparent, 0.9: not transparent
@@ -2870,6 +2955,8 @@ function setMunicipalExpression() {
     testUtilPt1.definitionExpression = null;
     testLine.definitionExpression = null;
     testLine1.definitionExpression = null;
+    viaductLayer.definitionExpression = null;
+
 
   } else {
     lotLayer.definitionExpression = "CP = '" + municipal + "'";
@@ -2880,6 +2967,8 @@ function setMunicipalExpression() {
     testUtilPt1.definitionExpression = "CP = '" + municipal + "'";
     testLine.definitionExpression = "CP = '" + municipal + "'";
     testLine1.definitionExpression = "CP = '" + municipal + "'";
+    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
+
   }
 
   //var barang = handoverdateSelect.options[handoverdateSelect.selectedIndex].value;
@@ -2906,6 +2995,8 @@ function setMunicipalBarangDefinitionExpression() {
     testUtilPt1.definitionExpression = null;
     testLine.definitionExpression = null;
     testLine1.definitionExpression = null;
+    viaductLayer.definitionExpression = null;
+
 
   } else if (municipal !== 'None' && barang == 'None') {
     lotLayer.definitionExpression = "CP = '" + municipal + "'";
@@ -2916,6 +3007,8 @@ function setMunicipalBarangDefinitionExpression() {
     testUtilPt1.definitionExpression = "CP = '" + municipal + "'";
     testLine.definitionExpression = "CP = '" + municipal + "'";
     testLine1.definitionExpression = "CP = '" + municipal + "'";
+    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
+
 
   } else if (municipal == 'None' && barang !== 'None') {
     lotLayer.definitionExpression = "HandOverDate1 = '" + barang + "'";
@@ -2926,6 +3019,8 @@ function setMunicipalBarangDefinitionExpression() {
     testUtilPt1.definitionExpression = null;
     testLine.definitionExpression = null;
     testLine1.definitionExpression = null;
+    viaductLayer.definitionExpression = null;
+
 
   } else if (municipal !== 'None' && barang !== 'None') {
     lotLayer.definitionExpression = "CP = '" + municipal + "'" + " AND " + "HandOverDate1 = '" + barang + "'";
@@ -2959,6 +3054,7 @@ cpSelect.addEventListener("change", function() {
     updateChartCutting();
     updateChartCompensation();
     updateChartCombine();
+    filterViaductLayer();
 
     backToStructureChart();
 
@@ -5015,7 +5111,7 @@ view.when(function () {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.title === "Chainage" || item.title === "Existing Points" || item.title === "Existing Line" || item.title === "Pier No"){
+              if (item.title === "Chainage" || item.title === "Viaduct" || item.title === "Pier No"){
                 item.visible = false
               }
             }
