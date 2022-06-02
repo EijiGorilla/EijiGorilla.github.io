@@ -340,7 +340,8 @@ href="https://js.arcgis.com/4.22/esri/themes/dark/main.css"
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol,
                   TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
-                  FeatureTable, Compass, ElevationLayer, Ground, BasemapToggle, ImageMediaInfo, AttachmentsContent) {
+                  FeatureTable, Compass, ElevationLayer, Ground, BasemapToggle,
+                  ImageMediaInfo, AttachmentsContent) {
 
 let chartLayerView;
 ////////////////////////////////////////////////////
@@ -400,6 +401,13 @@ var basemap = new Basemap({
                     starsEnabled: false,
                     //disable atmosphere
                     atmosphereEnabled: false
+                    },
+                    popup: {
+                      dockEnabled: true,
+                      dockOptions: {
+                        buttonEnabled: false,
+                        breakpoint: false
+                      }
                     }
         });
 
@@ -664,7 +672,49 @@ constBoundary.listMode = "hide";
 map.add(constBoundary);
 
 // photo points
-var photoLayer = new SceneLayer({
+// 1. Click photoLayer and extract OBJECTID (how?)
+// https://developers.arcgis.com/javascript/latest/sample-code/sandbox/?sample=view-hittest
+
+
+/*
+view.whenLayerView(photoLayer).then(function (layerView) {
+
+view.on("click", eventHandler);
+
+function eventHandler(event){
+  const opts = {
+    include: photoLayer
+  };
+  view.hitTest(event,opts).then(getGraphics);
+}
+
+function getGraphics(response) {
+  if (response.results.length) {
+    const graphic = response.results[0].graphic;
+    const attributes = graphic.attributes;
+    const objid = attributes.OBJECTID;
+    headerTitleDiv.innerHTML = objid;
+  }
+}
+eventHandler().then(getGraphics);
+});
+*/
+
+/*
+const query = new Query();
+query.where = "Id = '" + selectedID;
+photoLayer.queryObjectIds(query).then(function(ids){
+  headerTitleDiv.innerHTML = ids;
+
+})
+*/
+// 2. Create conditions: if OBJECTID = 1, url, =2, url. so on
+
+const url = "https://EijiGorilla.github.io/Site_Photo/MMSP/TBM_Shaft_1.jpg";
+// const url = "https://EijiGorilla.github.io/Site_Photo/testPhoto1.jpg";
+
+function photFeatureLayer(){
+  var photoLayer = new SceneLayer({
   portalItem: {
     id: "f513566dc4ce47359e5c0a6300266c26",
     portal: {
@@ -684,7 +734,7 @@ var photoLayer = new SceneLayer({
             type: "image",
             caption: "As of 2022/03/21",
             value: {
-              sourceURL: "https://EijiGorilla.github.io/Site_Photo/MMSP/TBM_Shaft_1.jpg"
+              sourceURL: url
             }
           }
         ]
@@ -694,7 +744,38 @@ var photoLayer = new SceneLayer({
 
     });
 map.add(photoLayer,1);
+}
+photFeatureLayer();
 
+view
+  .when()
+  .then(() => {
+    return photoLayer.when();
+  })
+  .then((layer) => {
+    return view.whenLayerView(layer);
+  })
+  .then((layerView) => {
+    view.on("click", eventHandler);
+
+function eventHandler(event){
+  const opts = {
+    include: photoLayer
+  };
+  view.hitTest(event,opts).then(getGraphics);
+  headerTitleDiv.innerHTML = event;
+}
+
+function getGraphics(response) {
+  if (response.results.length) {
+    const graphic = response.results[0].graphic;
+    const attributes = graphic.attributes;
+    const objid = attributes.OBJECTID;
+    
+  }
+}
+
+  })
 // Station point feature
 
         var stationLayer = new SceneLayer({
