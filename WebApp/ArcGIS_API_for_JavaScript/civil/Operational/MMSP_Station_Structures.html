@@ -424,6 +424,46 @@ var basemap = new Basemap({
 //*******************************//
 // Label Class Property Settings //
 //*******************************//
+// site photo labels
+var sitePhotoLabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d",// autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: {
+                  color: "orange"
+                },
+                size: 15,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 40,
+              maxWorldLength: 200,
+              minWorldLength: 20
+            },
+            callout: {
+              type: "line",
+              size: 0.5,
+              color: [0, 0, 0],
+              border: {
+                color: [255, 255, 255, 0.7]
+              }
+            }
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: 'DefaultValue($feature.Description, "no data")'
+          }
+        });
+
         // Station labels
         var stationLabelClass = new LabelClass({
           symbol: {
@@ -781,6 +821,41 @@ var stationLayer = new SceneLayer({
         }
 
         renderTransitLayer();
+
+        // photo points
+  var photoLayer = new FeatureLayer({
+  portalItem: {
+    id: "bdbfa1159b6c4ef3a94e0c87462bc625",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  labelingInfo: [sitePhotoLabelClass],
+  elevationInfo:{
+    mode: "on-the-ground"
+  },
+  popupTemplate: {
+    lastEditInfoEnabled: false,
+    returnGeometry: true,
+    content: [
+      {
+        type: "media",
+        mediaInfos: [
+          {
+            title: "{Title}",
+            type: "image",
+            caption: "As of {DateTime}",
+            value: {
+              sourceURL: "{ImageURL}"
+            }
+          }
+        ]
+      }
+    ]
+    }
+
+    });
+map.add(photoLayer,1);
 
 // Radio Button Selection //        
 // Selection of 'D-Wall' or 'Station Box' only for visualization (not chart)
