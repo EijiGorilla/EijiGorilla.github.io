@@ -557,6 +557,101 @@ var sitePhotoLabelClass = new LabelClass({
 //*****************************//
 //      Renderer Settings      //
 //*****************************// 
+// Photo Symbol
+var verticalOffsetExisting = {
+  screenLength: 10,
+  maxWorldLength: 10,
+  minWorldLength: 15
+};
+
+var verticalOffsetRelocation = {
+  screenLength: 40,
+  maxWorldLength: 100,
+  minWorldLength: 20
+};
+
+
+function getUniqueValueSymbol(name, color, sizeS, util) {
+          // The point symbol is visualized with an icon symbol. To clearly see the location of the point
+          // we displace the icon vertically and add a callout line. The line connects the offseted symbol with the location
+          // of the point feature.
+          if (util == "Existing") {
+            return {
+            type: "point-3d", // autocasts as new PointSymbol3D()
+            symbolLayers: [
+              {
+                type: "icon", // autocasts as new IconSymbol3DLayer()
+                resource: {
+                  href: name
+                },
+                size: sizeS,
+                outline: {
+                  color: "white",
+                  size: 2
+                }
+              }
+            ],
+
+            verticalOffset: verticalOffsetExisting,
+
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: [128,128,128,0.1],
+              size: 0.2,
+              border: {
+                color: "grey"
+              }
+            }
+          };
+          } else {
+            return {
+            type: "point-3d", // autocasts as new PointSymbol3D()
+            symbolLayers: [
+              {
+                type: "icon", // autocasts as new IconSymbol3DLayer()
+                resource: {
+                  href: name
+                },
+                size: sizeS,
+                outline: {
+                  color: "white",
+                  size: 2
+                }
+              }
+            ],
+
+            verticalOffset: verticalOffsetRelocation,
+            callout: {
+              type: "line",
+              size: 0.5,
+              color: [0, 0, 0],
+              border: {
+                color: [255, 255, 255, 0.7]
+              }
+            }
+          };
+          }
+
+        }
+
+
+var photoSymbolRenderer = {
+  type: "unique-value",
+  valueExpression: "When($feature.Description == 'PHOTO','PHOTO',$feature.Description)",
+  uniqueValueInfos: [
+    {
+      value: "PHOTO",
+      label: "Photo Spot",
+      symbol: getUniqueValueSymbol(
+        "https://EijiGorilla.github.io/Symbols/Photo_symbol.png",
+                "#D13470",
+                20,
+                "Relocation"
+      )
+    }
+  ]
+};
+
 // Boundary
 let defaultLotSymbolBoundary = {
                 type: "simple-fill",
@@ -679,10 +774,15 @@ map.add(constBoundary);
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  labelingInfo: [sitePhotoLabelClass],
-  elevationInfo:{
-    mode: "on-the-ground"
+  //labelingInfo: [sitePhotoLabelClass],
+  renderer: photoSymbolRenderer,
+  elevationInfo: {
+  mode: "relative-to-ground",
+  featureExpressionInfo: {
+    expression: "Geometry($feature).z * 0"
   },
+  unit: "meters"
+},
   popupTemplate: {
     lastEditInfoEnabled: false,
     returnGeometry: true,
