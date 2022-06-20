@@ -226,14 +226,14 @@
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.22/esri/themes/dark/main.css"
+      href="https://js.arcgis.com/4.23/esri/themes/dark/main.css"
     />
         <!-- Resources -->
     <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
     <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-    <script src="https://js.arcgis.com/4.22/"></script>
+    <script src="https://js.arcgis.com/4.23/"></script>
 
     <script>
       require([
@@ -813,6 +813,68 @@ var geotech = new FeatureLayer({
         }
         renderGeotechLayer();
 
+// NATM
+
+const colors_NATM = {
+          1: [225, 225, 225, 0.1], // To be Constructed (white)
+          2: [130, 130, 130, 0.5], // Under Construction
+          3: [255, 0, 0, 0.8], // Delayed
+          4: [0, 112, 255, 0.8], // Completed
+        };
+
+var natmLayer = new SceneLayer({
+        portalItem: {
+          id: "b8e42fde238d4f369bacaa01b996a138",
+          portal: {
+        url: "https://gis.railway-sector.com/portal"
+    }
+        },
+        elevationInfo: {
+          mode: "absolute-height",//"on-the-ground", relative-to-ground, absolute-height
+          offset: 0
+        },
+
+         //renderer: roundTubeSymbol,
+         title: "NATM",
+         //definitionExpression: "sens='Aller'",
+         outFields: ["*"]
+        });
+        map.add(natmLayer);
+
+// Symbology for natmLayer
+function renderNATMLayer() {
+  // Obtain unique values from Status1
+  const renderer = new UniqueValueRenderer({
+    field: "status"
+  });
+  
+  for (let property in colors_NATM) {
+    if (colors_NATM.hasOwnProperty(property)) {
+      renderer.addUniqueValueInfo({
+        value: property,
+        symbol: {
+          type: "mesh-3d",
+          symbolLayers: [
+            {
+              type: "fill",
+              material: {
+                color: colors_NATM[property],
+                colorMixMode: "replace"
+              },
+              edges: {
+                type: "solid", // autocasts as new SolidEdges3D()
+                color: [225, 225, 225, 0.3]
+              }
+            }
+          ]
+        }
+      });
+    }
+  }
+  natmLayer.renderer = renderer;
+}
+renderNATMLayer();
+
 
 // TBM segmented line:-------------------
       var tbmTunnelLayer = new FeatureLayer({
@@ -1145,11 +1207,13 @@ document.querySelectorAll('.buttonClass').forEach(item => {
     /// 2. tunnels = 'TBM' and sections = 'PO'
     if (tunnels == undefined && sections == "Remaining"){
       tunnels = "TBM";
+      natmLayer.visible = false;
       tbmTunnelLayer.definitionExpression = "Section = '" + sections + "'";
       tbmChart();
 
     } else if (tunnels == undefined && sections == "PO"){
       tunnels = "TBM";
+      natmLayer.visible = false;
       tbmTunnelLayer.definitionExpression = "Section = '" + sections + "'";
       tbmChart();
 
@@ -1159,12 +1223,16 @@ document.querySelectorAll('.buttonClass').forEach(item => {
     /// 2. tunnels = 'TBM' and sections = 'PO'
      
     } else if (sections == undefined && tunnels == "NATM"){;
-      sections = 'PO';
+      //sections = 'PO';
       tbmTunnelLayer.visible = false;
+      natmLayer.visible = true;
+      natmLayer.definitionExpression = null;
+      zoomToLayer(natmLayer);
 
     } else if (sections == undefined && tunnels == "TBM"){;
       sections = 'PO';
       tbmTunnelLayer.visible = true;
+      natmLayer.visible = false;
       tbmTunnelLayer.definitionExpression = "Section = '" + sections + "'";
       
       tbmChart();
@@ -1172,23 +1240,28 @@ document.querySelectorAll('.buttonClass').forEach(item => {
   /// Conditions below fall out of DEFAULT.
   } else if (sections === "PO" && tunnels === "TBM"){
       tbmTunnelLayer.visible = true;
+      natmLayer.visible = false;
       tbmTunnelLayer.definitionExpression = "Section = '" + sections + "'";
       //natmTunnelLayer.visible = true;
       tbmChart();
 
     } else if (sections === "PO" && tunnels === "NATM") {
       tbmTunnelLayer.visible = false;
+      natmLayer.visible = false;
       //natmTunnelLayer.visible = false;
 
     } else if (sections === "Remaining" && tunnels === "TBM"){
       tbmTunnelLayer.visible = true;
+      natmLayer.visible = false;
       tbmTunnelLayer.definitionExpression = "Section = '" + sections + "'";
       //natmTunnelLayer.visible = false;
       tbmChart();
 
     } else if (sections === "Remaining" && tunnels === "NATM") {
       tbmTunnelLayer.visible = false;
-      //natmTunnelLayer.definitionExpression = null;
+      natmLayer.visible = true;
+      natmLayer.definitionExpression = null;
+      zoomToLayer(natmLayer);
     }
   }
 });
