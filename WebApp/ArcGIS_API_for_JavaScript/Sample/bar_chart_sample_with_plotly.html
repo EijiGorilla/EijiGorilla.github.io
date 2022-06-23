@@ -1,0 +1,173 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
+  -->
+<title>SC1 Subcontractor Submissions</title>
+
+    <style>
+      
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        background-color: black;       
+      }
+
+      #titleDiv {
+        font-size: 1.4vw;
+        color: white;
+
+      }
+
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 99%;
+        width: 100%;
+        background-color: black;
+        flex: 1 1 auto;
+        order: 1;
+        overflow: hidden;
+      }
+
+      #chartDiv {
+        z-index: 99;
+        height: 40vh;
+        width: 50%;
+      }
+
+    ::-webkit-scrollbar {
+    display: none;
+    }
+    
+      .sassy-theme .esri-legend .esri-legend__layer-cell--info {
+        background-color: black;
+        color: white;
+        font-size: 12px;
+      }
+
+      .sassy-theme .esri-legend__layer-caption {
+    display: none;
+  }
+
+    </style>
+
+<link
+rel="stylesheet"
+href="https://js.arcgis.com/4.22/esri/themes/dark/main.css"
+/>
+<!-- Resources -->
+<script src='https://cdn.plot.ly/plotly-2.12.1.min.js'></script>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<script src="https://js.arcgis.com/4.22/"></script>
+
+
+    <script>
+      require([
+        "esri/Basemap",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/views/SceneView",
+        "esri/layers/FeatureLayer",
+        "esri/views/layers/support/FeatureFilter",
+        "esri/layers/SceneLayer",
+        "esri/layers/CSVLayer"
+      ], function(Basemap, Map, MapView, SceneView, 
+                  FeatureLayer, FeatureFilter,
+                  SceneLayer,CSVLayer) {
+
+
+var map = new Map({
+              basemap: "gray-vector", // "streets-night-vector", basemap
+              ground: "world-elevation"
+        }); 
+        //map.ground.surfaceColor = "#FFFF";
+        //map.ground.opacity = 0.5;
+         
+var view = new SceneView({
+            map: map,
+            container: "viewDiv",
+            environment: {
+                background: {
+                    type: "color", // autocasts as new ColorBackground()
+                    color: [0, 0, 0, 1]
+                    },
+                    // disable stars
+                    starsEnabled: false,
+                    //disable atmosphere
+                    atmosphereEnabled: false
+                    }
+        });
+
+// test
+const year = [2021,2022];
+const month = [1,2,3,4,5,6,7,8,9,10,11,12];
+const pile_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+
+var ylength = year.length;
+var mlength = month.length;
+var arr = new Array();
+
+// compile in Array
+for(var i=year[0]; i<=year[ylength-1]; i++){
+  for(var j=month[0]; j<=month[mlength-1]; j++){
+    var ym = i.toString() + "-" + j.toString();
+    arr.push(new Date(ym).toLocaleDateString('en-ZA'));
+  }
+}
+
+// Can we use this for getting summary statistics 
+function test(year,month,type){
+  var total_year = {
+  onStatisticField: "CASE WHEN (year = {0} & month = {1} & type = {2}) THEN 1 ELSE 0 END".format(year,month,type),
+
+}
+}
+
+
+
+// update view when points are updated
+var trace1 = {
+  x: dateArr,
+  name: 'SF Zoo',
+  type: 'bar'
+};
+
+var trace2 = {
+  x: dateArr,
+  y: [12, 18, 29, 12, 4],
+  name: 'LA Zoo',
+  type: 'bar'
+};
+
+var data = [trace1, trace2];
+
+var layout = {barmode: 'stack'};
+
+Plotly.newPlot('chartDiv', data, layout);
+
+
+
+
+      });
+    </script>
+  </head>
+
+  <body class="sassy-theme">
+    <div id="titleDiv"></div>
+    <div id="chartDiv"></div>  
+    <div id="viewDiv"></div> 
+  </body>
+</html>
