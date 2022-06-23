@@ -1,0 +1,170 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
+  -->
+<title>SC1 Subcontractor Submissions</title>
+
+    <style>
+      
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        background-color: black;       
+      }
+
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 99%;
+        width: 100%;
+        background-color: black;
+        flex: 1 1 auto;
+        order: 1;
+        overflow: hidden;
+      }
+
+      .sassy-theme .esri-legend__layer-caption {
+    display: none;
+  }
+
+    </style>
+
+<link
+rel="stylesheet"
+href="https://js.arcgis.com/4.22/esri/themes/dark/main.css"
+/>
+<!-- Resources -->
+<script src='https://cdn.plot.ly/plotly-2.12.1.min.js'></script>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<script src="https://js.arcgis.com/4.22/"></script>
+
+
+    <script>
+      require([
+        "esri/Basemap",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/views/SceneView",
+        "esri/layers/FeatureLayer",
+        "esri/views/layers/support/FeatureFilter",
+        "esri/layers/SceneLayer",
+      ], function(Basemap, Map, MapView, SceneView, 
+                  FeatureLayer, FeatureFilter,
+                  SceneLayer) {
+
+var map = new Map({
+              basemap: "gray-vector", // "streets-night-vector", basemap
+              ground: "world-elevation"
+        }); 
+        //map.ground.surfaceColor = "#FFFF";
+        //map.ground.opacity = 0.5;
+         
+var view = new MapView({
+            map: map,
+            center: [121.0477729, 14.4136156],
+            zoom: 10,
+            container: "viewDiv",
+            environment: {
+                background: {
+                    type: "color", // autocasts as new ColorBackground()
+                    color: [0, 0, 0, 1]
+                    },
+                    // disable stars
+                    starsEnabled: false,
+                    //disable atmosphere
+                    atmosphereEnabled: false
+                    }
+        });
+
+// Read Chart every 2 seconds, assuming that the csv file is streamed from outside source.
+// This allows to display chart in real time.
+var interval = window.setInterval(function() {
+  updateChart();
+
+},2000);
+
+// d3.csv
+async function updateChart() {
+  d3.csv("https://raw.githubusercontent.com/EijiGorilla/EijiGorilla.github.io/master/WebApp/ArcGIS_API_for_JavaScript/Sample/deleteLater_sample.csv", function(err, rows){
+
+function unpack(rows, key) {
+return rows.map(function(row) { return row[key]; });
+}
+var chartDiv = document.getElementById('chartDiv');
+
+var trace1 = {
+type: "scatter",
+mode: "lines",
+name: 'AAPL High',
+x: unpack(rows, 'Date'),
+y: unpack(rows, 'AAPL.High'),
+line: {color: '#17BECF'}
+}
+
+var trace2 = {
+type: "scatter",
+mode: "lines",
+name: 'AAPL Low',
+x: unpack(rows, 'Date'),
+y: unpack(rows, 'AAPL.Low'),
+line: {color: '#7F7F7F'}
+}
+
+var data = [trace1,trace2];
+
+var layout = {
+title: 'Time Series with Rangeslider',
+xaxis: {
+  autorange: true,
+  range: ['2015-02-17', '2017-02-16'],
+  rangeselector: {buttons: [
+      {
+        count: 1,
+        label: '1m',
+        step: 'month',
+        stepmode: 'backward'
+      },
+      {
+        count: 6,
+        label: '6m',
+        step: 'month',
+        stepmode: 'backward'
+      },
+      {step: 'all'}
+    ]},
+  rangeslider: {range: ['2015-02-17', '2017-02-16']},
+  type: 'date'
+},
+yaxis: {
+  autorange: true,
+  range: [86.8700008333, 138.870004167],
+  type: 'linear'
+}
+};
+
+Plotly.newPlot(chartDiv, data, layout);
+}); // End of d3.csv
+
+}
+      });
+    </script>
+  </head>
+
+  <body class="sassy-theme">
+    <div id="viewDiv"></div>
+    <div id="chartDiv"></div>
+  </body>
+</html>

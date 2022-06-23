@@ -1,0 +1,180 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+      Sample
+    </title>
+    <style>
+ html,
+body,
+#viewDiv {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+
+    </style>
+
+    <link
+    rel="stylesheet"
+    href="https://js.arcgis.com/4.23/esri/themes/dark/main.css"
+    />
+<!-- Resources -->
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<script src="https://js.arcgis.com/4.23/"></script>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/TileLayer",
+        "esri/Graphic",
+        "esri/layers/FeatureLayer",
+        "esri/layers/GraphicsLayer",
+        "esri/layers/GroupLayer",
+        "esri/widgets/Expand",
+        "esri/widgets/Legend",
+        "esri/tasks/support/Query",
+        "esri/tasks/QueryTask",
+        "esri/widgets/Fullscreen",
+        "esri/symbols/TextSymbol",
+        "esri/views/SceneView",
+        "esri/widgets/LayerList"
+      ], function(
+        Map,
+        MapView,
+        TileLayer,
+        Graphic,
+        FeatureLayer,
+        GraphicsLayer,
+        GroupLayer,
+        Expand,
+        Legend,
+        Query,
+        QueryTask,
+        Fullscreen,
+        TextSymbol,
+        SceneView,
+        LayerList
+
+      ) {
+  // create empty FeatureLayer
+  const layer = new FeatureLayer({
+    title: "My Points",
+    fields: [
+      {
+        name: "FID",
+        alias: "FID",
+        type: "oid"
+      }
+    ],
+    objectIdField: "ObjectID",
+    geometryType: "point",
+    spatialReference: { wkid: 4326 },
+    source: [], // adding an empty feature collection
+    popupTemplate: {
+      title: "{ObjectId}"
+    },
+    renderer: {
+      type: "simple",
+      symbol: {
+        type: "simple-marker",
+        outline: { width: 1, color: [255, 255, 255, 1] },
+        size: 8,
+        color: [89, 229, 56, 1]
+      }
+    }
+  });
+
+  const map = new Map({
+    basemap: "gray-vector",
+    layers: [layer]
+  });
+  const view = new MapView({
+    container: "viewDiv",
+    map: map,
+    center: [-118, 34],
+    zoom: 12
+  });
+
+  view.when(() => {
+    updatePoints();
+    setInterval(() => {
+      console.log("update");
+      updatePoints();
+    }, 2000);
+  });
+
+  async function updatePoints() {
+    const pts = generateRandomPoints({ lat: 34, lng: -118 }, 10000, 1000);
+    const graphics = [];
+    for (var i = 0; i < pts.length; i++) {
+      const graphic = new Graphic({
+        geometry: {
+          type: "point",
+          latitude: pts[i].lat,
+          longitude: pts[i].lng
+        },
+        attributes: null
+      });
+      graphics.push(graphic);
+    }
+    
+    const {features} = await layer.queryFeatures();
+
+    layer
+      .applyEdits({
+      addFeatures: graphics,
+      deleteFeatures: features
+    })
+      .then((results) => {
+      console.log("features updated");
+    })
+      .catch((err) => console.warn(err));
+  }
+  
+  // https://gist.github.com/mkhatib/5641004
+  function generateRandomPoints(center, radius, count) {
+    const points = [];
+    for (let i = 0; i < count; i++) {
+      points.push(generateRandomPoint(center, radius));
+    }
+    return points;
+  }
+
+  function generateRandomPoint(center, radius) {
+    const x0 = center.lng;
+    const y0 = center.lat;
+    // Convert Radius from meters to degrees.
+    const rd = radius / 111300;
+
+    const u = Math.random();
+    const v = Math.random();
+
+    const w = rd * Math.sqrt(u);
+    const t = 2 * Math.PI * v;
+    const x = w * Math.cos(t);
+    const y = w * Math.sin(t);
+
+    const xp = x / Math.cos(y0);
+
+    // Resulting point.
+    return { lat: y + y0, lng: xp + x0 };
+  }
+
+      });
+    </script>
+  </head>
+  <body class="sassy-theme">
+    <div id="viewDiv"></div>
+  </body>
+</html>

@@ -1,0 +1,252 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
+  -->
+<title>SC1 Subcontractor Submissions</title>
+
+    <style>
+      
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        background-color: black;       
+      }
+
+      #titleDiv {
+        font-size: 1.4vw;
+        color: white;
+
+      }
+
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 99%;
+        width: 100%;
+        background-color: black;
+        flex: 1 1 auto;
+        order: 1;
+        overflow: hidden;
+      }
+
+      #chartDiv {
+        z-index: 99;
+        height: 40vh;
+        width: 50%;
+      }
+
+    ::-webkit-scrollbar {
+    display: none;
+    }
+    
+      .sassy-theme .esri-legend .esri-legend__layer-cell--info {
+        background-color: black;
+        color: white;
+        font-size: 12px;
+      }
+
+      .sassy-theme .esri-legend__layer-caption {
+    display: none;
+  }
+
+    </style>
+
+<link
+rel="stylesheet"
+href="https://js.arcgis.com/4.22/esri/themes/dark/main.css"
+/>
+<!-- Resources -->
+<script src='https://cdn.plot.ly/plotly-2.12.1.min.js'></script>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<script src="https://js.arcgis.com/4.22/"></script>
+
+
+    <script>
+      require([
+        "esri/Basemap",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/views/SceneView",
+        "esri/layers/FeatureLayer",
+        "esri/views/layers/support/FeatureFilter",
+        "esri/layers/SceneLayer",
+        "esri/layers/CSVLayer"
+      ], function(Basemap, Map, MapView, SceneView, 
+                  FeatureLayer, FeatureFilter,
+                  SceneLayer,CSVLayer) {
+
+
+var map = new Map({
+              basemap: "gray-vector", // "streets-night-vector", basemap
+              ground: "world-elevation"
+        }); 
+        //map.ground.surfaceColor = "#FFFF";
+        //map.ground.opacity = 0.5;
+         
+var view = new SceneView({
+            map: map,
+            container: "viewDiv",
+            environment: {
+                background: {
+                    type: "color", // autocasts as new ColorBackground()
+                    color: [0, 0, 0, 1]
+                    },
+                    // disable stars
+                    starsEnabled: false,
+                    //disable atmosphere
+                    atmosphereEnabled: false
+                    }
+        });
+
+// Zoom to Layer
+function zoomToLayer(layer) {
+  return layer.queryExtent().then(function(response) {
+    view.goTo(response.extent, { //response.extent
+      speedFactor: 2
+    }).catch(function(error) {
+      if (error.name != "AbortError") {
+        console.error(error);
+      }
+    });
+  });
+}
+
+const titleDiv = document.getElementById("titleDiv");
+// Read CSV layer
+async function csvFunction() {
+  const csvLayer = new CSVLayer({
+    url: "https://raw.githubusercontent.com/EijiGorilla/EijiGorilla.github.io/master/WebApp/ArcGIS_API_for_JavaScript/Sample/sample_timeseries.csv"
+  });
+// the layer will be refreshed every 6 seconds.
+  map.add(csvLayer);  // adds the layer to the map
+  zoomToLayer(csvLayer);
+
+  csvLayer.renderer = {
+  type: "simple",  // autocasts as new SimpleRenderer()
+  symbol: {
+    type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+    size: 6,
+    color: "purple",
+    outline: {  // autocasts as new SimpleLineSymbol()
+      width: 0.5,
+      color: "white"
+    }
+  }
+  }
+
+  var total_count = {
+    onStatisticField: "latitude",
+    outStatisticFieldName: "total_count",
+    statisticType: "count"
+  };
+
+  var query = csvLayer.createQuery();
+  query.outStatistics = [total_count];
+  query.returnGeometry = true;
+  csvLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+    const total = stats.total_count;
+
+    titleDiv.innerHTML = total;
+  })
+};
+
+// update view when points are updated
+view.when(() => {
+  csvFunction();
+  updateChart();
+  setInterval(() => {
+    csvFunction();
+    updateChart();
+  }, 2000)
+});
+
+// d3.csv
+async function updateChart() {
+  d3.csv("https://raw.githubusercontent.com/EijiGorilla/EijiGorilla.github.io/master/WebApp/ArcGIS_API_for_JavaScript/Sample/deleteLater_sample.csv", function(err, rows){
+
+function unpack(rows, key) {
+return rows.map(function(row) { return row[key]; });
+}
+var chartDiv = document.getElementById('chartDiv');
+
+var trace1 = {
+type: "scatter",
+mode: "lines",
+name: 'AAPL High',
+x: unpack(rows, 'Date'),
+y: unpack(rows, 'AAPL.High'),
+line: {color: '#17BECF'}
+}
+
+var trace2 = {
+type: "scatter",
+mode: "lines",
+name: 'AAPL Low',
+x: unpack(rows, 'Date'),
+y: unpack(rows, 'AAPL.Low'),
+line: {color: '#7F7F7F'}
+}
+
+var data = [trace1,trace2];
+
+var layout = {
+title: 'Time Series with Rangeslider',
+xaxis: {
+  autorange: true,
+  range: ['2015-02-17', '2017-02-16'],
+  rangeselector: {buttons: [
+      {
+        count: 1,
+        label: '1m',
+        step: 'month',
+        stepmode: 'backward'
+      },
+      {
+        count: 6,
+        label: '6m',
+        step: 'month',
+        stepmode: 'backward'
+      },
+      {step: 'all'}
+    ]},
+  rangeslider: {range: ['2015-02-17', '2017-02-16']},
+  type: 'date'
+},
+yaxis: {
+  autorange: true,
+  range: [86.8700008333, 138.870004167],
+  type: 'linear'
+}
+};
+
+Plotly.newPlot(chartDiv, data, layout);
+}); // End of d3.csv
+
+}
+updateChart();
+
+
+      });
+    </script>
+  </head>
+
+  <body class="sassy-theme">
+    <div id="titleDiv"></div>
+    <div id="chartDiv"></div>  
+    <div id="viewDiv"></div> 
+  </body>
+</html>
