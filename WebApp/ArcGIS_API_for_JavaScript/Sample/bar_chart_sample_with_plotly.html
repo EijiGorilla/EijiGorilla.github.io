@@ -22,7 +22,7 @@
       }
 
       #titleDiv {
-        font-size: 1.4vw;
+        font-size: 10vw;
         color: white;
 
       }
@@ -128,23 +128,57 @@ for(var i=year[0]; i<=year[ylength-1]; i++){
   }
 }
 
+var viaductLayer = new SceneLayer({
+  portalItem: {
+    id: "a9c0878766964fa794cc67bbf38b7a09",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  outFields: ["*"]
+});
+map.add(viaductLayer);
+
+titleDiv = document.getElementById("titleDiv");
 // Can we use this for getting summary statistics 
-function test(year,month,type){
+
+const typesN = [1,2,3,4,5];
+const cpN = ['N-01','N-02','N-03','N-04'];
+const array = [];
+
+function statsFunction(){
   var total_count = {
-    onStatisticField: "1=1",
+    onStatisticField: "CASE WHEN Status1 = 4 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_count",
-    statisticType: "count"
+    statisticType: "sum"
   //query.having?
 }
+
 var query = viaductLayer.createQuery();
 query.outStatistics = [total_count];
-query.groupByFieldsForStatistics = ["Type","Year","Month"];
+query.returnGeometry = true;
+//query.groupByFieldsForStatistics = ["Type","CP"]
 
+  query.where = "CP = '" + cpN[0] + "'";
+  viaductLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+    const total_complete = stats.total_count;
+    
+});
+}
+
+
+titleDiv.innerHTML = array;
+
+//query.where = "CP = '" + "N-01" + "'" + " AND " + "Type = " + typesN;
+/*
 viaductLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
     const total_complete = stats.total_count;
+    titleDiv.innerHTML = total_complete;
+   
 });
-}
+*/
 
 
 
@@ -176,8 +210,8 @@ Plotly.newPlot('chartDiv', data, layout);
   </head>
 
   <body class="sassy-theme">
+    <div id="chartDiv"></div>
     <div id="titleDiv"></div>
-    <div id="chartDiv"></div>  
     <div id="viewDiv"></div> 
   </body>
 </html>
