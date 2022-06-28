@@ -23,7 +23,7 @@
       #applicationDiv {
         display: flex;
         flex-wrap: wrap;
-        height: 90vh;
+        height: 88vh;
         padding: 10px;
         margin: 0 auto;
         box-sizing: border-box;
@@ -33,7 +33,7 @@
         display: grid;
           border: solid 2.5px gray;
           flex-wrap: wrap;
-        height: 90vh;
+        height: 88vh;
         width: 100%;
         box-sizing: border-box;
           grid-template-columns: 4fr 1fr;
@@ -42,7 +42,7 @@
 
       #headerDiv {
         font-weight: 400;
-        max-width: 2000px;
+        width: 100%;
         font-style: normal;
         font-size: 25px;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
@@ -51,13 +51,51 @@
         border: solid 2.5px gray;
         margin-bottom: 3px;
         display: grid;
-        grid-template-columns: 40px 250fr 0fr 0fr;
+        grid-template-columns: 2fr 1fr;
+      }
+
+      #headerTitleDiv {
+        font-size: 2.6vw;
+        color: white;
+        width: 40vw;
+      }
+
+      .dateDiv {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: right;
+        vertical-align: text-bottom;
+        font-weight: normal;
+        font-size: 1rem;
+        padding-top: 7%;
+        margin: 0;
+        width: 160px;
+      }
+
+      #dataTypeInput {
+        color: white;
+        font-size: 1.5vw;
+        padding-top: 1%;
+        padding-right: 3%;
+        margin: 2%;
+        text-align: right;
+        vertical-align:text-top;
+      }
+
+      #tunnelTypeInput {
+        color: rgb(0, 197, 255);
+        font-size: 1.3vw;
+        padding-top: 1%;
+        padding-right: 3%;
+        margin: 2%;
+        text-align: center;
+        vertical-align:text-top;
       }
 
       #viewDiv {
         padding: 0;
         margin: 0;
-        height: 99%;
+        height: 87vh;
         width: 100%;
         background-color: black;
         flex: 1 1 auto;
@@ -82,11 +120,9 @@
         font-size: 1.7vw;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         color: white;
-        margin-top: 5%;
-        padding-bottom: 5%;
-        background-color: rgb(0, 0, 0, 0.5);
-        opacity: 0.9;
-        line-height: 0.5;
+        margin-top: 5;
+        background-color: rgb(0,0,0,0);
+        padding-bottom: 1%;
       }
  
       #chartPanel {
@@ -108,13 +144,13 @@
         padding-top: 20px;
         line-height: 0.3;
         opacity: 0.8;
-        height: 14vh;
+        height: 15vh;
         width: 100%
       }
 
       #chartdiv {
           width: 100%;
-          height: 100%;
+          height: 60vh;
           }
       
       p {
@@ -336,6 +372,13 @@ let chartLayerView;
         var headerDiv = document.getElementById("headerDiv");
         var headerTitleDiv = document.getElementById("headerTitleDiv");
         var applicationDiv = document.getElementById("applicationDiv");
+        var PO = document.getElementById("PO");
+        var Remaining = document.getElementById("Remaining");
+        const CHART_ELEMENT = document.getElementById("chartPanel");
+        var dataTypeInput = document.getElementById("dataTypeInput");
+        var tunnelTypeInput = document.getElementById("tunnelTypeInput");
+
+
 
 
 //*******************************//
@@ -420,51 +463,6 @@ var tbmSpotLabel2 = new LabelClass({
         });
 
 
-// TBM spot label class
-        var tbmspotlabelClass = new LabelClass({
-          symbol: {
-            type: "label-3d",// autocasts as new LabelSymbol3D()
-            symbolLayers: [
-              {
-                type: "text", // autocasts as new TextSymbol3DLayer()
-                material: {
-                  color: [0, 197, 255]
-                },
-                //halo: {
-                //      size: 0.8,
-                //      color: "black"
-                //    },
-                //size: 10,
-                font: {
-                  family: "Ubuntu Mono",
-                  weight: "bold"
-                },
-              }
-            ],
-            verticalOffset: {
-              screenLength: 100,
-              maxWorldLength: 300, //200
-              minWorldLength: 30
-            },
-            callout: {
-              type: "line",
-              size: 0.5,
-              color: [0, 0, 0],
-              border: {
-                color: [255, 255, 255, 0.7]
-              }
-            }
-          },
-          labelPlacement: "above-center",
-          labelExpressionInfo: {
-            expression: "$feature.Type"
-            //value: "TBM"
-          }
-        });
-
-// TBM Labeling on transitLayer (TBM Tunnel polyline)
-
-
 // monitor buildings Label
         var monitorBuillabelClass = new LabelClass({
           symbol: {
@@ -535,26 +533,7 @@ var tbmSpotLabel2 = new LabelClass({
           field: "Name",
           defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
         };
-
-        var tbmspotRenderer = {
-          type: "unique-value", //"unique-value", "simple"
-          field: "Type",
-          defaultSymbol: tbmspotSymbol("Tram"),
-          visualVariables: [
-            {
-              type: "size",
-              axis: "height",
-              field: "SIZE",
-              valueUnit: "meters"
-            },
-            {
-              type: "rotation",
-              field: "ROTATION"
-            }
-          ]
-        };
-
-        
+       
 // Geotechnical information Renderer:-------------------
         ///-- Profile Options for rendering geotechnical informatino (polyline Z)
         const options_g = {
@@ -778,23 +757,6 @@ var stationLayer = new SceneLayer({
         stationLayer.listMode = "hide";
         map.add(stationLayer);
 
-// TBM Machine Spot:-------------------
-        var tbmSpot = new FeatureLayer({
-          portalItem: {
-            id: "af9539f5e41e4bd8b694973972e3faf4",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            },
-          },
-          layerId: 1,
-          labelingInfo: [tbmspotlabelClass],
-          renderer: tbmspotRenderer,
-          screenSizePerspectiveEnabled: false,
-          title: "TBM Spot"
-        });
-        tbmSpot.listMode = "hide";
-        //view.map.add(tbmSpot);
-
 // Geotechnical information:-------------------
 var geotech = new FeatureLayer({
         portalItem: {
@@ -853,7 +815,7 @@ var geotech = new FeatureLayer({
 
 
 // TBM segmented line:-------------------
-      var transitLayer = new FeatureLayer({
+      var tbmTunnelLayer = new FeatureLayer({
         portalItem: {
           id: "af9539f5e41e4bd8b694973972e3faf4",
           portal: {
@@ -871,7 +833,7 @@ var geotech = new FeatureLayer({
          //definitionExpression: "sens='Aller'",
          outFields: ["*"]
         });
-        map.add(transitLayer);
+        map.add(tbmTunnelLayer);
 
         function renderTransitLayer() {
           const renderer = new UniqueValueRenderer({
@@ -904,7 +866,7 @@ var geotech = new FeatureLayer({
             }
           }
 
-          transitLayer.renderer = renderer;
+          tbmTunnelLayer.renderer = renderer;
         }
 
         renderTransitLayer();
@@ -1096,25 +1058,6 @@ let tbmAlignRenderer = {
     defaultSymbol: defaultTBMAlign
 };
 
-var tbmAlign = new FeatureLayer({
-  portalItem: {
-    id: "ea9eb839b97a42988bfb32d10a3c1141",
-    portal: {
-        url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  renderer: tbmAlignRenderer,
-  //definitionExpression: "Layer = 'TBM'",
-  elevationInfo: {
-            mode: "on-the-ground",
-            offset: 0
-          },
-  title: "TBM Alignment",
-  popupEnabled: false
-
-});
-map.add(tbmAlign, 0);
-
 
 //*******************************//
 //      Progress Chart           //
@@ -1133,16 +1076,15 @@ var total_obs = {
   statisticType: "count"
 };
 
-var query = transitLayer.createQuery();
+var query = tbmTunnelLayer.createQuery();
 query.outStatistics = [total_complete, total_obs];
 query.returnGeometry = true;
-transitLayer.queryFeatures(query).then(function(response) {
+tbmTunnelLayer.queryFeatures(query).then(function(response) {
   var stats = response.features[0].attributes;
 
   const total_complete = stats.total_complete;
   const total_obs = stats.total_obs;
-
-  document.getElementById("totalProgress").innerHTML = ((total_complete/total_obs)*100).toFixed(1) + " %";
+document.getElementById("totalProgress").innerHTML = ((total_complete/total_obs)*100).toFixed(1) + " %";
 });
 
 
@@ -1167,528 +1109,324 @@ function zoomToLayer(layer) {
 var highlightSelect;
 
 
-
+var sectionArray = [];
+var tunnelArray = [];
  // Create a Bar chart to calculate % completion for each viaduct sample
- am4core.ready(function() {
+am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
-const chartTitleLabel = "Progress of TBM Tunnel (%)";
-
-// Pile
-function updateChart() {
-var total_TBM1_tobeC = {
-    onStatisticField: "CASE WHEN (line = 'TBM1' and status = 1) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM1_tobeC",
-    statisticType: "sum"
-    };
-
-var total_TBM1_underC = {
-    onStatisticField: "CASE WHEN (line = 'TBM1' and status = 2) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM1_underC",
-    statisticType: "sum"
-}
-
-var total_TBM1_delayed = {
-    onStatisticField: "CASE WHEN (line = 'TBM1' and status = 3) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM1_delayed",
-    statisticType: "sum"
-    };
-
-var total_TBM1_done = {
-    onStatisticField: "CASE WHEN (line = 'TBM1' and status = 4) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM1_done",
-    statisticType: "sum"
-    };
-
-
-// TBM 2
-var total_TBM2_tobeC = {
-    onStatisticField: "CASE WHEN (line = 'TBM2' and status = 1) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM2_tobeC",
-    statisticType: "sum"
-    };
-
-var total_TBM2_underC = {
-    onStatisticField: "CASE WHEN (line = 'TBM2' and status = 2) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM2_underC",
-    statisticType: "sum"
-}
-
-var total_TBM2_delayed = {
-    onStatisticField: "CASE WHEN (line = 'TBM2' and status = 3) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM2_delayed",
-    statisticType: "sum"
-    };
-
-var total_TBM2_done = {
-    onStatisticField: "CASE WHEN (line = 'TBM2' and status = 4) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM2_done",
-    statisticType: "sum"
-    };
-
-// TBM 3
-var total_TBM3_tobeC = {
-    onStatisticField: "CASE WHEN (line = 'TBM3' and status = 1) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM3_tobeC",
-    statisticType: "sum"
-    };
-
-var total_TBM3_underC = {
-    onStatisticField: "CASE WHEN (line = 'TBM3' and status = 2) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM3_underC",
-    statisticType: "sum"
-}
-
-var total_TBM3_delayed = {
-    onStatisticField: "CASE WHEN (line = 'TBM3' and status = 3) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM3_delayed",
-    statisticType: "sum"
-    };
-
-var total_TBM3_done = {
-    onStatisticField: "CASE WHEN (line = 'TBM3' and status = 4) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM3_done",
-    statisticType: "sum"
-    };
-
-// TBM 4
-var total_TBM4_tobeC = {
-    onStatisticField: "CASE WHEN (line = 'TBM4' and status = 1) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM4_tobeC",
-    statisticType: "sum"
-    };
-
-var total_TBM4_underC = {
-    onStatisticField: "CASE WHEN (line = 'TBM4' and status = 2) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM4_underC",
-    statisticType: "sum"
-}
-
-var total_TBM4_delayed = {
-    onStatisticField: "CASE WHEN (line = 'TBM4' and status = 3) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM4_delayed",
-    statisticType: "sum"
-    };
-
-var total_TBM4_done = {
-    onStatisticField: "CASE WHEN (line = 'TBM4' and status = 4) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM4_done",
-    statisticType: "sum"
-    };
-
-// TBM 5
-var total_TBM5_tobeC = {
-    onStatisticField: "CASE WHEN (line = 'TBM5' and status = 1) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM5_tobeC",
-    statisticType: "sum"
-    };
-
-var total_TBM5_underC = {
-    onStatisticField: "CASE WHEN (line = 'TBM5' and status = 2) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM5_underC",
-    statisticType: "sum"
-}
-
-var total_TBM5_delayed = {
-    onStatisticField: "CASE WHEN (line = 'TBM5' and status = 3) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM5_delayed",
-    statisticType: "sum"
-    };
-
-var total_TBM5_done = {
-    onStatisticField: "CASE WHEN (line = 'TBM5' and status = 4) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM5_done",
-    statisticType: "sum"
-    };
-
-// TBM 6
-var total_TBM6_tobeC = {
-    onStatisticField: "CASE WHEN (line = 'TBM6' and status = 1) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM6_tobeC",
-    statisticType: "sum"
-    };
-
-var total_TBM6_underC = {
-    onStatisticField: "CASE WHEN (line = 'TBM6' and status = 2) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM6_underC",
-    statisticType: "sum"
-}
-
-var total_TBM6_delayed = {
-    onStatisticField: "CASE WHEN (line = 'TBM6' and status = 3) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM6_delayed",
-    statisticType: "sum"
-    };
-
-var total_TBM6_done = {
-    onStatisticField: "CASE WHEN (line = 'TBM6' and status = 4) THEN 1 ELSE 0 END",  // service field for 2015 population
-    outStatisticFieldName: "total_TBM6_done",
-    statisticType: "sum"
-    };
-
-var query = transitLayer.createQuery();
-//query.where = "Stations = 'Tandang Sora'"; // Selected Stations
-query.outStatistics = [total_TBM1_tobeC, total_TBM1_underC, total_TBM1_delayed, total_TBM1_done,
-                       total_TBM2_tobeC, total_TBM2_underC, total_TBM2_delayed, total_TBM2_done,
-                       total_TBM3_tobeC, total_TBM3_underC, total_TBM3_delayed, total_TBM3_done,
-                       total_TBM4_tobeC, total_TBM4_underC, total_TBM4_delayed, total_TBM4_done,
-                       total_TBM5_tobeC, total_TBM5_underC, total_TBM5_delayed, total_TBM5_done,
-                       total_TBM6_tobeC, total_TBM6_underC, total_TBM6_delayed, total_TBM6_done];
-query.returnGeometry = true;
-
-transitLayer.queryFeatures(query).then(function(response){
-        var stats = response.features[0].attributes;
-
-        // TBM 1
-        const TBM1_tobeC = stats.total_TBM1_tobeC;
-        const TBM1_underC = stats.total_TBM1_underC;
-        const TBM1_done = stats.total_TBM1_done;
-        const TBM1_delayed = stats.total_TBM1_delayed;
-
-
-         // TBM 2
-         const TBM2_tobeC = stats.total_TBM2_tobeC;
-         const TBM2_underC = stats.total_TBM2_underC;
-        const TBM2_done = stats.total_TBM2_done;
-        const TBM2_delayed = stats.total_TBM2_delayed;
-        
-        // TBM 3
-        const TBM3_tobeC = stats.total_TBM3_tobeC;
-        const TBM3_underC = stats.total_TBM3_underC;
-        const TBM3_done = stats.total_TBM3_done;
-        const TBM3_delayed = stats.total_TBM3_delayed;
-
-        // TBM 4
-        const TBM4_tobeC = stats.total_TBM4_tobeC;
-        const TBM4_underC = stats.total_TBM4_underC;
-        const TBM4_done = stats.total_TBM4_done;
-        const TBM4_delayed = stats.total_TBM4_delayed;
-
-        // TBM 5
-        const TBM5_tobeC = stats.total_TBM5_tobeC;
-        const TBM5_underC = stats.total_TBM5_underC;
-        const TBM5_done = stats.total_TBM5_done;
-        const TBM5_delayed = stats.total_TBM5_delayed;
-
-        // TBM 6
-        const TBM6_tobeC = stats.total_TBM6_tobeC;
-        const TBM6_underC = stats.total_TBM6_underC;
-        const TBM6_done = stats.total_TBM6_done;
-        const TBM6_delayed = stats.total_TBM6_delayed;
-
- // Chart //
-var chart = am4core.create("chartdiv", am4charts.XYChart);
-chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
-
-chart.data = [
-  {
-    category: "TBM 6",
-    value1: TBM6_done,
-    value2: TBM6_underC,
-    value3: TBM6_tobeC,
-    value4: TBM6_delayed
-  },
-  {
-    category: "TBM 5",
-    value1: TBM5_done,
-    value2: TBM5_underC,
-    value3: TBM5_tobeC,
-    value4: TBM5_delayed
-  },
-  {
-    category: "TBM 4",
-    value1: TBM4_done,
-    value2: TBM4_underC,
-    value3: TBM4_tobeC,
-    value4: TBM4_delayed
-  },
-  {
-    category: "TBM 3",
-    value1: TBM3_done,
-    value2: TBM3_underC,
-    value3: TBM3_tobeC,
-    value4: TBM3_delayed
-  },
-  {
-    category: "TBM 2",
-    value1: TBM2_done,
-    value2: TBM2_underC,
-    value3: TBM2_tobeC,
-    value4: TBM2_delayed
-  },
-  {
-    category: "TBM 1",
-    value1: TBM1_done,
-    value2: TBM1_underC,
-    value3: TBM1_tobeC,
-    value4: TBM1_delayed
-  }
-];
- 
-chart.colors.step = 2;
-chart.padding(10, 10, 10, 10);
-// Legend
-const LegendFontSizze = 16;
-chart.legend = new am4charts.Legend();
-
-chart.legend.valueLabels.template.align = "right"
-  chart.legend.valueLabels.template.textAlign = "end";  
-
-chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = LegendFontSizze;
-chart.legend.labels.template.fill = "#ffffff";
-chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
-chart.legend.valueLabels.template.fontSize = LegendFontSizze;
-
-
-var marker = chart.legend.markers.template.children.getIndex(0);
-var markerTemplate = chart.legend.markers.template;
-marker.cornerRadius(12, 12, 12, 12);
-marker.strokeWidth = 1;
-marker.strokeOpacity = 1;
-marker.stroke = am4core.color("#ccc");
-
-// Change size of legend marker
-markerTemplate.width = 16;
-markerTemplate.height = 16;
-
-  // Add chart title
-//  var title = chart.titles.create();
-//title.text = "Construction Progress"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
-//title.fontSize = 20;
-//title.fill = "#3ce00a";
-
-
-var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-categoryAxis.dataFields.category = "category";
-categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 20;
-categoryAxis.renderer.labels.template.fill = "#ffffff";
-categoryAxis.renderer.minGridDistance = 5; //can change label
-
-var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
-valueAxis.min = 0;
-valueAxis.max = 100;
-valueAxis.strictMinMax = true;
-valueAxis.calculateTotals = true;
-valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 14;
-valueAxis.renderer.labels.template.fill = "#ffffff";
-
-
-function createSeries(field, name) {
-  var series = chart.series.push(new am4charts.ColumnSeries());
-  series.dataFields.valueX = field;
-  series.dataFields.categoryY = "category";
-  series.stacked = true;
-  series.dataFields.valueXShow = "totalPercent";
-  series.dataItems.template.locations.categoryY = 0.5;
-  series.name = name;
-
-    // Bar chart line color and width
-    series.columns.template.stroke = am4core.color("#ffffff");
-  series.columns.template.strokeWidth = 0.1;
-  series.name = name;
-
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-  if (name == "To be Constructed"){
-    series.fill = am4core.color("#000000");
-
-  labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  //labelBullet.label.fill = am4core.color("#00FFFFFF");
-  labelBullet.label.fill = am4core.color("#000000");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 20;
-  labelBullet.locationX = 0.5;
-
-} else if (name == "Under Construction"){
-    series.fill = am4core.color("#c2c2c2");
-    labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 20;
-  labelBullet.locationX = 0.5;
-
-} else if (name == "Completed"){
-    series.fill = am4core.color("#0070ff");
-    labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 20;
-  labelBullet.locationX = 0.5;
-
-} else {
-    series.fill = am4core.color("#ff0000"); // delayed
-    labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 20;
-  labelBullet.locationX = 0.5;
-  
-  }
-
-  series.columns.template.width = am4core.percent(60);
-  series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
-
-
-  // Click chart and filter, update maps
-  const chartElement = document.getElementById("chartPanel");
-  series.columns.template.events.on("hit", filterByChart, this);
-
-  function filterByChart(ev) {
-    const selectedC = ev.target.dataItem.component.name;
-    const selectedP = ev.target.dataItem.categoryY;
-
-
-    // Layer
-    if (selectedP == "TBM 1" && selectedC == "To be Constructed") {
-      selectedLayer = "TBM1";
-      selectedStatus = 1;
-    } else if (selectedP == "TBM 1" && selectedC == "Under Construction") {
-      selectedLayer = "TBM1";
-      selectedStatus = 2;
-    } else if (selectedP == "TBM 1" && selectedC == "Completed") {
-      selectedLayer = "TBM1";
-      selectedStatus = 4;
-    } else if (selectedP == "TBM 1" && selectedC == "Delayed") {
-      selectedLayer = "TBM1";
-      selectedStatus = 3;
-
-    } else if (selectedP == "TBM 2" && selectedC == "To be Constructed") {
-      selectedLayer = "TBM2";
-      selectedStatus = 1;
-    } else if (selectedP == "TBM 2" && selectedC == "Under Construction") {
-      selectedLayer = "TBM2";
-      selectedStatus = 2;
-     } else if (selectedP == "TBM 2" && selectedC == "Completed") {
-      selectedLayer = "TBM2";
-      selectedStatus = 4;
-    } else if (selectedP == "TBM 2" && selectedC == "Delayed") {
-      selectedLayer = "TBM2";
-      selectedStatus = 3;
-
-    } else if (selectedP == "TBM 3" && selectedC == "To be Constructed") {
-      selectedLayer = "TBM3";
-      selectedStatus = 1;
-    } else if (selectedP == "TBM 3" && selectedC == "Under Construction") {
-      selectedLayer = "TBM3";
-      selectedStatus = 2;
-     } else if (selectedP == "TBM 3" && selectedC == "Completed") {
-      selectedLayer = "TBM3";
-      selectedStatus = 4;
-    } else if (selectedP == "TBM 3" && selectedC == "Delayed") {
-      selectedLayer = "TBM3";
-      selectedStatus = 3;
-
-    } else if (selectedP == "TBM 4" && selectedC == "To be Constructed") {
-      selectedLayer = "TBM4";
-      selectedStatus = 1;
-    } else if (selectedP == "TBM 4" && selectedC == "Under Construction") {
-      selectedLayer = "TBM4";
-      selectedStatus = 2;
-     } else if (selectedP == "TBM 4" && selectedC == "Completed") {
-      selectedLayer = "TBM4";
-      selectedStatus = 4;
-    } else if (selectedP == "TBM 4" && selectedC == "Delayed") {
-      selectedLayer = "TBM4";
-      selectedStatus = 3;
-
-    } else if (selectedP == "TBM 5" && selectedC == "To be Constructed") {
-      selectedLayer = "TBM5";
-      selectedStatus = 1;
-    } else if (selectedP == "TBM 5" && selectedC == "Under Construction") {
-      selectedLayer = "TBM5";
-      selectedStatus = 2;
-     } else if (selectedP == "TBM 5" && selectedC == "Completed") {
-      selectedLayer = "TBM5";
-      selectedStatus = 4;
-    } else if (selectedP == "TBM 5" && selectedC == "Delayed") {
-      selectedLayer = "TBM5";
-      selectedStatus = 3;
-
-    } else if (selectedP == "TBM 6" && selectedC == "To be Constructed") {
-      selectedLayer = "TBM6";
-      selectedStatus = 1;
-    } else if (selectedP == "TBM 6" && selectedC == "Under Construction") {
-      selectedLayer = "TBM6";
-      selectedStatus = 2;
-     } else if (selectedP == "TBM 6" && selectedC == "Completed") {
-      selectedLayer = "TBM6";
-      selectedStatus = 4;
-    } else if (selectedP == "TBM 6" && selectedC == "Delayed") {
-      selectedLayer = "TBM6";
-      selectedStatus = 3;
-
+// Select from two button types: Section and Tunnel Type
+document.querySelectorAll('.buttonClass').forEach(item => {
+  item.addEventListener("change", filterByChartTypes);
+  function filterByChartTypes(e) {
+    const id = e.target.id;
+    const name = e.target.name;
+
+    if (name === "sectionInput") {
+      sectionArray.push(id);
     } else {
-      selectedLayer = null;
+      tunnelArray.push(id);
     }
 
+    // Always choose the newest ones
+    sections = sectionArray[sectionArray.length-1];
+    tunnels = tunnelArray[tunnelArray.length-1];
 
+    // Filter
 
-    // You need to filter transitLayer bassed on TBM No. and status selected
-    // Otherwise, this function does not work
-   //transitLayer.definitionExpression = "line = '" + selectedLayer + "'" + " AND " +  "status = " + selectedStatus;
+    //*** Under DEFAULT Settions ***//
+    /// As default, sections = 'PO' and tunnels = 'TBM'
+    /// When you FIRST select either sections or tuneels, ones not selected become undefined.
+    /// We need to account for this when either of them become undefined.
+    
+    /// When section is changed from 'PO' (default) to 'Remaining',
+    /// tunnels become undefined.
+    /// 1. tunnels = 'TBM' and sections = 'Remaining'
+    /// 2. tunnels = 'TBM' and sections = 'PO'
+    if (tunnels == undefined && sections == "Remaining"){
+      tunnels = "TBM";
+      tbmTunnelLayer.definitionExpression = "Section = '" + sections + "'";
+      tbmChart();
 
- //   chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + selectedLayer + ", " + selectedC + "</p>";
+    } else if (tunnels == undefined && sections == "PO"){
+      tunnels = "TBM";
+      tbmTunnelLayer.definitionExpression = "Section = '" + sections + "'";
+      tbmChart();
 
-    view.whenLayerView(transitLayer).then(function (layerView) {
-      chartLayerView = layerView;
-      chartElement.style.visibility = "visible";
-// Listen to the click event on the map view and resets to default 
-chartLayerView.filter = {
-     // where: "line = '" + selectedLayer + "'" + " AND " +  "status = " + selectedStatus
-      where: "line = '" + selectedLayer + "'"
-    };
+    /// When tunnelType is changed from 'TBM' to 'NATM',
+    /// sections become undefined.
+    /// 1. tunnels = 'NATM' and sections = 'PO'
+    /// 2. tunnels = 'TBM' and sections = 'PO'
+     
+    } else if (sections == undefined && tunnels == "NATM"){;
+      sections = 'PO';
+      tbmTunnelLayer.visible = false;
+
+    } else if (sections == undefined && tunnels == "TBM"){;
+      sections = 'PO';
+      tbmTunnelLayer.visible = true;
+      tbmTunnelLayer.definitionExpression = "Section = '" + sections + "'";
+      
+      tbmChart();
+
+  /// Conditions below fall out of DEFAULT.
+  } else if (sections === "PO" && tunnels === "TBM"){
+      tbmTunnelLayer.visible = true;
+      tbmTunnelLayer.definitionExpression = "Section = '" + sections + "'";
+      //natmTunnelLayer.visible = true;
+      tbmChart();
+
+    } else if (sections === "PO" && tunnels === "NATM") {
+      tbmTunnelLayer.visible = false;
+      //natmTunnelLayer.visible = false;
+
+    } else if (sections === "Remaining" && tunnels === "TBM"){
+      tbmTunnelLayer.visible = true;
+      tbmTunnelLayer.definitionExpression = "Section = '" + sections + "'";
+      //natmTunnelLayer.visible = false;
+      tbmChart();
+
+    } else if (sections === "Remaining" && tunnels === "NATM") {
+      tbmTunnelLayer.visible = false;
+      //natmTunnelLayer.definitionExpression = null;
+    }
+  }
 });
-    transitLayer.queryFeatures().then(function(results) {
-        const ggg = results.features;
-        const rowN = ggg.length;
 
-    let objID = [];
-    for (var i=0; i < rowN; i++) {
-      var obj = results.features[i].attributes.OBJECTID;
-      objID.push(obj);
+// Default
+function defaultRender(){
+  tbmTunnelLayer.definitionExpression = "Section = 'PO'";
+  tbmChart();
+}
+defaultRender();
+
+
+///////// PIE CHART /////////
+  
+async function tbmChart() {
+    function constructionStatus(){
+    return {
+      1: "To be Constructed",
+      2: "Under Construction",
+      3: "Delayed",
+      4: "Completed"
+    }
+  }
+    var total_tobeC = {
+        onStatisticField: "CASE WHEN status = 1 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_tobeC",
+        statisticType: "sum"
     }
 
-    var queryExt = new Query({
-      objectIds: objID
-    });
-    zoomToLayer(transitLayer);
-
-
-    if (highlightSelect) {
-      highlightSelect.remove();
+    var total_underC = {
+        onStatisticField: "CASE WHEN status = 2 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_underC",
+        statisticType: "sum"
     }
-    highlightSelect = chartLayerView.highlight(objID);
 
-    view.on("click", function() {
- //     transitLayer.definitionExpression = null;
- //     chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "You can click chart" + "</p>";
- chartLayerView.filter = null;
-      highlightSelect.remove()
-    }); // End of view.on
+    var total_delay = {
+        onStatisticField: "CASE WHEN status = 3 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_delay",
+        statisticType: "sum"
+    }
 
-  }); // End of queryFeatures
- 
- // End of whenLayerView
-  } // End of filterByChart
+    var total_complete = {
+        onStatisticField: "CASE WHEN status = 4 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_complete",
+        statisticType: "sum"
+    }
 
+    var query = tbmTunnelLayer.createQuery();
+    query.outStatistics = [total_tobeC, total_underC, total_delay, total_complete];
+  query.returnGeometry = true;
 
-} // End of createSeries function
+  tbmTunnelLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
 
-createSeries("value1", "Completed");
-createSeries("value2", "Under Construction");
-createSeries("value3", "To be Constructed");
-createSeries("value4", "Delayed");
+    const tobeC = stats.total_tobeC;
+    const underC = stats.total_underC;
+    const delay = stats.total_delay;
+    const complete = stats.total_complete;
 
-});
+    var chart = am4core.create("chartdiv", am4charts.PieChart);
+    chart.hiddenState.properties.opacity = 0;
 
-} // end of updateChart()  
-updateChart();
+    // Add data
+    chart.data = [
+      {
+        "tbm": constructionStatus()[1],
+        "status": tobeC,
+        "color": am4core.color("#000000")
+      },
+      {
+        "tbm": constructionStatus()[2],
+        "status": underC,
+        "color": am4core.color("#C2C2C2")   
+      },
+      {
+        "tbm": constructionStatus()[3],
+        "status": delay,
+        "color": am4core.color("#FF0000") 
+      },
+      {
+        "tbm": constructionStatus()[4],
+        "status": complete,
+        "color": am4core.color("#0070FF")
+      }
+    ];
+
+    
+    // Set inner radius
+    chart.innerRadius = am4core.percent(30);
+    
+    // Add and configure Series
+    function createSlices(field, status){
+      var pieSeries = chart.series.push(new am4charts.PieSeries());
+      pieSeries.dataFields.value = field;
+      pieSeries.dataFields.category = status;
+      
+      pieSeries.slices.template.propertyFields.fill = "color";
+      pieSeries.slices.template.stroke = am4core.color("#fff");
+      pieSeries.slices.template.strokeWidth = 1;
+      pieSeries.slices.template.strokeOpacity = 1;
+      pieSeries.slices.template
+      // change the cursor on hover to make it apparent the object can be interacted with
+      .cursorOverStyle = [
+        {
+          "property": "cursor",
+          "value": "pointer"
+        }
+      ];
+      
+      // Hover setting
+      pieSeries.tooltip.label.fontSize = 9;
+      
+      // Pie
+      //pieSeries.alignLabels = false;
+      //pieSeries.labels.template.bent = false;
+      pieSeries.labels.template.disabled = true;
+      pieSeries.labels.template.radius = 3;
+      pieSeries.labels.template.padding(0,0,0,0);
+      pieSeries.labels.template.fontSize = 9;
+      pieSeries.labels.template.fill = "#ffffff";
+
+      // Ticks (a straight line)
+      //pieSeries.ticks.template.disabled = true;
+      pieSeries.ticks.template.fill = "#ffff00";
+      
+      // Create a base filter effect (as if it's not there) for the hover to return to
+      var shadow = pieSeries.slices.template.filters.push(new am4core.DropShadowFilter);
+      shadow.opacity = 0;
+      
+      // Chart Title
+      /*
+      let title = chart.titles.create();
+      title.text = "Tree Cutting";
+      title.fontSize = 20;
+      title.fontWeight = "bold";
+      title.fill = am4core.color("#ffffff");
+      title.marginTop = 7;
+*/
+      // Create hover state
+      var hoverState = pieSeries.slices.template.states.getKey("hover"); // normally we have to create the hover state, in this case it already exists
+
+      // Slightly shift the shadow and make it more prominent on hover
+      var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
+      hoverShadow.opacity = 0.7;
+      hoverShadow.blur = 5;
+      
+      // Add a legend
+      const LEGEND_FONT_SIZE = 15;
+      chart.legend = new am4charts.Legend();
+      chart.legend.valueLabels.template.align = "right"
+      chart.legend.valueLabels.template.textAlign = "end";
+      
+      //chart.legend.position = "bottom";
+      chart.legend.labels.template.fontSize = LEGEND_FONT_SIZE;
+      chart.legend.labels.template.fill = "#ffffff";
+      chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+      chart.legend.valueLabels.template.fontSize = LEGEND_FONT_SIZE; 
+      pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
+      //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+      
+      /// Define marker symbols properties
+      var marker = chart.legend.markers.template.children.getIndex(0);
+      var markerTemplate = chart.legend.markers.template;
+      marker.cornerRadius(12, 12, 12, 12);
+      marker.strokeWidth = 1;
+      marker.strokeOpacity = 1;
+      marker.stroke = am4core.color("#ccc");
+      markerTemplate.width = 18;
+      markerTemplate.height = 18;
+      
+      // This creates initial animation
+      //pieSeries.hiddenState.properties.opacity = 1;
+      //pieSeries.hiddenState.properties.endAngle = -90;
+      //pieSeries.hiddenState.properties.startAngle = -90;
+      
+      // Click chart and filter, update maps
+      pieSeries.slices.template.events.on("hit", filterByChart, this);
+      function filterByChart(ev) {
+        const SELECTED = ev.target.dataItem.category;
+        if (SELECTED == constructionStatus()[1]) {
+          selectedStatus = 1;
+        } else if (SELECTED == constructionStatus()[2]) {
+          selectedStatus = 2;
+        } else if (SELECTED == constructionStatus()[3]) {
+          selectedStatus = 3;
+        } else if (SELECTED == constructionStatus()[4]) {
+          selectedStatus = 4;
+        } else {
+          selectedStatus = null;
+        }
+        
+        view.when(function() {
+          view.whenLayerView(tbmTunnelLayer).then(function (layerView) {
+            chartLayerView = layerView;
+            CHART_ELEMENT.style.visibility = "visible";
+            
+            tbmTunnelLayer.queryFeatures().then(function(results) {
+              const RESULT_LENGTH = results.features;
+              const ROW_N = RESULT_LENGTH.length;
+
+              let objID = [];
+              for (var i=0; i < ROW_N; i++) {
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
+              }
+
+              var queryExt = new Query({
+                 objectIds: objID
+              });
+
+              tbmTunnelLayer.queryExtent(queryExt).then(function(result) {
+                  if (result.extent) {
+                      view.goTo(result.extent)
+                  }
+              });
+
+              if (highlightSelect) {
+                  highlightSelect.remove();
+              }
+              highlightSelect = layerView.highlight(objID);
+
+              view.on("click", function() {
+                layerView.filter = null;
+                highlightSelect.remove();
+              });
+            }); // End of queryFeatures
+            layerView.filter = {
+              where: "status = " + selectedStatus
+            }
+          }); // End of view.whenLayerView
+        }); // End of view.when
+      } // End of filterByChart
+    } // End of createSlices function
+    createSlices("status", "tbm");
+}); // End of queryFeatures
+} // end of tbmChart
+
+tbmChart();
 }); // end am4core.ready()
 
 //////////////////////////////////////////////////////
@@ -1714,7 +1452,7 @@ var layerList = new LayerList({
             listItemCreatedFunction: function(event) {
               const item = event.item;
               if (item.title === "Monitoring Structures" || item.title === "Monitoring Bridge" ||
-                    item.title === "TBM Alignment" || item.title === "Soil Profile" || item.title == "Survey Extent Line"){
+                  item.title === "Soil Profile" || item.title == "Survey Extent Line"){
                 item.visible = false
               }
             }
@@ -1743,12 +1481,8 @@ var legend = new Legend({
   container: document.getElementById("legendDiv"),
   layerInfos: [
   {
-      layer: transitLayer,
+      layer: tbmTunnelLayer,
       title: "TBM Tunnel"
-    },
-    {
-      layer: tbmSpot,
-      title: "Location of TBM"
     },
     {
       layer: geotech,
@@ -1777,42 +1511,6 @@ var legendExpand = new Expand({
 view.ui.add(legendExpand, {
     position: "bottom-right"
 });
-
-
-
-//*****************************//
-//      Search Widget          //
-//*****************************//
-var searchWidget = new Search({
-  view: view,
-  locationEnabled: false,
-  includeDefaultSources: false,
-  sources: [
-    {
-      layer: tbmSpot,
-      searchFields: ["Type"],
-      displayField: "TBM No.",
-      exactMatch: false,
-      outFields: ["Type"],
-      name: "TBM No.",
-      placeholder: "example: TBM2"
-  }
-]
-});
-
-const searchExpand = new Expand({
-    view: view,
-    content: searchWidget,
-    expandIconClass: "esri-icon-search"
-  });
-        view.ui.add(searchExpand, {
-          position: "top-right"
-        });
-searchExpand.watch("expanded", function() {
-    if(!searchExpand.expanded) {
-      searchWidget.searchTerm = null;
-    }
-  });
 
 // Compass Widget
 var compass = new Compass({
@@ -1858,13 +1556,11 @@ var compass = new Compass({
   <body>
     <div id="applicationDiv">
       <div id="headerDiv">
-        <img src="https://EijiGorilla.github.io/Symbols/TBM.png" width="30" height="30">
-        <div id="headerTitleDiv">
-            <h2>TBM Tunnel (PO Section)</h2>
-        </div>
-        <div class="dateDiv">
-            <h4>As of xxx, 2022</h4>
-        </div>
+        <div id="headerTitleDiv">TBM/NATM Tunnel</div>
+        <div id="dataTypeInput" class="buttonClass">
+            <input type="radio" id="PO" name="sectionInput" checked/>PO Section
+            <input type="radio" id="Remaining" name="sectionInput">Remaining Section
+          </div>
       </div>
       <div class="container">
         <div class="boxB">
@@ -1878,6 +1574,11 @@ var compass = new Compass({
           <div id="chartPanel">
             <div id="chartTitleDiv" class="esri-widget">Construction Progress</div>
             <div id="chartdiv"></div>
+            <div id="tunnelTypeInput" class="buttonClass">
+                <label for="dataTypeInput"></label>
+                <input type="radio" id="TBM" name="tunnelTypeInput" checked/>TBM
+                <input type="radio" id="NATM" name="tunnelTypeInput">NATM
+              </div>
             <div id="optionsDiv" class="esri-widget">
               <div><b>Total Progress (%)</b></div>
               <h6 id="totalProgress"></h6>
