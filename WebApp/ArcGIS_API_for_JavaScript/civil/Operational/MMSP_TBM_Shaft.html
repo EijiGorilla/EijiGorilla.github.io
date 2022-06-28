@@ -340,7 +340,8 @@ href="https://js.arcgis.com/4.22/esri/themes/dark/main.css"
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol,
                   TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
-                  FeatureTable, Compass, ElevationLayer, Ground, BasemapToggle, ImageMediaInfo, AttachmentsContent) {
+                  FeatureTable, Compass, ElevationLayer, Ground, BasemapToggle,
+                  ImageMediaInfo, AttachmentsContent) {
 
 let chartLayerView;
 ////////////////////////////////////////////////////
@@ -400,6 +401,13 @@ var basemap = new Basemap({
                     starsEnabled: false,
                     //disable atmosphere
                     atmosphereEnabled: false
+                    },
+                    popup: {
+                      dockEnabled: true,
+                      dockOptions: {
+                        buttonEnabled: false,
+                        breakpoint: false
+                      }
                     }
         });
 
@@ -549,6 +557,95 @@ var sitePhotoLabelClass = new LabelClass({
 //*****************************//
 //      Renderer Settings      //
 //*****************************// 
+// Photo Symbol
+function getUniqueValueSymbol(name, color, sizeS, util) {
+          // The point symbol is visualized with an icon symbol. To clearly see the location of the point
+          // we displace the icon vertically and add a callout line. The line connects the offseted symbol with the location
+          // of the point feature.
+          if (util == "Existing") {
+            return {
+            type: "point-3d", // autocasts as new PointSymbol3D()
+            symbolLayers: [
+              {
+                type: "icon", // autocasts as new IconSymbol3DLayer()
+                resource: {
+                  href: name
+                },
+                size: sizeS,
+                outline: {
+                  color: "white",
+                  size: 2
+                }
+              }
+            ],
+
+            verticalOffset: {
+  screenLength: 40,
+  maxWorldLength: 100,
+  minWorldLength: 20
+},
+
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: [128,128,128,0.1],
+              size: 0.2,
+              border: {
+                color: "grey"
+              }
+            }
+          };
+          } else {
+            return {
+            type: "point-3d", // autocasts as new PointSymbol3D()
+            symbolLayers: [
+              {
+                type: "icon", // autocasts as new IconSymbol3DLayer()
+                resource: {
+                  href: name
+                },
+                size: sizeS,
+                outline: {
+                  color: "white",
+                  size: 2
+                }
+              }
+            ],
+            verticalOffset: {
+  screenLength: 40,
+  maxWorldLength: 100,
+  minWorldLength: 20
+},
+            callout: {
+              type: "line",
+              size: 0.5,
+              color: [0, 0, 0],
+              border: {
+                color: [255, 255, 255, 0.7]
+              }
+            }
+          };
+          }
+
+        }
+
+
+var photoSymbolRenderer = {
+  type: "unique-value",
+  valueExpression: "When($feature.Description == 'PHOTO','PHOTO',$feature.Description)",
+  uniqueValueInfos: [
+    {
+      value: "PHOTO",
+      label: "Photo Spot",
+      symbol: getUniqueValueSymbol(
+        "https://EijiGorilla.github.io/Symbols/Photo_symbol.png",
+                "#D13470",
+                20,
+                "Relocation"
+      )
+    }
+  ]
+};
+
 // Boundary
 let defaultLotSymbolBoundary = {
                 type: "simple-fill",
@@ -664,14 +761,22 @@ constBoundary.listMode = "hide";
 map.add(constBoundary);
 
 // photo points
-var photoLayer = new SceneLayer({
+  var photoLayer = new FeatureLayer({
   portalItem: {
-    id: "bdd70c2220ff47aeb67f13a90ce7fb0e",
+    id: "bdbfa1159b6c4ef3a94e0c87462bc625",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
-  labelingInfo: [sitePhotoLabelClass],
+  //labelingInfo: [sitePhotoLabelClass],
+  renderer: photoSymbolRenderer,
+  elevationInfo: {
+  mode: "relative-to-ground",
+  featureExpressionInfo: {
+    expression: "Geometry($feature).z * 0"
+  },
+  unit: "meters"
+},
   popupTemplate: {
     lastEditInfoEnabled: false,
     returnGeometry: true,
@@ -680,11 +785,11 @@ var photoLayer = new SceneLayer({
         type: "media",
         mediaInfos: [
           {
-            title: "TBM Shaft",
+            title: "{Title}",
             type: "image",
-            caption: "As of 2022/03/21",
+            caption: "As of {DateTime}",
             value: {
-              sourceURL: "https://EijiGorilla.github.io/Site_Photo/MMSP/TBM_Shaft_1.jpg"
+              sourceURL: "{ImageURL}"
             }
           }
         ]
@@ -695,6 +800,37 @@ var photoLayer = new SceneLayer({
     });
 map.add(photoLayer,1);
 
+
+
+view
+  .when()
+  .then(() => {
+    return photoLayer.when();
+  })
+  .then((layer) => {
+    return view.whenLayerView(layer);
+  })
+  .then((layerView) => {
+    view.on("click", eventHandler);
+
+function eventHandler(event){
+  const opts = {
+    include: photoLayer
+  };
+  view.hitTest(event,opts).then(getGraphics);
+  headerTitleDiv.innerHTML = event;
+}
+
+function getGraphics(response) {
+  if (response.results.length) {
+    const graphic = response.results[0].graphic;
+    const attributes = graphic.attributes;
+    const objid = attributes.OBJECTID;
+    
+  }
+}
+
+  })
 // Station point feature
 
         var stationLayer = new SceneLayer({
@@ -1799,7 +1935,7 @@ view.ui.add(legendExpand, {
             <h2>TBM Shaft/Cut & Cover (PO)</h2>
         </div>
         <div class="dateDiv">
-            <h4>As of April 25, 2022</h4>
+            <h4>As of June 27, 2022</h4>
         </div>
       </div>
       <div class="container">
@@ -1820,7 +1956,7 @@ view.ui.add(legendExpand, {
                 <input type="radio" id="Cut & Cover" name="dataTypeInput"> Cut & Cover
               </div>
               <div id="optionsDiv" class="esri-widget">
-                <div><b>Total Progress (%)</b></div>
+                <div><b>Total Progress</b></div>
                 <h6 id="totalProgress"></h6>
               </div>
         </div>

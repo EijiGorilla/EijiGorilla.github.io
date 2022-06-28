@@ -28,12 +28,13 @@
     }
 
     #headerTitleDiv {
-        font-size: 2vw;
+        font-size: 2.5vw;
         vertical-align: middle;
         padding-top: 3px;
         z-index: 99;
         position: absolute;
-        left: 0;
+        left: 13;
+        top: 18;
         color: white;
       }
 
@@ -43,20 +44,56 @@
         position: absolute;
         left: 0;
         margin-top: 14%;
+        bottom: 80;
       }
 
       #chartdiv {
-          width: 59vh;
-          height: 47vh;
+          width: 20vw;
+          height: 37vh;
           align-items: center;
           font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
           padding: 0;
           margin: 0;
       }
 
+
+ .panel {
+      padding: 0px;
+      margin:0;
+      box-sizing: border-box;
+      width: 15vw;
+      height: 40vh;
+      position: absolute;
+      top: 10%;
+      right: 1;
+      font-size: 1.3vw;
+      color: white;
+      background-color: rgb(0, 0, 0, 0);
+      z-index: 99;
+      transition: 3;
+      line-height: 2;
+
+    }
+
+    .dateDiv {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: left;
+        font-weight: normal;
+        font-size: 1.1vw;
+        padding-top: 20px;
+        margin: 0;
+        z-index:99;
+        top: 45;
+        left: 20;
+        position:absolute;
+      }
+
+
     #menu {
       padding: 0.8em;
       max-width: 250px;
+      background-color: rgb(0, 0, 0, 0);
     }
 
     #menu1 {
@@ -66,6 +103,12 @@
         position: absolute;
         right: 0;
       }
+
+      .active, .test:hover {
+      background-color: rgba(77, 75, 75, 0);
+        color: orange;
+        font-size: 1.7vw;
+}
 
       #sliceContainer {
         width: inherit;
@@ -91,25 +134,28 @@
       color: white;
      }
 
-     .sassy-theme .esri-widget {
-      background-color: rgb(0, 0, 0, 0.7);
-     }
-
       .sassy-theme .esri-menu,
+      .sassy-theme .esri-building-explorer,
       .sassy-theme .esri-popup__main-container,
       .sassy-theme .esri-popup .esri-popup__pointer-direction,
       .sassy-theme .esri-popup .esri-popup__button,
       .sassy-theme .esri-button,
       .sassy-theme .esri-input,
       .sassy-theme .esri-legend,
-      .sassy-theme .esri-layer-list {
-        background-color: rgb(0, 0, 0, 0.7);
+      .sassy-theme .esri-layer-list,
+      .sassy-theme .esri-widget a {
+        background-color: rgb(0, 0, 0, 0.5);
         color: #fff;
       }
 
       ::-webkit-scrollbar {
-        display: none;
-      }
+    display: none;
+    }
+
+      .sassy-theme .esri-legend__layer-caption {
+    display: none;
+  }
+  
     </style>
 
 <link
@@ -183,8 +229,18 @@ href="https://js.arcgis.com/4.23/esri/themes/dark/main.css"
 
 
 ////////////////////////////////////////////////////
-        var map = new Map({
-              basemap: "osm", // "streets-night-vector", 
+var basemap = new Basemap({
+        baseLayers: [
+          new VectorTileLayer({
+            portalItem: {
+              id: "8a9ef2a144e8423786f6139408ac3424" 
+            }
+          })
+        ]
+      });
+
+var map = new Map({
+              basemap: basemap, // "streets-night-vector", 
               ground: "world-elevation"
         }); 
          
@@ -290,12 +346,13 @@ var stationLayer = new SceneLayer({
 // Station structures
 const buildingLayer = new BuildingSceneLayer({
   portalItem: {
-    id: "85795768dcba4b9f94e82fb559958921",
+    id: "80d2aa519ad94055a732b9daee4b1154",
   portal: {
     url: "https://gis.railway-sector.com/portal"
   }
 },
-outFields: ["*"]
+outFields: ["*"],
+title: "N2 Station Structures"
 
       });
 map.add(buildingLayer);
@@ -307,58 +364,18 @@ const buildingExplorer = new BuildingExplorer({
   view: view,
   layers: [buildingLayer]
 });
-view.ui.add(buildingExplorer, "top-right");
+view.ui.add(buildingExplorer, "bottom-right");
 
-
-///////////////////////////////////////////////////////////////////////////////////
-// Viaduct
-var viaductLayer = new SceneLayer({
-   portalItem: {
-            id: "a9c0878766964fa794cc67bbf38b7a09",
-            portal: {
-              url: "https://gis.railway-sector.com/portal"
-            }
-          },
-         // popupTemplate: viadTemplate,
-          elevationInfo: {
-          mode: "absolute-height" //absolute-height, relative-to-ground
-        },
-            title: "Viaduct sample",
-            outFields: ["*"],
-            definitionExpression: "CP = 'N-03'"
-            // when filter using date, example below. use this format
-            //definitionExpression: "EndDate = date'2020-6-3'"
-            /*
-            popupTemplate: {
-     title: "<h5>{Status1}</h5>",
-     lastEditInfoEnabled: false,
-     returnGeometry: true,
-     content: [
-       {
-         type: "fields",
-         fieldInfos: [
-           {
-             fieldName: "Type",
-             label: "Type of Structure"
-           },
-           {
-             fieldName: "PierNumber",
-             Label: "Pier No."
-           }
-         ]
-       }
-     ]
-   }
-      */      
-          });
-          viaductLayer.listMode = "hide";
-         // map.add(viaductLayer);
-
-///
+// only display the building levels filter
+buildingExplorer.visibleElements = {
+  phases: false,
+  disciplines: false
+};
+//////////////////////////////////////////////////////////////////////////////////
 
 /// chart
 const headerTitleDiv = document.getElementById("headerTitleDiv");
-const chartPanelDiv = document.getElementById("chartPanelDiv");
+
 
 /*
           const excludedLayers = [];
@@ -498,16 +515,137 @@ const chartPanelDiv = document.getElementById("chartPanelDiv");
         });
 */
 
-
-
-
-
-
+/* Function for zooming to selected layers */
+function zoomToLayer(layer) {
+  return layer.queryExtent().then(function(response) {
+    view.goTo(response.extent, { //response.extent
+      speedFactor: 2
+    }).catch(function(error) {
+      if (error.name != "AbortError") {
+        console.error(error);
+      }
+    });
+  });
+}
 
 ////////////////////////////////
+var stationList = document.getElementById("stationList");
+var ttt = stationList.getElementsByClassName("test");
 
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
+
+buildingLayer.when(() => {
+  //updateChart();
+  stFramingLayer.definitionExpression = "Station = 8";
+      stFramingLayer.visible = true;
+
+      stColumnLayer.definitionExpression = "Station = 8";
+      stColumnLayer.visible = true;
+
+      stFoundationLayer.definitionExpression = "Station = 8";
+      stFoundationLayer.visible = true;
+    zoomToLayer(stFramingLayer);
+
+    combineAll();
+
+});
+// Default selection = 'None'
+
+// Station list
+for(var i = 0; i < ttt.length; i ++) {
+  ttt[i].addEventListener("click", filterByP);
+}
+
+function filterByP(event) {
+  var current = document.getElementsByClassName("active");
+  current[0].className = current[0].className.replace(" active","");
+  this.className += " active";
+
+  const selectedID = event.target.id;
+    if(selectedID == "Calumpit") {
+      stFramingLayer.definitionExpression = "Station = 8";
+      stFramingLayer.visible = true;
+
+      stColumnLayer.definitionExpression = "Station = 8";
+      stColumnLayer.visible = true;
+
+      stFoundationLayer.definitionExpression = "Station = 8";
+      stFoundationLayer.visible = true;
+
+      combineAll();
+      zoomToLayer(stFramingLayer);
+
+    } else if (selectedID == "Apalit") {
+      stFramingLayer.definitionExpression = "Station = 7";
+      stFramingLayer.visible = true;
+
+      stColumnLayer.definitionExpression = "Station = 7";
+      stColumnLayer.visible = true;
+
+      stFoundationLayer.definitionExpression = "Station = 7";
+      stFoundationLayer.visible = true;      
+
+      combineAll();
+      zoomToLayer(stFramingLayer); 
+
+    } else if (selectedID == "San Fernando") {
+      stFramingLayer.definitionExpression = "Station = 6";
+      stFramingLayer.visible = true;
+
+      stColumnLayer.definitionExpression = "Station = 6";
+      stColumnLayer.visible = true;
+
+      stFoundationLayer.definitionExpression = "Station = 6";
+      stFoundationLayer.visible = true;      
+
+      combineAll();
+      zoomToLayer(stFramingLayer); 
+      
+    } else if (selectedID == "Angeles") {
+      stFramingLayer.definitionExpression = "Station = 5";
+      stFramingLayer.visible = true;
+
+      stColumnLayer.definitionExpression = "Station = 5";
+      stColumnLayer.visible = true;
+
+      stFoundationLayer.definitionExpression = "Station = 5";
+      stFoundationLayer.visible = true;      
+
+      combineAll();
+      zoomToLayer(stFramingLayer); 
+      
+    } else if (selectedID == "Clark") {
+      stFramingLayer.definitionExpression = "Station = 4";
+      stFramingLayer.visible = true;
+
+      stColumnLayer.definitionExpression = "Station = 4";
+      stColumnLayer.visible = true;
+
+      stFoundationLayer.definitionExpression = "Station = 4";
+      stFoundationLayer.visible = true;      
+
+      combineAll();
+      zoomToLayer(stFramingLayer); 
+      
+    } else if (selectedID == "CIA") {
+      stFramingLayer.definitionExpression = "Station = 3";
+      stFramingLayer.visible = true;
+
+      stColumnLayer.definitionExpression = "Station = 3";
+      stColumnLayer.visible = true;
+
+      stFoundationLayer.definitionExpression = "Station = 3";
+      stFoundationLayer.visible = true;      
+
+      combineAll();
+      zoomToLayer(stFramingLayer); 
+      
+    }
+}
+
+
+
 // Structural Disciplines
 // StructuralColumns
 //const structuralColumn_comp = {1:[], 2:[], 3:[], 4:[]};
@@ -617,7 +755,6 @@ var stats = response.features[0].attributes;
 
 // StructuralFoundation
 function structuralFoundation(compArray){
-  headerTitleDiv.innerHTML = compArray[5] + ", " + compArray[8];
      var total_foundation_tobeC = {
     onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",  // Pile & Pile Cap and to be Constructed
     outStatisticFieldName: "total_foundation_tobeC",
@@ -664,15 +801,8 @@ var stats = response.features[0].attributes;
 } // End of structuralColumns function
 
 
-buildingLayer.when(() => {
-  stFramingLayer.FramingRenderer;
-  //updateChart();
-  structuralColumns()
-    .then(structuralFraming)
-    .then(structuralFoundation)
-    .then(updateStructural);
+///////////////////////////////////////////////////////////
 
-});
 
 function updateStructural(compArray) {
    // Chart //
@@ -720,6 +850,7 @@ chart.legend.labels.template.fontSize = LegendFontSizze;
 chart.legend.labels.template.fill = "#ffffff";
 chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
 chart.legend.valueLabels.template.fontSize = LegendFontSizze;
+chart.legend.disabled = true;
 
 var marker = chart.legend.markers.template.children.getIndex(0);
 var markerTemplate = chart.legend.markers.template;
@@ -765,6 +896,8 @@ function createSeries(field, name) {
 
   if (name == "To be Constructed"){
     series.fill = am4core.color("#000000");
+    series.fillOpacity = 0.7;
+    labelBullet.locationX = 0.7;
     
   labelBullet.locationX = 0.5;
   labelBullet.label.text = "";
@@ -777,29 +910,34 @@ function createSeries(field, name) {
 
   } else if (name == "Under Construction"){
     series.fill = am4core.color("#c2c2c2");
+    series.fillOpacity = 0.7;
+    labelBullet.locationX = 0.7;
     labelBullet.locationX = 0.5;
   labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
   labelBullet.label.fill = am4core.color("#ffffff");
   labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 14;
+  labelBullet.label.fontSize = 0;
   labelBullet.locationX = 0.5;
 
   } else if (name == "Completed"){
     series.fill = am4core.color("#0070ff");
-    labelBullet.locationX = 0.5;
+    series.fillOpacity = 0.7;
+    labelBullet.locationX = 0.7;
   labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
   labelBullet.label.fill = am4core.color("#ffffff");
   labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 14;
+  labelBullet.label.fontSize = 20;
   labelBullet.locationX = 0.5;
 
   } else {
     series.fill = am4core.color("#ff0000"); // delayed
+    series.fillOpacity = 0.7;
+    labelBullet.locationX = 0.7;
     labelBullet.locationX = 0.5;
   labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
   labelBullet.label.fill = am4core.color("#ffffff");
   labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 14;
+  labelBullet.label.fontSize = 0;
   labelBullet.locationX = 0.5;
   
   }
@@ -808,189 +946,73 @@ function createSeries(field, name) {
 
   // Click chart and filter, update maps
   //const chartElement = document.getElementById("chartPanel");
-
-
-} // End of createSeries function
-createSeries("value1", "Completed");
-createSeries("value2", "Under Construction");
-createSeries("value3", "To be Constructed");
-createSeries("value4", "Delayed");
-
-
-} //updateChart
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// Chart to monitor progress on structural components
-function updateChart() {
-   // Column 
-   var total_column_tobeC = {
-    onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",  // Pile & Pile Cap and to be Constructed
-    outStatisticFieldName: "total_column_tobeC",
-    statisticType: "sum"
-    };
-
-var total_column_underC = {
-    onStatisticField: "CASE WHEN Status = 2 THEN 1 ELSE 0 END",  // Pile & Pile Cap and Under construction
-    outStatisticFieldName: "total_column_underC",
-    statisticType: "sum"
-    };
-var total_column_done = {
-    onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",  // Pile & Pile Cap and Complete
-    outStatisticFieldName: "total_column_done",
-    statisticType: "sum"
-    };   
-var total_column_delayed = {
-    onStatisticField: "CASE WHEN Status = 3 THEN 1 ELSE 0 END",  // Pile & Pile Cap and Delayed
-    outStatisticFieldName: "total_column_delayed",
-    statisticType: "sum"
-    };
-
-
-var query = stColumnLayer.createQuery();
-query.outStatistics = [total_column_tobeC, total_column_underC, total_column_done, total_column_delayed];
-query.returnGeometry = true;
-
-stColumnLayer.queryFeatures(query).then(function(response){
-
-var stats = response.features[0].attributes;
-
-   // column
-   const column_tobeC = stats.total_column_tobeC;
-  const column_underC = stats.total_column_underC;
-  const column_done = stats.total_column_done;
-  const column_delayed = stats.total_column_delayed;
-
-   // Chart //
- var chart = am4core.create("chartdiv", am4charts.XYChart);
-chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
-
-chart.data = [
-  {
-    category: "Column",
-    value1: column_done,
-    value2: column_underC,
-    value3: column_tobeC,
-    value4: column_delayed
-  }
-]; // End of chart
-
-chart.colors.step = 2;
-chart.padding(10, 10, 10, 10);
-
-// Legend
-const LegendFontSizze = 15;
-chart.legend = new am4charts.Legend();
-
-chart.legend.valueLabels.template.align = "right"
-  chart.legend.valueLabels.template.textAlign = "end";  
-
-chart.legend.position = "bottom";
-chart.legend.labels.template.fontSize = LegendFontSizze;
-chart.legend.labels.template.fill = "#ffffff";
-chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
-chart.legend.valueLabels.template.fontSize = LegendFontSizze;
-
-var marker = chart.legend.markers.template.children.getIndex(0);
-var markerTemplate = chart.legend.markers.template;
-marker.cornerRadius(12, 12, 12, 12);
-marker.strokeWidth = 1;
-marker.strokeOpacity = 1;
-marker.stroke = am4core.color("#ccc");
-
-// Change size of legend marker
-markerTemplate.width = 16;
-markerTemplate.height = 16;
-
-var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-categoryAxis.dataFields.category = "category";
-categoryAxis.renderer.grid.template.location = 0;
-categoryAxis.renderer.labels.template.fontSize = 16;
-categoryAxis.renderer.labels.template.fill = "#ffffff";
-categoryAxis.renderer.minGridDistance = 5; //can change label
-
-var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
-valueAxis.min = 0;
-valueAxis.max = 100;
-valueAxis.strictMinMax = true;
-valueAxis.calculateTotals = true;
-valueAxis.renderer.minWidth = 50;
-valueAxis.renderer.labels.template.fontSize = 14;
-valueAxis.renderer.labels.template.fill = "#ffffff";
-
-function createSeries(field, name) {
-  var series = chart.series.push(new am4charts.ColumnSeries());
-  series.calculatePercen = true;
-  series.dataFields.valueX = field;
-  series.dataFields.categoryY = "category";
-  series.stacked = true;
-  series.dataFields.valueXShow = "totalPercent";
-  series.dataItems.template.locations.categoryY = 0.5;
-  // Bar chart line color and width
-  series.columns.template.stroke = am4core.color("#ffffff");
-  series.columns.template.strokeWidth = 0.5;
-  series.name = name;
-
-  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-
-  if (name == "To be Constructed"){
-    series.fill = am4core.color("#000000");
-    
-  labelBullet.locationX = 0.5;
-  labelBullet.label.text = "";
-
-  //labelBullet.label.fill = am4core.color("#00FFFFFF");
-  labelBullet.label.fill = am4core.color("#000000");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 13;
-  labelBullet.locationX = 0.5;
-
-  } else if (name == "Under Construction"){
-    series.fill = am4core.color("#c2c2c2");
-    labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 14;
-  labelBullet.locationX = 0.5;
-
-  } else if (name == "Completed"){
-    series.fill = am4core.color("#0070ff");
-    labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 14;
-  labelBullet.locationX = 0.5;
-
-  } else {
-    series.fill = am4core.color("#ff0000"); // delayed
-    labelBullet.locationX = 0.5;
-  labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-  labelBullet.label.fill = am4core.color("#ffffff");
-  labelBullet.interactionsEnabled = false;
-  labelBullet.label.fontSize = 14;
-  labelBullet.locationX = 0.5;
-  
-  }
-  series.columns.template.width = am4core.percent(60);
-  series.columns.template.tooltipText = "[font-size:12px]{name}: {valueX.value.formatNumber('#.')}"
-
+///////////////////////
   // Click chart and filter, update maps
-  //const chartElement = document.getElementById("chartPanel");
+  const chartPanelDiv = document.getElementById("chartPanelDiv");
 
+  series.columns.template.events.on("hit", filterByChart, this);
+  function filterByChart(ev) {
+    //const selectedC = ev.target.dataItem.component.name;
+    const selectedP = ev.target.dataItem.categoryY;
 
-} // End of createSeries function
-createSeries("value1", "Completed");
-createSeries("value2", "Under Construction");
-createSeries("value3", "To be Constructed");
-createSeries("value4", "Delayed");
+    // D-Wall
+    if (selectedP == "Foundation") {
+        selectedLayer = "Structural Foundation";
+        stFoundationLayer.visible = true;
+        stColumnLayer.visible = false;
+        stFramingLayer.visible = false;
 
+    } else if (selectedP == "Column") {
+        selectedLayer = "Structural Columns"
+        stFoundationLayer.visible = false;
+        stColumnLayer.visible = true;
+        stFramingLayer.visible = false;
+
+    } else if (selectedP == "Framing") {
+      selectedLayer = "Structural Framing";
+      stFoundationLayer.visible = false;
+      stColumnLayer.visible = false;
+      stFramingLayer.visible = true;
+
+    } else {
+      selectedLayer = null;
+    }
+
+// Listen to the click event on the map view and resets to default 
+view.on("click", function() {
+    stFoundationLayer.visible = true;
+      stColumnLayer.visible = true;
+      stFramingLayer.visible = true;
 });
+////////////////////
+    // https://developers.arcgis.com/javascript/latest/api-reference/esri-views-layers-BuildingSceneLayerView.html
+
+  } // End of filterByChart
+
+
+
+ 
+
+
+
+//////////////////////////
+
+
+} // End of createSeries function
+createSeries("value1", "Completed");
+createSeries("value2", "Under Construction");
+createSeries("value3", "To be Constructed");
+createSeries("value4", "Delayed");
+
 
 } //updateChart
 
+function combineAll(){
+    structuralColumns()
+    .then(structuralFraming)
+    .then(structuralFoundation)
+    .then(updateStructural);
+}
 
 }); // End of am4core.ready
 
@@ -1019,17 +1041,37 @@ createSeries("value4", "Delayed");
 
         view.ui.add("menu", "bottom-left");
 
+
+///////////////////////////////////////////////////////
+var layerList = new LayerList({
+            view: view,
+            listItemCreatedFunction: function(event) {
+              const item = event.item;
+              if (item.title === "Architectural"){
+                item.visible = false
+              }
+            }
+          });
+
+var layerListExpand = new Expand ({
+  view: view,
+  content: layerList,
+  expandIconClass: "esri-icon-visible",
+  group: "bottom-right"
+});
+
+view.ui.add(layerListExpand, {
+  position: "bottom-right"
+});
+
 // Full screen logo
 view.ui.add(
   new Fullscreen({
     view: view,
     element: viewDiv
   }),
-  "bottom-left"
+  "bottom-right"
   );
-///////////////////////////////////////////////////////
-
-
 
       });
     </script>
@@ -1037,17 +1079,18 @@ view.ui.add(
 
   <body class="sassy-theme">
     <div id="viewDiv">
-      <div id="headerTitleDiv">SAMPLE</div>
-    <div id="menu1" class="esri-widget">
-      <input type="checkbox" id="color" />
-      <label for="color">Display all doors with a red color</label>
-      <div id="sliceContainer"></div>
-      <div id="sliceOptions">
-        <button class="esri-button esri-button--secondary" id="resetPlaneBtn" type="button" title="Reset slice plane">Reset slice plane</button>
-        <button class="esri-button esri-button--secondary" id="clearPlaneBtn" type="button" title="Clear slice plane">Clear slice</button>
-        <input type="checkbox" id="tiltEnabled" checked /><label for="tiltEnabled">Allow tilt on slice plane</label>
-    </div>
-    </div>
+        <div class="dateDiv">As of May 11, 2022</div>
+      <div class="panel">
+        <ul id="stationList">
+          <li style="display:block" class="test active" id="Calumpit">Calumpit</li>
+          <li style="display:block" class="test" id="Apalit">Apalit</li>
+          <li style="display:block" class="test" id="San Fernando">San Fernando</li>
+          <li style="display:block" class="test" id="Angeles">Angeles</li>
+          <li style="display:block" class="test" id="Clark">Clark</li>
+          <li style="display:block" class="test" id="CIA">CIA</li>
+        </ul>
+      </div>
+      <div id="headerTitleDiv">N2 Station Structure</div>
     <div id="menu" class="esri-widget">
       <input type="checkbox" id="opacityInput" unchecked />
       <label for="opacityInput">See through ground</label>

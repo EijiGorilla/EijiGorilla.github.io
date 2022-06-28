@@ -334,7 +334,6 @@ href="https://js.arcgis.com/4.22/esri/themes/dark/main.css"
 let chartLayerView;
 ////////////////////////////////////////////////////
 
-
 var basemap = new Basemap({
         baseLayers: [
           new VectorTileLayer({
@@ -424,6 +423,46 @@ var basemap = new Basemap({
 //*******************************//
 // Label Class Property Settings //
 //*******************************//
+// site photo labels
+var sitePhotoLabelClass = new LabelClass({
+          symbol: {
+            type: "label-3d",// autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: {
+                  color: "orange"
+                },
+                size: 15,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 40,
+              maxWorldLength: 200,
+              minWorldLength: 20
+            },
+            callout: {
+              type: "line",
+              size: 0.5,
+              color: [0, 0, 0],
+              border: {
+                color: [255, 255, 255, 0.7]
+              }
+            }
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: 'DefaultValue($feature.Description, "no data")'
+          }
+        });
+
         // Station labels
         var stationLabelClass = new LabelClass({
           symbol: {
@@ -502,6 +541,92 @@ var basemap = new Basemap({
 //*****************************//
 //      Renderer Settings      //
 //*****************************// 
+// Photo Symbol
+function getUniqueValueSymbol(name, color, sizeS, util) {
+  // The point symbol is visualized with an icon symbol. To clearly see the location of the point
+  // we displace the icon vertically and add a callout line. The line connects the offseted symbol with the location
+  // of the point feature.
+  if (util == "Existing") {
+    return {
+      type: "point-3d", // autocasts as new PointSymbol3D()
+      symbolLayers: [
+        {
+          type: "icon", // autocasts as new IconSymbol3DLayer()
+          resource: {
+            href: name
+          },
+          size: sizeS,
+          outline: {
+            color: "white",
+            size: 2
+          }
+        }
+      ],
+      verticalOffset: {
+        screenLength: 40,
+        maxWorldLength: 100,
+        minWorldLength: 20
+      },
+      callout: {
+        type: "line", // autocasts as new LineCallout3D()
+        color: [128,128,128,0.1],
+        size: 0.2,
+        border: {
+          color: "grey"
+        }
+      }
+    };
+  } else {
+    return {
+      type: "point-3d", // autocasts as new PointSymbol3D()
+      symbolLayers: [
+        {
+          type: "icon", // autocasts as new IconSymbol3DLayer()
+          resource: {
+            href: name
+          },
+          size: sizeS,
+          outline: {
+            color: "white",
+            size: 2
+          }
+        }
+      ],
+      verticalOffset: {
+        screenLength: 40,
+        maxWorldLength: 100,
+        minWorldLength: 20
+      },
+      callout: {
+        type: "line",
+        size: 0.5,
+        color: [0, 0, 0],
+        border: {
+          color: [255, 255, 255, 0.7]
+        }
+      }
+    };
+  }
+}
+
+var photoSymbolRenderer = {
+  type: "unique-value",
+  valueExpression: "When($feature.Description == 'PHOTO','PHOTO',$feature.Description)",
+  uniqueValueInfos: [
+    {
+      value: "PHOTO",
+      label: "Photo Spot",
+      symbol: getUniqueValueSymbol(
+        "https://EijiGorilla.github.io/Symbols/Photo_symbol.png",
+                "#D13470",
+                20,
+                "Relocation"
+      )
+    }
+  ]
+};
+
+
 // Station Symbol
 function stationsSymbol(name) {
           return {
@@ -563,31 +688,6 @@ let defaultTBMAlign = {
                 width: 1
 };
 
-let tbmAlignRenderer = {
-    type: "unique-value",
-    field: "Layer",
-    defaultSymbol: defaultTBMAlign
-};
-
-var tbmAlign = new FeatureLayer({
-  portalItem: {
-    id: "ea9eb839b97a42988bfb32d10a3c1141",
-    portal: {
-        url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  //layerId: 9,
-  renderer: tbmAlignRenderer,
-  //definitionExpression: "Layer = 'TBM'",
-  elevationInfo: {
-            mode: "on-the-ground",
-            offset: 0
-          },
-  title: "TBM Alignment",
-  popupEnabled: false
-
-});
-map.add(tbmAlign, 0);
 
 // Station point feature
 var stationLayer = new SceneLayer({
@@ -640,6 +740,7 @@ var stationLayer = new SceneLayer({
           popupTemplate: {
      title: "<h5>{Status}</h5>",
      lastEditInfoEnabled: false,
+     outFields: ["*"],
      returnGeometry: true,
      content: [
        {
@@ -718,7 +819,7 @@ var stationLayer = new SceneLayer({
         layerId: 2,
         elevationInfo: {
           mode: "absolute-height",//"on-the-ground", relative-to-ground, absolute-height
-          offset: -2
+          offset: 0
         },
          //renderer: roundTubeSymbol,
          title: "TBM Segment",
@@ -780,6 +881,46 @@ var stationLayer = new SceneLayer({
         }
 
         renderTransitLayer();
+
+        // photo points
+  var photoLayer = new FeatureLayer({
+  portalItem: {
+    id: "bdbfa1159b6c4ef3a94e0c87462bc625",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  //labelingInfo: [sitePhotoLabelClass],
+  renderer: photoSymbolRenderer,
+  elevationInfo: {
+  mode: "relative-to-ground",
+  featureExpressionInfo: {
+    expression: "Geometry($feature).z * 0"
+  },
+  unit: "meters"
+},
+  popupTemplate: {
+    lastEditInfoEnabled: false,
+    returnGeometry: true,
+    content: [
+      {
+        type: "media",
+        mediaInfos: [
+          {
+            title: "{Title}",
+            type: "image",
+            caption: "As of {DateTime}",
+            value: {
+              sourceURL: "{ImageURL}"
+            }
+          }
+        ]
+      }
+    ]
+    }
+
+    });
+map.add(photoLayer,1);
 
 // Radio Button Selection //        
 // Selection of 'D-Wall' or 'Station Box' only for visualization (not chart)
@@ -919,11 +1060,12 @@ const column_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: 
 const slab_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
 const kingpost_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [75], 11: [153], 12: [116]};
 const secantp_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-const dwall_2022 = {1: [9], 2: [19], 3: [26], 4: [13], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const dwall_2022 = {1: [9], 2: [19], 3: [26], 4: [24], 5: [18], 6: [15], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
 const column_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
 const slab_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
 const kingpost_2022 = {1: [10], 2: [], 3: [16], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
 const secantp_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+
 
 // Create chart instance
 var chart = am4core.create("monthlyProgressChartDiv", am4charts.XYChart);
@@ -1060,6 +1202,22 @@ chart.data = [
   value3: slab_2022[4],
   value4: kingpost_2022[4],
   value5: secantp_2022[4]
+},
+{
+  date: new Date(2022, 4),
+  value1: dwall_2022[5],
+  value2: column_2022[5],
+  value3: slab_2022[5],
+  value4: kingpost_2022[5],
+  value5: secantp_2022[5]
+},
+{
+  date: new Date(2022, 5),
+  value1: dwall_2022[6],
+  value2: column_2022[6],
+  value3: slab_2022[6],
+  value4: kingpost_2022[6],
+  value5: secantp_2022[6]
 }
 ];
 
@@ -1626,10 +1784,6 @@ var legend = new Legend({
   view: view,
   container: document.getElementById("legendDiv"),
   layerInfos: [
-  {
-      layer: tbmAlign,
-      title: "TBM Alignment"
-    },
     {
         layer: structureLayer,
         title: "Station Structure"
@@ -1703,7 +1857,7 @@ var layerListExpand = new Expand ({
     <div id="applicationDiv">
       <div id="headerDiv">
         <div id="headerTitleDiv">MMSP Station Structure</div>
-        <div class="dateDiv">As of April 25, 2022</div>
+        <div class="dateDiv">As of June 27, 2022</div>
         <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">Station:</label>
             <select class="esri-widget" id="valSelect">
@@ -1714,8 +1868,15 @@ var layerListExpand = new Expand ({
                 <option value="Quezon Ave">Quezon Ave</option>
                 <option value="East Ave">East Ave</option>
                 <option value="Anonas">Anonas</option>
+                <option value="Camp Aguinaldo">Camp Aguinaldo</option>
                 <option value="Ortigas">Ortigas</option>
+                <option value="Senate-DepEd">Senate-DepEd</option>
                 <option value="Shaw">Shaw</option>
+                <option value="Kalayaan Ave">Kalayaan Avenue</option>
+                <option value="Bonifacio Global City">BGC</option>
+                <option value="Terminal 3">Terminal 3</option>
+
+
               </select>
         </div>
       </div>

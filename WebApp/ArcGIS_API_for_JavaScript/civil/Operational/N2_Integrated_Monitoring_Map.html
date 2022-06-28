@@ -55,7 +55,7 @@
       }
 
       #headerTitleDiv {
-        font-size: 3vw;
+        font-size: 2.7vw;
         color: white;
         width: 40vw;
       }
@@ -991,7 +991,7 @@ var utilReloSymbolRenderer = {
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/Relocatd.png",
                 "#D13470",
-                30,
+                28,
                 "Relocation"
                 )
             },
@@ -1001,7 +1001,7 @@ var utilReloSymbolRenderer = {
               symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/Utility_Relocated_Completed_Symbol.png",
                 "#D13470",
-                30,
+                28,
                 "Relocation"
                 )
             },
@@ -2221,7 +2221,7 @@ map.add(compensationLayer);
 
 // Utility Point
 // To locate a symbol with callout on the ground, 
-// If basemap elevation layer is on, use "relative-to-scene"
+// If basemap elevation layer is on, use "relative-to-ground"
 // If basemap elevatio layer is off, use "absolute-height"
 /* 3D Web Style */
 
@@ -2237,7 +2237,7 @@ var testUtilPt = new FeatureLayer({
    outFields: ["*"],
    renderer: utilTypePtRenderer,
    elevationInfo: {
-     mode: "relative-to-scene",
+     mode: "relative-to-ground",
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
@@ -2293,7 +2293,7 @@ map.add(testUtilPt, 3);
 
 /* Symbols with callout */
 // To locate a symbol with callout on the ground, 
-// If basemap elevation layer is on, use "relative-to-scene"
+// If basemap elevation layer is on, use "relative-to-ground"
 // If basemap elevatio layer is off, use "absolute-height"
 
 var testUtilPt1 = new FeatureLayer({
@@ -2308,7 +2308,7 @@ var testUtilPt1 = new FeatureLayer({
    outFields: ["*"],
    renderer: utilReloSymbolRenderer,
    elevationInfo: {
-     mode: "relative-to-scene",
+     mode: "relative-to-ground",
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
@@ -2375,7 +2375,7 @@ map.add(testUtilPt1);
   layerId: 2,
    title: "Utility Line",
    elevationInfo: {
-     mode: "relative-to-scene",
+     mode: "relative-to-ground",
      featureExpressionInfo: {
        expression: "$feature.height"
   },
@@ -2532,7 +2532,7 @@ var testLine1 = new FeatureLayer({
   layerId: 2,
    title: "Utility Line",
    elevationInfo: {
-     mode: "relative-to-scene",
+     mode: "relative-to-ground",
      featureExpressionInfo: {
        expression: "$feature.height"
   },
@@ -2609,9 +2609,92 @@ var fncLayer = new FeatureLayer ({
 });
 map.add(fncLayer,0);
 
+// Viaduct Layer
+const colorsViaduct = {
+          1: [225, 225, 225, 0.1], // To be Constructed (white)
+          2: [130, 130, 130, 0.5], // Under Construction
+          3: [255, 0, 0, 0.8], // Delayed
+          4: [0, 112, 255, 0.8], // Bored Pile
+          5: [0, 112, 255, 0.8], // Pile cap
+          6: [0, 112, 255, 0.8], // Pier
+          7: [0, 112, 255, 0.8], // Pier head
+          8: [0, 112, 255, 0.8], // Pre-cast
+        };
 
-// Viaduct
-// 0.1: more transparent, 0.9: not transparent
+var viaductLayer = new SceneLayer({
+   portalItem: {
+            id: "a9c0878766964fa794cc67bbf38b7a09",
+            portal: {
+              url: "https://gis.railway-sector.com/portal"
+            }
+          },
+         // popupTemplate: viadTemplate,
+          elevationInfo: {
+          mode: "absolute-height" //absolute-height, relative-to-ground
+        },
+            title: "Viaduct",
+            outFields: ["*"],
+            // when filter using date, example below. use this format
+            //definitionExpression: "EndDate = date'2020-6-3'"
+            /*
+            popupTemplate: {
+     title: "<h5>{Status1}</h5>",
+     lastEditInfoEnabled: false,
+     returnGeometry: true,
+     content: [
+       {
+         type: "fields",
+         fieldInfos: [
+           {
+             fieldName: "Type",
+             label: "Type of Structure"
+           },
+           {
+             fieldName: "PierNumber",
+             Label: "Pier No."
+           }
+         ]
+       }
+     ]
+   }
+      */      
+          });
+          map.add(viaductLayer);
+
+          function renderViaductLayer() {
+          const renderer = new UniqueValueRenderer({
+            field: "Status1"
+          });
+
+          for (let property in colorsViaduct) {
+            if (colorsViaduct.hasOwnProperty(property)) {
+              renderer.addUniqueValueInfo({
+                value: property,
+                symbol: {
+                  type: "mesh-3d",
+                  symbolLayers: [
+                    {
+                      type: "fill",
+                      material: {
+                        color: colorsViaduct[property],
+                        colorMixMode: "replace"
+                      },
+                      edges: {
+                        type: "solid", // autocasts as new SolidEdges3D()
+                        color: [225, 225, 225, 0.3]
+                        }
+                    }
+                  ]
+                 }
+              });
+            }
+          }
+
+          viaductLayer.renderer = renderer;
+        }
+
+        renderViaductLayer()
+
 
 // Start of am4core
 am4core.ready(function() {
@@ -2880,6 +2963,7 @@ function setMunicipalExpression() {
     testUtilPt1.definitionExpression = "CP = '" + municipal + "'";
     testLine.definitionExpression = "CP = '" + municipal + "'";
     testLine1.definitionExpression = "CP = '" + municipal + "'";
+    viaductLayer.definitionExpression = "CP = '" + municipal + "'";
   }
 
   //var barang = handoverdateSelect.options[handoverdateSelect.selectedIndex].value;
@@ -2916,6 +3000,7 @@ function setMunicipalBarangDefinitionExpression() {
     testUtilPt1.definitionExpression = "CP = '" + municipal + "'";
     testLine.definitionExpression = "CP = '" + municipal + "'";
     testLine1.definitionExpression = "CP = '" + municipal + "'";
+    viaductLayer.definitionExpression = "CP = '" + municipal + "'";
 
   } else if (municipal == 'None' && barang !== 'None') {
     lotLayer.definitionExpression = "HandOverDate1 = '" + barang + "'";
@@ -2930,11 +3015,13 @@ function setMunicipalBarangDefinitionExpression() {
   } else if (municipal !== 'None' && barang !== 'None') {
     lotLayer.definitionExpression = "CP = '" + municipal + "'" + " AND " + "HandOverDate1 = '" + barang + "'";
     priorityLayer.definitionExpression = "CP = '" + municipal + "'" + " AND " + "HandOverDate1 = '" + barang + "'";
+    viaductLayer.definitionExpression = "CP = '" + municipal + "'";
     //treeCuttingLayer.definitionExpression = "CP = '" + municipal + "'" + " AND " + "HandOverDate1 = '" + barang + "'";
     //compensationLayer.definitionExpression = "CP = '" + municipal + "'" + " AND " + "HandOverDate1 = '" + barang + "'";
     //testUtilPt.definitionExpression = "CP = '" + municipal + "'" + " AND " + "HandOverDate1 = '" + barang + "'";
     //testUtilPt1.definitionExpression = "CP = '" + municipal + "'" + " AND " + "HandOverDate1 = '" + barang + "'";
     //testLine.definitionExpression = "CP = '" + municipal + "'" + " AND " + "HandOverDate1 = '" + barang + "'";
+    
     //testLine1.definitionExpression = "CP = '" + municipal + "'" + " AND " + "HandOverDate1 = '" + barang + "'";
   }
   
@@ -5015,7 +5102,7 @@ view.when(function () {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.title === "Chainage" || item.title === "Existing Points" || item.title === "Existing Line" || item.title === "Pier No"){
+              if (item.title === "Chainage" || item.title === "Viaduct" || item.title === "Pier No"){
                 item.visible = false
               }
             }
