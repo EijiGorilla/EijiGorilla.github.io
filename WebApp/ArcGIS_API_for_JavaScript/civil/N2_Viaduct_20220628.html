@@ -727,7 +727,7 @@ if (document.getElementById("N-01").checked = true) {
     viaductLayer.definitionExpression = "CP = 'N-01'";
     PierNoLayer.definitionExpression = "CP = 'N-01'";
     zoomToLayer(viaductLayer);
-    summaryStats().then(MonthlyProgressChart);
+    MonthlyProgressChart();
     updateChart();
     perCpProgress();
 }
@@ -773,114 +773,20 @@ function filterByTest(event) {
 
 // Time line bar charts //
 // This stacked bar charnts show monthly construction progress by year and components
-//************************************
-// Define Year, Month, and Types
-const years = [2021,2022];
-const months = [1,2,3,4,5,6,7,8,9,10,11,12];
-const typesN = [1,2,3,4,5];
 
-const pile_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-const pile_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+function MonthlyProgressChart(){
 
-const pileC_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-const pileC_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-
-const pier_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-const pier_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-
-const pierH_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [],};
-const pierH_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [],};
-
-const precast_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-const precast_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-
-// Length of Year and Month array
-var ylength = years.length;
-var mlength = months.length;
-var arr = new Array();
-
-// Compile Year and Month in an empty Array
-for(var i=years[0]; i<=years[ylength-1]; i++){
-  for(var j=months[0]; j<=months[mlength-1]; j++){
-    var ym = i.toString() + "-" + j.toString();
-    arr.push(new Date(ym).toLocaleDateString('en-ZA'));
-  }
-}
- 
-// OPTION 1:
-  function summaryStats(){
-    var total_count = {
-    onStatisticField: "CASE WHEN Status1 = 4 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_count",
-    statisticType: "sum"
-}
-
-  var query = viaductLayer.createQuery();
-  query.where = "Year IS NOT NULL";
-query.outStatistics = [total_count];
-//query.orderByFields = ["Type Year Month"];
-query.groupByFieldsForStatistics = ["Type", "Year", "Month"];
-
-  return viaductLayer.queryFeatures(query).then(function(response) {
-    stats = response.features;
-    
-    stats.forEach((result, index) => {
-      const attributes = result.attributes;
-      const TYPE = attributes.Type;
-      const YEAR = attributes.Year;
-      const MONTH = attributes.Month;
-      const DATE = attributes.end_date;
-      const VALUE = attributes.total_count;
-
-      // Type = 1 (Bored Piles)
-      if(TYPE === 1 && YEAR === 2021){
-        pile_2021[MONTH].push(VALUE);
-
-      } else if (TYPE === 1 && YEAR === 2022){
-        pile_2022[MONTH].push(VALUE);
-
-      } else if (TYPE === 2 && YEAR === 2021){
-        pileC_2021[MONTH].push(VALUE);
-
-      } else if (TYPE === 2 && YEAR === 2022){
-        pileC_2022[MONTH].push(VALUE);
-        
-      } else if (TYPE === 3 && YEAR === 2021){
-        pier_2021[MONTH].push(VALUE);
-        
-      } else if (TYPE === 3 && YEAR === 2022){
-        pier_2022[MONTH].push(VALUE);
-        
-      } else if (TYPE === 4 && YEAR === 2021){
-        pierH_2021[MONTH].push(VALUE);
-        
-      } else if (TYPE === 4 && YEAR === 2022){
-        pierH_2022[MONTH].push(VALUE);
-        
-      } else if (TYPE === 5 && YEAR === 2021){
-        precast_2021[MONTH].push(VALUE);
-        
-      } else if (TYPE === 5 && YEAR === 2022){
-        precast_2022[MONTH].push(VALUE);
-        
-      }
-
-    });
-    return [pile_2021, pile_2022,
-            pileC_2021, pileC_2022,
-            pier_2021, pier_2022,
-            pierH_2021, pierH_2022,
-            precast_2021, precast_2022];
-});
-  }
-//*************************************
-
-function MonthlyProgressChart([pile_2021, pile_2022,
-            pileC_2021, pileC_2022,
-            pier_2021, pier_2022,
-            pierH_2021, pierH_2022,
-            precast_2021, precast_2022]){
-
+// Note that the following arrays are derived from python code which is run in ArcGIS Pro
+const pile_2021 = {1: [2], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [2], 8: [52], 9: [120], 10: [195], 11: [297], 12: [230]};
+const pileC_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [1], 10: [2], 11: [9], 12: [7]};
+const pier_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [5], 12: [5]};
+const pierH_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const precast_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [1]};
+const pile_2022 = {1: [264], 2: [171], 3: [169], 4: [158], 5: [119], 6: [73], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const pileC_2022 = {1: [10], 2: [16], 3: [18], 4: [17], 5: [14], 6: [12], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const pier_2022 = {1: [5], 2: [8], 3: [12], 4: [15], 5: [20], 6: [13], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const pierH_2022 = {1: [], 2: [3], 3: [9], 4: [6], 5: [6], 6: [14], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const precast_2022 = {1: [1], 2: [], 3: [4], 4: [2], 5: [2], 6: [1], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
 
 var chart = am4core.create("monthlyProgressChartDiv", am4charts.XYChart);
 
