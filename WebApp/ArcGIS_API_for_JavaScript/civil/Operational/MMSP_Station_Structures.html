@@ -981,7 +981,7 @@ am4core.useTheme(am4themes_animated);
 structureLayer.definitionExpression = null;
 zoomToLayer(structureLayer);
 updateChart();
-
+summaryStats().then(MonthlyProgressChart);
 
 // click event handler for choices
 DropdownValue.addEventListener("click", filterByTest);
@@ -1050,22 +1050,118 @@ function filterByTest(event) {
 */
 } // End of filterByTest
 
-//////////////////////////////////// Time line bar charts //////////////////////////////////
-const monthlyProgressChartDiv = document.getElementById("monthlyProgressChartDiv");
-function MonthlyProgressChart(){
 
-/////////////
-const dwall_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [8]};
+// Obtain summary statiscis for stacked barchart 
+const years = [2021,2022];
+const months = [1,2,3,4,5,6,7,8,9,10,11,12];
+const typesN = [1,2,3,4,5];
+
+const dwall_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const dwall_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+
 const column_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-const slab_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-const kingpost_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [75], 11: [153], 12: [116]};
-const secantp_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-const dwall_2022 = {1: [9], 2: [19], 3: [26], 4: [24], 5: [18], 6: [15], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
 const column_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+
+const slab_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
 const slab_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
-const kingpost_2022 = {1: [10], 2: [], 3: [16], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+
+const kingpost_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const kingpost_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+
+const secantp_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
 const secantp_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
 
+// Length of Year and Month array
+var ylength = years.length;
+var mlength = months.length;
+var arr = new Array();
+
+// Compile Year and Month in an empty Array
+for(var i=years[0]; i<=years[ylength-1]; i++){
+  for(var j=months[0]; j<=months[mlength-1]; j++){
+    var ym = i.toString() + "-" + j.toString();
+    arr.push(new Date(ym).toLocaleDateString('en-ZA'));
+  }
+}
+ 
+// OPTION 1:
+  function summaryStats(){
+    var total_count = {
+    onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_count",
+    statisticType: "sum"
+}
+
+  var query = structureLayer.createQuery();
+  query.where = "Year IS NOT NULL";
+query.outStatistics = [total_count];
+//query.orderByFields = ["Type Year Month"];
+query.groupByFieldsForStatistics = ["Type", "Year", "Month"];
+
+  return structureLayer.queryFeatures(query).then(function(response) {
+    stats = response.features;
+    
+    stats.forEach((result, index) => {
+      const attributes = result.attributes;
+      const TYPE = attributes.Type;
+      const YEAR = attributes.Year;
+      const MONTH = attributes.Month;
+      //const DATE = attributes.end_date;
+      const VALUE = attributes.total_count;
+
+      // Type = 1 (Bored Piles)
+      if(TYPE === 1 && YEAR === 2021){
+        dwall_2021[MONTH].push(VALUE);
+
+      } else if (TYPE === 1 && YEAR === 2022){
+        dwall_2022[MONTH].push(VALUE);
+
+      } else if (TYPE === 2 && YEAR === 2021){
+        column_2021[MONTH].push(VALUE);
+
+      } else if (TYPE === 2 && YEAR === 2022){
+        column_2022[MONTH].push(VALUE);
+        
+      } else if (TYPE === 3 && YEAR === 2021){
+        slab_2021[MONTH].push(VALUE);
+        
+      } else if (TYPE === 3 && YEAR === 2022){
+        slab_2022[MONTH].push(VALUE);
+        
+      } else if (TYPE === 4 && YEAR === 2021){
+        kingpost_2021[MONTH].push(VALUE);
+        
+      } else if (TYPE === 4 && YEAR === 2022){
+        kingpost_2022[MONTH].push(VALUE);
+        
+      } else if (TYPE === 5 && YEAR === 2021){
+        secantp_2021[MONTH].push(VALUE);
+        
+      } else if (TYPE === 5 && YEAR === 2022){
+        secantp_2022[MONTH].push(VALUE);
+        
+      }
+
+    });
+    return [dwall_2021, dwall_2022,
+            column_2021, column_2022,
+            slab_2021, slab_2022,
+            kingpost_2021, kingpost_2022,
+            secantp_2021, secantp_2022];
+});
+  }
+
+
+//////
+
+//////////////////////////////////// Time line bar charts //////////////////////////////////
+const monthlyProgressChartDiv = document.getElementById("monthlyProgressChartDiv");
+
+function MonthlyProgressChart([dwall_2021, dwall_2022,
+            column_2021, column_2022,
+            slab_2021, slab_2022,
+            kingpost_2021, kingpost_2022,
+            secantp_2021, secantp_2022]){
 
 // Create chart instance
 var chart = am4core.create("monthlyProgressChartDiv", am4charts.XYChart);
@@ -1218,6 +1314,14 @@ chart.data = [
   value3: slab_2022[6],
   value4: kingpost_2022[6],
   value5: secantp_2022[6]
+},
+{
+  date: new Date(2022, 6),
+  value1: dwall_2022[7],
+  value2: column_2022[7],
+  value3: slab_2022[7],
+  value4: kingpost_2022[7],
+  value5: secantp_2022[7]
 }
 ];
 
@@ -1301,7 +1405,7 @@ createSeries("value5", "Secant Pile");
 //chart.scrollbarY = new am4core.Scrollbar();
 
 }
-MonthlyProgressChart();
+
 ////////////////////////////
 
 
