@@ -637,8 +637,6 @@ var lotHandedOverDiv = document.getElementById("lotHandedOverDiv");
 var CHART_ELEMENT = document.getElementById("chartPanel");
 var CHART_ELEMENTStructure = document.getElementById("structureChartPanel");
 var totalNumberDiv = document.getElementById("totalNumberDiv");
-const stButtonElement = document.getElementById("stButton");
-
 
 var totalNumberLotDiv = document.getElementById("totalNumberLotDiv");
 var pteNumberLotDiv = document.getElementById("pteNumberLotDiv");
@@ -656,6 +654,7 @@ var isfDiv = document.getElementById("isfDiv");
 
 // Station1 dropdown list
 var stationSelect = document.getElementById("valSelect");
+var landTypeSelect = document.getElementById("landTypeSelect");
 
 
 //*******************************//
@@ -1623,6 +1622,133 @@ function setLotMunicipalOnlyExpression(newValue) {
     return queryForLotGeometries();
 }
 
+// 1. Define Query
+/// 1.1. Query all features from lot layer
+view.when(function() {
+    return lotLayer.when(function() {
+        var query = lotLayer.createQuery();
+        return lotLayer.queryFeatures(query);
+    });
+})
+.then(getValues)
+.then(getUniqueValues)
+.then(addToSelect)
+
+/// 1.3. Query for geometry
+function queryForLotGeometries() {
+    var lotQuery = lotLayer.createQuery();
+
+    return lotLayer.queryFeatures(lotQuery).then(function(response) {
+        lotGeometries = response.features.map(function(feature) {
+            return feature.geometry;
+        });
+        return lotGeometries;
+    });
+  }
+
+// 2. Filter Lot for land type list
+function filterLotMunicipality() {
+  var query2 = lotLayer.createQuery();
+  query2.where = lotLayer.definitionExpression; // use filtered municipality. is this correct?
+
+  lotLayer.queryFeatures(query2)
+    .then(getQuery2Values)
+    .then(getUniqueValues2)
+    .then(addToSelectQuery2);
+}
+
+// 3. Get values and return to list
+/// 2.1. Land Type
+function getValues(response) {
+    var features = response.features;
+    var values = features.map(function(feature) {
+        return feature.attributes.Type;
+    });
+    return values;
+}
+
+// Return an array of unique values in Type field of the lot Layer
+function getUniqueValues(values) {
+    var uniqueValues = [];
+
+    values.forEach(function(item, i) {
+        if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
+            uniqueValues.push(item);
+            //headerTitleDiv.innerHTML = uniqueValues;
+        }
+    });
+    return uniqueValues;
+}
+
+// Add the unique values to Land Type select element
+function addToSelect(values) {
+    values.sort();
+    values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
+    values.forEach(function(value) {
+        var option = document.createElement("option");
+        option.text = value;
+        landTypeSelect.add(option);
+    });
+}
+
+// 2.2. Station List
+/// Filter Station list when land type list is changed.
+function getQuery2Values(response) {
+  var featuresQuery2 = response.features;
+  var query2Values = featuresQuery2.map(function(feature) {
+    return feature.attributes.Station1;
+  });
+  return query2Values;
+}
+
+function getUniqueValues2(values2) {
+  var uniqueValues2 = [];
+    values2.forEach(function(item, i) {
+        if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
+            uniqueValues2.push(item);
+        }
+    });
+    return uniqueValues2;
+}
+
+/// Add the unique values to the second select (Station list)
+function addToSelectQuery2(query2Values) {
+  stationSelect.options.length = 0;
+  query2Values.sort();
+  query2Values.unshift('None');
+    query2Values.forEach(function(value) {
+    var option = document.createElement("option");
+      option.text = value;
+      stationSelect.add(option);
+  });
+
+  //return setLotBarangayExpression(handoverdateSelect.value);
+}
+
+// 3. Set DefinitionExpression on the lot layer
+/// 3.1. Land Type Only
+function setLandTypeExpression() {
+  var landType = landTypeSelect.options[landTypeSelect.selectedIndex].value;
+
+  if (landType === 'None') {
+    lotLayer.definitionExpression = null;
+  } else {
+    lotLayer.definitionExpression = "Type = '" + landType + "'";
+  }
+
+  if (!lotLayer.visible) {
+    lotLayer.visible = true;
+  }
+  return queryForLotGeometries;
+}
+
+///  3.2. Land Type + Station
+
+
+
+
+
+///////////////////////
 //
 function setLotTypeStationExpression(value1, value2) {
   // value1: station dropdown
@@ -2942,8 +3068,11 @@ var printExpand = new Expand ({
         </div>
       </div>
       <div class="esri-widget" id="dropdownDiv">
+        <label for="sel-options">Land Type</label>
+        <select id="landTypeSelect" class="esri-widget"></select>
         <label for="sel-options">Station:</label>
         <select id="valSelect" class="esri-widget" width="150" style="width: 150px"></select>
+
       </div>
     </div>
     <div class="container">
