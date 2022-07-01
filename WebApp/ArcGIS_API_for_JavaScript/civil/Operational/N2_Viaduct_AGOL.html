@@ -29,6 +29,7 @@ body {
   padding: 10px;
   margin: 0 auto;
   box-sizing: border-box;
+  background-color: rgb(0,0,0,0);
 }
 
 /* Header container: headerDiv, headerTitleDiv, cpButton, and cpButtonCalss */
@@ -44,6 +45,7 @@ body {
   margin-bottom: 3px;
   display: grid;
   grid-template-columns: 250fr 0fr 0fr;
+  background-color: rgb(0,0,0,0);
 }
 
 #headerTitleDiv {
@@ -78,6 +80,7 @@ body {
   box-sizing: border-box;
   grid-template-columns: 4fr 1.2fr;
   border-right: 0;
+  background-color: rgb(0,0,0,0);
 }
 
 /* Inside boxB container: viewDiv and menu */
@@ -90,6 +93,7 @@ body {
   flex: 1 1 auto;
   order: 1;
   overflow: hidden;
+  background-color: rgb(0,0,0,0);
 }
 
 #menu {
@@ -107,10 +111,10 @@ body {
    box-sizing: border-box;
    border-top: 0;
    border-bottom: 0;
+   background-color: rgb(0,0,0,0);
   }
 
 #chartPanel {
-  background: rgb(0, 0, 0, 0);
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   padding: 0px;
   width: 99%;
@@ -118,11 +122,13 @@ body {
   flex-wrap: wrap;
   box-sizing: border-box;
   margin: 3px;
+  background-color: rgb(0,0,0,0);
 }
 
 #chartdiv {
   width: 100%;
   height: 72vh;
+  background-color: rgb(0,0,0,0);
 }
 
 #chartTitleDiv {
@@ -134,7 +140,7 @@ body {
   color: white;
   margin-top: 5px;
   padding-top: 5px;
-  background-color: rgb(0, 0, 0, 0.5);
+  background-color: rgb(0,0,0,0);
   opacity: 0.9;
   line-height: 0.5;
   height: 8vh;
@@ -150,7 +156,8 @@ body {
   line-height: 0.3;
   opacity: 0.8;
   height: 14vh;
-  width: 100%
+  width: 100%;
+  background-color: rgb(0,0,0,0);
 }
 
 #totalProgress {
@@ -165,7 +172,7 @@ body {
   background-color: rgb(0,0,0,0);
   z-index: 99;
   bottom: 1.5%;
-  left:13vw;   
+  left:13vw;
 }
 
 /* Default Letter */    
@@ -1171,6 +1178,74 @@ viaductLayer.queryFeatures(query).then(function(response){
  // Chart //
 var chart = am4core.create("chartdiv", am4charts.XYChart);
 chart.responsive.enabled = true;
+chart.responsive.useDefault = false;
+
+
+chart.responsive.rules.push({
+  relevant: function(target) {
+    if (target.pixelWidth <= 400) {
+      return true;
+    }
+    
+    return false;
+  },
+  state: function(target, stateId) {
+    
+    if (target instanceof am4charts.Chart) {
+      var state = target.states.create(stateId);
+      state.properties.paddingTop = 0;
+      state.properties.paddingRight = 15;
+      state.properties.paddingBottom = 5;
+      state.properties.paddingLeft = 15;
+      return state;
+    }
+    
+   
+    if (target instanceof am4charts.Legend) {
+      var state = target.states.create(stateId);
+      state.properties.paddingTop = 0;
+      state.properties.paddingRight = 0;
+      state.properties.paddingBottom = 0;
+      state.properties.paddingLeft = 0;
+      state.properties.marginLeft = 0;
+      return state;
+    }
+    
+    if (target instanceof am4charts.AxisRendererY) {
+      var state = target.states.create(stateId);
+      state.properties.inside = false;
+      state.properties.maxLabelPosition = 0.99;
+      return state;
+    }
+    
+    if ((target instanceof am4charts.AxisLabel) && (target.parent instanceof am4charts.AxisRendererY)) { 
+      var state = target.states.create(stateId);
+      state.properties.dy = 0;
+      state.properties.paddingTop = 3;
+      state.properties.paddingRight = 5;
+      state.properties.paddingBottom = 3;
+      state.properties.paddingLeft = 5;
+      
+      // Create a separate state for background
+      target.setStateOnChildren = true;
+      var bgstate = target.background.states.create(stateId);
+      bgstate.properties.fill = am4core.color("#00ffffff");
+      bgstate.properties.fillOpacity = 0;
+      
+      return state;
+    }
+    
+    // if ((target instanceof am4core.Rectangle) && (target.parent instanceof am4charts.AxisLabel) && (target.parent.parent instanceof am4charts.AxisRendererY)) { 
+    //   var state = target.states.create(stateId);
+    //   state.properties.fill = am4core.color("#f00");
+    //   state.properties.fillOpacity = 0.5;
+    //   return state;
+    // }
+    
+    return null;
+  }
+});
+
 chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
 
 chart.data = [
@@ -1262,7 +1337,7 @@ valueAxis.strictMinMax = true;
 valueAxis.calculateTotals = true;
 valueAxis.renderer.minWidth = 50;
 valueAxis.renderer.labels.template.fontSize = 14;
-valueAxis.renderer.labels.template.fill = "#ffffff";
+valueAxis.renderer.labels.template.fill = am4core.color("#FFFFFF");
 valueAxis.renderer.line.strokeOpacity = 1;
 valueAxis.renderer.line.strokeWidth = 0;
 valueAxis.renderer.line.stroke = am4core.color("#FFFFFF");
