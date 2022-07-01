@@ -34,6 +34,7 @@
       #headerDiv {
         font-weight: 400;
         max-width: 2000px;
+        width: 100%;
         font-style: normal;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         color: white;
@@ -43,7 +44,7 @@
         margin-bottom: 3px;
         display: grid;
         vertical-align: middle;
-        grid-template-columns: 150fr 0fr 60fr;
+        grid-template-columns: 1fr auto auto;
       }
 
       #headerTitleDiv {
@@ -51,32 +52,16 @@
         vertical-align: middle;
         padding-top: 3px;
       }
-
-      #valSelect {
-        margin: 5px 0px 0px 0px;
-      }
       
       #dropdownDiv {
-        background-color: black;
-        font-size: 1.1vw;
-        opacity: 1;
-        color: white;
-        font-weight: bold;
-        height: 4vh;
-        width: 20vw;
-        margin-top: 8px;
-      }
+    background-color: rgb(0,0,0,0);
+    opacity: 1;
+    color: white;
+    font-weight: bold;
+    text-align: left;
+    padding-top: 1.5vh;
+}
       
-      .cpButtonClass {
-        font-style: normal;
-        font-size: 1vw;
-        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-        color: white;
-        text-align: center;
-        margin-top: 5%;
-        display: flex;
-      }
-
 /* Legend Panle, List Panel, View Panel, Chart Panels */
       .container {
         display: grid;
@@ -636,7 +621,6 @@ var CHART_ELEMENT = document.getElementById("chartPanel");
 var CHART_ELEMENTStructure = document.getElementById("structureChartPanel");
 var totalNumberDiv = document.getElementById("totalNumberDiv");
 
-
 var totalNumberLotDiv = document.getElementById("totalNumberLotDiv");
 var pteNumberLotDiv = document.getElementById("pteNumberLotDiv");
 var handedoverNumberLotDiv = document.getElementById("handedoverNumberLotDiv");
@@ -653,6 +637,7 @@ var isfDiv = document.getElementById("isfDiv");
 
 // Station1 dropdown list
 var stationSelect = document.getElementById("valSelect");
+var landTypeSelect = document.getElementById("landTypeSelect");
 
 
 //*******************************//
@@ -1265,7 +1250,7 @@ var lotLayer = new FeatureLayer({
   outFields: ["*"],
   title: "Status of Land Acquisition",
         
-  //labelsVisible: false,
+//labelsVisible: false,
   labelingInfo: [LOT_LABEL_CLASS],
   renderer: lotLayerRenderer,
   popupTemplate: {
@@ -1358,6 +1343,7 @@ var isfLayer = new FeatureLayer ({
     },
     title: "ISF",
     outFields: ["*"],
+    returnGeometry: true,
     renderer: isfRenderer,
     labelsVisible: false
 });
@@ -1376,10 +1362,7 @@ am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
 // Default Lot Renders when map is opened.
-updateChartLot();
-totalNumberOfLots();
-updateChartStructure();
-totalNumberOfStructures();
+
 
 // Default Labels
 document.getElementById("headerTitleDiv").innerHTML = "Land Acquisition (MMSP)";
@@ -1533,87 +1516,27 @@ function thousands_separators(num)
 //--------------  Update Priority Button and Handed-Over Lots ---------------//
 //--------------  Query and Filter Lot and Structure Layers -----------------//
 
-// Return an array of unique values in the 'Station1' field of lot Layer
-// Query all features from lot layer
+// Default state //
+updateChartLot();
+totalNumberOfLots();
+updateChartStructure();
+totalNumberOfStructures();
+
+
+
+// 1. Define Query
+/// 1.1. Query all features from lot layer
 view.when(function() {
-    return stationLayer.when(function() {
-        var query = stationLayer.createQuery();
-        return stationLayer.queryFeatures(query);
+    return lotLayer.when(function() {
+        var query = lotLayer.createQuery();
+        return lotLayer.queryFeatures(query);
     });
 })
 .then(getValues)
 .then(getUniqueValues)
 .then(addToSelect)
 
-view.when(function() {
-    return isfLayer.when(function() {
-        var query = isfLayer.createQuery();
-        return isfLayer.queryFeatures(query);
-    });
-})
-.then(getValues)
-.then(getUniqueValues)
-.then(addToSelect)
-
-//Return an array of all the values in the 'Station1' field'
-function getValues(response) {
-    var features = response.features;
-    var values = features.map(function(feature) {
-        return feature.attributes.Station1;
-    });
-    return values;
-}
-
-// Return an array of unique values in the 'Station1' field of the lot Layer
-function getUniqueValues(values) {
-    var uniqueValues = [];
-
-    values.forEach(function(item, i) {
-        if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
-            uniqueValues.push(item);
-        }
-    });
-    return uniqueValues;
-}
-
-// Add the unique values to the Station1 select element. this will allow the user
-// to filter lot layer by stations.
-function addToSelect(values) {
-    values.sort();
-    values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
-    values.forEach(function(value) {
-        var option = document.createElement("option");
-        option.text = value;
-        stationSelect.add(option);
-    });
-   return setLotMunicipalExpression(stationSelect.value);
-}
-
-// Set the definition expression on the lot layer to reflect the selecction of the user
-// This is activated, only when station is updated in the dropdown list (not priority)
-function setLotMunicipalOnlyExpression(newValue) {
-
-    if (newValue == 'None') {
-    lotLayer.definitionExpression = null;
-    isfLayer.definitionExpression = null;
-    structureLayer.definitionExpression = null;
-    constBoundary.definitionExpression = null;
-
-  } else {
-    lotLayer.definitionExpression = "Station1 = '" + newValue + "'";
-    isfLayer.definitionExpression = "Station1 = '" + newValue + "'";
-    structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
-    constBoundary.definitionExpression = "Station1 = '" + newValue + "'";
-  }
-
-    if (!lotLayer.visible) {
-        lotLayer.visible = true;
-    }
-    
-    return queryForLotGeometries();
-}
-
-
+/// 1.3. Query for geometry
 function queryForLotGeometries() {
     var lotQuery = lotLayer.createQuery();
 
@@ -1623,37 +1546,224 @@ function queryForLotGeometries() {
         });
         return lotGeometries;
     });
-    var structureQuery = structureLayer.createQuery();
-    
-    return structureLayer.queryFeatures(structureQuery).then(function(response) {
-      structureGeometries = response.features.map(function(feature) {
-        return feature.geometry;
-      });
-      return structureGeometries;
-    });
   }
 
-// Statino Dropdown list Event Listener
+// 2. Filter Lot for land type list
+function filterLotLandType() {
+  var query2 = lotLayer.createQuery();
+  query2.where = lotLayer.definitionExpression; // use filtered municipality. is this correct?
+
+  lotLayer.queryFeatures(query2)
+    .then(getQuery2Values)
+    .then(getUniqueValues2)
+    .then(addToSelectQuery2);
+}
+
+// 3. Get values and return to list
+/// 2.1. Land Type
+function getValues(response) {
+    var features = response.features;
+    var values = features.map(function(feature) {
+        return feature.attributes.Type;
+    });
+    return values;
+}
+
+// Return an array of unique values in Type field of the lot Layer
+function getUniqueValues(values) {
+    var uniqueValues = [];
+
+    values.forEach(function(item, i) {
+        if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
+            uniqueValues.push(item);
+            //headerTitleDiv.innerHTML = uniqueValues;
+        }
+    });
+    return uniqueValues;
+}
+
+// Add the unique values to Land Type select element
+function addToSelect(values) {
+    values.sort();
+    values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
+    values.forEach(function(value) {
+        var option = document.createElement("option");
+        option.text = value;
+        landTypeSelect.add(option);
+    });
+}
+
+// 2.2. Station List
+/// Filter Station list when land type list is changed.
+function getQuery2Values(response) {
+  var featuresQuery2 = response.features;
+  var query2Values = featuresQuery2.map(function(feature) {
+    return feature.attributes.Station1;
+  });
+  return query2Values;
+}
+
+function getUniqueValues2(values2) {
+  var uniqueValues2 = [];
+    values2.forEach(function(item, i) {
+        if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
+            uniqueValues2.push(item);
+        }
+    });
+    return uniqueValues2;
+}
+
+/// Add the unique values to the second select (Station list)
+function addToSelectQuery2(query2Values) {
+  stationSelect.options.length = 0;
+  query2Values.sort();
+  query2Values.unshift('None');
+    query2Values.forEach(function(value) {
+    var option = document.createElement("option");
+      option.text = value;
+      stationSelect.add(option);
+  });
+
+  //return setLotBarangayExpression(handoverdateSelect.value);
+}
+
+// 3. Set DefinitionExpression on the lot layer
+/// 3.1. Land Type Only
+function setLandTypeExpression() {
+  var landType = landTypeSelect.options[landTypeSelect.selectedIndex].value;
+
+  if (landType === 'None') {
+    lotLayer.definitionExpression = null;
+    structureLayer.definitionExpression = null;
+    isfLayer.definitionExpression = null;
+    constBoundary.definitionExpression = null;
+
+  } else {
+    lotLayer.definitionExpression = "Type = '" + landType + "'";
+    structureLayer.definitionExpression = "Type = '" + landType + "'";
+    if(landType === "Station"){
+      isfLayer.definitionExpression = "Type = '" + landType + "'";
+      isfLayer.visible = true;
+    } else {
+      isfLayer.visible = false;
+    }
+    
+    zoomToLayer(lotLayer);
+  }
+
+  if (!lotLayer.visible) {
+    lotLayer.visible = true;
+  }
+  return queryForLotGeometries;
+}
+
+///  3.2. Land Type + Station
+function setLandTypeStationExpression() {
+  var landType = landTypeSelect.options[landTypeSelect.selectedIndex].value;
+  var station = stationSelect.options[stationSelect.selectedIndex].value;
+
+  if (landType == 'None' && station == 'None') {
+    lotLayer.definitionExpression = null;
+    structureLayer.definitionExpression = null;
+    isfLayer.definitionExpression = null;
+
+  } else if (landType !== 'None' && station == 'None') {
+    lotLayer.definitionExpression = "Type = '" + landType + "'";
+    structureLayer.definitionExpression = "Type = '" + landType + "'";
+    isfLayer.definitionExpression = "Type = '" + landType + "'";
+
+    zoomToLayer(lotLayer);
+
+  } else if (landType == 'None' && station !== 'None') {
+    lotLayer.definitionExpression = "Station1 = '" + station + "'";
+    structureLayer.definitionExpression = "Station1 = '" + station + "'";
+    isfLayer.definitionExpression = "Station1 = '" + station + "'";
+    constBoundary.definitionExpression = "Station1 = '" + newValue + "'";
+    zoomToLayer(constBoundary);
+
+  } else if (landType !== 'None' && station !== 'None') {
+    lotLayer.definitionExpression = "Type = '" + landType + "'" + " AND " + "Station1 = '" + station + "'";
+    structureLayer.definitionExpression = "Type = '" + landType + "'" + " AND " + "Station1 = '" + station + "'";
+    
+    if(landType === "Station"){
+      isfLayer.definitionExpression = "Station1 = '" + station + "'";
+      isfLayer.visible = true;
+    } else {
+      isfLayer.visible = false;
+    }
+    
+    
+    zoomToLayer(lotLayer);
+  }
+
+  if (!lotLayer.visible) {
+        lotLayer.visible = true;
+    }
+    return queryForLotGeometries();
+}
+
+// 4. Add EventListener for land type and station dropdown lists
+/// 4.1. Land Type
+landTypeSelect.addEventListener("change", function() {
+  var type = event.target.value;
+  var target = event.target;
+
+  setLandTypeExpression();
+  filterLotLandType();
+
+  updateChartLot();
+  totalNumberOfLots();
+  updateMoaChartLot();
+  pteNumberLot();
+  handedOverNumberLot();
+  filterLot();
+
+  updateChartStructure();
+  totalNumberOfStructures();
+  updateMoaChartStructure();
+
+  filterIsf();
+  isfNumber();
+
+ });
+
+/// 4.2. Station
 stationSelect.addEventListener("change", function() {
-    var type = event.target.value;
-    var target = event.target;
+  var type = event.target.value;
+  var target = event.target;
 
     // Update All charts and numbers
-    setLotMunicipalOnlyExpression(type);
+    setLandTypeStationExpression();
+    
     updateChartLot();
     totalNumberOfLots();
-    updateChartStructure();
-    totalNumberOfStructures();
     updateMoaChartLot();
-    updateMoaChartStructure();
     pteNumberLot();
-    isfNumber();
     handedOverNumberLot();
 
-    filterLotStation();
+    updateChartStructure();
+    totalNumberOfStructures();
+    updateMoaChartStructure();
 
-    zoomToLayer(constBoundary);
-});
+    isfNumber();
+
+    filterIsf();
+    filterLot();
+
+})
+
+
+// 5. Filter Lot
+/// This is critical
+function filterLot() {
+  var query2 = lotLayer.createQuery();
+  query2.where = lotLayer.definitionExpression; // use filtered stations
+}
+
+function filterIsf() {
+  var query2 = isfLayer.createQuery();
+  query2.where = isfLayer.definitionExpression; // use filtered isf
+}
 
 // Handed-Over filter button
 opacityInput.addEventListener("change", function(event) {
@@ -1731,17 +1841,6 @@ opacityInput.addEventListener("change", function(event) {
   }
 });
 
-// Filter lot and ISF layers
-function filterLotStation() {
-  var query2 = lotLayer.createQuery();
-  query2.where = lotLayer.definitionExpression; // use filtered stations
-
-}
-
-function filterIsfStation() {
-  var query2 = isfLayer.createQuery();
-  query2.where = isfLayer.definitionExpression; // use filtered isf
-}
 
 //------------- Create a list of Expropriation lots ------------------//
 view.when(function() {
@@ -2888,8 +2987,11 @@ var printExpand = new Expand ({
         <h4>As of June 27, 2022</h4>
       </div>
       <div class="esri-widget" id="dropdownDiv">
+        <label for="sel-options">Land Type</label>
+        <select id="landTypeSelect" class="esri-widget"></select>
         <label for="sel-options">Station:</label>
         <select id="valSelect" class="esri-widget" width="150" style="width: 150px"></select>
+
       </div>
     </div>
     <div class="container">
