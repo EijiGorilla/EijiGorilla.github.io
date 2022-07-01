@@ -1378,11 +1378,18 @@ map.add(isfLayer);
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
-// Default Lot Renders when map is opened.
-updateChartLot();
+if (document.getElementById("Station").checked = true) {
+  const TYPE = "Station";
+  lotLayer.definitionExpression = "Type = '" + TYPE + "'";
+
+  updateChartLot();
 totalNumberOfLots();
 updateChartStructure();
 totalNumberOfStructures();
+}
+
+// Default Lot Renders when map is opened.
+
 
 // Default Labels
 document.getElementById("headerTitleDiv").innerHTML = "Land Acquisition (MMSP)";
@@ -1539,9 +1546,9 @@ function thousands_separators(num)
 // Return an array of unique values in the 'Station1' field of lot Layer
 // Query all features from lot layer
 view.when(function() {
-    return stationLayer.when(function() {
-        var query = stationLayer.createQuery();
-        return stationLayer.queryFeatures(query);
+    return lotLayer.when(function() {
+        var query = lotLayer.createQuery();
+        return lotLayer.queryFeatures(query);
     });
 })
 .then(getValues)
@@ -1616,7 +1623,29 @@ function setLotMunicipalOnlyExpression(newValue) {
     return queryForLotGeometries();
 }
 
+//
+function setLotTypeStationExpression(value1, value2) {
+  // value1: station dropdown
+  // value2: Type (Station or Subterranean)
+  headerTitleDiv.innerHTML = stationSelect.value;
+  if (value1 == 'None'){
+    lotLayer.definitionExpression = "Type = '" + value2 + "'";
+  } else {
+    lotLayer.definitionExpression = "Station1 = '" + value1 + "'" + " AND " + "Type = '" + value2 + "'";
 
+  }
+ 
+    if (!lotLayer.visible) {
+        lotLayer.visible = true;
+    }
+    
+    return queryForLotGeometries();
+}
+
+
+
+
+//
 function queryForLotGeometries() {
     var lotQuery = lotLayer.createQuery();
 
@@ -1640,22 +1669,12 @@ function queryForLotGeometries() {
 stButtonElement.addEventListener("click", filterByTest);
 function filterByTest(event) {
   const type = event.target.id;
-
-    lotLayer.definitionExpression = "Type = '" + type + "'";
-    isfLayer.definitionExpression = "Type = '" + type + "'";
-    structureLayer.definitionExpression = "Type = '" + type + "'";
-
     // Update All charts and numbers
-    setLotMunicipalOnlyExpression(type);
+    setLotTypeStationExpression(stationSelect.value, type);
+
     updateChartLot();
     totalNumberOfLots();
-    updateChartStructure();
-    totalNumberOfStructures();
-    updateMoaChartLot();
-    updateMoaChartStructure();
-    pteNumberLot();
-    isfNumber();
-    handedOverNumberLot();
+     handedOverNumberLot();
 
     filterLotStation();
  
