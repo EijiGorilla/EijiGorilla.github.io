@@ -1599,19 +1599,27 @@ function setLandTypeExpression() {
     isfLayer.definitionExpression = null;
     constBoundary.definitionExpression = null;
 
-  } else {
+  } else if (landType === 'Station') {
     lotLayer.definitionExpression = "Type = '" + landType + "'";
     structureLayer.definitionExpression = "Type = '" + landType + "'";
-    if(landType === "Station"){
-      isfLayer.definitionExpression = "Type = '" + landType + "'";
-      isfLayer.visible = true;
-    } else {
-      isfLayer.visible = false;
-    }
-    
-    zoomToLayer(lotLayer);
+
+    // when isfLayer has only 'Station' in the attribute table,
+    // we need to set this to 'null' when land type is 'Station'.
+    // Otherwise, isfNumber will not change.
+    isfLayer.definitionExpression = null;
+    isfLayer.visible = true;
+
+  } else if (landType === 'Subterranean') {
+    lotLayer.definitionExpression = "Type = '" + landType + "'";
+    structureLayer.definitionExpression = "Type = '" + landType + "'";
+    isfLayer.definitionExpression = "Type = '" + landType + "'";
+    isfLayer.visible = false;
+    isfDiv.innerHTML = "0" + " (0%)";
+
   }
 
+
+    zoomToLayer(lotLayer);
   if (!lotLayer.visible) {
     lotLayer.visible = true;
   }
@@ -1627,11 +1635,24 @@ function setLandTypeStationExpression() {
     lotLayer.definitionExpression = null;
     structureLayer.definitionExpression = null;
     isfLayer.definitionExpression = null;
+    isfLayer.visible = true;
 
   } else if (landType !== 'None' && station == 'None') {
     lotLayer.definitionExpression = "Type = '" + landType + "'";
     structureLayer.definitionExpression = "Type = '" + landType + "'";
-    isfLayer.definitionExpression = "Type = '" + landType + "'";
+    
+  } else if (landType === 'Station' && station == 'None') {
+    lotLayer.definitionExpression = "Type = '" + landType + "'";
+    structureLayer.definitionExpression = "Type = '" + landType + "'";
+    isfLayer.definitionExpression = null;
+
+  } else if (landType === 'Subterranean' && station == 'None') {
+    lotLayer.definitionExpression = "Type = '" + landType + "'";
+    structureLayer.definitionExpression = "Type = '" + landType + "'";
+    isfLayer.visible = false;
+    isfDiv.innerHTML = "0" + " (0%)";
+
+
 
     zoomToLayer(lotLayer);
 
