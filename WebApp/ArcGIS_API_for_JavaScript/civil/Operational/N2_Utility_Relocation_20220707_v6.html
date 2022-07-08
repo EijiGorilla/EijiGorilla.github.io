@@ -43,6 +43,7 @@
       #headerDiv {
         font-weight: 400;
         max-width: 2000px;
+        width: 100%;
         font-style: normal;
         font-size: 25px;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
@@ -51,11 +52,11 @@
         border: solid 2.5px gray;
         margin-bottom: 3px;
         display: grid;
-        grid-template-columns: 40px 250fr 0fr 0fr;
+        grid-template-columns: 1fr auto auto;
       }
 
       #headerTitleDiv {
-        font-size: 2rem;
+        font-size: 2.2vw;
         vertical-align: middle;
         width: 300px;
       }
@@ -110,14 +111,15 @@
           height: 60vh;
           align-items: center;
           }
-
-          #dropdownDiv {
-    background-color: black;
-    font-size: 1.1vw;
-    opacity: 1;
-    color: white;
-    font-weight: bold;
-    width: 22vw;
+          
+      #dropdownDiv {
+        background-color: rgb(0, 0, 0 ,0);
+        font-size: 1.1vw;
+        opacity: 1;
+        color: white;
+        font-weight: bold;
+        padding-right: 5;
+        padding-top: 6;
 }
 
 #optionsDiv {
@@ -516,7 +518,7 @@ var testLineLabelClass = {
   type: "label-3d", // autocasts as new LabelSymbol3D()
   labelPlacement: "above-center", // Polyline has not choice
   labelExpressionInfo: {
-    expression: "When($feature.Status >=0, DomainName($feature, 'Comp_Agency'), '')"
+    expression: "When($feature.Status >= 0, DomainName($feature, 'Comp_Agency'), '')"
   },
   symbolLayers: [
     {
@@ -769,9 +771,15 @@ var utilTypePtRenderer = {
           //Field: "UtilType2",
           //defaultSymbol: ,
           //valueExpression: "When($feature.UtilType == 1, 'Telecom', $feature.UtilType == 2, 'Water',$feature.UtilType == 3, 'Power', $feature.UtilType)",
-          valueExpression: "When($feature.UtilType2 == 1, 'Telecom Pole (BTS)', $feature.UtilType2 == 2, 'Telecom Pole (CATV)', $feature.UtilType2 == 3, 'Water Meter', \
-                                 $feature.UtilType2 == 4, 'Water Valve', $feature.UtilType2 == 5, 'Manhole', $feature.UtilType2 == 6, 'Drain Box', \
-                                 $feature.UtilType2 == 7, 'Electric Pole', $feature.UtilType2 == 8, 'Street Light', $feature.UtilType)",
+          valueExpression: "When($feature.UtilType2 == 1, 'Telecom Pole (BTS)', \
+                                 $feature.UtilType2 == 2, 'Telecom Pole (CATV)', \
+                                 $feature.UtilType2 == 3, 'Water Meter', \
+                                 $feature.UtilType2 == 4, 'Water Valve', \
+                                 $feature.UtilType2 == 5, 'Manhole', \
+                                 $feature.UtilType2 == 6, 'Drain Box', \
+                                 $feature.UtilType2 == 7, 'Electric Pole', \
+                                 $feature.UtilType2 == 8, 'Street Light', \
+                                 $feature.UtilType2 == 19, 'Transmission Tower', $feature.UtilType)",
           uniqueValueInfos: [
             {
               value: "Telecom Pole (BTS)",
@@ -793,6 +801,10 @@ var utilTypePtRenderer = {
             {
               value: "Street Light",
               symbol: utilPtSymbolStreet("Overhanging_Street_and_Sidewalk_-_Light_on")
+            },
+            {
+              value: "Transmission Tower",
+              symbol: utilPtSymbolInfra("Powerline_Pole")
             }
           ],
           visualVariables: [
@@ -1647,12 +1659,6 @@ map.add(buildingLayer);
         });
 
 
-
-
-
-
-
-
 /////////////////////////////////////////////////////////////////////////////////////
 //*******************************//
 //      Progress Chart           //
@@ -1691,7 +1697,7 @@ chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
 
 if (document.getElementById("None").checked = true) {
   updateChartCombine();
-}
+  }
 
 totalProgressTitleDiv.innerHTML = "Total Progress";
 
@@ -1766,98 +1772,6 @@ function totalProgressAll(){
 totalProgressAll();
 
 
-/// Query all features from utility point layer
-view.when(function() {
-    return testUtilPt.when(function() {
-        var query = testUtilPt.createQuery();
-        return testUtilPt.queryFeatures(query);
-    });
-})
-.then(getValues)
-.then(getUniqueValues)
-.then(addToSelect)
-.then(filterUtilCP) // targetDate is filtered when default CP is shown
-
-// 1. Write Function to filter target date
-/// 1.1. Filter Utility Point for CP List
-function filterUtilCP() {
-  var query2 = testUtilPt.createQuery();
-  query2.where = testUtilPt.definitionExpression; // use filtered municipality. is this correct?
-
-  testUtilPt.queryFeatures(query2)
-    .then(getQuery2Values)
-    .then(getUniqueValues2)
-    .then(addToSelectQuery2);
-}
-
-// 2. Get values and return to list
-// Return an array of all the values in the 'CP' field
-function getValues(response) {
-    var features = response.features;
-    var values = features.map(function(feature) {
-        return feature.attributes.CP;
-    });
-    return values;
-}
-
-// Return an array of unique values in the 'CP' field of Utility Point layer
-function getUniqueValues(values) {
-    var uniqueValues = [];
-
-    values.forEach(function(item, i) {
-        if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
-            uniqueValues.push(item);
-        }
-    });
-    return uniqueValues;
-}
-
-// Add the unique values to the CP select element. this will allow the user
-// to filter Utility Point layer by CP
-function addToSelect(values) {
-    values.sort();
-    //values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
-    values.forEach(function(value) {
-        var option = document.createElement("option");
-        option.text = value;
-        cpSelect.add(option);
-    });
-   return setLotMunicipalOnlyExpression(cpSelect.value);
-}
-
-/// 2.2 Target Date
-// Filter target list when CP list changes
-function getQuery2Values(response) {
-  var featuresQuery2 = response.features;
-  var query2Values = featuresQuery2.map(function(feature) {
-    return feature.attributes.TargetDate;
-  });
-  return query2Values;
-}
-
-function getUniqueValues2(values2) {
-  var uniqueValues2 = [];
-    values2.forEach(function(item, i) {
-        if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
-            uniqueValues2.push(item);
-        }
-    });
-    return uniqueValues2;
-}
-
-// Add the unique values to the second select element (Barangay)
-function addToSelectQuery2(query2Values) {
-    targetDateSelect.options.length = 0;
-  query2Values.sort();
-  query2Values.unshift('None');
-    query2Values.forEach(function(value) {
-    var option = document.createElement("option");
-      option.text = value;
-      targetDateSelect.add(option);
-  });
-
-  //return setLotBarangayExpression(barangaySelect.value);
-}
 
 
 // Set the definition expression on the Utility Point layer
@@ -1866,7 +1780,19 @@ function addToSelectQuery2(query2Values) {
 function setLotMunicipalOnlyExpression(newValue) {
 chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + newValue + "</p>";
 
-testUtilPt.definitionExpression = "CP = '" + newValue + "'";
+if (newValue === 'None') {
+    testUtilPt.definitionExpression = null;
+    testUtilPt1.definitionExpression = null;
+    testLine.definitionExpression = null;
+    testLine1.definitionExpression = null;
+    viaductLayer.definitionExpression = null;
+
+    stFramingLayer.definitionExpression = null;
+    stColumnLayer.definitionExpression = null;
+    stFoundationLayer.definitionExpression = null;
+    
+} else {
+    testUtilPt.definitionExpression = "CP = '" + newValue + "'";
     testUtilPt1.definitionExpression = "CP = '" + newValue + "'";
     testLine.definitionExpression = "CP = '" + newValue + "'";
     testLine1.definitionExpression = "CP = '" + newValue + "'";
@@ -1875,7 +1801,7 @@ testUtilPt.definitionExpression = "CP = '" + newValue + "'";
     stFramingLayer.definitionExpression = "CP = '" + newValue + "'";
     stColumnLayer.definitionExpression = "CP = '" + newValue + "'";
     stFoundationLayer.definitionExpression = "CP = '" + newValue + "'";
-    
+}
     zoomToLayer(testUtilPt);
   
   return queryForLotGeometries();
@@ -1897,11 +1823,11 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
     testLine1.definitionExpression = null;
 
      } else if (newValue1 == 'None' && newValue2 == 'None' && newValue3 !== 'None') {
-    testUtilPt.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testUtilPt.definitionExpression = "Company = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "Company = '" + newValue3 + "'";
 
-    testLine.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testLine1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testLine.definitionExpression = "Company = '" + newValue3 + "'";
+    testLine1.definitionExpression = "Company = '" + newValue3 + "'";
 
     } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 == 'None'){
     testUtilPt.definitionExpression = null;
@@ -1910,8 +1836,8 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
     testLine1.definitionExpression = "Type = '" + newValue2 + "'";
 
   } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 !== 'None'){
-    testUtilPt.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testUtilPt.definitionExpression = "Company = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "Company = '" + newValue3 + "'";
     testLine.definitionExpression = "Type = '" + newValue2 + "'";
     testLine1.definitionExpression = "Type = '" + newValue2 + "'";
 //5
@@ -1922,8 +1848,8 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
     testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
 //6
 } else if(newValue1 == 'None' && newValue2 == "Line" && newValue3 !== 'None'){
-    testLine.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testLine1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testLine.definitionExpression = "Company = '" + newValue3 + "'";
+    testLine1.definitionExpression = "Company = '" + newValue3 + "'";
     testUtilPt.definitionExpression = "Type = '" + newValue2 + "'"
     testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'" 
 //7
@@ -1934,10 +1860,10 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
     testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'"; 
 //8
   } else if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 !== 'None'){
-    testLine.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
-    testLine1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
-    testUtilPt.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
+    testLine.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testLine1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testUtilPt.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
 //9
   } else if(newValue1 !== 'None' && newValue2 == 'Point' && newValue3 == 'None'){
     testLine.definitionExpression = "Type = '" + newValue2 + "'";
@@ -1948,8 +1874,8 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
   } else if(newValue1 !== 'None' && newValue2 == 'Point' && newValue3 !== 'None'){
     testLine.definitionExpression = "Type = '" + newValue2 + "'";
     testLine1.definitionExpression = "Type = '" + newValue2 + "'";
-    testUtilPt.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
+    testUtilPt.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
 //11
   } else if(newValue1 !== 'None' && newValue2 == 'Line' && newValue3 == 'None'){
     testLine.definitionExpression = "CP = '" + newValue1 + "'";
@@ -1958,8 +1884,8 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
     testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
 //12
   } else if(newValue1 !== 'None' && newValue2 == 'Line' && newValue3 !== 'None'){
-    testLine.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
-    testLine1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
+    testLine.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testLine1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
     testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
     testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
   }
@@ -1979,11 +1905,11 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
     testLine1.definitionExpression = null;
 //2
      } else if (newValue1 == 'None' && newValue2 == 'None' && newValue3 !== 'None') {
-    testUtilPt.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testUtilPt.definitionExpression = "Company = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "Company = '" + newValue3 + "'";
 
-    testLine.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testLine1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testLine.definitionExpression = "Company = '" + newValue3 + "'";
+    testLine1.definitionExpression = "Company = '" + newValue3 + "'";
 //3
     } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 == 'None'){
     testUtilPt.definitionExpression = null;
@@ -1992,8 +1918,8 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
     testLine1.definitionExpression = "Type = '" + newValue2 + "'";
 //4
   } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 !== 'None'){
-    testUtilPt.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testUtilPt.definitionExpression = "Company = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "Company = '" + newValue3 + "'";
     testLine.definitionExpression = "Type = '" + newValue2 + "'";
     testLine1.definitionExpression = "Type = '" + newValue2 + "'";
 //5
@@ -2004,8 +1930,8 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
     testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
 //6
   } else if(newValue1 == 'None' && newValue2 == "Line" && newValue3 !== 'None'){
-    testLine.definitionExpression = "TargetDate = '" + newValue3 + "'";
-    testLine1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testLine.definitionExpression = "Company = '" + newValue3 + "'";
+    testLine1.definitionExpression = "Company = '" + newValue3 + "'";
     testUtilPt.definitionExpression = "Type = '" + newValue2 + "'"
     testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'"
 //7
@@ -2016,10 +1942,10 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
     testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'"; 
 //8
   } else if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 !== 'None'){
-    testLine.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
-    testLine1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
-    testUtilPt.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
+    testLine.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testLine1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testUtilPt.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
 //9
   } else if(newValue1 !== 'None' && newValue2 == 'Point' && newValue3 == 'None'){
     testLine.definitionExpression = "Type = '" + newValue2 + "'";
@@ -2030,8 +1956,8 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
   } else if(newValue1 !== 'None' && newValue2 == 'Point' && newValue3 !== 'None'){
     testLine.definitionExpression = "Type = '" + newValue2 + "'";
     testLine1.definitionExpression = "Type = '" + newValue2 + "'";
-    testUtilPt.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
+    testUtilPt.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
 //11
   } else if(newValue1 !== 'None' && newValue2 == 'Line' && newValue3 == 'None'){
     testLine.definitionExpression = "CP = '" + newValue1 + "'";
@@ -2040,8 +1966,8 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
     testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
 //12
   } else if(newValue1 !== 'None' && newValue2 == 'Line' && newValue3 !== 'None'){
-    testLine.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
-    testLine1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
+    testLine.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testLine1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
     testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
     testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
   }
@@ -2066,6 +1992,7 @@ cpSelect.addEventListener("change", function() {
     var type = event.target.value;
     var target = event.target;
 
+    filterUtilPointLineCP(type);
     setLotMunicipalOnlyExpression(type);
 
     filterUtilCP();
@@ -2081,6 +2008,104 @@ cpSelect.addEventListener("change", function() {
 
 
 });
+
+// 1. Query and Extract Companies*****************************
+var compArray = [];
+  var compArray1 = [];
+  var allArray = [];
+function filterUtilPointLineCP(cpValue) {
+  // Create empty arrays
+
+
+//document.getElementById('dataTypeInput').onclick = function() {
+//    var selected = document.querySelector('input[name="dataTypeInput"]:checked').id;
+//}
+//
+//if (document.getElementById("None").checked = true) {
+//        const TYPE = null
+//    }
+
+
+ /////
+  function utilPointQuery() {
+  var query = testUtilPt.createQuery();
+  query.where = "CP = '" + cpValue + "'";
+
+return testUtilPt.queryFeatures(query).then(function(response) {
+    stats = response.features;
+    stats.forEach((result, index) => {
+        const attributes = result.attributes;
+        const COMPANY = attributes.Company;
+        compArray.push(COMPANY);
+    });
+    headerTitleDiv.innerHTML = compArray;
+    return compArray;
+}); // end of query features 
+}
+
+function utilLineQuery(compArray){
+  var query2 = testLine.createQuery();
+query2.where = "CP = '" + cpValue + "'";
+
+return testLine.queryFeatures(query2).then(function(response) {
+    stats = response.features;
+    stats.forEach(result => {
+        const attributes = result.attributes;
+        const COMPANY = attributes.Company;
+        compArray1.push(COMPANY);
+    });
+    allArray.push('None',compArray, compArray1,)
+    return allArray;
+});
+}
+
+// 2. Get unique values of company names
+function getUniqueValues(values2) {
+  
+    var uniqueValues2 = [];
+    values2.forEach(function(item, i) {
+        if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
+            uniqueValues2.push(item);
+        }
+    });
+    return uniqueValues2;
+}
+
+// Add the unique values to the second select element (Barangay)
+function addToSelectQuery2(uniqueValues2) {
+    targetDateSelect.options.length = 0;
+    uniqueValues2.sort();
+    uniqueValues2.unshift('None');
+ //   uniqueValues2.forEach(function(value) {
+ //     var option = document.createElement("option");
+ //     option.text = value;
+ //     targetDateSelect.add(option);
+ //   });
+const newC = ["None","NGCP"];
+
+newC.forEach(function(value) {
+    var option = document.createElement("option");
+     option.text = value;
+     targetDateSelect.add(option);
+  });
+
+  //return setLotBarangayExpression(barangaySelect.value);
+}
+
+utilPointQuery()
+  .then(utilLineQuery)
+  .then(getUniqueValues)
+  .then(addToSelectQuery2);
+}
+filterUtilPointLineCP();
+
+
+
+
+/////////////////////////////////////////
+
+
+
 
 // Use returned point or line values
 function testFunction(pointLineValue) {
@@ -2137,7 +2162,6 @@ utilTypesButton.addEventListener("change", function(event) {
     
     setLotDefinitionExpression(cpSelect.value, typeS, targetDateSelect.value);
     //setLotMunicipalExpression(cpSelect.value, typeS);
-
     //filterUtilCP();
 
     updateChartPoint();
@@ -2168,6 +2192,7 @@ utilTypesButton.addEventListener("change", function(event) {
     updateChartPoint();
     updateChartLine();
     updateChartCombine();
+    totalProgressAll();
 
     filterUtilPt();
     filterUtilPt1();
@@ -3500,15 +3525,21 @@ searchExpand.watch("expanded", function() {
   <body class="sassy-theme">
     <div id="applicationDiv">
       <div id="headerDiv">
-        <img src="https://EijiGorilla.github.io/Symbols/UtilitySymbol_smartmap_v2.png" width="30" height="30">
         <div id="headerTitleDiv"></div>
           <div class="dateDiv">
               <h4>As of July 4, 2022</h4>
           </div>
           <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">CP:</label>
-            <select id="valSelect" class="esri-widget"></select>
-            <label for="sel-options">Target Date:</label>
+            <select id="valSelect" class="esri-widget">
+              <option value="None">All</option>
+              <option value="N-01">N-01</option>
+              <option value="N-02">N-02</option>
+              <option value="N-03">N-03</option>
+              <option value="N-04">N-04</option>
+              <option value="N-05">N-05</option>
+            </select>
+            <label for="sel-options">Provider</label>
             <select id="targetDateSelect" class="esri-widget"></select>
         </div>
       </div>

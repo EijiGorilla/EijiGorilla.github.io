@@ -43,7 +43,6 @@
       #headerDiv {
         font-weight: 400;
         max-width: 2000px;
-        width: 100%;
         font-style: normal;
         font-size: 25px;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
@@ -52,11 +51,11 @@
         border: solid 2.5px gray;
         margin-bottom: 3px;
         display: grid;
-        grid-template-columns: 1fr auto auto;
+        grid-template-columns: 40px 250fr 0fr 0fr;
       }
 
       #headerTitleDiv {
-        font-size: 2.2vw;
+        font-size: 1vw;
         vertical-align: middle;
         width: 300px;
       }
@@ -111,15 +110,14 @@
           height: 60vh;
           align-items: center;
           }
-          
-      #dropdownDiv {
-        background-color: rgb(0, 0, 0 ,0);
-        font-size: 1.1vw;
-        opacity: 1;
-        color: white;
-        font-weight: bold;
-        padding-right: 5;
-        padding-top: 6;
+
+          #dropdownDiv {
+    background-color: black;
+    font-size: 1.1vw;
+    opacity: 1;
+    color: white;
+    font-weight: bold;
+    width: 22vw;
 }
 
 #optionsDiv {
@@ -771,15 +769,9 @@ var utilTypePtRenderer = {
           //Field: "UtilType2",
           //defaultSymbol: ,
           //valueExpression: "When($feature.UtilType == 1, 'Telecom', $feature.UtilType == 2, 'Water',$feature.UtilType == 3, 'Power', $feature.UtilType)",
-          valueExpression: "When($feature.UtilType2 == 1, 'Telecom Pole (BTS)', \
-                                 $feature.UtilType2 == 2, 'Telecom Pole (CATV)', \
-                                 $feature.UtilType2 == 3, 'Water Meter', \
-                                 $feature.UtilType2 == 4, 'Water Valve', \
-                                 $feature.UtilType2 == 5, 'Manhole', \
-                                 $feature.UtilType2 == 6, 'Drain Box', \
-                                 $feature.UtilType2 == 7, 'Electric Pole', \
-                                 $feature.UtilType2 == 8, 'Street Light', \
-                                 $feature.UtilType2 == 19, 'Transmission Tower', $feature.UtilType)",
+          valueExpression: "When($feature.UtilType2 == 1, 'Telecom Pole (BTS)', $feature.UtilType2 == 2, 'Telecom Pole (CATV)', $feature.UtilType2 == 3, 'Water Meter', \
+                                 $feature.UtilType2 == 4, 'Water Valve', $feature.UtilType2 == 5, 'Manhole', $feature.UtilType2 == 6, 'Drain Box', \
+                                 $feature.UtilType2 == 7, 'Electric Pole', $feature.UtilType2 == 8, 'Street Light', $feature.UtilType)",
           uniqueValueInfos: [
             {
               value: "Telecom Pole (BTS)",
@@ -801,10 +793,6 @@ var utilTypePtRenderer = {
             {
               value: "Street Light",
               symbol: utilPtSymbolStreet("Overhanging_Street_and_Sidewalk_-_Light_on")
-            },
-            {
-              value: "Transmission Tower",
-              symbol: utilPtSymbolInfra("Powerline_Pole")
             }
           ],
           visualVariables: [
@@ -1659,6 +1647,12 @@ map.add(buildingLayer);
         });
 
 
+
+
+
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////
 //*******************************//
 //      Progress Chart           //
@@ -1802,6 +1796,9 @@ if (newValue === 'None') {
     stColumnLayer.definitionExpression = "CP = '" + newValue + "'";
     stFoundationLayer.definitionExpression = "CP = '" + newValue + "'";
 }
+
+
+    
     zoomToLayer(testUtilPt);
   
   return queryForLotGeometries();
@@ -1992,6 +1989,8 @@ cpSelect.addEventListener("change", function() {
     var type = event.target.value;
     var target = event.target;
 
+
+    filterUtilPointLineCP(type);
     setLotMunicipalOnlyExpression(type);
 
     filterUtilCP();
@@ -2009,30 +2008,20 @@ cpSelect.addEventListener("change", function() {
 });
 
 // 1. Query and Extract Companies*****************************
-function filterUtilPointLineCP() {
-  // Create empty arrays
-  var compArray = [];
-  var compArray1 = [];
-  var allArray = [];
-
-  // Selected values from dropdown lists
-const CPvalue = cpSelect.value;
-
-document.getElementById('dataTypeInput').onclick = function() {
-    var selected = document.querySelector('input[name="dataTypeInput"]:checked').id;
-}
 
 
-//
-//if (document.getElementById("None").checked = true) {
-//        const TYPE = null
-//    }
+function filterUtilPointLineCP(cpValue) {
+// Create empty array
+/// VERY IMPORTANT to create arrays inside the function
+/// Otherwise, each array is not reset when a new CP is selected.
+ var compArray = [];
+var compArray1 = [];
+//var allArray = [];
 
-
- /////
-  function utilPointQuery() {
+// Query for Utility Point
+function utilPointQuery() {
   var query = testUtilPt.createQuery();
-  query.where = "CP = '" + CPvalue + "'";
+  query.where = "CP = '" + cpValue + "'";
 
 return testUtilPt.queryFeatures(query).then(function(response) {
     stats = response.features;
@@ -2045,9 +2034,10 @@ return testUtilPt.queryFeatures(query).then(function(response) {
 }); // end of query features 
 }
 
+// Query for Utility Line
 function utilLineQuery(compArray){
   var query2 = testLine.createQuery();
-query2.where = "CP = '" + CPvalue + "'";
+query2.where = "CP = '" + cpValue + "'";
 
 return testLine.queryFeatures(query2).then(function(response) {
     stats = response.features;
@@ -2056,18 +2046,11 @@ return testLine.queryFeatures(query2).then(function(response) {
         const COMPANY = attributes.Company;
         compArray1.push(COMPANY);
     });
-    allArray.push( 'None',compArray, compArray1,)
+    const allArray = compArray.concat(compArray1);
     return allArray;
 });
 }
 
-utilPointQuery()
-  .then(utilLineQuery)
-  .then(getUniqueValues)
-  .then(addToSelectQuery2);
-}
-
-filterUtilPointLineCP();
 
 // 2. Get unique values of company names
 function getUniqueValues(values2) {
@@ -2077,30 +2060,35 @@ function getUniqueValues(values2) {
             uniqueValues2.push(item);
         }
     });
-   //headerTitleDiv.innerHTML = uniqueValues2;
+    headerTitleDiv.innerHTML = uniqueValues2;
     return uniqueValues2;
 }
 
 // Add the unique values to the second select element (Barangay)
-function addToSelectQuery2(uniqueValues2) {
+function addToSelectQuery2(uniqueValues) {
     targetDateSelect.options.length = 0;
-    uniqueValues2.sort();
-    uniqueValues2.unshift('None');
- //   uniqueValues2.forEach(function(value) {
- //     var option = document.createElement("option");
- //     option.text = value;
- //     targetDateSelect.add(option);
- //   });
-const newC = ["None","NGCP"];
-
-newC.forEach(function(value) {
+    uniqueValues.sort();
+    uniqueValues.unshift('None');
+    uniqueValues.forEach(function(value) {
     var option = document.createElement("option");
-     option.text = value;
-     targetDateSelect.add(option);
+      option.text = value;
+      targetDateSelect.add(option);
   });
 
   //return setLotBarangayExpression(barangaySelect.value);
 }
+utilPointQuery()
+  .then(utilLineQuery)
+  .then(getUniqueValues)
+  .then(addToSelectQuery2);
+}
+
+filterUtilPointLineCP();
+
+
+// 3. Add to 
+
+
 /////////////////////////////////////////
 
 
@@ -2155,14 +2143,15 @@ function filterUtilLine1() {
 
 }
 
-// Point, Line or All ratio buttons
+// Utility Type: Point or Line
 utilTypesButton.addEventListener("change", function(event) {
     const typeS = event.target.id;
     
     setLotDefinitionExpression(cpSelect.value, typeS, targetDateSelect.value);
     //setLotMunicipalExpression(cpSelect.value, typeS);
-    //filterUtilCP();
 
+
+    //filterUtilCP();
     updateChartPoint();
     updateChartLine();
     updateChartCombine();
@@ -2176,6 +2165,7 @@ utilTypesButton.addEventListener("change", function(event) {
     
   });
 
+ // Provider dropdown list 
   targetDateSelect.addEventListener("change", function(event) {
     const typeTarget = event.target.value;
     //headerTitleDiv.innerHTML = type;
@@ -3523,6 +3513,7 @@ searchExpand.watch("expanded", function() {
   <body class="sassy-theme">
     <div id="applicationDiv">
       <div id="headerDiv">
+        <img src="https://EijiGorilla.github.io/Symbols/UtilitySymbol_smartmap_v2.png" width="30" height="30">
         <div id="headerTitleDiv"></div>
           <div class="dateDiv">
               <h4>As of July 4, 2022</h4>
