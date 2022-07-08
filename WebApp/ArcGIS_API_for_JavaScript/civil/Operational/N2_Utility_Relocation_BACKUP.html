@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>SC Utility Relocation</title>
+<title>N2 Utility Relocation</title>
 
     <style>
       html,
@@ -43,7 +43,6 @@
       #headerDiv {
         font-weight: 400;
         max-width: 2000px;
-        width: 100%;
         font-style: normal;
         font-size: 25px;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
@@ -52,7 +51,7 @@
         border: solid 2.5px gray;
         margin-bottom: 3px;
         display: grid;
-        grid-template-columns: 1fr auto auto;
+        grid-template-columns: 40px 250fr 0fr 0fr;
       }
 
       #headerTitleDiv {
@@ -112,15 +111,14 @@
           align-items: center;
           }
 
-      #dropdownDiv {
-        background-color: rgb(0, 0, 0 ,0);
-        font-size: 1.1vw;
-        opacity: 1;
-        color: white;
-        font-weight: bold;
-        padding-right: 5;
-        padding-top: 6;
-      }
+          #dropdownDiv {
+    background-color: black;
+    font-size: 1.1vw;
+    opacity: 1;
+    color: white;
+    font-weight: bold;
+    width: 22vw;
+}
 
 #optionsDiv {
         font-weight: normal;
@@ -155,8 +153,8 @@
         width: 420px;
         text-align: left;
         padding: 10px;
-      }
 
+      }
       .cpButtonClass {
           font-style: normal;
           width: 350px;
@@ -170,7 +168,6 @@
         font-size: 17px;
         border:1px solid rgb(169,169,169, 0);
         margin-top: 20px;
-        color: orange;
       }
 
       .advice {
@@ -272,14 +269,14 @@
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.23/esri/themes/dark/main.css"
+      href="https://js.arcgis.com/4.22/esri/themes/dark/main.css"
     />
     <!-- Resources -->
     <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
     <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-    <script src="https://js.arcgis.com/4.23/"></script>
+    <script src="https://js.arcgis.com/4.22/"></script>
 
     <script>
       require([
@@ -314,7 +311,9 @@
         "esri/layers/support/Sublayer",
         "esri/widgets/Search",
         "esri/widgets/Compass",
-        "esri/widgets/BasemapToggle"
+        "esri/widgets/BasemapToggle",
+        "esri/layers/BuildingSceneLayer",
+        "esri/widgets/BuildingExplorer"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -322,7 +321,8 @@
                   WebScene, PortalItem, Portal, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
                   StatisticDefinition, WebStyleSymbol, Expand, Editor,
-                  UniqueValueRenderer, Sublayer, Search, Compass, BasemapToggle) {
+                  UniqueValueRenderer, Sublayer, Search, Compass, BasemapToggle,
+                  BuildingSceneLayer, BuildingExplorer) {
 
 let chartLayerView;
   const features = [];
@@ -353,8 +353,8 @@ let chartLayerView;
             viewingMode: "local",
             camera: {
                 position: {
-                    x: 120.97930,
-                    y: 14.61,
+                    x: 120.57930,
+                    y: 15.18,
                     z: 500
                     },
                     tilt: 65
@@ -396,7 +396,7 @@ let chartLayerView;
         var headerTitleDiv = document.getElementById("headerTitleDiv");
         var applicationDiv = document.getElementById("applicationDiv");
 
-headerTitleDiv.innerHTML = "SC Utility Relocation";
+headerTitleDiv.innerHTML = "N2 Utility Relocation";
 //*******************************//
 // Label Class Property Settings //
 //*******************************//
@@ -444,7 +444,7 @@ var pierNoLabelClass = new LabelClass({
 
 // Chainage Label
 var labelChainage = new LabelClass({
-  labelExpressionInfo: {expression: "$feature.KmSpot"},
+  labelExpressionInfo: {expression: "$feature.KM_MAIN"},
   symbol: {
     type: "text",
     color: [85, 255, 0],
@@ -516,7 +516,7 @@ var testLineLabelClass = {
   type: "label-3d", // autocasts as new LabelSymbol3D()
   labelPlacement: "above-center", // Polyline has not choice
   labelExpressionInfo: {
-    expression: "When($feature.Status >= 0, DomainName($feature, 'Comp_Agency'), '')"
+    expression: "When($feature.Status >=0, DomainName($feature, 'Comp_Agency'), '')"
   },
   symbolLayers: [
     {
@@ -769,26 +769,9 @@ var utilTypePtRenderer = {
           //Field: "UtilType2",
           //defaultSymbol: ,
           //valueExpression: "When($feature.UtilType == 1, 'Telecom', $feature.UtilType == 2, 'Water',$feature.UtilType == 3, 'Power', $feature.UtilType)",
-          valueExpression: "When($feature.UtilType2 == 1, 'Telecom Pole (BTS)', \
-                                 $feature.UtilType2 == 2, 'Telecom Pole (CATV)', \
-                                 $feature.UtilType2 == 3, 'Water Meter', \
-                                 $feature.UtilType2 == 4, 'Water Valve', \
-                                 $feature.UtilType2 == 5, 'Manhole', \
-                                 $feature.UtilType2 == 6, 'Drain Box', \
-                                 $feature.UtilType2 == 7, 'Electric Pole', \
-                                 $feature.UtilType2 == 8, 'Street Light', \
-                                 $feature.UtilType2 == 9, 'Junction Box', \
-                                 $feature.UtilType2 == 10, 'Coupling', \
-                                 $feature.UtilType2 == 11, 'Fitting', \
-                                 $feature.UtilType2 == 12, 'Transformer', \
-                                 $feature.UtilType2 == 13, 'Truss Guy', \
-                                 $feature.UtilType2 == 14, 'Concrete Pedestal', \
-                                 $feature.UtilType2 == 15, 'Ground', \
-                                 $feature.UtilType2 == 16, 'Down Guy', \
-                                 $feature.UtilType2 == 17, 'Entry/Exit Pit', \
-                                 $feature.UtilType2 == 18, 'Handhole', \
-                                 $feature.UtilType2 == 19, 'Transmission Tower', \
-                                 $feature.UtilType)",
+          valueExpression: "When($feature.UtilType2 == 1, 'Telecom Pole (BTS)', $feature.UtilType2 == 2, 'Telecom Pole (CATV)', $feature.UtilType2 == 3, 'Water Meter', \
+                                 $feature.UtilType2 == 4, 'Water Valve', $feature.UtilType2 == 5, 'Manhole', $feature.UtilType2 == 6, 'Drain Box', \
+                                 $feature.UtilType2 == 7, 'Electric Pole', $feature.UtilType2 == 8, 'Street Light', $feature.UtilType)",
           uniqueValueInfos: [
             {
               value: "Telecom Pole (BTS)",
@@ -810,50 +793,6 @@ var utilTypePtRenderer = {
             {
               value: "Street Light",
               symbol: utilPtSymbolStreet("Overhanging_Street_and_Sidewalk_-_Light_on")
-            },
-            {
-              value: "Junction Box",
-              symbol: customSymbol3D("3D_Drain_Box")
-            },
-            {
-              value: "Coupling",
-              symbol: customSymbol3D("3D_Drain_Box")
-            },
-            {
-              value: "Fitting",
-              symbol: customSymbol3D("3D_Drain_Box")
-            },
-            {
-              value: "Transformer",
-              symbol: customSymbol3D("3D_Drain_Box")
-            },
-            {
-              value: "Truss Guy",
-              symbol: customSymbol3D("3D_Drain_Box")
-            },
-            {
-              value: "Concrete Pedestal",
-              symbol: customSymbol3D("Concrete Pedestal")
-            },
-            {
-              value: "Ground",
-              symbol: customSymbol3D("3D_Drain_Box")
-            },
-            {
-              value: "Down Guy",
-              symbol: customSymbol3D("3D_Drain_Box")
-            },
-            {
-              value: "Entry/Exit Pit",
-              symbol: customSymbol3D("3D_Drain_Box")
-            },
-            {
-              value: "Handhole",
-              symbol: customSymbol3D("3D_Drain_Box")
-            },
-            {
-              value: "Transmission Tower",
-              symbol: utilPtSymbolInfra("Powerline_Pole")
             }
           ],
           visualVariables: [
@@ -1067,7 +1006,7 @@ const colorsRelocation = {
 // Station box
 var stationBoxLayer = new FeatureLayer ({
   portalItem: {
-    id: "d3926383cf3548569372216edb808996",
+    id: "590680d19f2e48fdbd8bcddce3aaedb5",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -1086,7 +1025,7 @@ map.add(stationBoxLayer,0);
 // Pier No. (point feature)
 var PierNoLayer = new FeatureLayer ({
   portalItem: {
-    id: "d3926383cf3548569372216edb808996",
+    id: "590680d19f2e48fdbd8bcddce3aaedb5",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -1105,7 +1044,7 @@ map.add(PierNoLayer, 1);
 // Pier head and column
 var pierHeadColumnLayerLayer = new FeatureLayer ({
   portalItem: {
-    id: "d3926383cf3548569372216edb808996",
+    id: "590680d19f2e48fdbd8bcddce3aaedb5",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -1126,7 +1065,7 @@ map.add(pierHeadColumnLayerLayer, 1);
 // Centerline and chainage
 var chainageLayer = new FeatureLayer ({
   portalItem: {
-    id: "d3926383cf3548569372216edb808996",
+    id: "590680d19f2e48fdbd8bcddce3aaedb5",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
@@ -1148,14 +1087,14 @@ map.add(chainageLayer, 1);
 // ROW //
 var rowLayer = new FeatureLayer ({
   portalItem: {
-    id: "d3926383cf3548569372216edb808996",
+    id: "590680d19f2e48fdbd8bcddce3aaedb5",
     portal: {
       url: "https://gis.railway-sector.com/portal"
     }
   },
   layerId: 1,
   title: "ROW",
-  definitionExpression: "Extension = 'SC'",
+  definitionExpression: "Extension = 'N2'",
   popupEnabled: false
 });
 map.add(rowLayer,2);
@@ -1163,7 +1102,7 @@ map.add(rowLayer,2);
 // Station
 var stationLayer = new SceneLayer({
             portalItem: {
-                id: "87903f4d1859454a837d68e18a27ad4c",
+                id: "207cb34b8a324b40985b5805862c4b29",
                 portal: {
                   url: "https://gis.railway-sector.com/portal"
                 }
@@ -1189,17 +1128,17 @@ var stationLayer = new SceneLayer({
 
 var testUtilPt = new FeatureLayer({
   portalItem: {
-    id: "30057ee7ebf64a8580e8ffe905035ea4",
+    id: "109d4ef09fd946d1bda17396f35deb94",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 4,
+  layerId: 1,
   title: "Relocation Plan (Point)",
    outFields: ["*"],
    renderer: utilTypePtRenderer,
    elevationInfo: {
-     mode: "relative-to-ground",
+     mode: "relative-to-ground", // original was "relative-to-scene"
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
@@ -1250,7 +1189,7 @@ var testUtilPt = new FeatureLayer({
      ]
    }
 });
-testUtilPt.listMode = "hide";
+
 map.add(testUtilPt, 3);
 
 /* Symbols with callout */
@@ -1260,24 +1199,23 @@ map.add(testUtilPt, 3);
 
 var testUtilPt1 = new FeatureLayer({
     portalItem: {
-    id: "30057ee7ebf64a8580e8ffe905035ea4",
+    id: "109d4ef09fd946d1bda17396f35deb94",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 4,
+  layerId: 1,
   title: "Utility 3D Render Test",
    outFields: ["*"],
    renderer: utilReloSymbolRenderer,
    elevationInfo: {
-     mode: "relative-to-ground",
+     mode: "relative-to-ground", // original was "relative-to-scene"
      featureExpressionInfo: {
        expression: "$feature.Height"
   },
   unit: "meters"
      //offset: 0
    },
-   title: "Relocation Plan (Point)",
    labelingInfo: [labelUtilPtSymbol],
    popupTemplate: {
      title: "<h5>{comp_agency}</h5>",
@@ -1323,23 +1261,25 @@ var testUtilPt1 = new FeatureLayer({
      ]
    }
 });
-
+testUtilPt1.listMode = "hide";
 map.add(testUtilPt1);
+
+
 
 // Utility Line
  var testLine = new FeatureLayer({
     portalItem: {
-    id: "30057ee7ebf64a8580e8ffe905035ea4",
+    id: "109d4ef09fd946d1bda17396f35deb94",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 3,
+  layerId: 2,
    title: "Relocation Plan (Line)",
    elevationInfo: {
-     mode: "relative-to-ground",
+     mode: "relative-to-ground", // original was "relative-to-scene"
      featureExpressionInfo: {
-       expression: "$feature.Height"
+       expression: "$feature.height"
   },
   unit: "meters"
      //offset: 0
@@ -1389,7 +1329,6 @@ map.add(testUtilPt1);
      ]
    }
  });
- testLine.listMode = "hide";
  map.add(testLine, 4);
 
  /* Utility Line rendnerer*/
@@ -1486,22 +1425,21 @@ map.add(testUtilPt1);
 /*Line for Symbols */
 var testLine1 = new FeatureLayer({
     portalItem: {
-    id: "30057ee7ebf64a8580e8ffe905035ea4",
+    id: "109d4ef09fd946d1bda17396f35deb94",
     portal: {
         url: "https://gis.railway-sector.com/portal"
     }
   },
-  layerId: 3,
+  layerId: 2,
    title: "testLine",
    elevationInfo: {
-     mode: "relative-to-ground",
+     mode: "relative-to-ground", // original was "relative-to-scene"
      featureExpressionInfo: {
-       expression: "$feature.Height"
+       expression: "$feature.height"
   },
   unit: "meters"
      //offset: 0
    },
-   title: "Relocation Plan (Line)",
    outFields: ["*"],
    renderer: utilReloSymbolRenderer,
    labelingInfo: [testLineLabelClass],
@@ -1549,10 +1487,11 @@ var testLine1 = new FeatureLayer({
      ]
    }
  });
+ testLine1.listMode = "hide";
  map.add(testLine1);
 
- // Viaduct Layer
- const colorsViaduct = {
+ // Viaduct layer
+const colors = {
           1: [225, 225, 225, 0.1], // To be Constructed (white)
           2: [130, 130, 130, 0.5], // Under Construction
           3: [255, 0, 0, 0.8], // Delayed
@@ -1565,7 +1504,7 @@ var testLine1 = new FeatureLayer({
 
  var viaductLayer = new SceneLayer({
    portalItem: {
-            id: "a17403d9c7de46b282437f30b66bfdca",
+            id: "a9c0878766964fa794cc67bbf38b7a09",
             portal: {
               url: "https://gis.railway-sector.com/portal"
             }
@@ -1576,6 +1515,9 @@ var testLine1 = new FeatureLayer({
         },
             title: "Viaduct",
             outFields: ["*"],
+            // when filter using date, example below. use this format
+            //definitionExpression: "EndDate = date'2020-6-3'"
+            /*
             popupTemplate: {
      title: "<h5>{Status1}</h5>",
      lastEditInfoEnabled: false,
@@ -1595,17 +1537,18 @@ var testLine1 = new FeatureLayer({
          ]
        }
      ]
-   }     
+   }
+      */      
           });
-          map.add(viaductLayer);
+          map.add(viaductLayer,1);
 
           function renderViaductLayer() {
           const renderer = new UniqueValueRenderer({
             field: "Status1"
           });
 
-          for (let property in colorsViaduct) {
-            if (colorsViaduct.hasOwnProperty(property)) {
+          for (let property in colors) {
+            if (colors.hasOwnProperty(property)) {
               renderer.addUniqueValueInfo({
                 value: property,
                 symbol: {
@@ -1614,7 +1557,7 @@ var testLine1 = new FeatureLayer({
                     {
                       type: "fill",
                       material: {
-                        color: colorsViaduct[property],
+                        color: colors[property],
                         colorMixMode: "replace"
                       },
                       edges: {
@@ -1632,6 +1575,83 @@ var testLine1 = new FeatureLayer({
         }
 
         renderViaductLayer();
+
+// Station Structure
+const buildingLayer = new BuildingSceneLayer({
+  portalItem: {
+    id: "80d2aa519ad94055a732b9daee4b1154",
+  portal: {
+    url: "https://gis.railway-sector.com/portal"
+  }
+},
+outFields: ["*"],
+title: "N2 Station Structures"
+      });
+map.add(buildingLayer);
+
+        // Discipline: Architectural
+        var doorsLayer = null;
+        var windowsLayer = null;
+
+
+        // Discipline: Structural
+        var stFramingLayer = null;
+        var stColumnLayer = null;
+        var stFoundationLayer = null;
+
+
+
+        //view.ui.add("menu1", "bottom-right");
+
+        buildingLayer.when(() => {
+          // Iterate through the flat array of sublayers and extract the ones
+          // that should be excluded from the slice widget
+          buildingLayer.allSublayers.forEach((layer) => {
+            // modelName is standard accross all BuildingSceneLayer,
+            // use it to identify a certain layer
+            switch (layer.modelName) {
+              // Because of performance reasons, the Full Model view is
+              // by default set to false. In this scene the Full Model should be visible.
+              case "FullModel":
+                layer.visible = true;
+                break;
+              case "Overview":
+              case "Rooms":
+                layer.visible = false;
+                break;
+              // Extract the layers that should not be hidden by the slice widget
+              case "Doors":
+                doorsLayer = layer;
+                excludedLayers.push(layer);
+                break;
+              case "Windows":
+                windowsLayer = layer;
+                break;
+              case "StructuralFraming":
+                stFramingLayer = layer;
+                break;
+              case "StructuralColumns":
+                stColumnLayer = layer;
+                break;
+              case "StructuralFoundation":
+                stFoundationLayer = layer;
+                break;
+              default:
+                layer.visible = true;
+            }
+
+
+          });
+          
+         // setSliceWidget();
+        });
+
+
+
+
+
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////
 //*******************************//
@@ -1668,11 +1688,12 @@ const chartTitleLabel = "Relocation Progress";
 chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
 
 // As default, chart shows the progress of all the relocated layers (point + line)
+
 if (document.getElementById("None").checked = true) {
   updateChartCombine();
 }
 
-totalProgressTitleDiv.innerHTML = "Total Progress (%)";
+totalProgressTitleDiv.innerHTML = "Total Progress";
 
 /// Contract Package button /////////////////////
 var cpSelect = document.getElementById("valSelect");
@@ -1745,26 +1766,116 @@ function totalProgressAll(){
 totalProgressAll();
 
 
+/// Query all features from utility point layer
+view.when(function() {
+    return testUtilPt.when(function() {
+        var query = testUtilPt.createQuery();
+        return testUtilPt.queryFeatures(query);
+    });
+})
+.then(getValues)
+.then(getUniqueValues)
+.then(addToSelect)
+.then(filterUtilCP) // targetDate is filtered when default CP is shown
+
+// 1. Write Function to filter target date
+/// 1.1. Filter Utility Point for CP List
+function filterUtilCP() {
+  var query2 = testUtilPt.createQuery();
+  query2.where = testUtilPt.definitionExpression; // use filtered municipality. is this correct?
+
+  testUtilPt.queryFeatures(query2)
+    .then(getQuery2Values)
+    .then(getUniqueValues2)
+    .then(addToSelectQuery2);
+}
+
+// 2. Get values and return to list
+// Return an array of all the values in the 'CP' field
+function getValues(response) {
+    var features = response.features;
+    var values = features.map(function(feature) {
+        return feature.attributes.CP;
+    });
+    return values;
+}
+
+// Return an array of unique values in the 'CP' field of Utility Point layer
+function getUniqueValues(values) {
+    var uniqueValues = [];
+
+    values.forEach(function(item, i) {
+        if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
+            uniqueValues.push(item);
+        }
+    });
+    return uniqueValues;
+}
+
+// Add the unique values to the CP select element. this will allow the user
+// to filter Utility Point layer by CP
+function addToSelect(values) {
+    values.sort();
+    //values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
+    values.forEach(function(value) {
+        var option = document.createElement("option");
+        option.text = value;
+        cpSelect.add(option);
+    });
+   return setLotMunicipalOnlyExpression(cpSelect.value);
+}
+
+/// 2.2 Target Date
+// Filter target list when CP list changes
+function getQuery2Values(response) {
+  var featuresQuery2 = response.features;
+  var query2Values = featuresQuery2.map(function(feature) {
+    return feature.attributes.TargetDate;
+  });
+  return query2Values;
+}
+
+function getUniqueValues2(values2) {
+  var uniqueValues2 = [];
+    values2.forEach(function(item, i) {
+        if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
+            uniqueValues2.push(item);
+        }
+    });
+    return uniqueValues2;
+}
+
+// Add the unique values to the second select element (Barangay)
+function addToSelectQuery2(query2Values) {
+    targetDateSelect.options.length = 0;
+  query2Values.sort();
+  query2Values.unshift('None');
+    query2Values.forEach(function(value) {
+    var option = document.createElement("option");
+      option.text = value;
+      targetDateSelect.add(option);
+  });
+
+  //return setLotBarangayExpression(barangaySelect.value);
+}
+
+
 // Set the definition expression on the Utility Point layer
 // to reflect the selecction of the user
 // Only for CP
 function setLotMunicipalOnlyExpression(newValue) {
 chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + newValue + "</p>";
 
-if (newValue === 'None') {
-  testUtilPt.definitionExpression = null;
-  testUtilPt1.definitionExpression = null;
-  testLine.definitionExpression = null;
-  testLine1.definitionExpression = null;
-  viaductLayer.definitionExpression = null;
+testUtilPt.definitionExpression = "CP = '" + newValue + "'";
+    testUtilPt1.definitionExpression = "CP = '" + newValue + "'";
+    testLine.definitionExpression = "CP = '" + newValue + "'";
+    testLine1.definitionExpression = "CP = '" + newValue + "'";
+    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
 
-} else {
-  testUtilPt.definitionExpression = "CP = '" + newValue + "'";
-  testUtilPt1.definitionExpression = "CP = '" + newValue + "'";
-  testLine.definitionExpression = "CP = '" + newValue + "'";
-  testLine1.definitionExpression = "CP = '" + newValue + "'";
-  viaductLayer.definitionExpression = "CP = '" + newValue + "'";
-}
+    stFramingLayer.definitionExpression = "CP = '" + newValue + "'";
+    stColumnLayer.definitionExpression = "CP = '" + newValue + "'";
+    stFoundationLayer.definitionExpression = "CP = '" + newValue + "'";
+    
     zoomToLayer(testUtilPt);
   
   return queryForLotGeometries();
@@ -1776,50 +1887,81 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
 // newValue2: Utility Type
 // newValue3: target date
 
-    if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 == 'None'){
+    // newValue: station names
+    // newValue2: Line type (Point or Line)
+    //headerTitleDiv.innerHTML = newValue1 + ", " + newValue2;
+    if(newValue1 == 'None' && newValue2 == 'None' && newValue3 == 'None'){
+    testUtilPt.definitionExpression = null;
+    testUtilPt1.definitionExpression = null;
+    testLine.definitionExpression = null;
+    testLine1.definitionExpression = null;
+
+     } else if (newValue1 == 'None' && newValue2 == 'None' && newValue3 !== 'None') {
+    testUtilPt.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+
+    testLine.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testLine1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+
+    } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 == 'None'){
+    testUtilPt.definitionExpression = null;
+    testUtilPt1.definitionExpression = null;
+    testLine.definitionExpression = "Type = '" + newValue2 + "'";
+    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
+
+  } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 !== 'None'){
+    testUtilPt.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testLine.definitionExpression = "Type = '" + newValue2 + "'";
+    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
+//5
+  } else if(newValue1 == 'None' && newValue2 == "Line" && newValue3 == 'None'){
+    testLine.definitionExpression = null;
+    testLine1.definitionExpression = null;
+    testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
+    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
+//6
+} else if(newValue1 == 'None' && newValue2 == "Line" && newValue3 !== 'None'){
+    testLine.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testLine1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testUtilPt.definitionExpression = "Type = '" + newValue2 + "'"
+    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'" 
+//7
+  } else if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 == 'None'){
     testLine.definitionExpression = "CP = '" + newValue1 + "'";
     testLine1.definitionExpression = "CP = '" + newValue1 + "'";
     testUtilPt.definitionExpression = "CP = '" + newValue1 + "'";
-    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'";
-    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
+    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'"; 
 //8
   } else if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 !== 'None'){
     testLine.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
     testLine1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
     testUtilPt.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
     testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
-    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
 //9
   } else if(newValue1 !== 'None' && newValue2 == 'Point' && newValue3 == 'None'){
     testLine.definitionExpression = "Type = '" + newValue2 + "'";
     testLine1.definitionExpression = "Type = '" + newValue2 + "'";
     testUtilPt.definitionExpression = "CP = '" + newValue1 + "'";
     testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'";
-    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
-
 //10
   } else if(newValue1 !== 'None' && newValue2 == 'Point' && newValue3 !== 'None'){
     testLine.definitionExpression = "Type = '" + newValue2 + "'";
     testLine1.definitionExpression = "Type = '" + newValue2 + "'";
     testUtilPt.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
     testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
-    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
-
 //11
   } else if(newValue1 !== 'None' && newValue2 == 'Line' && newValue3 == 'None'){
     testLine.definitionExpression = "CP = '" + newValue1 + "'";
     testLine1.definitionExpression = "CP = '" + newValue1 + "'";
     testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
     testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
-    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
-
 //12
   } else if(newValue1 !== 'None' && newValue2 == 'Line' && newValue3 !== 'None'){
     testLine.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
     testLine1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "TargetDate = '" + newValue3 + "'";
     testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
     testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
-    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
   }
     return queryForLotGeometries
   }
@@ -1830,7 +1972,44 @@ function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
 // newValue3: target date
 
 //1    //headerTitleDiv.innerHTML = newValue1 + ", " + newValue2;
-    if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 == 'None'){
+    if(newValue1 == 'None' && newValue2 == 'None' && newValue3 == 'None'){
+    testUtilPt.definitionExpression = null;
+    testUtilPt1.definitionExpression = null;
+    testLine.definitionExpression = null;
+    testLine1.definitionExpression = null;
+//2
+     } else if (newValue1 == 'None' && newValue2 == 'None' && newValue3 !== 'None') {
+    testUtilPt.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+
+    testLine.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testLine1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+//3
+    } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 == 'None'){
+    testUtilPt.definitionExpression = null;
+    testUtilPt1.definitionExpression = null;
+    testLine.definitionExpression = "Type = '" + newValue2 + "'";
+    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
+//4
+  } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 !== 'None'){
+    testUtilPt.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testLine.definitionExpression = "Type = '" + newValue2 + "'";
+    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
+//5
+  } else if(newValue1 == 'None' && newValue2 == "Line" && newValue3 == 'None'){
+    testLine.definitionExpression = null;
+    testLine1.definitionExpression = null;
+    testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
+    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
+//6
+  } else if(newValue1 == 'None' && newValue2 == "Line" && newValue3 !== 'None'){
+    testLine.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testLine1.definitionExpression = "TargetDate = '" + newValue3 + "'";
+    testUtilPt.definitionExpression = "Type = '" + newValue2 + "'"
+    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'"
+//7
+  } else if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 == 'None'){
     testLine.definitionExpression = "CP = '" + newValue1 + "'";
     testLine1.definitionExpression = "CP = '" + newValue1 + "'";
     testUtilPt.definitionExpression = "CP = '" + newValue1 + "'";
@@ -1886,6 +2065,7 @@ function queryForLotGeometries() {
 cpSelect.addEventListener("change", function() {
     var type = event.target.value;
     var target = event.target;
+
     setLotMunicipalOnlyExpression(type);
 
     filterUtilCP();
@@ -1898,102 +2078,9 @@ cpSelect.addEventListener("change", function() {
     filterUtilPt1();
     filterUtilLine();
     filterUtilLine1();
+
+
 });
-
-// 1. Query and Extract Companies*****************************
-function filterUtilPointLineCP() {
-  // Create empty arrays
-  var compArray = [];
-  var compArray1 = [];
-  var allArray = [];
-
-  // Selected values from dropdown lists
-const CPvalue = cpSelect.value;
-
-document.getElementById('dataTypeInput').onclick = function() {
-    var selected = document.querySelector('input[name="dataTypeInput"]:checked').id;
-}
-
-
-//
-//if (document.getElementById("None").checked = true) {
-//        const TYPE = null
-//    }
-
-
- /////
-  function utilPointQuery() {
-  var query = testUtilPt.createQuery();
-  query.where = "CP = '" + CPvalue + "'";
-
-return testUtilPt.queryFeatures(query).then(function(response) {
-    stats = response.features;
-    stats.forEach((result, index) => {
-        const attributes = result.attributes;
-        const COMPANY = attributes.Company;
-        compArray.push(COMPANY);
-    });
-    return compArray;
-}); // end of query features 
-}
-
-function utilLineQuery(compArray){
-  var query2 = testLine.createQuery();
-query2.where = "CP = '" + CPvalue + "'";
-
-return testLine.queryFeatures(query2).then(function(response) {
-    stats = response.features;
-    stats.forEach(result => {
-        const attributes = result.attributes;
-        const COMPANY = attributes.Company;
-        compArray1.push(COMPANY);
-    });
-    allArray.push( 'None',compArray, compArray1,)
-    return allArray;
-});
-}
-
-utilPointQuery()
-  .then(utilLineQuery)
-  .then(getUniqueValues)
-  .then(addToSelectQuery2);
-}
-
-filterUtilPointLineCP();
-
-// 2. Get unique values of company names
-function getUniqueValues(values2) {
-    var uniqueValues2 = [];
-    values2.forEach(function(item, i) {
-        if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
-            uniqueValues2.push(item);
-        }
-    });
-   //headerTitleDiv.innerHTML = uniqueValues2;
-    return uniqueValues2;
-}
-
-// Add the unique values to the second select element (Barangay)
-function addToSelectQuery2(uniqueValues2) {
-    targetDateSelect.options.length = 0;
-    uniqueValues2.sort();
-    uniqueValues2.unshift('None');
- //   uniqueValues2.forEach(function(value) {
- //     var option = document.createElement("option");
- //     option.text = value;
- //     targetDateSelect.add(option);
- //   });
-const newC = ["None","NGCP"];
-
-newC.forEach(function(value) {
-    var option = document.createElement("option");
-     option.text = value;
-     targetDateSelect.add(option);
-  });
-
-  //return setLotBarangayExpression(barangaySelect.value);
-}
-
 
 // Use returned point or line values
 function testFunction(pointLineValue) {
@@ -2257,7 +2344,7 @@ function createSeries(field, name) {
     labelBullet.label.text = "";
     labelBullet.label.fill = am4core.color("#FFFFFFFF");
     labelBullet.interactionsEnabled = false;
-    labelBullet.label.fontSize = 0;
+    labelBullet.label.fontSize = 13;
     labelBullet.locationX = 0.5;
 
   } else {
@@ -2553,7 +2640,7 @@ function createSeries(field, name) {
     labelBullet.label.text = "";
     labelBullet.label.fill = am4core.color("#FFFFFFFF");
     labelBullet.interactionsEnabled = false;
-    labelBullet.label.fontSize = 0;
+    labelBullet.label.fontSize = 13;
     labelBullet.locationX = 0.5;
 
   } else {
@@ -2958,7 +3045,7 @@ function createSeriesCombine(field, name) {
     labelBullet.label.text = "";
     labelBullet.label.fill = am4core.color("#FFFFFFFF");
     labelBullet.interactionsEnabled = false;
-    labelBullet.label.fontSize = 0;
+    labelBullet.label.fontSize = 15;
     labelBullet.locationX = 0.5;
 
   } else {
@@ -3239,7 +3326,11 @@ view.when(function () {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.title === "Chainage" || item.title === "Viaduct" || item.title === "Pier No"){
+              if (item.title === "Chainage" ||
+                  item.title === "Viaduct" ||
+                  item.title === "Architectural" ||
+                  item.title === "Structural" ||
+                  item.title === "Pier No"){
                 item.visible = false
               }
             }
@@ -3409,23 +3500,15 @@ searchExpand.watch("expanded", function() {
   <body class="sassy-theme">
     <div id="applicationDiv">
       <div id="headerDiv">
+        <img src="https://EijiGorilla.github.io/Symbols/UtilitySymbol_smartmap_v2.png" width="30" height="30">
         <div id="headerTitleDiv"></div>
           <div class="dateDiv">
-              <h4>As of July 8, 2022</h4>
+              <h4>As of July 4, 2022</h4>
           </div>
           <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">CP:</label>
-            <select id="valSelect" class="esri-widget">
-              <option value="None">All</option>
-              <option value="S-01">S-01</option>
-              <option value="S-02">S-02</option>
-              <option value="S-03a">S-03a</option>
-              <option value="S-03b">S-03b</option>
-              <option value="S-03c">S-03c</option>
-              <option value="S-04">S-04</option>
-              <option value="S-05">S-05</option>
-            </select>
-            <label for="sel-options">Provider:</label>
+            <select id="valSelect" class="esri-widget"></select>
+            <label for="sel-options">Target Date:</label>
             <select id="targetDateSelect" class="esri-widget"></select>
         </div>
       </div>
