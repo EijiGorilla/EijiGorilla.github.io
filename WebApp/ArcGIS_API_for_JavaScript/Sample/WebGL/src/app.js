@@ -13,30 +13,28 @@ function main() {
   var program = webglUtils.createProgramFromScripts(gl, ["vertex-shader-2d", "fragment-shader-2d"]);
 
   // look up where the vertex data needs to go.
-  var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+  var positionLocation = gl.getAttribLocation(program, "a_position");
 
   // lookup uniforms
-  var matrixLocation = gl.getUniformLocation(program, "u_matrix");
+  var resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+  var colorLocation = gl.getUniformLocation(program, "u_color");
 
-  // Create a buffer.
+  // Create a buffer to put positions in
   var positionBuffer = gl.createBuffer();
+
+  // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-  // Set Geometry.
-  setGeometry(gl);
-
-  var translation = [200, 150];
-  var angleInRadians = 0;
-  var scale = [1, 1];
+  var translation = [0, 0];
+  var width = 100;
+  var height = 30;
+  var color = [Math.random(), Math.random(), Math.random(), 1];
 
   drawScene();
 
   // Setup a ui.
-  webglLessonsUI.setupSlider("#x", {value: translation[0], slide: updatePosition(0), max: gl.canvas.width });
-  webglLessonsUI.setupSlider("#y", {value: translation[1], slide: updatePosition(1), max: gl.canvas.height});
-  webglLessonsUI.setupSlider("#angle", {slide: updateAngle, max: 360});
-  webglLessonsUI.setupSlider("#scaleX", {value: scale[0], slide: updateScale(0), min: -5, max: 5, step: 0.01, precision: 2});
-  webglLessonsUI.setupSlider("#scaleY", {value: scale[1], slide: updateScale(1), min: -5, max: 5, step: 0.01, precision: 2});
+  webglLessonsUI.setupSlider("#x", {slide: updatePosition(0), max: gl.canvas.width });
+  webglLessonsUI.setupSlider("#y", {slide: updatePosition(1), max: gl.canvas.height});
 
   function updatePosition(index) {
     return function(event, ui) {
@@ -45,20 +43,7 @@ function main() {
     };
   }
 
-  function updateAngle(event, ui) {
-    var angleInDegrees = 360 - ui.value;
-    angleInRadians = angleInDegrees * Math.PI / 180;
-    drawScene();
-  }
-
-  function updateScale(index) {
-    return function(event, ui) {
-      scale[index] = ui.value;
-      drawScene();
-    };
-  }
-
-  // Draw the scene.
+  // Draw a the scene.
   function drawScene() {
     webglUtils.resizeCanvasToDisplaySize(gl.canvas);
 
@@ -72,10 +57,13 @@ function main() {
     gl.useProgram(program);
 
     // Turn on the attribute
-    gl.enableVertexAttribArray(positionAttributeLocation);
+    gl.enableVertexAttribArray(positionLocation);
 
     // Bind the position buffer.
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+    // Setup a rectangle
+    setRectangle(gl, translation[0], translation[1], width, height);
 
     // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
     var size = 2;          // 2 components per iteration
@@ -84,35 +72,38 @@ function main() {
     var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
     var offset = 0;        // start at the beginning of the buffer
     gl.vertexAttribPointer(
-        positionAttributeLocation, size, type, normalize, stride, offset);
+        positionLocation, size, type, normalize, stride, offset);
 
-    // Compute the matrix
-    var matrix = m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
-    matrix = m3.translate(matrix, translation[0], translation[1]);
-    matrix = m3.rotate(matrix, angleInRadians);
-    matrix = m3.scale(matrix, scale[0], scale[1]);
+    // set the resolution
+    gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
 
-    // Set the matrix.
-    gl.uniformMatrix3fv(matrixLocation, false, matrix);
+    // set the color
+    gl.uniform4fv(colorLocation, color);
 
-    // Draw the geometry.
+    // Draw the rectangle.
     var primitiveType = gl.TRIANGLES;
     var offset = 0;
-    var count = 3;
+    var count = 6;
     gl.drawArrays(primitiveType, offset, count);
   }
 }
 
-// Fill the buffer with the values that define a triangle.
-// Note, will put the values in whatever buffer is currently
-// bound to the ARRAY_BUFFER bind point
-function setGeometry(gl) {
+// Fill the buffer with the values that define a rectangle.
+function setRectangle(gl, x, y, width, height) {
+  var x1 = x;
+  var x2 = x + width;
+  var y1 = y;
+  var y2 = y + height;
   gl.bufferData(
       gl.ARRAY_BUFFER,
       new Float32Array([
-             0, -100,
-           150,  125,
-          -175,  100]),
+          x1, y1,
+          x2, y1,
+          x1, y2,
+          x1, y2,
+          x2, y1,
+          x2, y2,
+      ]),
       gl.STATIC_DRAW);
 }
 
