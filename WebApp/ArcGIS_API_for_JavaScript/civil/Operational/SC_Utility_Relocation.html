@@ -1168,6 +1168,7 @@ var stationLayer = new SceneLayer({
                   url: "https://gis.railway-sector.com/portal"
                 }
             },
+            title: "Station",
              labelingInfo: [labelClass],
              renderer: stationsRenderer,
              elevationInfo: {
@@ -1653,7 +1654,6 @@ function zoomToLayer(layer) {
 //
 const seasonsNodes = document.querySelectorAll(`.test-item`);
 const testElement = document.getElementById("test-filter");
-const utilTypesButton = document.getElementById("dataTypeInput");
 const cpButtonElement = document.getElementById("cpButton");
 const totalProgressTitleDiv = document.getElementById("totalProgressTitleDiv");
 const totalProgressDiv = document.getElementById("totalProgressDiv");
@@ -1665,18 +1665,13 @@ am4core.useTheme(am4themes_animated);
 
 const chartTitleLabel = "Relocation Progress";
 // Default label
-chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + "Overall" + "</p>";
+chartTitleDiv.innerHTML = chartTitleLabel;
 
 // As default, chart shows the progress of all the relocated layers (point + line)
-if (document.getElementById("None").checked = true) {
   updateChartCombine();
-}
+
 
 totalProgressTitleDiv.innerHTML = "Total Progress (%)";
-
-/// Contract Package button /////////////////////
-var cpSelect = document.getElementById("valSelect");
-var targetDateSelect = document.getElementById("targetDateSelect");
 
 // Total progress for both points and lines combined
 function totalProgressPt() {
@@ -1745,11 +1740,359 @@ function totalProgressAll(){
 totalProgressAll();
 
 
+/// Contract Package button /////////////////////
+var cpSelect = document.getElementById("valSelect");
+var companySelect = document.getElementById("companySelect");
+var typeSelect = document.getElementById("typeSelect");
+
+
+view.when(function() {
+    return testUtilPt.when(function() {
+        var query = testUtilPt.createQuery();
+        return testUtilPt.queryFeatures(query);
+    });
+})
+.then(getValues)
+.then(getUniqueValues)
+.then(addToSelect)
+
+// newValue1: CP
+// newValue2: Type
+// newValue3: Company
+
+function queryForLotGeometries() {
+    var lotQuery = testUtilPt.createQuery();
+
+    return testUtilPt.queryFeatures(lotQuery).then(function(response) {
+        lotGeometries = response.features.map(function(feature) {
+            return feature.geometry;
+        });
+        return lotGeometries;
+    });
+
+}
+// 1. Write Function to filter Compnay and Type
+/// 1.1. Filter utility point for CP List
+/// *** this is replaced with filterUtilPointLineCP function.
+/*
+function filterUtilforCP() {
+  var query2 = testUtilPt.createQuery();
+  query2.where = testUtilPt.definitionExpression; // use filtered municipality. is this correct?
+
+  testUtilPt.queryFeatures(query2)
+    .then(getQuery2Values)
+    .then(getUniqueValues2)
+    .then(addToSelectQuery2);
+}
+*/
+/// 1.2. Filter Utility Point for Type List
+/*
+function filterUtilTypeCP() {
+  var query3 = testUtilPt.createQuery();
+  query3.where = testUtilPt.definitionExpression; // use filtered municipality. is this correct?
+
+  testUtilPt.queryFeatures(query3)
+    .then(getQuery3Values)
+    .then(getUniqueValues3)
+    .then(addToSelectQuery3);
+}
+
+*/
+/////////////////////////////////////////////////////////////////////////
+// 2. Get values and Return to list
+//Return an array of all the values in the 'CP' field'
+/// 2.1. CP
+function getValues(response) {
+    var features = response.features;
+    var values = features.map(function(feature) {
+        return feature.attributes.CP;
+    });
+    return values;
+}
+
+// Return an array of unique values in the 'CP' field of Utililty Point
+function getUniqueValues(values) {
+    var uniqueValues = [];
+
+    values.forEach(function(item, i) {
+        if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
+            uniqueValues.push(item);
+        }
+    });
+    return uniqueValues;
+}
+
+// Add the unique values to the cpSelect element. this will allow the user
+// to filter Utility Point by CP.
+function addToSelect(values) {
+    values.sort();
+    values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
+    values.forEach(function(value) {
+        var option = document.createElement("option");
+        option.text = value;
+        cpSelect.add(option);
+    });
+   //return setMunicipalExpression(municipalSelect.value);
+}
+
+/// 2.2. Company
+// Filter Company List when CP list changes
+/*
+function getQuery2Values(response) {
+  var featuresQuery2 = response.features;
+  var query2Values = featuresQuery2.map(function(feature) {
+    return feature.attributes.Company;
+  });
+  return query2Values;
+}
+*/
+//******************************************************************
+// Insert my custom code to add companies from both point and line
+function filterUtilPointLineCP(cpValue) {
+var compArray = [];
+var compArray1 = [];
+
+// Query for Utility Point
+function utilPointQuery() {
+  var query = testUtilPt.createQuery();
+  // CP: All, Type: All, Provider: All
+  if (cpValue === undefined || cpValue === 'None') {
+    query.where = "1=1";
+
+  // CP: !None, Type: All
+  } else if (cpValue !== 'None') {
+    query.where = "CP = '" + cpValue + "'";
+  }
+
+  return testUtilPt.queryFeatures(query).then(function(response) {
+    stats = response.features;
+    stats.forEach((result, index) => {
+        const attributes = result.attributes;
+        const COMPANY = attributes.Company;
+        compArray.push(COMPANY);
+    });
+    return compArray;
+}); // end of query features 
+} // end of utility point query
+
+// Query for Utility Line
+function utilLineQuery(compArray){
+  var query2 = testLine.createQuery();
+
+  // CP: All, Type: All, Provider: All
+  if (cpValue === undefined || cpValue === 'None') {
+    query2.where = "1=1";
+  
+  // CP: !None, Type: All
+} else if (cpValue !== 'None') {
+    query2.where = "CP = '" + cpValue + "'";
+  }
+  
+
+return testLine.queryFeatures(query2).then(function(response) {
+    stats = response.features;
+    stats.forEach(result => {
+        const attributes = result.attributes;
+        const COMPANY = attributes.Company;
+        compArray1.push(COMPANY);
+    });
+    const allArray = compArray.concat(compArray1);
+    return allArray;
+});
+} // end of Utility line query
+
+function getUniqueValues2(values2) {
+  var uniqueValues2 = [];
+    values2.forEach(function(item, i) {
+        if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
+            uniqueValues2.push(item);
+        }
+    });
+    return uniqueValues2;
+}
+
+// Add the unique values to the second select element (Company)
+function addToSelectQuery2(query2Values) {
+  companySelect.options.length = 0;
+  query2Values.sort();
+  query2Values.unshift('None');
+    query2Values.forEach(function(value) {
+    var option = document.createElement("option");
+      option.text = value;
+      companySelect.add(option);
+  });
+
+  //return setLotBarangayExpression(barangaySelect.value);
+}
+utilPointQuery()
+  .then(utilLineQuery)
+  .then(getUniqueValues)
+  .then(addToSelectQuery2)
+  .then(totalProgressAll);
+} // end of filterUtilPointLineCP
+filterUtilPointLineCP();
+
+////////////////////////////////////////////////////////////////////////////////
+
+/// 2.3. Type
+/// Inser my custom functin to get Type from point and line
+function filterUtilPointLineType(cpValue, companyValue) {
+
+var Array = [];
+var Array1 = [];
+
+// Query for Utility Point
+function utilPointQuery3() {
+  var query = testUtilPt.createQuery();
+
+  // CP: undefined, Company: undefined
+  if (cpValue === undefined && companyValue === undefined) {
+    query.where = "1=1";
+
+  // CP: None, Company: !None
+  } else if (cpValue === 'None' && companyValue !== 'None') {
+    query.where = "Company = '" + companyValue + "'";
+
+  // CP: None, Company: None
+  } else if (cpValue === 'None' && companyValue === 'None') {
+    query.where = "1=1";
+
+  // CP: !None, Company: None
+  } else if (cpValue !== 'None' && companyValue === 'None') {
+    query.where = "CP = '" + cpValue + "'";
+
+  // CP: !None, Company: !None
+  } else if (cpValue !== 'None' && companyValue !== 'None') {
+    query.where = "CP = '" + cpValue + "'" + " AND " + "Company = '" + companyValue + "'";
+  }
+
+  return testUtilPt.queryFeatures(query).then(function(response) {
+    stats = response.features;
+    stats.forEach((result, index) => {
+        const attributes = result.attributes;
+        const TYPE = attributes.Type;
+        Array.push(TYPE);
+    });
+    return Array;
+}); // end of query features 
+} // end of utility point query
+
+// Query for Utility Line
+function utilLineQuery3(compArray){
+  var query2 = testLine.createQuery();
+
+  // CP: undefined, Company: undefined
+  if (cpValue === undefined && companyValue === undefined) {
+    query.where = "1=1";
+
+  // CP: None, Company: !None
+  } else if (cpValue === 'None' && companyValue !== 'None') {
+    query2.where = "Company = '" + companyValue + "'";
+
+  // CP: None, Company: None
+  } else if (cpValue === 'None' && companyValue === 'None') {
+    query2.where = "1=1";
+
+  // CP: !None, Company: None
+  } else if (cpValue !== 'None' && companyValue === 'None') {
+    query2.where = "CP = '" + cpValue + "'";
+
+  // CP: !None, Company: !None
+  } else if (cpValue !== 'None' && companyValue !== 'None') {
+    query2.where = "CP = '" + cpValue + "'" + " AND " + "Company = '" + companyValue + "'";
+  }
+  
+
+return testLine.queryFeatures(query2).then(function(response) {
+    stats = response.features;
+    stats.forEach(result => {
+        const attributes = result.attributes;
+        const TYPE = attributes.Type;
+        Array1.push(TYPE);
+    });
+    const allArray = Array.concat(Array1);
+    return allArray;
+});
+} // end of Utility line query
+
+function getUniqueValues3(values2) {
+  var uniqueValues2 = [];
+    values2.forEach(function(item, i) {
+        if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
+            uniqueValues2.push(item);
+        }
+    });
+    return uniqueValues2;
+}
+
+// Add the unique values to the second select element (Company)
+function addToSelectQuery3(query2Values) {
+  typeSelect.options.length = 0;
+  query2Values.sort();
+  query2Values.unshift('None');
+    query2Values.forEach(function(value) {
+    var option = document.createElement("option");
+      option.text = value;
+      typeSelect.add(option);
+  });
+
+  //return setLotBarangayExpression(barangaySelect.value);
+}
+utilPointQuery3()
+  .then(utilLineQuery3)
+  .then(getUniqueValues3)
+  .then(addToSelectQuery3)
+  .then(totalProgressAll);
+} // end of filterUtilPointLineCP
+filterUtilPointLineType();
+//////////////////////////////////////////////////////////////////////////
+
+/*
+// 2.3.1. Filter Type List when CP list changes
+function getQuery3Values(response) {
+  var featuresQuery3 = response.features;
+  var query3Values = featuresQuery3.map(function(feature) {
+    return feature.attributes.Type;
+  });
+  return query3Values;
+}
+
+function getUniqueValues3(values3) {
+  var uniqueValues3 = [];
+    values3.forEach(function(item, i) {
+        if ((uniqueValues3.length < 1 || uniqueValues3.indexOf(item) === -1) && item !== "") {
+            uniqueValues3.push(item);
+        }
+    });
+    return uniqueValues3;
+}
+
+function addToSelectQuery3(query3Values) {
+    typeSelect.options.length = 0;
+  query3Values.sort();
+  query3Values.unshift('None');
+    query3Values.forEach(function(value) {
+    var option = document.createElement("option");
+      option.text = value;
+      typeSelect.add(option);
+  });
+
+  //return setLotBarangayExpression(barangaySelect.value);
+}
+
+*/
+
+
+
+
+
+
+
 // Set the definition expression on the Utility Point layer
 // to reflect the selecction of the user
 // Only for CP
 function setLotMunicipalOnlyExpression(newValue) {
-chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + newValue + "</p>";
+chartTitleDiv.innerHTML = chartTitleLabel;
 
 if (newValue === 'None') {
   testUtilPt.definitionExpression = null;
@@ -1857,7 +2200,7 @@ if(newValue1 == 'None' && newValue2 == 'None' && newValue3 == 'None'){
 // newValue2: Utility Type
 // newValue3: Provider
 
-//1    //headerTitleDiv.innerHTML = newValue1 + ", " + newValue2;
+//1   
 if(newValue1 == 'None' && newValue2 == 'None' && newValue3 == 'None'){
     testUtilPt.definitionExpression = null;
     testUtilPt1.definitionExpression = null;
@@ -1870,6 +2213,7 @@ if(newValue1 == 'None' && newValue2 == 'None' && newValue3 == 'None'){
 
     testLine.definitionExpression = "Company = '" + newValue3 + "'";
     testLine1.definitionExpression = "Company = '" + newValue3 + "'";
+
 //3
     } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 == 'None'){
     testUtilPt.definitionExpression = null;
@@ -1934,159 +2278,7 @@ if(newValue1 == 'None' && newValue2 == 'None' && newValue3 == 'None'){
   return queryForLotGeometries();
 }
 
-function queryForLotGeometries() {
-    var lotQuery = testUtilPt.createQuery();
-
-    return testUtilPt.queryFeatures(lotQuery).then(function(response) {
-        lotGeometries = response.features.map(function(feature) {
-            return feature.geometry;
-        });
-        return lotGeometries;
-    });
-
-
-}
-
-// Select station from dropdown list
-cpSelect.addEventListener("change", function() {
-    var type = event.target.value;
-    var target = event.target;
-    setLotMunicipalOnlyExpression(type);
-
-    filterUtilCP();
-
-    updateChartPoint();
-    updateChartLine();
-    updateChartCombine();
-
-    filterUtilPt();
-    filterUtilPt1();
-    filterUtilLine();
-    filterUtilLine1();
-});
-
-// 1. Query and Extract Companies*****************************
-function filterUtilPointLineCP() {
-  // Create empty arrays
-  var compArray = [];
-  var compArray1 = [];
-  var allArray = [];
-
-  // Selected values from dropdown lists
-const CPvalue = cpSelect.value;
-
-document.getElementById('dataTypeInput').onclick = function() {
-    var selected = document.querySelector('input[name="dataTypeInput"]:checked').id;
-}
-
-
-//
-//if (document.getElementById("None").checked = true) {
-//        const TYPE = null
-//    }
-
-
- /////
-  function utilPointQuery() {
-  var query = testUtilPt.createQuery();
-  query.where = "CP = '" + CPvalue + "'";
-
-return testUtilPt.queryFeatures(query).then(function(response) {
-    stats = response.features;
-    stats.forEach((result, index) => {
-        const attributes = result.attributes;
-        const COMPANY = attributes.Company;
-        compArray.push(COMPANY);
-    });
-    return compArray;
-}); // end of query features 
-}
-
-function utilLineQuery(compArray){
-  var query2 = testLine.createQuery();
-query2.where = "CP = '" + CPvalue + "'";
-
-return testLine.queryFeatures(query2).then(function(response) {
-    stats = response.features;
-    stats.forEach(result => {
-        const attributes = result.attributes;
-        const COMPANY = attributes.Company;
-        compArray1.push(COMPANY);
-    });
-    allArray.push('None',compArray, compArray1,)
-    return allArray;
-});
-}
-
-utilPointQuery()
-  .then(utilLineQuery)
-  .then(getUniqueValues)
-  .then(addToSelectQuery2)
-  .then(totalProgressAll);
-}
-
-filterUtilPointLineCP();
-
-// 2. Get unique values of company names
-function getUniqueValues(values2) {
-    var uniqueValues2 = [];
-    values2.forEach(function(item, i) {
-        if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
-            uniqueValues2.push(item);
-        }
-    });
-   //headerTitleDiv.innerHTML = uniqueValues2;
-    return uniqueValues2;
-}
-
-// Add the unique values to the second select element (Barangay)
-function addToSelectQuery2(uniqueValues2) {
-    targetDateSelect.options.length = 0;
-    uniqueValues2.sort();
-    uniqueValues2.unshift('None');
- //   uniqueValues2.forEach(function(value) {
- //     var option = document.createElement("option");
- //     option.text = value;
- //     targetDateSelect.add(option);
- //   });
-const newC = ["None","NGCP"];
-
-newC.forEach(function(value) {
-    var option = document.createElement("option");
-     option.text = value;
-     targetDateSelect.add(option);
-  });
-
-  //return setLotBarangayExpression(barangaySelect.value);
-}
-
-
-// Use returned point or line values
-function testFunction(pointLineValue) {
- cpSelect.addEventListener("change", function() {
-    var type = event.target.value;
-    var target = event.target;
-
-    // target date value must be reset to 'None' when CP is changed.
-    // Otherwise, it will displace you to somewhere else.
-    const targetdatevalue = 'None';
-
-    setLotMunicipalExpression(type,pointLineValue,targetdatevalue);
-    updateChartPoint();
-    updateChartLine();
-    updateChartCombine();
-    totalProgressAll();
-
-    filterUtilPt();
-    filterUtilPt1();
-    filterUtilLine();
-    filterUtilLine1();
-
-});
-
-};
-
-
+// Filter utility feature layers
 function filterUtilPt() {
   var query2 = testUtilPt.createQuery();
   query2.where = testUtilPt.definitionExpression; // use filtered municipality. is this correct?
@@ -2111,15 +2303,53 @@ function filterUtilLine1() {
 
 }
 
-// Point, Line or All ratio buttons
-utilTypesButton.addEventListener("change", function(event) {
-    const typeS = event.target.id;
+// When CP is changed, Type is reset to 'None'
+const changeSelected = (e) => {
+    const $select = document.querySelector('#typeSelect');
+    $select.value = 'None'
+  };
+
+
+// Select station from dropdown list
+cpSelect.addEventListener("change", function() {
+    var type = event.target.value;
+    var target = event.target;
+
+    var companyValue = companySelect.value;
+
+    //document.getElementById("orange").selected = true;
+    filterUtilPointLineCP(type);
+    filterUtilPointLineType(type, companyValue);
+
+    setLotMunicipalOnlyExpression(type);
+    changeSelected();
+
+    totalProgressAll();
+
+    updateChartPoint();
+    updateChartLine();
+    updateChartCombine();
+
+    filterUtilPt();
+    filterUtilPt1();
+    filterUtilLine();
+    filterUtilLine1();
+
+});
+
+ // Provider dropdown list 
+ companySelect.addEventListener("change", function(event) {
+    const companyValue = event.target.value;
+    zoomToLayer(testUtilPt1);
+    zoomToLayer(testLine1);
+    changeSelected();
     
-    setLotDefinitionExpression(cpSelect.value, typeS, targetDateSelect.value);
-    //setLotMunicipalExpression(cpSelect.value, typeS);
+    var cpValue = cpSelect.value;
+    filterUtilPointLineType(cpValue, companyValue);
 
-    //filterUtilCP();
+    setLotDefinitionExpression(cpSelect.value, typeSelect.value, companySelect.value);
 
+    // If a provider selected does not have both point or line,
     updateChartPoint();
     updateChartLine();
     updateChartCombine();
@@ -2129,22 +2359,14 @@ utilTypesButton.addEventListener("change", function(event) {
     filterUtilPt1();
     filterUtilLine();
     filterUtilLine1();
-
-   return testFunction(typeS);
     
   });
 
-  targetDateSelect.addEventListener("change", function(event) {
-    const typeTarget = event.target.value;
-    //headerTitleDiv.innerHTML = type;
-
-    //setCPTargetDateAll();
-    const utiltypevalue = document.querySelector('input[name="dataTypeInput"]:checked').id;
-
-    //headerTitleDiv.innerHTML = cpSelect.value + ", " + targetDateSelect.value + ", " + utiltypevalue;
-    setLotDefinitionExpression(cpSelect.value, utiltypevalue, targetDateSelect.value);
-    //setLotMunicipalExpression(cpSelect.value, typeS, , targetDateSelect.value)
-
+    // Utility Type: Point or Line
+    typeSelect.addEventListener("change", async function(event) {
+    const typeS = event.target.value;
+    
+    setLotDefinitionExpression(cpSelect.value, typeS, companySelect.value);
 
     updateChartPoint();
     updateChartLine();
@@ -2155,6 +2377,9 @@ utilTypesButton.addEventListener("change", function(event) {
     filterUtilPt1();
     filterUtilLine();
     filterUtilLine1();
+
+    //zoomToLayer(testUtilPt1);
+    //zoomToLayer(testLine1);
     
   });
 
@@ -3484,18 +3709,11 @@ searchExpand.watch("expanded", function() {
           </div>
           <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">CP:</label>
-            <select id="valSelect" class="esri-widget">
-              <option value="None">All</option>
-              <option value="S-01">S-01</option>
-              <option value="S-02">S-02</option>
-              <option value="S-03a">S-03a</option>
-              <option value="S-03b">S-03b</option>
-              <option value="S-03c">S-03c</option>
-              <option value="S-04">S-04</option>
-              <option value="S-05">S-05</option>
-            </select>
-            <label for="sel-options">Provider:</label>
-            <select id="targetDateSelect" class="esri-widget"></select>
+            <select id="valSelect" class="esri-widget"></select>
+            <label for="sel-options">Provider</label>
+            <select id="companySelect" class="esri-widget"></select>
+            <label for="sel-options">Type</label>
+            <select id="typeSelect" class="esri-widget"></select>
         </div>
       </div>
       <div class="container">
@@ -3510,12 +3728,6 @@ searchExpand.watch("expanded", function() {
             <div id="chartPanel">
               <div id="chartTitleDiv" class="esri-widget">Relocation Progress</div>
               <div id="chartdiv"></div>
-              <div id="dataTypeInput" class="cpButtonClass">
-                <label for="dataTypeInput">Data Type</label>
-                <input type="radio" id="None" name="dataTypeInput" checked/> All
-                <input type="radio" id="Point" name="dataTypeInput"> Point
-                <input type="radio" id="Line" name="dataTypeInput"> Line
-              </div>
               <div id="optionsDiv" class="esri-widget">
                 <div id="totalProgressTitleDiv"></div>
                 <div id="totalProgressDiv"></div>
