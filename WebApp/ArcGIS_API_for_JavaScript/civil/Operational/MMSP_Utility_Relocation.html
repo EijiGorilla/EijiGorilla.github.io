@@ -43,6 +43,7 @@
       #headerDiv {
         font-weight: 400;
         max-width: 2000px;
+        width: 100%;
         font-style: normal;
         font-size: 25px;
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
@@ -51,7 +52,13 @@
         border: solid 2.5px gray;
         margin-bottom: 3px;
         display: grid;
-        grid-template-columns: 40px 210fr 50fr 0fr;
+        grid-template-columns: 1fr auto auto;
+      }
+
+      #headerTitleDiv {
+        font-size: 2.2vw;
+        vertical-align: middle;
+        width: 450px;
       }
 
       #viewDiv {
@@ -106,13 +113,14 @@
           }
 
           #dropdownDiv {
-    background-color: black;
-    font-size: 1.1vw;
-    opacity: 1;
-    color: white;
-    font-weight: bold;
-    width: 17vw;
-}
+        background-color: rgb(0, 0, 0 ,0);
+        font-size: 1.1vw;
+        opacity: 1;
+        color: white;
+        font-weight: bold;
+        padding-right: 5;
+        padding-top: 6;
+      }
 
 #optionsDiv {
         font-weight: normal;
@@ -1799,28 +1807,25 @@ function zoomToLayer(layer) {
 //
 const seasonsNodes = document.querySelectorAll(`.test-item`);
 const testElement = document.getElementById("test-filter");
-const utilTypesButton = document.getElementById("dataTypeInput");
-const StationButtonElement = document.getElementById("StationButton");
 
 const totalProgressTitleDiv = document.getElementById("totalProgressTitleDiv");
 const totalProgressDiv = document.getElementById("totalProgressDiv");
 
 
 
-
+headerTitleDiv.innerHTML = "MMSP Utility Relocation";
 // Start of am4core
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
-const chartTitleLabel = "Relocation Progress";
 // Default label
 
 // As default, chart shows the progress of all the relocated layers (point + line)
-if (document.getElementById("None").checked = true) {
-  updateChartCombine();
-}
 
-totalProgressTitleDiv.innerHTML = "Total Progress (%)";
+  updateChartCombine();
+
+
+totalProgressTitleDiv.innerHTML = "Total Progress";
 // Thousand separators function
 function thousands_separators(num)
   {
@@ -1899,8 +1904,10 @@ totalProgressAll();
 
 /////////////////////////////////// new statoin button //////////////
 // Return an array of unique values in the 'Brangay' field of the lot Layer
-// Query all features from the lot layer
+// 1. Query all features from the lot layer
 var stationSelect = document.getElementById("valSelect");
+var companySelect = document.getElementById("companySelect");
+var typeSelect = document.getElementById("typeSelect");
 
 view.when(function() {
     return constBoundary.when(function() {
@@ -1912,7 +1919,22 @@ view.when(function() {
 .then(getUniqueValues)
 .then(addToSelect)
 
-//Return an array of all the values in the 'Municipality' field'
+// Query geometry
+function queryForLotGeometries() {
+    var lotQuery = testUtilPt.createQuery();
+
+    return testUtilPt.queryFeatures(lotQuery).then(function(response) {
+        lotGeometries = response.features.map(function(feature) {
+            return feature.geometry;
+        });
+        return lotGeometries;
+    });
+
+}
+
+// 2. Get values and Return to list
+//Return an array of all the values in the 'Station1' field'
+/// 2.1. CP
 function getValues(response) {
     var features = response.features;
     var values = features.map(function(feature) {
@@ -1933,141 +1955,345 @@ function getUniqueValues(values) {
     return uniqueValues;
 }
 
-// Add the unique values to the municipalility select element. this will allow the user
-// to filter lot layer by municipality.
+// Add stations to the station list as element
 function addToSelect(values) {
     values.sort();
-    //values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
+    values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
     values.forEach(function(value) {
         var option = document.createElement("option");
         option.text = value;
         stationSelect.add(option);
     });
-   return setLotMunicipalOnlyExpression(stationSelect.value);
 }
 
+// 2.2. Company
+// Filter Company List when station list changes
+function filterUtilPointLineCP(stationValue) {
+var compArray = [];
+var compArray1 = [];
+
+// Query for Utility Point
+function utilPointQuery() {
+  var query = testUtilPt.createQuery();
+  // CP: All, Type: All, Provider: All
+  if (stationValue === undefined || stationValue === 'None') {
+    query.where = "1=1";
+
+  // CP: !None, Type: All
+  } else if (stationValue !== 'None') {
+    query.where = "Station1 = '" + stationValue + "'";
+  }
+
+  return testUtilPt.queryFeatures(query).then(function(response) {
+    stats = response.features;
+    stats.forEach((result, index) => {
+        const attributes = result.attributes;
+        const COMPANY = attributes.Company;
+        compArray.push(COMPANY);
+    });
+    return compArray;
+}); // end of query features 
+} // end of utility point query
+
+// Query for Utility Line
+function utilLineQuery(compArray){
+  var query2 = testLine.createQuery();
+
+  // CP: All, Type: All, Provider: All
+  if (stationValue === undefined || stationValue === 'None') {
+    query2.where = "1=1";
+  
+  // CP: !None, Type: All
+} else if (stationValue !== 'None') {
+    query2.where = "Station1 = '" + stationValue + "'";
+  }
+  
+
+return testLine.queryFeatures(query2).then(function(response) {
+    stats = response.features;
+    stats.forEach(result => {
+        const attributes = result.attributes;
+        const COMPANY = attributes.Company;
+        compArray1.push(COMPANY);
+    });
+    const allArray = compArray.concat(compArray1);
+    return allArray;
+});
+} // end of Utility line query
+
+function getUniqueValues2(values2) {
+  var uniqueValues2 = [];
+    values2.forEach(function(item, i) {
+        if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
+            uniqueValues2.push(item);
+        }
+    });
+    return uniqueValues2;
+}
+
+// Add the unique values to the second select element (Company)
+function addToSelectQuery2(query2Values) {
+    companySelect.options.length = 0;
+  query2Values.sort();
+  query2Values.unshift('None');
+    query2Values.forEach(function(value) {
+    var option = document.createElement("option");
+      option.text = value;
+      companySelect.add(option);
+  });
+
+  //return setLotBarangayExpression(barangaySelect.value);
+}
+utilPointQuery()
+  .then(utilLineQuery)
+  .then(getUniqueValues)
+  .then(addToSelectQuery2)
+  .then(totalProgressAll);
+} // end of filterUtilPointLineCP
+filterUtilPointLineCP();
+
+// 2.3. Type (Point, Line)
+function filterUtilPointLineType(stationValue, companyValue) {
+
+var Array = [];
+var Array1 = [];
+
+// Query for Utility Point
+function utilPointQuery3() {
+  var query = testUtilPt.createQuery();
+
+  // CP: undefined, Company: undefined
+  if (stationValue === undefined && companyValue === undefined) {
+    query.where = "1=1";
+
+  // CP: None, Company: !None
+  } else if (stationValue === 'None' && companyValue !== 'None') {
+    query.where = "Company = '" + companyValue + "'";
+
+  // CP: None, Company: None
+  } else if (stationValue === 'None' && companyValue === 'None') {
+    query.where = "1=1";
+
+  // CP: !None, Company: None
+  } else if (stationValue !== 'None' && companyValue === 'None') {
+    query.where = "Station1 = '" + stationValue + "'";
+
+  // CP: !None, Company: !None
+  } else if (stationValue !== 'None' && companyValue !== 'None') {
+    query.where = "Station1 = '" + stationValue + "'" + " AND " + "Company = '" + companyValue + "'";
+  }
+
+  return testUtilPt.queryFeatures(query).then(function(response) {
+    stats = response.features;
+    stats.forEach((result, index) => {
+        const attributes = result.attributes;
+        const TYPE = attributes.Type;
+        Array.push(TYPE);
+    });
+    return Array;
+}); // end of query features 
+} // end of utility point query
+
+// Query for Utility Line
+function utilLineQuery3(compArray){
+  var query2 = testLine.createQuery();
+
+  // CP: undefined, Company: undefined
+  if (stationValue === undefined && companyValue === undefined) {
+    query.where = "1=1";
+
+  // CP: None, Company: !None
+  } else if (stationValue === 'None' && companyValue !== 'None') {
+    query2.where = "Company = '" + companyValue + "'";
+
+  // CP: None, Company: None
+  } else if (stationValue === 'None' && companyValue === 'None') {
+    query2.where = "1=1";
+
+  // CP: !None, Company: None
+  } else if (stationValue !== 'None' && companyValue === 'None') {
+    query2.where = "Station1 = '" + stationValue + "'";
+
+  // CP: !None, Company: !None
+  } else if (stationValue !== 'None' && companyValue !== 'None') {
+    query2.where = "Station1 = '" + stationValue + "'" + " AND " + "Company = '" + companyValue + "'";
+  }
+  
+
+return testLine.queryFeatures(query2).then(function(response) {
+    stats = response.features;
+    stats.forEach(result => {
+        const attributes = result.attributes;
+        const TYPE = attributes.Type;
+        Array1.push(TYPE);
+    });
+    const allArray = Array.concat(Array1);
+    return allArray;
+});
+} // end of Utility line query
+
+function getUniqueValues3(values2) {
+  var uniqueValues2 = [];
+    values2.forEach(function(item, i) {
+        if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
+            uniqueValues2.push(item);
+        }
+    });
+    return uniqueValues2;
+}
+
+// Add the unique values to the second select element (Company)
+function addToSelectQuery3(query2Values) {
+  typeSelect.options.length = 0;
+  query2Values.sort();
+  query2Values.unshift('None');
+    query2Values.forEach(function(value) {
+    var option = document.createElement("option");
+      option.text = value;
+      typeSelect.add(option);
+  });
+  return query2Values;
+  //return setLotBarangayExpression(barangaySelect.value);
+}
+
+utilPointQuery3()
+  .then(utilLineQuery3)
+  .then(getUniqueValues3)
+  .then(addToSelectQuery3)
+  .then(ZoomToLayerQuery)
+  .then(totalProgressAll);
+} // end of filterUtilPointLineCP
+filterUtilPointLineType();
+
+// Define zoomTo
+// This is necessary, as some companies have only points or lines, or both.
+// Use correct zoomToLayer
+function ZoomToLayerQuery(values) {
+    var regex = /\b(?:Point|Line)\b/gi;
+    var subject = values.toString();
+    let result = subject.match(regex);
+
+    // both Point and Line
+    if (result.length === 3) {
+        zoomToLayer(testUtilPt);
+    
+    } else if (result[0] === "Point") {
+        zoomToLayer(testUtilPt);
+    
+    } else {
+        zoomToLayer(testLine);
+    }
+}
+
+///
+const chartTitleLabel = "Relocation Progress";
+chartTitleDiv.innerHTML = chartTitleLabel;
+//////////////////////////////////////////////////////////////////////
 // Set the definition expression on the lot layer
 // to reflect the selecction of the user
 function setLotMunicipalOnlyExpression(newValue) {
+    chartTitleDiv.innerHTML = chartTitleLabel;
 
-  chartTitleDiv.innerHTML = chartTitleLabel + "<p>" + newValue + "</p>";
+    if (newValue === 'None') {
+        testUtilPt.definitionExpression = null;
+        testUtilPt1.definitionExpression = null;
+        testLine.definitionExpression = null;
+        testLine1.definitionExpression = null;
+        structureLayer.definitionExpression = null;
 
-      testUtilPt.definitionExpression = "Station1 = '" + newValue + "'";
-      testUtilPt1.definitionExpression = "Station1 = '" + newValue + "'";
-      testLine.definitionExpression = "Station1 = '" + newValue + "'";
-      testLine1.definitionExpression = "Station1 = '" + newValue + "'";
-      constBoundary.definitionExpression = "Station1 = '" + newValue + "'";
-      structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
-
-      
+    } else {
+        testUtilPt.definitionExpression = "Station1 = '" + newValue + "'";
+        testUtilPt1.definitionExpression = "Station1 = '" + newValue + "'";
+        testLine.definitionExpression = "Station1 = '" + newValue + "'";
+        testLine1.definitionExpression = "Station1 = '" + newValue + "'";
+        structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
+}
+    
+    zoomToLayer(testUtilPt);
   
-      if(newValue === 'Ortigas' || newValue === 'Shaw'){
-        referenceOnlyDiv.innerHTML = "REFERENCE ONLY for CP104";
-      } else {
-        referenceOnlyDiv.innerHTML = "";
-      }
-    
-
-      zoomToLayer(constBoundary);
-    
-    return queryForLotGeometries();
+  return queryForLotGeometries();
 }
 
 
+  function setLotDefinitionExpression(newValue1, newValue2, newValue3){
+// newValue: Station
+// newValue2: Utility Type
+// newValue3: Company
 
-function setLotMunicipalExpression(newValue, newValue2) {
-
-    // newValue: station names
-    // newValue2: Line type (Point or Line)
-    if (newValue == 'None' && newValue2 =='None') {
-      testUtilPt.definitionExpression = null;
-      testUtilPt1.definitionExpression = null;
-      testLine.definitionExpression = null;
-      testLine1.definitionExpression = null;
-
-    } else if (newValue == 'None' && newValue2 == 'Point') {
-      testUtilPt.definitionExpression = null;
-      testUtilPt1.definitionExpression = null;
-      testLine.definitionExpression = "Type = '" + newValue2 + "'";
-    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
-
-    } else if (newValue == 'None' && newValue2 == 'Line') {
-      testLine.definitionExpression = null;
-      testLine1.definitionExpression = null;
-      testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
-    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
-
-    } else if (newValue !== 'None' && newValue2 == 'None') {
-      testUtilPt.definitionExpression = "Station1 = '" + newValue + "'";
-      testUtilPt1.definitionExpression = "Station1 = '" + newValue + "'";
-      testLine.definitionExpression = "Station1 = '" + newValue + "'";
-      testLine1.definitionExpression = "Station1 = '" + newValue + "'";
-      structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
-
-    } else if (newValue !== 'None' && newValue2 == 'Point') {
-      testUtilPt.definitionExpression = "Station1 = '" + newValue + "'";
-      testUtilPt1.definitionExpression = "Station1 = '" + newValue + "'";
-      testLine.definitionExpression = "Type = '" + newValue2 + "'";
-    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
-    structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
-
-    } else if (newValue !== 'None' && newValue2 == 'Line') {
-      testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
-    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
-      testLine.definitionExpression = "Station1 = '" + newValue + "'";
-      testLine1.definitionExpression = "Station1 = '" + newValue + "'";
-      structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
-    } 
-    return queryForLotGeometries
-  }
-
-  function setLotDefinitionExpression(newValue1, newValue2){
-    // newValue1 = staion names
-    // newValue2 = 1st Priority (1)
-
-    //headerTitleDiv.innerHTML = newValue1 + ", " + newValue2;
-    if(newValue1 == 'None' && newValue2 == 'None'){
+ //1   
+ if(newValue1 == 'None' && newValue2 == 'None' && newValue3 == 'None'){
     testUtilPt.definitionExpression = null;
     testUtilPt1.definitionExpression = null;
     testLine.definitionExpression = null;
     testLine1.definitionExpression = null;
+//2
+     } else if (newValue1 == 'None' && newValue2 == 'None' && newValue3 !== 'None') {
+    testUtilPt.definitionExpression = "Company = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "Company = '" + newValue3 + "'";
 
-    } else if(newValue1 == 'None' && newValue2 == "Point"){
+    testLine.definitionExpression = "Company = '" + newValue3 + "'";
+    testLine1.definitionExpression = "Company = '" + newValue3 + "'";
+
+//3
+    } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 == 'None'){
     testUtilPt.definitionExpression = null;
     testUtilPt1.definitionExpression = null;
     testLine.definitionExpression = "Type = '" + newValue2 + "'";
     testLine1.definitionExpression = "Type = '" + newValue2 + "'";
-
-  } else if (newValue1 == 'None' && newValue2 == "Line"){
+//4
+  } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 !== 'None'){
+    testUtilPt.definitionExpression = "Company = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "Company = '" + newValue3 + "'";
+    testLine.definitionExpression = "Type = '" + newValue2 + "'";
+    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
+//5
+  } else if(newValue1 == 'None' && newValue2 == "Line" && newValue3 == 'None'){
     testLine.definitionExpression = null;
     testLine1.definitionExpression = null;
     testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
     testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
-
-  } else if (newValue1 !== 'None' && newValue2 == "Point") {
+//6
+  } else if(newValue1 == 'None' && newValue2 == "Line" && newValue3 !== 'None'){
+    testLine.definitionExpression = "Company = '" + newValue3 + "'";
+    testLine1.definitionExpression = "Company = '" + newValue3 + "'";
+    testUtilPt.definitionExpression = "Type = '" + newValue2 + "'"
+    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'"
+//7
+  } else if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 == 'None'){
+    testLine.definitionExpression = "Station1 = '" + newValue1 + "'";
+    testLine1.definitionExpression = "Station1 = '" + newValue1 + "'";
+    testUtilPt.definitionExpression = "Station1 = '" + newValue1 + "'";
+    testUtilPt1.definitionExpression = "Station1 = '" + newValue1 + "'"; 
+//8
+  } else if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 !== 'None'){
+    testLine.definitionExpression = "Station1 = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testLine1.definitionExpression = "Station1 = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testUtilPt.definitionExpression = "Station1 = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "Station1 = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+//9
+  } else if(newValue1 !== 'None' && newValue2 == 'Point' && newValue3 == 'None'){
     testLine.definitionExpression = "Type = '" + newValue2 + "'";
     testLine1.definitionExpression = "Type = '" + newValue2 + "'";
-
     testUtilPt.definitionExpression = "Station1 = '" + newValue1 + "'";
     testUtilPt1.definitionExpression = "Station1 = '" + newValue1 + "'";
-    structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
-
-  } else if (newValue1 !== 'None' && newValue2 == "Line") {
+//10
+  } else if(newValue1 !== 'None' && newValue2 == 'Point' && newValue3 !== 'None'){
+    testLine.definitionExpression = "Type = '" + newValue2 + "'";
+    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
+    testUtilPt.definitionExpression = "Station1 = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testUtilPt1.definitionExpression = "Station1 = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+//11
+  } else if(newValue1 !== 'None' && newValue2 == 'Line' && newValue3 == 'None'){
+    testLine.definitionExpression = "Station1 = '" + newValue1 + "'";
+    testLine1.definitionExpression = "Station1 = '" + newValue1 + "'";
     testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
     testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
-
-    testLine.definitionExpression = "Station1 = '" + newValue1 + "'";
-    testLine1.definitionExpression = "Station1 = '" + newValue1 + "'";
-    structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
-
-  }  else if (newValue1 !== 'None' && newValue2 == "None") {
-    testUtilPt.definitionExpression = "Station1 = '" + newValue1 + "'";
-    testUtilPt1.definitionExpression = "Station1 = '" + newValue1 + "'";
-
-    testLine.definitionExpression = "Station1 = '" + newValue1 + "'";
-    testLine1.definitionExpression = "Station1 = '" + newValue1 + "'";
-
-    structureLayer.definitionExpression = "Station1 = '" + newValue + "'";
+//12
+  } else if(newValue1 !== 'None' && newValue2 == 'Line' && newValue3 !== 'None'){
+    testLine.definitionExpression = "Station1 = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testLine1.definitionExpression = "Station1 = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
+    testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
+    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
   }
   return queryForLotGeometries();
 }
@@ -2081,50 +2307,9 @@ function queryForLotGeometries() {
         });
         return lotGeometries;
     });
-
-
 }
 
-// Select station from dropdown list
-stationSelect.addEventListener("change", function() {
-    var type = event.target.value;
-    var target = event.target;
-    setLotMunicipalOnlyExpression(type);
-
-    updateChartPoint();
-    updateChartLine();
-    updateChartCombine();
-
-    filterUtilPt();
-    filterUtilPt1();
-    filterUtilLine();
-    filterUtilLine1();
-
-
-});
-
-// Use returned point or line values
-function testFunction(pointLineValue) {
-  stationSelect.addEventListener("change", function() {
-    var type = event.target.value;
-    var target = event.target;
-    
-    setLotMunicipalExpression(type, pointLineValue);
-
-    updateChartPoint();
-    updateChartLine();
-    updateChartCombine();
-
-    filterUtilPt();
-    filterUtilPt1();
-    filterUtilLine();
-    filterUtilLine1();
-
-
-});
-
-};
-
+///////////////////
 function filterUtilPt() {
   var query2 = testUtilPt.createQuery();
   query2.where = testUtilPt.definitionExpression; // use filtered municipality. is this correct?
@@ -2149,10 +2334,26 @@ function filterUtilLine1() {
 
 }
 
-// Point, Line or All ratio buttons
-utilTypesButton.addEventListener("change", function(event) {
-    const typeS = event.target.id;
-    setLotDefinitionExpression(stationSelect.value, typeS);
+// When Station1 is changed, Type is reset to 'None'
+const changeSelected = (e) => {
+    const $select = document.querySelector('#typeSelect');
+    $select.value = 'None'
+  };
+
+// Dropdown List
+// Select station from dropdown list
+stationSelect.addEventListener("change", function() {
+    var type = event.target.value;
+    var target = event.target;
+    var companyValue = companySelect.value;
+
+    filterUtilPointLineCP(type);
+    filterUtilPointLineType(type, companyValue);
+
+    setLotMunicipalOnlyExpression(type);
+    changeSelected();
+
+    totalProgressAll();
 
     updateChartPoint();
     updateChartLine();
@@ -2162,19 +2363,49 @@ utilTypesButton.addEventListener("change", function(event) {
     filterUtilPt1();
     filterUtilLine();
     filterUtilLine1();
+});
 
-   return testFunction(typeS);
+
+// Provider dropdown list
+companySelect.addEventListener("change", function(event) {
+    const companyValue = event.target.value;
+
+    changeSelected();
+
+    var stationValue = stationSelect.value;
+    filterUtilPointLineType(stationValue, companyValue);
+
+    setLotDefinitionExpression(stationSelect.value, typeSelect.value, companySelect.value);
+
+    // If a provider selected does not have both point or line,
+    updateChartPoint();
+    updateChartLine();
+    updateChartCombine();
+    totalProgressAll();
+
+    filterUtilPt();
+    filterUtilPt1();
+    filterUtilLine();
+    filterUtilLine1();
     
   });
 
-////////////////////////////////// new station button ////////////////
+  // Utility Type: Point or Line
+  typeSelect.addEventListener("change", async function(event) {
+    const typeS = event.target.value;
+    
+    setLotDefinitionExpression(stationSelect.value, typeS, companySelect.value);
 
+    updateChartPoint();
+    updateChartLine();
+    updateChartCombine();
+    totalProgressAll();
 
-// Click event handler for choices
-///////////////////////////////// old station button (Delete later) //////
-
-/* Create Expand widget for selecting Station and updating chart */
-
+    filterUtilPt();
+    filterUtilPt1();
+    filterUtilLine();
+    filterUtilLine1();    
+  });
 
 // Start of "updateChart" function for Utility Point
 async function updateChartPoint() {
@@ -3915,16 +4146,17 @@ searchExpand.watch("expanded", function() {
   <body class="sassy-theme">
     <div id="applicationDiv">
       <div id="headerDiv">
-        <img src="https://EijiGorilla.github.io/Symbols/UtilitySymbol_smartmap_v2.png" width="30" height="30">
-        <div id="headerTitleDiv">
-          <h2>MMSP Utility Relocation</h2>
-        </div>
+        <div id="headerTitleDiv"></div>
           <div class="dateDiv">
               <h4>As of July 11, 2022</h4>
           </div>
           <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">Station:</label>
             <select id="valSelect" class="esri-widget"></select>
+            <label for="sel-options">Provider</label>
+            <select id="companySelect" class="esri-widget"></select>
+            <label for="sel-options">Type</label>
+            <select id="typeSelect" class="esri-widget"></select>
         </div>
       </div>
       <div class="container">
@@ -3941,12 +4173,6 @@ searchExpand.watch("expanded", function() {
             <div id="chartPanel">
               <div id="chartTitleDiv" class="esri-widget">Relocation Progress</div>
               <div id="chartdiv"></div>
-              <div id="dataTypeInput" class="StationButtonClass">
-                <label for="dataTypeInput">Data Type</label>
-                <input type="radio" id="None" name="dataTypeInput" checked/> All
-                <input type="radio" id="Point" name="dataTypeInput"> Point
-                <input type="radio" id="Line" name="dataTypeInput"> Line
-              </div>
               <div id="optionsDiv" class="esri-widget">
                 <div id="totalProgressTitleDiv"></div>
                 <div id="totalProgressDiv"></div>
