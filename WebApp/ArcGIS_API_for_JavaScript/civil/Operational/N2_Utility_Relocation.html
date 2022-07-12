@@ -1784,33 +1784,7 @@ function queryForLotGeometries() {
     });
 
 }
-// 1. Write Function to filter Compnay and Type
-/// 1.1. Filter utility point for CP List
-/// *** this is replaced with filterUtilPointLineCP function.
-/*
-function filterUtilforCP() {
-  var query2 = testUtilPt.createQuery();
-  query2.where = testUtilPt.definitionExpression; // use filtered municipality. is this correct?
 
-  testUtilPt.queryFeatures(query2)
-    .then(getQuery2Values)
-    .then(getUniqueValues2)
-    .then(addToSelectQuery2);
-}
-*/
-/// 1.2. Filter Utility Point for Type List
-/*
-function filterUtilTypeCP() {
-  var query3 = testUtilPt.createQuery();
-  query3.where = testUtilPt.definitionExpression; // use filtered municipality. is this correct?
-
-  testUtilPt.queryFeatures(query3)
-    .then(getQuery3Values)
-    .then(getUniqueValues3)
-    .then(addToSelectQuery3);
-}
-
-*/
 /////////////////////////////////////////////////////////////////////////
 // 2. Get values and Return to list
 //Return an array of all the values in the 'CP' field'
@@ -1850,15 +1824,7 @@ function addToSelect(values) {
 
 /// 2.2. Company
 // Filter Company List when CP list changes
-/*
-function getQuery2Values(response) {
-  var featuresQuery2 = response.features;
-  var query2Values = featuresQuery2.map(function(feature) {
-    return feature.attributes.Company;
-  });
-  return query2Values;
-}
-*/
+
 //******************************************************************
 // Insert my custom code to add companies from both point and line
 function filterUtilPointLineCP(cpValue) {
@@ -2048,6 +2014,7 @@ function addToSelectQuery3(query2Values) {
       option.text = value;
       typeSelect.add(option);
   });
+  return query2Values;
 
   //return setLotBarangayExpression(barangaySelect.value);
 }
@@ -2055,47 +2022,30 @@ utilPointQuery3()
   .then(utilLineQuery3)
   .then(getUniqueValues3)
   .then(addToSelectQuery3)
+  .then(ZoomToLayerQuery)
   .then(totalProgressAll);
 } // end of filterUtilPointLineCP
 filterUtilPointLineType();
-//////////////////////////////////////////////////////////////////////////
 
-/*
-// 2.3.1. Filter Type List when CP list changes
-function getQuery3Values(response) {
-  var featuresQuery3 = response.features;
-  var query3Values = featuresQuery3.map(function(feature) {
-    return feature.attributes.Type;
-  });
-  return query3Values;
+// Define zoomTo
+// This is necessary, as some companies have only points or lines, or both.
+// Use correct zoomToLayer
+function ZoomToLayerQuery(values) {
+    var regex = /\b(?:Point|Line)\b/gi;
+    var subject = values.toString();
+    let result = subject.match(regex);
+
+    // both Point and Line
+    if (result.length === 3) {
+        zoomToLayer(testUtilPt);
+    
+    } else if (result[0] === "Point") {
+        zoomToLayer(testUtilPt);
+    
+    } else {
+        zoomToLayer(testLine);
+    }
 }
-
-function getUniqueValues3(values3) {
-  var uniqueValues3 = [];
-    values3.forEach(function(item, i) {
-        if ((uniqueValues3.length < 1 || uniqueValues3.indexOf(item) === -1) && item !== "") {
-            uniqueValues3.push(item);
-        }
-    });
-    return uniqueValues3;
-}
-
-function addToSelectQuery3(query3Values) {
-    typeSelect.options.length = 0;
-  query3Values.sort();
-  query3Values.unshift('None');
-    query3Values.forEach(function(value) {
-    var option = document.createElement("option");
-      option.text = value;
-      typeSelect.add(option);
-  });
-
-  //return setLotBarangayExpression(barangaySelect.value);
-}
-
-*/
-
-
 ///////////////////////////////////////////////////////////////////////
 // Set the definition expression on the Utility Point layer
 // to reflect the selecction of the user
@@ -2123,88 +2073,6 @@ if (newValue === 'None') {
   
   return queryForLotGeometries();
 }
-
-// For CP + Provider List + Data Type
-function setLotMunicipalExpression(newValue1, newValue2, newValue3) {
-// newValue: CP
-// newValue2: Utility Type
-// newValue3: Provider
-
-    if(newValue1 == 'None' && newValue2 == 'None' && newValue3 == 'None'){
-    testUtilPt.definitionExpression = null;
-    testUtilPt1.definitionExpression = null;
-    testLine.definitionExpression = null;
-    testLine1.definitionExpression = null;
-
-     } else if (newValue1 == 'None' && newValue2 == 'None' && newValue3 !== 'None') {
-    testUtilPt.definitionExpression = "Company = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "Company = '" + newValue3 + "'";
-
-    testLine.definitionExpression = "Company = '" + newValue3 + "'";
-    testLine1.definitionExpression = "Company = '" + newValue3 + "'";
-
-    } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 == 'None'){
-    testUtilPt.definitionExpression = null;
-    testUtilPt1.definitionExpression = null;
-    testLine.definitionExpression = "Type = '" + newValue2 + "'";
-    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
-
-  } else if(newValue1 == 'None' && newValue2 == "Point" && newValue3 !== 'None'){
-    testUtilPt.definitionExpression = "Company = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "Company = '" + newValue3 + "'";
-    testLine.definitionExpression = "Type = '" + newValue2 + "'";
-    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
-//5
-  } else if(newValue1 == 'None' && newValue2 == "Line" && newValue3 == 'None'){
-    testLine.definitionExpression = null;
-    testLine1.definitionExpression = null;
-    testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
-    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
-//6
-} else if(newValue1 == 'None' && newValue2 == "Line" && newValue3 !== 'None'){
-    testLine.definitionExpression = "Company = '" + newValue3 + "'";
-    testLine1.definitionExpression = "Company = '" + newValue3 + "'";
-    testUtilPt.definitionExpression = "Type = '" + newValue2 + "'"
-    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'" 
-//7
-  } else if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 == 'None'){
-    testLine.definitionExpression = "CP = '" + newValue1 + "'";
-    testLine1.definitionExpression = "CP = '" + newValue1 + "'";
-    testUtilPt.definitionExpression = "CP = '" + newValue1 + "'";
-    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'"; 
-//8
-  } else if(newValue1 !== 'None' && newValue2 == 'None' && newValue3 !== 'None'){
-    testLine.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
-    testLine1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
-    testUtilPt.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
-//9
-  } else if(newValue1 !== 'None' && newValue2 == 'Point' && newValue3 == 'None'){
-    testLine.definitionExpression = "Type = '" + newValue2 + "'";
-    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
-    testUtilPt.definitionExpression = "CP = '" + newValue1 + "'";
-    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'";
-//10
-  } else if(newValue1 !== 'None' && newValue2 == 'Point' && newValue3 !== 'None'){
-    testLine.definitionExpression = "Type = '" + newValue2 + "'";
-    testLine1.definitionExpression = "Type = '" + newValue2 + "'";
-    testUtilPt.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
-    testUtilPt1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
-//11
-  } else if(newValue1 !== 'None' && newValue2 == 'Line' && newValue3 == 'None'){
-    testLine.definitionExpression = "CP = '" + newValue1 + "'";
-    testLine1.definitionExpression = "CP = '" + newValue1 + "'";
-    testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
-    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
-//12
-  } else if(newValue1 !== 'None' && newValue2 == 'Line' && newValue3 !== 'None'){
-    testLine.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
-    testLine1.definitionExpression = "CP = '" + newValue1 + "'" + " AND " + "Company = '" + newValue3 + "'";
-    testUtilPt.definitionExpression = "Type = '" + newValue2 + "'";
-    testUtilPt1.definitionExpression = "Type = '" + newValue2 + "'";
-  }
-    return queryForLotGeometries
-  }
 
   function setLotDefinitionExpression(newValue1, newValue2, newValue3){
 // newValue: CP
@@ -2326,7 +2194,7 @@ const changeSelected = (e) => {
   };
 
 // Dropdown List
-// Select station from dropdown list
+// Select CP from dropdown list
 cpSelect.addEventListener("change", function() {
     var type = event.target.value;
     var target = event.target;
@@ -2356,10 +2224,9 @@ cpSelect.addEventListener("change", function() {
  // Provider dropdown list 
   companySelect.addEventListener("change", function(event) {
     const companyValue = event.target.value;
-    zoomToLayer(testUtilPt1);
-    zoomToLayer(testLine1);
+
     changeSelected();
-//filterUtilTypeCP();
+
 var cpValue = cpSelect.value;
 filterUtilPointLineType(cpValue, companyValue);
 
