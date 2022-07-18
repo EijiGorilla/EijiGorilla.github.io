@@ -96,7 +96,7 @@
       #boxPower {
         position: absolute;
         z-index: 99;
-        width: 15%;
+        width: 14%;
         height: 18vh;
         background-image: linear-gradient(rgb(0,0,0,0), rgb(0,185,242,0.4));
         border-color: white;
@@ -112,14 +112,14 @@
       #boxTelecom {
         position: absolute;
         z-index: 99;
-        width: 15%;
+        width: 14%;
         height: 18vh;
         background-image: linear-gradient(rgb(0,0,0,0), rgb(0,185,242,0.4));
         border-color: white;
         box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
         background-color: rgb(0,0,0,0.5);
         bottom: 20;
-        left: 19%;
+        left: 15%;
         color: white;
         font-size: 2vw;
         text-align: center;
@@ -129,14 +129,14 @@
       #boxWater {
         position: absolute;
         z-index: 99;
-        width: 15%;
+        width: 14%;
         height: 18vh;
         background-image: linear-gradient(rgb(0,0,0,0), rgb(0,185,242,0.4));
         border-color: white;
         box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
         background-color: rgb(0,0,0,0.5);
         bottom: 20;
-        left: 37.5%;
+        left: 29.5%;
         color: white;
         font-size: 2vw;
         text-align: center;
@@ -145,14 +145,14 @@
       #boxSewage {
         position: absolute;
         z-index: 99;
-        width: 15%;
+        width: 14%;
         height: 18vh;
         background-image: linear-gradient(rgb(0,0,0,0), rgb(0,185,242,0.4));
         border-color: white;
         box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
         background-color: rgb(0,0,0,0.5);
         bottom: 20;
-        left: 56%;
+        left: 44%;
         color: white;
         font-size: 2vw;
         text-align: center;
@@ -161,14 +161,14 @@
       #boxOilGas {
         position: absolute;
         z-index: 99;
-        width: 15%;
+        width: 14%;
         height: 18vh;
         background-image: linear-gradient(rgb(0,0,0,0), rgb(0,185,242,0.4));
         border-color: white;
         box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
         background-color: rgb(0,0,0,0.5);
         bottom: 20;
-        left: 56%;
+        left: 58.5%;
         color: white;
         font-size: 2vw;
         text-align: center;
@@ -184,7 +184,7 @@
         box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
         background-color: rgb(0,0,0,0.5);
         bottom: 20;
-        left: 74.5%;
+        left: 73%;
         color: white;
         font-size: 2vw;
         text-align: center;
@@ -243,6 +243,7 @@
       padding: 1;
       max-width: 250px;
       background-color: rgb(0, 0, 0, 0);
+      
     }
 
     #menu1 {
@@ -3445,4 +3446,2696 @@ function chartLineSewage() {
                             });
 
                             
-     
+                            view.on("click", function() {
+                                layerView.filter = null;
+                            });
+                        }); // end of query features   
+                    }); // end of when layerview
+
+                // Point: 2
+                view.whenLayerView(testLine1).then(function (layerView) {
+                    chartLayerView = layerView;
+                    arrLviews.push(layerView);
+                    chartElement.style.visibility = "visible";
+                    
+                    view.on("click", function() {
+                        layerView.filter = null;
+                    });
+                }); // end of when layerview
+            }); // end of view.when
+
+            // Query view using compiled arrays
+            for(var i = 0; i < arrLviews.length; i++) {
+                arrLviews[i].filter = {
+                    where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+                }
+            }
+        } // End of filterByChart
+    } // end of createSeries function
+    
+    createSeries("value1", "Complete");
+    createSeries("value2", "Incomplete");
+
+}); // end of queryFeatures
+} // end of updateChartSewage
+
+// 1.3. Point + Line
+/// 1.3.1. Point for compiled
+
+
+function chartPointSewageForCompile() {
+  var total_sewage_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 3 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_sewage_incomp",
+    statisticType: "sum"
+  };
+
+  var total_sewage_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 3 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_sewage_comp",
+    statisticType: "sum"  
+  };
+
+    // Query
+    var query = testUtilPt.createQuery();
+    query.outStatistics = [total_sewage_incomp, total_sewage_comp];
+    query.returnGeometry = true;
+
+    return testUtilPt.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+        const sewage_incomp = stats.total_sewage_incomp;
+        const sewage_comp = stats.total_sewage_comp;
+        const sewagePointValues = [sewage_incomp, sewage_comp];
+
+    return sewagePointValues;
+}); // end of queryFeatures
+} // end of updateChartSewage
+
+/// 1.3.2. Line for compiled
+function chartLineSewageForCompile(sewagePointValues) {
+  var total_sewage_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 3 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_sewage_incomp",
+    statisticType: "sum"
+  };
+
+  var total_sewage_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 3 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_sewage_comp",
+    statisticType: "sum"  
+  };
+
+    // Query
+    var query = testLine.createQuery();
+    query.outStatistics = [total_sewage_incomp, total_sewage_comp];
+    query.returnGeometry = true;
+
+    return testLine.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+        const sewage_incomp = stats.total_sewage_incomp;
+        const sewage_comp = stats.total_sewage_comp;
+
+        const sewageIncompTotal = sewage_incomp + sewagePointValues[0];
+        const sewageCompTotal = sewage_comp + sewagePointValues[1];
+        const sewageTotalValues = [sewageIncompTotal, sewageCompTotal];
+
+    return sewageTotalValues;
+}); // end of queryFeatures
+} // end of updateChartSewage
+
+/// 1.3.3. Point + Line
+//
+function sewageCompiledChart(sewageTotalValues) {
+  var chart = am4core.create("chartSewageDiv", am4charts.XYChart);
+  chart.hiddenState.properties.opacity = 0;
+  
+  //headerTitleDiv.innerHTML = sewageTotalValues;
+
+  chart.data = [
+    {
+      category: "Sewage",
+      value1: sewageTotalValues[1],
+      value2: sewageTotalValues[0]
+    }
+  ];
+  
+  // Define chart setting
+  chart.colors.step = 2;
+  chart.padding(0, 0, 0, 0);
+        
+  // Axis Setting
+  /// Category Axis
+  var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+  categoryAxis.dataFields.category = "category";
+  categoryAxis.renderer.grid.template.location = 0;
+  categoryAxis.renderer.labels.template.fontSize = 0;
+  categoryAxis.renderer.labels.template.fill = "#ffffff";
+  categoryAxis.renderer.minGridDistance = 5; //can change label
+  categoryAxis.renderer.grid.template.strokeWidth = 0;
+        
+  /// Value Axis
+  var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+  valueAxis.min = 0;
+  valueAxis.max = 100;
+  valueAxis.strictMinMax = true;
+  valueAxis.calculateTotals = true;
+  valueAxis.renderer.minWidth = 50;
+  valueAxis.renderer.labels.template.fontSize = 0;
+  valueAxis.renderer.labels.template.fill = "#ffffff";
+  valueAxis.renderer.grid.template.strokeWidth = 0;
+        
+  //valueAxis.disabled = true;
+  //categoryAxis.disabled = true;
+  let arrLviews = [];
+  
+  // Layerview and Expand
+  function createSeries(field, name) {
+    var series = chart.series.push(new am4charts.ColumnSeries());
+    series.calculatePercent = true;
+    series.dataFields.valueX = field;
+    series.dataFields.categoryY = "category";
+    series.stacked = true;
+    series.dataFields.valueXShow = "totalPercent";
+    series.dataItems.template.locations.categoryY = 0.5;
+            
+    // Bar chart line color and width
+    series.columns.template.stroke = am4core.color("#FFFFFF");
+    series.columns.template.strokeWidth = 0.5;
+    series.name = name;
+            
+    var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+            
+    if (name == "Incomplete"){
+      series.fill = am4core.color("#FF000000");
+      labelBullet.locationX = 0.5;
+      labelBullet.label.text = "";
+      labelBullet.label.fill = am4core.color("#FFFFFFFF");
+      labelBullet.interactionsEnabled = false;
+      labelBullet.label.fontSize = 0;
+      labelBullet.locationX = 0.5;
+    
+    } else {
+      series.fill = am4core.color("#00B0F0"); // Completed
+      labelBullet.locationX = 0.5;
+      labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+      labelBullet.label.fill = am4core.color("#ffffff");
+      labelBullet.interactionsEnabled = false;
+      labelBullet.label.fontSize = 20;
+      labelBullet.locationX = 0.5;
+    }
+    
+    series.columns.template.width = am4core.percent(60);
+    series.columns.template.tooltipText = "[font-size:15px]{name}: {valueX.value.formatNumber('#.')} ({valueX.totalPercent.formatNumber('#.')}%)"
+            
+    // Click chart and filter, update maps
+    const chartElement = document.getElementById("chartPanel");
+    series.columns.template.events.on("hit", filterByChart, this);
+
+    function filterByChart(ev) {
+      const selectedC = ev.target.dataItem.component.name;
+      const selectedP = ev.target.dataItem.categoryY;
+                
+      // Layer
+      if (selectedP == "Sewage" && selectedC === "Incomplete") {
+        selectedLayer = 3;
+        selectedStatus = 0;
+      } else if (selectedP == "Sewage" && selectedC === "Complete") {
+        selectedLayer = 3;
+        selectedStatus = 1;
+      } else {
+        selectedLayer = null;
+      }
+
+      //
+                     
+      // Query view using compiled arrays
+      for(var i = 0; i < arrLviews.length; i++) {
+        arrLviews[i].filter = {
+          where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+        }
+      }
+    } // End of filterByChart
+        // LayerView for point 2
+view.whenLayerView(testLine1).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+
+});
+
+  view.whenLayerView(testLine).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+});
+
+view.whenLayerView(testUtilPt).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+
+});
+
+  view.whenLayerView(testUtilPt1).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+});
+
+    // End of LayerView
+
+
+  } // end of createSeries function
+    
+    createSeries("value1", "Complete");
+    createSeries("value2", "Incomplete");
+
+}
+
+async function sewageAllChart() {
+  chartPointSewageForCompile()
+  .then(chartLineSewageForCompile)
+  .then(sewageCompiledChart);
+}
+
+
+
+
+// 3. Power
+function chartPointPower() {
+  var total_power_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_power_incomp",
+    statisticType: "sum"
+  };
+
+  var total_power_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_power_comp",
+    statisticType: "sum"  
+  };
+
+    // Query
+    var query = testUtilPt.createQuery();
+    query.outStatistics = [total_power_incomp, total_power_comp];
+    query.returnGeometry = true;
+
+    testUtilPt.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+        const power_incomp = stats.total_power_incomp;
+        const power_comp = stats.total_power_comp;
+
+        var chart = am4core.create("chartPowerDiv", am4charts.XYChart);
+        
+        // Responsive to screen size
+        chart.responsive.enabled = true;
+        chart.responsive.useDefault = false
+        chart.responsive.rules.push({
+          relevant: function(target) {
+            if (target.pixelWidth <= 400) {
+              return true;
+            }
+            return false;
+          },
+          state: function(target, stateId) {
+    
+    if (target instanceof am4charts.Chart) {
+      var state = target.states.create(stateId);
+      state.properties.paddingTop = 0;
+      state.properties.paddingRight = 15;
+      state.properties.paddingBottom = 5;
+      state.properties.paddingLeft = 15;
+      return state;
+    }
+    
+   
+    if (target instanceof am4charts.Legend) {
+      var state = target.states.create(stateId);
+      state.properties.paddingTop = 0;
+      state.properties.paddingRight = 0;
+      state.properties.paddingBottom = 0;
+      state.properties.paddingLeft = 0;
+      state.properties.marginLeft = 0;
+      return state;
+    }
+    
+    if (target instanceof am4charts.AxisRendererY) {
+      var state = target.states.create(stateId);
+      state.properties.inside = false;
+      state.properties.maxLabelPosition = 0.99;
+      return state;
+    }
+    
+    if ((target instanceof am4charts.AxisLabel) && (target.parent instanceof am4charts.AxisRendererY)) { 
+      var state = target.states.create(stateId);
+      state.properties.dy = 0;
+      state.properties.paddingTop = 3;
+      state.properties.paddingRight = 5;
+      state.properties.paddingBottom = 3;
+      state.properties.paddingLeft = 5;
+      
+      // Create a separate state for background
+     // target.setStateOnChildren = true;
+     // var bgstate = target.background.states.create(stateId);
+     // bgstate.properties.fill = am4core.color("#fff");
+     // bgstate.properties.fillOpacity = 0;
+      
+      return state;
+    }
+    
+    // if ((target instanceof am4core.Rectangle) && (target.parent instanceof am4charts.AxisLabel) && (target.parent.parent instanceof am4charts.AxisRendererY)) { 
+    //   var state = target.states.create(stateId);
+    //   state.properties.fill = am4core.color("#f00");
+    //   state.properties.fillOpacity = 0.5;
+    //   return state;
+    // }
+    
+    return null;
+  }
+});
+
+
+        chart.hiddenState.properties.opacity = 0;
+
+        chart.data = [
+            {
+                category: "Power",
+                value1: power_comp,
+                value2: power_incomp
+            }
+        ];
+
+        // Define chart setting
+        chart.colors.step = 2;
+        chart.padding(0, 0, 0, 0);
+        
+        // Axis Setting
+        /// Category Axis
+        var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+        categoryAxis.dataFields.category = "category";
+        categoryAxis.renderer.grid.template.location = 0;
+        categoryAxis.renderer.labels.template.fontSize = 0;
+        categoryAxis.renderer.labels.template.fill = "#ffffff";
+        categoryAxis.renderer.minGridDistance = 5; //can change label
+        categoryAxis.renderer.grid.template.strokeWidth = 0;
+        
+        /// Value Axis
+        var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+        valueAxis.min = 0;
+        valueAxis.max = 100;
+        valueAxis.strictMinMax = true;
+        valueAxis.calculateTotals = true;
+        valueAxis.renderer.minWidth = 50;
+        valueAxis.renderer.labels.template.fontSize = 0;
+        valueAxis.renderer.labels.template.fill = "#ffffff";
+        valueAxis.renderer.grid.template.strokeWidth = 0;
+        
+        //valueAxis.disabled = true;
+        //categoryAxis.disabled = true;
+        let arrLviews = [];
+        
+        // Layerview and Expand
+        function createSeries(field, name) {
+            var series = chart.series.push(new am4charts.ColumnSeries());
+            series.calculatePercent = true;
+            series.dataFields.valueX = field;
+            series.dataFields.categoryY = "category";
+            series.stacked = true;
+            series.dataFields.valueXShow = "totalPercent";
+            series.dataItems.template.locations.categoryY = 0.5;
+            
+            // Bar chart line color and width
+            series.columns.template.stroke = am4core.color("#FFFFFF"); //#00B0F0
+            series.columns.template.strokeWidth = 0.5;
+            series.name = name;
+            
+            var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+            
+            if (name == "Incomplete"){
+                series.fill = am4core.color("#FF000000");
+                labelBullet.locationX = 0.5;
+                labelBullet.label.text = "";
+                labelBullet.label.fill = am4core.color("#FFFFFFFF");
+                labelBullet.interactionsEnabled = false;
+                labelBullet.label.fontSize = 0;
+                labelBullet.locationX = 0.5;
+            
+            } else {
+                series.fill = am4core.color("#00B0F0"); // Completed
+                labelBullet.locationX = 0.5;
+                labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+                labelBullet.label.fill = am4core.color("#ffffff");
+                labelBullet.interactionsEnabled = false;
+                labelBullet.label.fontSize = 10;
+                labelBullet.locationX = 0.5;
+            }
+            
+            series.columns.template.width = am4core.percent(60);
+            series.columns.template.tooltipText = "[font-size:15px]{name}: {valueX.value.formatNumber('#.')} ({valueX.totalPercent.formatNumber('#.')}%)"
+            
+            // Click chart and filter, update maps
+            const chartElement = document.getElementById("chartPanel");
+            series.columns.template.events.on("hit", filterByChart, this);
+
+            function filterByChart(ev) {
+                const selectedC = ev.target.dataItem.component.name;
+                const selectedP = ev.target.dataItem.categoryY;
+                
+                // Layer
+                if (selectedC === "Incomplete") {
+                    selectedLayer = 4;
+                    selectedStatus = 0;
+                } else if (selectedC === "Complete") {
+                    selectedLayer = 4;
+                    selectedStatus = 1;
+                } else {
+                    selectedLayer = null;
+                }
+                
+                // Point 1:
+                view.when(function() {
+                    view.whenLayerView(testUtilPt).then(function (layerView) {
+                        chartLayerView = layerView;
+                        arrLviews.push(layerView);
+                        chartElement.style.visibility = "visible";
+                        
+                        //testUtilPt1.definitionExpression = sqlExpression;
+                        testUtilPt.queryFeatures().then(function(results) {
+                            const ggg = results.features;
+                            const rowN = ggg.length;
+                            
+                            let objID = [];
+                            for (var i=0; i < rowN; i++) {
+                                var obj = results.features[i].attributes.OBJECTID;
+                                objID.push(obj);
+                            }
+                            
+                            var queryExt = new Query({
+                                objectIds: objID
+                            });
+                            
+                            testUtilPt.queryExtent(queryExt).then(function(result) {
+                                if (result.extent) {
+                                    view.goTo(result.extent)
+                                }
+                            });
+                            
+                            view.on("click", function() {
+                                layerView.filter = null;
+                            });
+                        }); // end of query features   
+                    }); // end of when layerview
+
+                // Point: 2
+                view.whenLayerView(testUtilPt1).then(function (layerView) {
+                    chartLayerView = layerView;
+                    arrLviews.push(layerView);
+                    chartElement.style.visibility = "visible";
+                    
+                    view.on("click", function() {
+                        layerView.filter = null;
+                    });
+                }); // end of when layerview
+            }); // end of view.when
+
+            // Query view using compiled arrays
+            for(var i = 0; i < arrLviews.length; i++) {
+                arrLviews[i].filter = {
+                    where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+                }
+            }
+        } // End of filterByChart
+    } // end of createSeries function
+    
+    createSeries("value1", "Complete");
+    createSeries("value2", "Incomplete");
+
+}); // end of queryFeatures
+} // end of updateChartPower
+
+
+// 1.2. Line
+function chartLinePower() {
+
+  var total_power_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_power_incomp",
+    statisticType: "sum"
+  };
+
+  var total_power_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_power_comp",
+    statisticType: "sum"  
+  };
+
+    // Query
+    var query = testLine.createQuery();
+    query.outStatistics = [total_power_incomp, total_power_comp];
+    query.returnGeometry = true;
+
+    testLine.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+        const power_incomp = stats.total_power_incomp;
+        const power_comp = stats.total_power_comp;
+
+        var chart = am4core.create("chartPowerDiv", am4charts.XYChart);
+        chart.hiddenState.properties.opacity = 0;
+
+        chart.data = [
+            {
+                category: "Power",
+                value1: power_comp,
+                value2: power_incomp
+            }
+        ];
+
+        // Define chart setting
+        chart.colors.step = 2;
+        chart.padding(0, 0, 0, 0);
+        
+        // Axis Setting
+        /// Category Axis
+        var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+        categoryAxis.dataFields.category = "category";
+        categoryAxis.renderer.grid.template.location = 0;
+        categoryAxis.renderer.labels.template.fontSize = 0;
+        categoryAxis.renderer.labels.template.fill = "#ffffff";
+        categoryAxis.renderer.minGridDistance = 5; //can change label
+        categoryAxis.renderer.grid.template.strokeWidth = 0;
+        
+        /// Value Axis
+        var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+        valueAxis.min = 0;
+        valueAxis.max = 100;
+        valueAxis.strictMinMax = true;
+        valueAxis.calculateTotals = true;
+        valueAxis.renderer.minWidth = 50;
+        valueAxis.renderer.labels.template.fontSize = 0;
+        valueAxis.renderer.labels.template.fill = "#ffffff";
+        valueAxis.renderer.grid.template.strokeWidth = 0;
+        
+        //valueAxis.disabled = true;
+        //categoryAxis.disabled = true;
+        let arrLviews = [];
+        
+        // Layerview and Expand
+        function createSeries(field, name) {
+            var series = chart.series.push(new am4charts.ColumnSeries());
+            series.calculatePercent = true;
+            series.dataFields.valueX = field;
+            series.dataFields.categoryY = "category";
+            series.stacked = true;
+            series.dataFields.valueXShow = "totalPercent";
+            series.dataItems.template.locations.categoryY = 0.5;
+            
+            // Bar chart line color and width
+            series.columns.template.stroke = am4core.color("#FFFFFF");
+            series.columns.template.strokeWidth = 0.5;
+            series.name = name;
+            
+            var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+            
+            if (name == "Incomplete"){
+                series.fill = am4core.color("#FF000000");
+                labelBullet.locationX = 0.5;
+                labelBullet.label.text = "";
+                labelBullet.label.fill = am4core.color("#FFFFFFFF");
+                labelBullet.interactionsEnabled = false;
+                labelBullet.label.fontSize = 0;
+                labelBullet.locationX = 0.5;
+            
+            } else {
+                series.fill = am4core.color("#00B0F0"); // Completed
+                labelBullet.locationX = 0.5;
+                labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+                labelBullet.label.fill = am4core.color("#ffffff");
+                labelBullet.interactionsEnabled = false;
+                labelBullet.label.fontSize = 20;
+                labelBullet.locationX = 0.5;
+            }
+            
+            series.columns.template.width = am4core.percent(60);
+            series.columns.template.tooltipText = "[font-size:15px]{name}: {valueX.value.formatNumber('#.')} ({valueX.totalPercent.formatNumber('#.')}%)"
+            
+            // Click chart and filter, update maps
+            const chartElement = document.getElementById("chartPanel");
+            series.columns.template.events.on("hit", filterByChart, this);
+
+            function filterByChart(ev) {
+                const selectedC = ev.target.dataItem.component.name;
+                const selectedP = ev.target.dataItem.categoryY;
+                
+                // Layer
+                if (selectedC === "Incomplete") {
+                    selectedLayer = 4;
+                    selectedStatus = 0;
+                } else if (selectedC === "Complete") {
+                    selectedLayer = 4;
+                    selectedStatus = 1;
+                } else {
+                    selectedLayer = null;
+                }
+                
+                // Point 1:
+                view.when(function() {
+                    view.whenLayerView(testLine).then(function (layerView) {
+                        chartLayerView = layerView;
+                        arrLviews.push(layerView);
+                        chartElement.style.visibility = "visible";
+                        
+                        //testLine1.definitionExpression = sqlExpression;
+                        testLine.queryFeatures().then(function(results) {
+                            const ggg = results.features;
+                            const rowN = ggg.length;
+                            
+                            let objID = [];
+                            for (var i=0; i < rowN; i++) {
+                                var obj = results.features[i].attributes.OBJECTID;
+                                objID.push(obj);
+                            }
+                            
+                            var queryExt = new Query({
+                                objectIds: objID
+                            });
+                            
+                            testLine.queryExtent(queryExt).then(function(result) {
+                                if (result.extent) {
+                                    view.goTo(result.extent)
+                                }
+                            });
+
+                            
+                            view.on("click", function() {
+                                layerView.filter = null;
+                            });
+                        }); // end of query features   
+                    }); // end of when layerview
+
+                // Point: 2
+                view.whenLayerView(testLine1).then(function (layerView) {
+                    chartLayerView = layerView;
+                    arrLviews.push(layerView);
+                    chartElement.style.visibility = "visible";
+                    
+                    view.on("click", function() {
+                        layerView.filter = null;
+                    });
+                }); // end of when layerview
+            }); // end of view.when
+
+            // Query view using compiled arrays
+            for(var i = 0; i < arrLviews.length; i++) {
+                arrLviews[i].filter = {
+                    where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+                }
+            }
+        } // End of filterByChart
+    } // end of createSeries function
+    
+    createSeries("value1", "Complete");
+    createSeries("value2", "Incomplete");
+
+}); // end of queryFeatures
+} // end of updateChartPower
+
+// 1.3. Point + Line
+/// 1.3.1. Point for compiled
+
+
+function chartPointPowerForCompile() {
+  var total_power_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_power_incomp",
+    statisticType: "sum"
+  };
+
+  var total_power_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_power_comp",
+    statisticType: "sum"  
+  };
+
+    // Query
+    var query = testUtilPt.createQuery();
+    query.outStatistics = [total_power_incomp, total_power_comp];
+    query.returnGeometry = true;
+
+    return testUtilPt.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+        const power_incomp = stats.total_power_incomp;
+        const power_comp = stats.total_power_comp;
+        const powerPointValues = [power_incomp, power_comp];
+
+    return powerPointValues;
+}); // end of queryFeatures
+} // end of updateChartPower
+
+/// 1.3.2. Line for compiled
+function chartLinePowerForCompile(powerPointValues) {
+  var total_power_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_power_incomp",
+    statisticType: "sum"
+  };
+
+  var total_power_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 4 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_power_comp",
+    statisticType: "sum"  
+  };
+
+    // Query
+    var query = testLine.createQuery();
+    query.outStatistics = [total_power_incomp, total_power_comp];
+    query.returnGeometry = true;
+
+    return testLine.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+        const power_incomp = stats.total_power_incomp;
+        const power_comp = stats.total_power_comp;
+
+        const powerIncompTotal = power_incomp + powerPointValues[0];
+        const powerCompTotal = power_comp + powerPointValues[1];
+        const powerTotalValues = [powerIncompTotal, powerCompTotal];
+
+    return powerTotalValues;
+}); // end of queryFeatures
+} // end of updateChartPower
+
+/// 1.3.3. Point + Line
+//
+function powerCompiledChart(powerTotalValues) {
+  var chart = am4core.create("chartPowerDiv", am4charts.XYChart);
+  chart.hiddenState.properties.opacity = 0;
+  
+  //headerTitleDiv.innerHTML = powerTotalValues;
+
+  chart.data = [
+    {
+      category: "Power",
+      value1: powerTotalValues[1],
+      value2: powerTotalValues[0]
+    }
+  ];
+  
+  // Define chart setting
+  chart.colors.step = 2;
+  chart.padding(0, 0, 0, 0);
+        
+  // Axis Setting
+  /// Category Axis
+  var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+  categoryAxis.dataFields.category = "category";
+  categoryAxis.renderer.grid.template.location = 0;
+  categoryAxis.renderer.labels.template.fontSize = 0;
+  categoryAxis.renderer.labels.template.fill = "#ffffff";
+  categoryAxis.renderer.minGridDistance = 5; //can change label
+  categoryAxis.renderer.grid.template.strokeWidth = 0;
+        
+  /// Value Axis
+  var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+  valueAxis.min = 0;
+  valueAxis.max = 100;
+  valueAxis.strictMinMax = true;
+  valueAxis.calculateTotals = true;
+  valueAxis.renderer.minWidth = 50;
+  valueAxis.renderer.labels.template.fontSize = 0;
+  valueAxis.renderer.labels.template.fill = "#ffffff";
+  valueAxis.renderer.grid.template.strokeWidth = 0;
+        
+  //valueAxis.disabled = true;
+  //categoryAxis.disabled = true;
+  let arrLviews = [];
+  
+  // Layerview and Expand
+  function createSeries(field, name) {
+    var series = chart.series.push(new am4charts.ColumnSeries());
+    series.calculatePercent = true;
+    series.dataFields.valueX = field;
+    series.dataFields.categoryY = "category";
+    series.stacked = true;
+    series.dataFields.valueXShow = "totalPercent";
+    series.dataItems.template.locations.categoryY = 0.5;
+            
+    // Bar chart line color and width
+    series.columns.template.stroke = am4core.color("#FFFFFF");
+    series.columns.template.strokeWidth = 0.5;
+    series.name = name;
+            
+    var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+            
+    if (name == "Incomplete"){
+      series.fill = am4core.color("#FF000000");
+      labelBullet.locationX = 0.5;
+      labelBullet.label.text = "";
+      labelBullet.label.fill = am4core.color("#FFFFFFFF");
+      labelBullet.interactionsEnabled = false;
+      labelBullet.label.fontSize = 0;
+      labelBullet.locationX = 0.5;
+    
+    } else {
+      series.fill = am4core.color("#00B0F0"); // Completed
+      labelBullet.locationX = 0.5;
+      labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+      labelBullet.label.fill = am4core.color("#ffffff");
+      labelBullet.interactionsEnabled = false;
+      labelBullet.label.fontSize = 20;
+      labelBullet.locationX = 0.5;
+    }
+    
+    series.columns.template.width = am4core.percent(60);
+    series.columns.template.tooltipText = "[font-size:15px]{name}: {valueX.value.formatNumber('#.')} ({valueX.totalPercent.formatNumber('#.')}%)"
+            
+    // Click chart and filter, update maps
+    const chartElement = document.getElementById("chartPanel");
+    series.columns.template.events.on("hit", filterByChart, this);
+
+    function filterByChart(ev) {
+      const selectedC = ev.target.dataItem.component.name;
+      const selectedP = ev.target.dataItem.categoryY;
+                
+      // Layer
+      if (selectedP == "Power" && selectedC === "Incomplete") {
+        selectedLayer = 4;
+        selectedStatus = 0;
+      } else if (selectedP == "Power" && selectedC === "Complete") {
+        selectedLayer = 4;
+        selectedStatus = 1;
+      } else {
+        selectedLayer = null;
+      }
+
+      //
+                     
+      // Query view using compiled arrays
+      for(var i = 0; i < arrLviews.length; i++) {
+        arrLviews[i].filter = {
+          where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+        }
+      }
+    } // End of filterByChart
+        // LayerView for point 2
+view.whenLayerView(testLine1).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+
+});
+
+  view.whenLayerView(testLine).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+});
+
+view.whenLayerView(testUtilPt).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+
+});
+
+  view.whenLayerView(testUtilPt1).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+});
+
+    // End of LayerView
+
+
+  } // end of createSeries function
+    
+    createSeries("value1", "Complete");
+    createSeries("value2", "Incomplete");
+
+}
+
+async function powerAllChart() {
+  chartPointPowerForCompile()
+  .then(chartLinePowerForCompile)
+  .then(powerCompiledChart);
+}
+
+
+
+// 4. Telecom/CATV
+// 1.1. Point
+function chartPointTelecom() {
+  var total_telecom_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_telecom_incomp",
+    statisticType: "sum"
+  };
+
+  var total_telecom_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_telecom_comp",
+    statisticType: "sum"  
+  };
+
+    // Query
+    var query = testUtilPt.createQuery();
+    query.outStatistics = [total_telecom_incomp, total_telecom_comp];
+    query.returnGeometry = true;
+
+    testUtilPt.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+        const telecom_incomp = stats.total_telecom_incomp;
+        const telecom_comp = stats.total_telecom_comp;
+
+        var chart = am4core.create("chartTelecomDiv", am4charts.XYChart);
+        
+        // Responsive to screen size
+        chart.responsive.enabled = true;
+        chart.responsive.useDefault = false
+        chart.responsive.rules.push({
+          relevant: function(target) {
+            if (target.pixelWidth <= 400) {
+              return true;
+            }
+            return false;
+          },
+          state: function(target, stateId) {
+    
+    if (target instanceof am4charts.Chart) {
+      var state = target.states.create(stateId);
+      state.properties.paddingTop = 0;
+      state.properties.paddingRight = 15;
+      state.properties.paddingBottom = 5;
+      state.properties.paddingLeft = 15;
+      return state;
+    }
+    
+   
+    if (target instanceof am4charts.Legend) {
+      var state = target.states.create(stateId);
+      state.properties.paddingTop = 0;
+      state.properties.paddingRight = 0;
+      state.properties.paddingBottom = 0;
+      state.properties.paddingLeft = 0;
+      state.properties.marginLeft = 0;
+      return state;
+    }
+    
+    if (target instanceof am4charts.AxisRendererY) {
+      var state = target.states.create(stateId);
+      state.properties.inside = false;
+      state.properties.maxLabelPosition = 0.99;
+      return state;
+    }
+    
+    if ((target instanceof am4charts.AxisLabel) && (target.parent instanceof am4charts.AxisRendererY)) { 
+      var state = target.states.create(stateId);
+      state.properties.dy = 0;
+      state.properties.paddingTop = 3;
+      state.properties.paddingRight = 5;
+      state.properties.paddingBottom = 3;
+      state.properties.paddingLeft = 5;
+      
+      // Create a separate state for background
+     // target.setStateOnChildren = true;
+     // var bgstate = target.background.states.create(stateId);
+     // bgstate.properties.fill = am4core.color("#fff");
+     // bgstate.properties.fillOpacity = 0;
+      
+      return state;
+    }
+    
+    // if ((target instanceof am4core.Rectangle) && (target.parent instanceof am4charts.AxisLabel) && (target.parent.parent instanceof am4charts.AxisRendererY)) { 
+    //   var state = target.states.create(stateId);
+    //   state.properties.fill = am4core.color("#f00");
+    //   state.properties.fillOpacity = 0.5;
+    //   return state;
+    // }
+    
+    return null;
+  }
+});
+
+
+        chart.hiddenState.properties.opacity = 0;
+
+        chart.data = [
+            {
+                category: "Telecom",
+                value1: telecom_comp,
+                value2: telecom_incomp
+            }
+        ];
+
+        // Define chart setting
+        chart.colors.step = 2;
+        chart.padding(0, 0, 0, 0);
+        
+        // Axis Setting
+        /// Category Axis
+        var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+        categoryAxis.dataFields.category = "category";
+        categoryAxis.renderer.grid.template.location = 0;
+        categoryAxis.renderer.labels.template.fontSize = 0;
+        categoryAxis.renderer.labels.template.fill = "#ffffff";
+        categoryAxis.renderer.minGridDistance = 5; //can change label
+        categoryAxis.renderer.grid.template.strokeWidth = 0;
+        
+        /// Value Axis
+        var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+        valueAxis.min = 0;
+        valueAxis.max = 100;
+        valueAxis.strictMinMax = true;
+        valueAxis.calculateTotals = true;
+        valueAxis.renderer.minWidth = 50;
+        valueAxis.renderer.labels.template.fontSize = 0;
+        valueAxis.renderer.labels.template.fill = "#ffffff";
+        valueAxis.renderer.grid.template.strokeWidth = 0;
+        
+        //valueAxis.disabled = true;
+        //categoryAxis.disabled = true;
+        let arrLviews = [];
+        
+        // Layerview and Expand
+        function createSeries(field, name) {
+            var series = chart.series.push(new am4charts.ColumnSeries());
+            series.calculatePercent = true;
+            series.dataFields.valueX = field;
+            series.dataFields.categoryY = "category";
+            series.stacked = true;
+            series.dataFields.valueXShow = "totalPercent";
+            series.dataItems.template.locations.categoryY = 0.5;
+            
+            // Bar chart line color and width
+            series.columns.template.stroke = am4core.color("#FFFFFF"); //#00B0F0
+            series.columns.template.strokeWidth = 0.5;
+            series.name = name;
+            
+            var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+            
+            if (name == "Incomplete"){
+                series.fill = am4core.color("#FF000000");
+                labelBullet.locationX = 0.5;
+                labelBullet.label.text = "";
+                labelBullet.label.fill = am4core.color("#FFFFFFFF");
+                labelBullet.interactionsEnabled = false;
+                labelBullet.label.fontSize = 0;
+                labelBullet.locationX = 0.5;
+            
+            } else {
+                series.fill = am4core.color("#00B0F0"); // Completed
+                labelBullet.locationX = 0.5;
+                labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+                labelBullet.label.fill = am4core.color("#ffffff");
+                labelBullet.interactionsEnabled = false;
+                labelBullet.label.fontSize = 10;
+                labelBullet.locationX = 0.5;
+            }
+            
+            series.columns.template.width = am4core.percent(60);
+            series.columns.template.tooltipText = "[font-size:15px]{name}: {valueX.value.formatNumber('#.')} ({valueX.totalPercent.formatNumber('#.')}%)"
+            
+            // Click chart and filter, update maps
+            const chartElement = document.getElementById("chartPanel");
+            series.columns.template.events.on("hit", filterByChart, this);
+
+            function filterByChart(ev) {
+                const selectedC = ev.target.dataItem.component.name;
+                const selectedP = ev.target.dataItem.categoryY;
+                
+                // Layer
+                if (selectedC === "Incomplete") {
+                    selectedLayer = 1;
+                    selectedStatus = 0;
+                } else if (selectedC === "Complete") {
+                    selectedLayer = 1;
+                    selectedStatus = 1;
+                } else {
+                    selectedLayer = null;
+                }
+                
+                // Point 1:
+                view.when(function() {
+                    view.whenLayerView(testUtilPt).then(function (layerView) {
+                        chartLayerView = layerView;
+                        arrLviews.push(layerView);
+                        chartElement.style.visibility = "visible";
+                        
+                        //testUtilPt1.definitionExpression = sqlExpression;
+                        testUtilPt.queryFeatures().then(function(results) {
+                            const ggg = results.features;
+                            const rowN = ggg.length;
+                            
+                            let objID = [];
+                            for (var i=0; i < rowN; i++) {
+                                var obj = results.features[i].attributes.OBJECTID;
+                                objID.push(obj);
+                            }
+                            
+                            var queryExt = new Query({
+                                objectIds: objID
+                            });
+                            
+                            testUtilPt.queryExtent(queryExt).then(function(result) {
+                                if (result.extent) {
+                                    view.goTo(result.extent)
+                                }
+                            });
+                            
+                            view.on("click", function() {
+                                layerView.filter = null;
+                            });
+                        }); // end of query features   
+                    }); // end of when layerview
+
+                // Point: 2
+                view.whenLayerView(testUtilPt1).then(function (layerView) {
+                    chartLayerView = layerView;
+                    arrLviews.push(layerView);
+                    chartElement.style.visibility = "visible";
+                    
+                    view.on("click", function() {
+                        layerView.filter = null;
+                    });
+                }); // end of when layerview
+            }); // end of view.when
+
+            // Query view using compiled arrays
+            for(var i = 0; i < arrLviews.length; i++) {
+                arrLviews[i].filter = {
+                    where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+                }
+            }
+        } // End of filterByChart
+    } // end of createSeries function
+    
+    createSeries("value1", "Complete");
+    createSeries("value2", "Incomplete");
+
+}); // end of queryFeatures
+} // end of updateChartTelecom
+
+
+// 1.2. Line
+function chartLineTelecom() {
+
+  var total_telecom_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_telecom_incomp",
+    statisticType: "sum"
+  };
+
+  var total_telecom_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_telecom_comp",
+    statisticType: "sum"  
+  };
+
+    // Query
+    var query = testLine.createQuery();
+    query.outStatistics = [total_telecom_incomp, total_telecom_comp];
+    query.returnGeometry = true;
+
+    testLine.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+        const telecom_incomp = stats.total_telecom_incomp;
+        const telecom_comp = stats.total_telecom_comp;
+
+        var chart = am4core.create("chartTelecomDiv", am4charts.XYChart);
+        chart.hiddenState.properties.opacity = 0;
+
+        chart.data = [
+            {
+                category: "Telecom",
+                value1: telecom_comp,
+                value2: telecom_incomp
+            }
+        ];
+
+        // Define chart setting
+        chart.colors.step = 2;
+        chart.padding(0, 0, 0, 0);
+        
+        // Axis Setting
+        /// Category Axis
+        var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+        categoryAxis.dataFields.category = "category";
+        categoryAxis.renderer.grid.template.location = 0;
+        categoryAxis.renderer.labels.template.fontSize = 0;
+        categoryAxis.renderer.labels.template.fill = "#ffffff";
+        categoryAxis.renderer.minGridDistance = 5; //can change label
+        categoryAxis.renderer.grid.template.strokeWidth = 0;
+        
+        /// Value Axis
+        var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+        valueAxis.min = 0;
+        valueAxis.max = 100;
+        valueAxis.strictMinMax = true;
+        valueAxis.calculateTotals = true;
+        valueAxis.renderer.minWidth = 50;
+        valueAxis.renderer.labels.template.fontSize = 0;
+        valueAxis.renderer.labels.template.fill = "#ffffff";
+        valueAxis.renderer.grid.template.strokeWidth = 0;
+        
+        //valueAxis.disabled = true;
+        //categoryAxis.disabled = true;
+        let arrLviews = [];
+        
+        // Layerview and Expand
+        function createSeries(field, name) {
+            var series = chart.series.push(new am4charts.ColumnSeries());
+            series.calculatePercent = true;
+            series.dataFields.valueX = field;
+            series.dataFields.categoryY = "category";
+            series.stacked = true;
+            series.dataFields.valueXShow = "totalPercent";
+            series.dataItems.template.locations.categoryY = 0.5;
+            
+            // Bar chart line color and width
+            series.columns.template.stroke = am4core.color("#FFFFFF");
+            series.columns.template.strokeWidth = 0.5;
+            series.name = name;
+            
+            var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+            
+            if (name == "Incomplete"){
+                series.fill = am4core.color("#FF000000");
+                labelBullet.locationX = 0.5;
+                labelBullet.label.text = "";
+                labelBullet.label.fill = am4core.color("#FFFFFFFF");
+                labelBullet.interactionsEnabled = false;
+                labelBullet.label.fontSize = 0;
+                labelBullet.locationX = 0.5;
+            
+            } else {
+                series.fill = am4core.color("#00B0F0"); // Completed
+                labelBullet.locationX = 0.5;
+                labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+                labelBullet.label.fill = am4core.color("#ffffff");
+                labelBullet.interactionsEnabled = false;
+                labelBullet.label.fontSize = 20;
+                labelBullet.locationX = 0.5;
+            }
+            
+            series.columns.template.width = am4core.percent(60);
+            series.columns.template.tooltipText = "[font-size:15px]{name}: {valueX.value.formatNumber('#.')} ({valueX.totalPercent.formatNumber('#.')}%)"
+            
+            // Click chart and filter, update maps
+            const chartElement = document.getElementById("chartPanel");
+            series.columns.template.events.on("hit", filterByChart, this);
+
+            function filterByChart(ev) {
+                const selectedC = ev.target.dataItem.component.name;
+                const selectedP = ev.target.dataItem.categoryY;
+                
+                // Layer
+                if (selectedC === "Incomplete") {
+                    selectedLayer = 1;
+                    selectedStatus = 0;
+                } else if (selectedC === "Complete") {
+                    selectedLayer = 1;
+                    selectedStatus = 1;
+                } else {
+                    selectedLayer = null;
+                }
+                
+                // Point 1:
+                view.when(function() {
+                    view.whenLayerView(testLine).then(function (layerView) {
+                        chartLayerView = layerView;
+                        arrLviews.push(layerView);
+                        chartElement.style.visibility = "visible";
+                        
+                        //testLine1.definitionExpression = sqlExpression;
+                        testLine.queryFeatures().then(function(results) {
+                            const ggg = results.features;
+                            const rowN = ggg.length;
+                            
+                            let objID = [];
+                            for (var i=0; i < rowN; i++) {
+                                var obj = results.features[i].attributes.OBJECTID;
+                                objID.push(obj);
+                            }
+                            
+                            var queryExt = new Query({
+                                objectIds: objID
+                            });
+                            
+                            testLine.queryExtent(queryExt).then(function(result) {
+                                if (result.extent) {
+                                    view.goTo(result.extent)
+                                }
+                            });
+
+                            
+                            view.on("click", function() {
+                                layerView.filter = null;
+                            });
+                        }); // end of query features   
+                    }); // end of when layerview
+
+                // Point: 2
+                view.whenLayerView(testLine1).then(function (layerView) {
+                    chartLayerView = layerView;
+                    arrLviews.push(layerView);
+                    chartElement.style.visibility = "visible";
+                    
+                    view.on("click", function() {
+                        layerView.filter = null;
+                    });
+                }); // end of when layerview
+            }); // end of view.when
+
+            // Query view using compiled arrays
+            for(var i = 0; i < arrLviews.length; i++) {
+                arrLviews[i].filter = {
+                    where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+                }
+            }
+        } // End of filterByChart
+    } // end of createSeries function
+    
+    createSeries("value1", "Complete");
+    createSeries("value2", "Incomplete");
+
+}); // end of queryFeatures
+} // end of updateChartTelecom
+
+// 1.3. Point + Line
+/// 1.3.1. Point for compiled
+
+
+function chartPointTelecomForCompile() {
+  var total_telecom_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_telecom_incomp",
+    statisticType: "sum"
+  };
+
+  var total_telecom_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_telecom_comp",
+    statisticType: "sum"  
+  };
+
+    // Query
+    var query = testUtilPt.createQuery();
+    query.outStatistics = [total_telecom_incomp, total_telecom_comp];
+    query.returnGeometry = true;
+
+    return testUtilPt.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+        const telecom_incomp = stats.total_telecom_incomp;
+        const telecom_comp = stats.total_telecom_comp;
+        const telecomPointValues = [telecom_incomp, telecom_comp];
+
+    return telecomPointValues;
+}); // end of queryFeatures
+} // end of updateChartTelecom
+
+/// 1.3.2. Line for compiled
+function chartLineTelecomForCompile(telecomPointValues) {
+  var total_telecom_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_telecom_incomp",
+    statisticType: "sum"
+  };
+
+  var total_telecom_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 1 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_telecom_comp",
+    statisticType: "sum"  
+  };
+
+    // Query
+    var query = testLine.createQuery();
+    query.outStatistics = [total_telecom_incomp, total_telecom_comp];
+    query.returnGeometry = true;
+
+    return testLine.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+        const telecom_incomp = stats.total_telecom_incomp;
+        const telecom_comp = stats.total_telecom_comp;
+
+        const telecomIncompTotal = telecom_incomp + telecomPointValues[0];
+        const telecomCompTotal = telecom_comp + telecomPointValues[1];
+        const telecomTotalValues = [telecomIncompTotal, telecomCompTotal];
+
+    return telecomTotalValues;
+}); // end of queryFeatures
+} // end of updateChartTelecom
+
+/// 1.3.3. Point + Line
+//
+function telecomCompiledChart(telecomTotalValues) {
+  var chart = am4core.create("chartTelecomDiv", am4charts.XYChart);
+  chart.hiddenState.properties.opacity = 0;
+  
+  //headerTitleDiv.innerHTML = telecomTotalValues;
+
+  chart.data = [
+    {
+      category: "Telecom",
+      value1: telecomTotalValues[1],
+      value2: telecomTotalValues[0]
+    }
+  ];
+  
+  // Define chart setting
+  chart.colors.step = 2;
+  chart.padding(0, 0, 0, 0);
+        
+  // Axis Setting
+  /// Category Axis
+  var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+  categoryAxis.dataFields.category = "category";
+  categoryAxis.renderer.grid.template.location = 0;
+  categoryAxis.renderer.labels.template.fontSize = 0;
+  categoryAxis.renderer.labels.template.fill = "#ffffff";
+  categoryAxis.renderer.minGridDistance = 5; //can change label
+  categoryAxis.renderer.grid.template.strokeWidth = 0;
+        
+  /// Value Axis
+  var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+  valueAxis.min = 0;
+  valueAxis.max = 100;
+  valueAxis.strictMinMax = true;
+  valueAxis.calculateTotals = true;
+  valueAxis.renderer.minWidth = 50;
+  valueAxis.renderer.labels.template.fontSize = 0;
+  valueAxis.renderer.labels.template.fill = "#ffffff";
+  valueAxis.renderer.grid.template.strokeWidth = 0;
+        
+  //valueAxis.disabled = true;
+  //categoryAxis.disabled = true;
+  let arrLviews = [];
+  
+  // Layerview and Expand
+  function createSeries(field, name) {
+    var series = chart.series.push(new am4charts.ColumnSeries());
+    series.calculatePercent = true;
+    series.dataFields.valueX = field;
+    series.dataFields.categoryY = "category";
+    series.stacked = true;
+    series.dataFields.valueXShow = "totalPercent";
+    series.dataItems.template.locations.categoryY = 0.5;
+            
+    // Bar chart line color and width
+    series.columns.template.stroke = am4core.color("#FFFFFF");
+    series.columns.template.strokeWidth = 0.5;
+    series.name = name;
+            
+    var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+            
+    if (name == "Incomplete"){
+      series.fill = am4core.color("#FF000000");
+      labelBullet.locationX = 0.5;
+      labelBullet.label.text = "";
+      labelBullet.label.fill = am4core.color("#FFFFFFFF");
+      labelBullet.interactionsEnabled = false;
+      labelBullet.label.fontSize = 0;
+      labelBullet.locationX = 0.5;
+    
+    } else {
+      series.fill = am4core.color("#00B0F0"); // Completed
+      labelBullet.locationX = 0.5;
+      labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+      labelBullet.label.fill = am4core.color("#ffffff");
+      labelBullet.interactionsEnabled = false;
+      labelBullet.label.fontSize = 20;
+      labelBullet.locationX = 0.5;
+    }
+    
+    series.columns.template.width = am4core.percent(60);
+    series.columns.template.tooltipText = "[font-size:15px]{name}: {valueX.value.formatNumber('#.')} ({valueX.totalPercent.formatNumber('#.')}%)"
+            
+    // Click chart and filter, update maps
+    const chartElement = document.getElementById("chartPanel");
+    series.columns.template.events.on("hit", filterByChart, this);
+
+    function filterByChart(ev) {
+      const selectedC = ev.target.dataItem.component.name;
+      const selectedP = ev.target.dataItem.categoryY;
+                
+      // Layer
+      if (selectedP == "Telecom" && selectedC === "Incomplete") {
+        selectedLayer = 1;
+        selectedStatus = 0;
+      } else if (selectedP == "Telecom" && selectedC === "Complete") {
+        selectedLayer = 1;
+        selectedStatus = 1;
+      } else {
+        selectedLayer = null;
+      }
+
+      //
+                     
+      // Query view using compiled arrays
+      for(var i = 0; i < arrLviews.length; i++) {
+        arrLviews[i].filter = {
+          where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+        }
+      }
+    } // End of filterByChart
+        // LayerView for point 2
+view.whenLayerView(testLine1).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+
+});
+
+  view.whenLayerView(testLine).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+});
+
+view.whenLayerView(testUtilPt).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+
+});
+
+  view.whenLayerView(testUtilPt1).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+});
+
+    // End of LayerView
+
+
+  } // end of createSeries function
+    
+    createSeries("value1", "Complete");
+    createSeries("value2", "Incomplete");
+
+}
+
+async function telecomAllChart() {
+  chartPointTelecomForCompile()
+  .then(chartLineTelecomForCompile)
+  .then(telecomCompiledChart);
+}
+
+//5. Oil & Gas
+// 4. OilGas/CATV
+// 1.1. Point
+function chartPointOilGas() {
+  var total_oilgas_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 5 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_oilgas_incomp",
+    statisticType: "sum"
+  };
+
+  var total_oilgas_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 5 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_oilgas_comp",
+    statisticType: "sum"  
+  };
+
+    // Query
+    var query = testUtilPt.createQuery();
+    query.outStatistics = [total_oilgas_incomp, total_oilgas_comp];
+    query.returnGeometry = true;
+
+    testUtilPt.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+        const oilgas_incomp = stats.total_oilgas_incomp;
+        const oilgas_comp = stats.total_oilgas_comp;
+
+        var chart = am4core.create("chartOilGasDiv", am4charts.XYChart);
+        
+        // Responsive to screen size
+        chart.responsive.enabled = true;
+        chart.responsive.useDefault = false
+        chart.responsive.rules.push({
+          relevant: function(target) {
+            if (target.pixelWidth <= 400) {
+              return true;
+            }
+            return false;
+          },
+          state: function(target, stateId) {
+    
+    if (target instanceof am4charts.Chart) {
+      var state = target.states.create(stateId);
+      state.properties.paddingTop = 0;
+      state.properties.paddingRight = 15;
+      state.properties.paddingBottom = 5;
+      state.properties.paddingLeft = 15;
+      return state;
+    }
+    
+   
+    if (target instanceof am4charts.Legend) {
+      var state = target.states.create(stateId);
+      state.properties.paddingTop = 0;
+      state.properties.paddingRight = 0;
+      state.properties.paddingBottom = 0;
+      state.properties.paddingLeft = 0;
+      state.properties.marginLeft = 0;
+      return state;
+    }
+    
+    if (target instanceof am4charts.AxisRendererY) {
+      var state = target.states.create(stateId);
+      state.properties.inside = false;
+      state.properties.maxLabelPosition = 0.99;
+      return state;
+    }
+    
+    if ((target instanceof am4charts.AxisLabel) && (target.parent instanceof am4charts.AxisRendererY)) { 
+      var state = target.states.create(stateId);
+      state.properties.dy = 0;
+      state.properties.paddingTop = 3;
+      state.properties.paddingRight = 5;
+      state.properties.paddingBottom = 3;
+      state.properties.paddingLeft = 5;
+      
+      // Create a separate state for background
+     // target.setStateOnChildren = true;
+     // var bgstate = target.background.states.create(stateId);
+     // bgstate.properties.fill = am4core.color("#fff");
+     // bgstate.properties.fillOpacity = 0;
+      
+      return state;
+    }
+    
+    // if ((target instanceof am4core.Rectangle) && (target.parent instanceof am4charts.AxisLabel) && (target.parent.parent instanceof am4charts.AxisRendererY)) { 
+    //   var state = target.states.create(stateId);
+    //   state.properties.fill = am4core.color("#f00");
+    //   state.properties.fillOpacity = 0.5;
+    //   return state;
+    // }
+    
+    return null;
+  }
+});
+
+
+        chart.hiddenState.properties.opacity = 0;
+
+        chart.data = [
+            {
+                category: "OilGas",
+                value1: oilgas_comp,
+                value2: oilgas_incomp
+            }
+        ];
+
+        // Define chart setting
+        chart.colors.step = 2;
+        chart.padding(0, 0, 0, 0);
+        
+        // Axis Setting
+        /// Category Axis
+        var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+        categoryAxis.dataFields.category = "category";
+        categoryAxis.renderer.grid.template.location = 0;
+        categoryAxis.renderer.labels.template.fontSize = 0;
+        categoryAxis.renderer.labels.template.fill = "#ffffff";
+        categoryAxis.renderer.minGridDistance = 5; //can change label
+        categoryAxis.renderer.grid.template.strokeWidth = 0;
+        
+        /// Value Axis
+        var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+        valueAxis.min = 0;
+        valueAxis.max = 100;
+        valueAxis.strictMinMax = true;
+        valueAxis.calculateTotals = true;
+        valueAxis.renderer.minWidth = 50;
+        valueAxis.renderer.labels.template.fontSize = 0;
+        valueAxis.renderer.labels.template.fill = "#ffffff";
+        valueAxis.renderer.grid.template.strokeWidth = 0;
+        
+        //valueAxis.disabled = true;
+        //categoryAxis.disabled = true;
+        let arrLviews = [];
+        
+        // Layerview and Expand
+        function createSeries(field, name) {
+            var series = chart.series.push(new am4charts.ColumnSeries());
+            series.calculatePercent = true;
+            series.dataFields.valueX = field;
+            series.dataFields.categoryY = "category";
+            series.stacked = true;
+            series.dataFields.valueXShow = "totalPercent";
+            series.dataItems.template.locations.categoryY = 0.5;
+            
+            // Bar chart line color and width
+            series.columns.template.stroke = am4core.color("#FFFFFF"); //#00B0F0
+            series.columns.template.strokeWidth = 0.5;
+            series.name = name;
+            
+            var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+            
+            if (name == "Incomplete"){
+                series.fill = am4core.color("#FF000000");
+                labelBullet.locationX = 0.5;
+                labelBullet.label.text = "";
+                labelBullet.label.fill = am4core.color("#FFFFFFFF");
+                labelBullet.interactionsEnabled = false;
+                labelBullet.label.fontSize = 0;
+                labelBullet.locationX = 0.5;
+            
+            } else {
+                series.fill = am4core.color("#00B0F0"); // Completed
+                labelBullet.locationX = 0.5;
+                labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+                labelBullet.label.fill = am4core.color("#ffffff");
+                labelBullet.interactionsEnabled = false;
+                labelBullet.label.fontSize = 10;
+                labelBullet.locationX = 0.5;
+            }
+            
+            series.columns.template.width = am4core.percent(60);
+            series.columns.template.tooltipText = "[font-size:15px]{name}: {valueX.value.formatNumber('#.')} ({valueX.totalPercent.formatNumber('#.')}%)"
+            
+            // Click chart and filter, update maps
+            const chartElement = document.getElementById("chartPanel");
+            series.columns.template.events.on("hit", filterByChart, this);
+
+            function filterByChart(ev) {
+                const selectedC = ev.target.dataItem.component.name;
+                const selectedP = ev.target.dataItem.categoryY;
+                
+                // Layer
+                if (selectedC === "Incomplete") {
+                    selectedLayer = 5;
+                    selectedStatus = 0;
+                } else if (selectedC === "Complete") {
+                    selectedLayer = 5;
+                    selectedStatus = 1;
+                } else {
+                    selectedLayer = null;
+                }
+                
+                // Point 1:
+                view.when(function() {
+                    view.whenLayerView(testUtilPt).then(function (layerView) {
+                        chartLayerView = layerView;
+                        arrLviews.push(layerView);
+                        chartElement.style.visibility = "visible";
+                        
+                        //testUtilPt1.definitionExpression = sqlExpression;
+                        testUtilPt.queryFeatures().then(function(results) {
+                            const ggg = results.features;
+                            const rowN = ggg.length;
+                            
+                            let objID = [];
+                            for (var i=0; i < rowN; i++) {
+                                var obj = results.features[i].attributes.OBJECTID;
+                                objID.push(obj);
+                            }
+                            
+                            var queryExt = new Query({
+                                objectIds: objID
+                            });
+                            
+                            testUtilPt.queryExtent(queryExt).then(function(result) {
+                                if (result.extent) {
+                                    view.goTo(result.extent)
+                                }
+                            });
+                            
+                            view.on("click", function() {
+                                layerView.filter = null;
+                            });
+                        }); // end of query features   
+                    }); // end of when layerview
+
+                // Point: 2
+                view.whenLayerView(testUtilPt1).then(function (layerView) {
+                    chartLayerView = layerView;
+                    arrLviews.push(layerView);
+                    chartElement.style.visibility = "visible";
+                    
+                    view.on("click", function() {
+                        layerView.filter = null;
+                    });
+                }); // end of when layerview
+            }); // end of view.when
+
+            // Query view using compiled arrays
+            for(var i = 0; i < arrLviews.length; i++) {
+                arrLviews[i].filter = {
+                    where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+                }
+            }
+        } // End of filterByChart
+    } // end of createSeries function
+    
+    createSeries("value1", "Complete");
+    createSeries("value2", "Incomplete");
+
+}); // end of queryFeatures
+} // end of updateChartOilGas
+
+
+// 1.2. Line
+function chartLineOilGas() {
+
+  var total_oilgas_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 5 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_oilgas_incomp",
+    statisticType: "sum"
+  };
+
+  var total_oilgas_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 5 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_oilgas_comp",
+    statisticType: "sum"  
+  };
+
+    // Query
+    var query = testLine.createQuery();
+    query.outStatistics = [total_oilgas_incomp, total_oilgas_comp];
+    query.returnGeometry = true;
+
+    testLine.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+        const oilgas_incomp = stats.total_oilgas_incomp;
+        const oilgas_comp = stats.total_oilgas_comp;
+
+        var chart = am4core.create("chartOilGasDiv", am4charts.XYChart);
+        chart.hiddenState.properties.opacity = 0;
+
+        chart.data = [
+            {
+                category: "OilGas",
+                value1: oilgas_comp,
+                value2: oilgas_incomp
+            }
+        ];
+
+        // Define chart setting
+        chart.colors.step = 2;
+        chart.padding(0, 0, 0, 0);
+        
+        // Axis Setting
+        /// Category Axis
+        var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+        categoryAxis.dataFields.category = "category";
+        categoryAxis.renderer.grid.template.location = 0;
+        categoryAxis.renderer.labels.template.fontSize = 0;
+        categoryAxis.renderer.labels.template.fill = "#ffffff";
+        categoryAxis.renderer.minGridDistance = 5; //can change label
+        categoryAxis.renderer.grid.template.strokeWidth = 0;
+        
+        /// Value Axis
+        var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+        valueAxis.min = 0;
+        valueAxis.max = 100;
+        valueAxis.strictMinMax = true;
+        valueAxis.calculateTotals = true;
+        valueAxis.renderer.minWidth = 50;
+        valueAxis.renderer.labels.template.fontSize = 0;
+        valueAxis.renderer.labels.template.fill = "#ffffff";
+        valueAxis.renderer.grid.template.strokeWidth = 0;
+        
+        //valueAxis.disabled = true;
+        //categoryAxis.disabled = true;
+        let arrLviews = [];
+        
+        // Layerview and Expand
+        function createSeries(field, name) {
+            var series = chart.series.push(new am4charts.ColumnSeries());
+            series.calculatePercent = true;
+            series.dataFields.valueX = field;
+            series.dataFields.categoryY = "category";
+            series.stacked = true;
+            series.dataFields.valueXShow = "totalPercent";
+            series.dataItems.template.locations.categoryY = 0.5;
+            
+            // Bar chart line color and width
+            series.columns.template.stroke = am4core.color("#FFFFFF");
+            series.columns.template.strokeWidth = 0.5;
+            series.name = name;
+            
+            var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+            
+            if (name == "Incomplete"){
+                series.fill = am4core.color("#FF000000");
+                labelBullet.locationX = 0.5;
+                labelBullet.label.text = "";
+                labelBullet.label.fill = am4core.color("#FFFFFFFF");
+                labelBullet.interactionsEnabled = false;
+                labelBullet.label.fontSize = 0;
+                labelBullet.locationX = 0.5;
+            
+            } else {
+                series.fill = am4core.color("#00B0F0"); // Completed
+                labelBullet.locationX = 0.5;
+                labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+                labelBullet.label.fill = am4core.color("#ffffff");
+                labelBullet.interactionsEnabled = false;
+                labelBullet.label.fontSize = 20;
+                labelBullet.locationX = 0.5;
+            }
+            
+            series.columns.template.width = am4core.percent(60);
+            series.columns.template.tooltipText = "[font-size:15px]{name}: {valueX.value.formatNumber('#.')} ({valueX.totalPercent.formatNumber('#.')}%)"
+            
+            // Click chart and filter, update maps
+            const chartElement = document.getElementById("chartPanel");
+            series.columns.template.events.on("hit", filterByChart, this);
+
+            function filterByChart(ev) {
+                const selectedC = ev.target.dataItem.component.name;
+                const selectedP = ev.target.dataItem.categoryY;
+                
+                // Layer
+                if (selectedC === "Incomplete") {
+                    selectedLayer = 5;
+                    selectedStatus = 0;
+                } else if (selectedC === "Complete") {
+                    selectedLayer = 5;
+                    selectedStatus = 1;
+                } else {
+                    selectedLayer = null;
+                }
+                
+                // Point 1:
+                view.when(function() {
+                    view.whenLayerView(testLine).then(function (layerView) {
+                        chartLayerView = layerView;
+                        arrLviews.push(layerView);
+                        chartElement.style.visibility = "visible";
+                        
+                        //testLine1.definitionExpression = sqlExpression;
+                        testLine.queryFeatures().then(function(results) {
+                            const ggg = results.features;
+                            const rowN = ggg.length;
+                            
+                            let objID = [];
+                            for (var i=0; i < rowN; i++) {
+                                var obj = results.features[i].attributes.OBJECTID;
+                                objID.push(obj);
+                            }
+                            
+                            var queryExt = new Query({
+                                objectIds: objID
+                            });
+                            
+                            testLine.queryExtent(queryExt).then(function(result) {
+                                if (result.extent) {
+                                    view.goTo(result.extent)
+                                }
+                            });
+
+                            
+                            view.on("click", function() {
+                                layerView.filter = null;
+                            });
+                        }); // end of query features   
+                    }); // end of when layerview
+
+                // Point: 2
+                view.whenLayerView(testLine1).then(function (layerView) {
+                    chartLayerView = layerView;
+                    arrLviews.push(layerView);
+                    chartElement.style.visibility = "visible";
+                    
+                    view.on("click", function() {
+                        layerView.filter = null;
+                    });
+                }); // end of when layerview
+            }); // end of view.when
+
+            // Query view using compiled arrays
+            for(var i = 0; i < arrLviews.length; i++) {
+                arrLviews[i].filter = {
+                    where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+                }
+            }
+        } // End of filterByChart
+    } // end of createSeries function
+    
+    createSeries("value1", "Complete");
+    createSeries("value2", "Incomplete");
+
+}); // end of queryFeatures
+} // end of updateChartOilGas
+
+// 1.3. Point + Line
+/// 1.3.1. Point for compiled
+
+
+function chartPointOilGasForCompile() {
+  var total_oilgas_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 5 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_oilgas_incomp",
+    statisticType: "sum"
+  };
+
+  var total_oilgas_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 5 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_oilgas_comp",
+    statisticType: "sum"  
+  };
+
+    // Query
+    var query = testUtilPt.createQuery();
+    query.outStatistics = [total_oilgas_incomp, total_oilgas_comp];
+    query.returnGeometry = true;
+
+    return testUtilPt.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+        const oilgas_incomp = stats.total_oilgas_incomp;
+        const oilgas_comp = stats.total_oilgas_comp;
+        const oilgasPointValues = [oilgas_incomp, oilgas_comp];
+
+    return oilgasPointValues;
+}); // end of queryFeatures
+} // end of updateChartOilGas
+
+/// 1.3.2. Line for compiled
+function chartLineOilGasForCompile(oilgasPointValues) {
+  var total_oilgas_incomp = {
+    onStatisticField: "CASE WHEN (UtilType = 5 and Status = 0) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_oilgas_incomp",
+    statisticType: "sum"
+  };
+
+  var total_oilgas_comp = {
+    onStatisticField: "CASE WHEN (UtilType = 5 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_oilgas_comp",
+    statisticType: "sum"  
+  };
+
+    // Query
+    var query = testLine.createQuery();
+    query.outStatistics = [total_oilgas_incomp, total_oilgas_comp];
+    query.returnGeometry = true;
+
+    return testLine.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+        const oilgas_incomp = stats.total_oilgas_incomp;
+        const oilgas_comp = stats.total_oilgas_comp;
+
+        const oilgasIncompTotal = oilgas_incomp + oilgasPointValues[0];
+        const oilgasCompTotal = oilgas_comp + oilgasPointValues[1];
+        const oilgasTotalValues = [oilgasIncompTotal, oilgasCompTotal];
+
+    return oilgasTotalValues;
+}); // end of queryFeatures
+} // end of updateChartOilGas
+
+/// 1.3.3. Point + Line
+//
+function oilGasCompiledChart(oilgasTotalValues) {
+  var chart = am4core.create("chartOilGasDiv", am4charts.XYChart);
+  chart.hiddenState.properties.opacity = 0;
+  
+  //headerTitleDiv.innerHTML = oilgasTotalValues;
+
+  chart.data = [
+    {
+      category: "OilGas",
+      value1: oilgasTotalValues[1],
+      value2: oilgasTotalValues[0]
+    }
+  ];
+  
+  // Define chart setting
+  chart.colors.step = 2;
+  chart.padding(0, 0, 0, 0);
+        
+  // Axis Setting
+  /// Category Axis
+  var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+  categoryAxis.dataFields.category = "category";
+  categoryAxis.renderer.grid.template.location = 0;
+  categoryAxis.renderer.labels.template.fontSize = 0;
+  categoryAxis.renderer.labels.template.fill = "#ffffff";
+  categoryAxis.renderer.minGridDistance = 5; //can change label
+  categoryAxis.renderer.grid.template.strokeWidth = 0;
+        
+  /// Value Axis
+  var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+  valueAxis.min = 0;
+  valueAxis.max = 100;
+  valueAxis.strictMinMax = true;
+  valueAxis.calculateTotals = true;
+  valueAxis.renderer.minWidth = 50;
+  valueAxis.renderer.labels.template.fontSize = 0;
+  valueAxis.renderer.labels.template.fill = "#ffffff";
+  valueAxis.renderer.grid.template.strokeWidth = 0;
+        
+  //valueAxis.disabled = true;
+  //categoryAxis.disabled = true;
+  let arrLviews = [];
+  
+  // Layerview and Expand
+  function createSeries(field, name) {
+    var series = chart.series.push(new am4charts.ColumnSeries());
+    series.calculatePercent = true;
+    series.dataFields.valueX = field;
+    series.dataFields.categoryY = "category";
+    series.stacked = true;
+    series.dataFields.valueXShow = "totalPercent";
+    series.dataItems.template.locations.categoryY = 0.5;
+            
+    // Bar chart line color and width
+    series.columns.template.stroke = am4core.color("#FFFFFF");
+    series.columns.template.strokeWidth = 0.5;
+    series.name = name;
+            
+    var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+            
+    if (name == "Incomplete"){
+      series.fill = am4core.color("#FF000000");
+      labelBullet.locationX = 0.5;
+      labelBullet.label.text = "";
+      labelBullet.label.fill = am4core.color("#FFFFFFFF");
+      labelBullet.interactionsEnabled = false;
+      labelBullet.label.fontSize = 0;
+      labelBullet.locationX = 0.5;
+    
+    } else {
+      series.fill = am4core.color("#00B0F0"); // Completed
+      labelBullet.locationX = 0.5;
+      labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
+      labelBullet.label.fill = am4core.color("#ffffff");
+      labelBullet.interactionsEnabled = false;
+      labelBullet.label.fontSize = 20;
+      labelBullet.locationX = 0.5;
+    }
+    
+    series.columns.template.width = am4core.percent(60);
+    series.columns.template.tooltipText = "[font-size:15px]{name}: {valueX.value.formatNumber('#.')} ({valueX.totalPercent.formatNumber('#.')}%)"
+            
+    // Click chart and filter, update maps
+    const chartElement = document.getElementById("chartPanel");
+    series.columns.template.events.on("hit", filterByChart, this);
+
+    function filterByChart(ev) {
+      const selectedC = ev.target.dataItem.component.name;
+      const selectedP = ev.target.dataItem.categoryY;
+                
+      // Layer
+      if (selectedP == "OilGas" && selectedC === "Incomplete") {
+        selectedLayer = 5;
+        selectedStatus = 0;
+      } else if (selectedP == "OilGas" && selectedC === "Complete") {
+        selectedLayer = 5;
+        selectedStatus = 1;
+      } else {
+        selectedLayer = null;
+      }
+
+      //
+                     
+      // Query view using compiled arrays
+      for(var i = 0; i < arrLviews.length; i++) {
+        arrLviews[i].filter = {
+          where: "UtilType = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+        }
+      }
+    } // End of filterByChart
+        // LayerView for point 2
+view.whenLayerView(testLine1).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+
+});
+
+  view.whenLayerView(testLine).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+});
+
+view.whenLayerView(testUtilPt).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+
+});
+
+  view.whenLayerView(testUtilPt1).then(function (layerView) {
+  chartLayerView = layerView;
+  arrLviews.push(layerView);
+  
+  chartElement.style.visibility = "visible";
+
+  
+view.on("click", function() {
+  layerView.filter = null;
+});
+});
+
+    // End of LayerView
+
+
+  } // end of createSeries function
+    
+    createSeries("value1", "Complete");
+    createSeries("value2", "Incomplete");
+
+}
+
+async function oilGasAllChart() {
+  chartPointOilGasForCompile()
+  .then(chartLineOilGasForCompile)
+  .then(oilGasCompiledChart);
+}
+
+}); // End of am4core.ready
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//*****************************//
+//      PopUp Settig           //
+//*****************************//
+// Utility Point
+var highlightSelect;
+
+view.when(function() {
+  var popup = view.popup;
+  popup.viewModel.on("trigger-action", function(event) {
+    if (event.action.id == "find-relocated") {
+      var attributes = popup.viewModel.selectedFeature.attributes;
+      var info = attributes.Id;
+      var infoObjId = attributes.OBJECTID; //1
+
+      view.whenLayerView(testUtilPt).then(function(layerView) {
+      testUtilPt.queryFeatures().then(function(results) {
+          const ggg = results.features;
+          const rowN = ggg.length; //7
+          //var rrr = results.features[0].attributes.Id;
+          //var rrr = results.features[6].attributes.Id; // return Id of 7th row
+          
+          var i;
+          let objID = [];
+            for (i=0; i < rowN; i++) {
+              if (results.features[i].attributes.Id == info) {
+                  if (results.features[i].attributes.OBJECTID == infoObjId) {
+                      continue;
+                  }
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
+                }
+            }
+
+      var queryExt = new Query({
+        //objectIds: [1,2,3,4,5]
+        //objectIds: objID
+        objectIds: objID
+      });
+
+      testUtilPt1.queryExtent(queryExt).then(function(result) {
+        if (result.extent) {
+          view.goTo(result.extent.expand(200))
+        }
+      });
+
+      if (highlightSelect) {
+        highlightSelect.remove();
+      }
+      highlightSelect = layerView.highlight(objID);
+
+      view.on("click", function() {
+        highlightSelect.remove();
+});
+
+//
+
+
+
+    }); // End of queryFeatures()
+
+
+}); // End of layerView
+
+    } // End of if (event.action.id...)
+  });
+}); // End of view.when()
+
+// Utility Line
+view.when(function() {
+  var popup = view.popup;
+  popup.viewModel.on("trigger-action", function(event) {
+    if (event.action.id == "find-relocated-line") {
+      var attributes = popup.viewModel.selectedFeature.attributes;
+      var info = attributes.Id;
+      var infoObjId = attributes.OBJECTID; //1
+
+      view.whenLayerView(testLine).then(function(layerView) {
+        testLine.queryFeatures().then(function(results) {
+          const ggg = results.features;
+          const rowN = ggg.length; //7
+          //var rrr = results.features[0].attributes.Id;
+          //var rrr = results.features[6].attributes.Id; // return Id of 7th row
+          
+          var i;
+          let objID = [];
+            for (i=0; i < rowN; i++) {
+              if (results.features[i].attributes.Id == info) {
+                  if (results.features[i].attributes.OBJECTID == infoObjId) {
+                      continue;
+                  }
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
+                }
+            }
+
+      var queryExt = new Query({
+        //objectIds: [1,2,3,4,5]
+        //objectIds: objID
+        objectIds: objID
+      });
+
+      testLine1.queryExtent(queryExt).then(function(result) {
+        if (result.extent) {
+          view.goTo(result.extent)
+        }
+      });
+
+      if (highlightSelect) {
+        highlightSelect.remove();
+      }
+      highlightSelect = layerView.highlight(objID);
+
+      view.on("click", function() {
+        highlightSelect.remove();
+});
+    }); // End of queryFeatures()
+
+
+}); // End of layerView
+
+    } // End of if (event.action.id...)
+  });
+}); // End of view.when()
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+// Layer List
+var layerList = new LayerList({
+    view: view,
+    listItemCreatedFunction: function(event) {
+        const item = event.item;
+        if (item.title === "Chainage" ||
+            item.title === "Viaduct" ||
+            item.title === "Pier No"){
+            item.visible = false
+        }
+    }
+});
+
+var legend = new Legend({
+  view: view,
+  container: document.getElementById("legendDiv"),
+  layerInfos: [
+  {
+      layer: testUtilPt,
+      title: "UL Point"
+    },
+    {
+      layer: testLine,
+      title: "UL Line"
+    },
+  {
+      layer: testUtilPt1,
+      title: "UL Status"
+    },
+    {
+      layer: rowLayer,
+      title: "PROW"
+    },
+    {
+      layer: stationBoxLayer,
+      title: "Station Box"
+    },
+  ]
+});
+
+view.ui.empty("top-left");
+
+var layerListExpand = new Expand ({
+    view: view,
+    content: layerList,
+    expandIconClass: "esri-icon-visible",
+    group: "top-right"
+});
+view.ui.add(layerListExpand, {
+    position: "top-right"
+});
+
+// Full screen logo
+fullscreen = new Fullscreen({
+  view: view
+});
+view.ui.add(fullscreen, "top-right");
+
+
+
+// Compass
+var compass = new Compass({
+    view: view});
+    view.ui.add(compass, "top-right");
+
+    
+//*****************************//
+//      Search Widget          //
+//*****************************//
+var searchWidget = new Search({
+  view: view,
+  locationEnabled: false,
+  allPlaceholder: "Chainage or Utility ID",
+  includeDefaultSources: false,
+  sources: [
+  {
+    layer: PierNoLayer,
+      searchFields: ["PIER"],
+      displayField: "PIER",
+      exactMatch: false,
+      outFields: ["PIER"],
+      name: "Pier No",
+      zoomScale: 1000,
+      placeholder: "example: P-288"
+  },
+  {
+    layer: chainageLayer,
+      searchFields: ["KmSpot"],
+      displayField: "KmSpot",
+      exactMatch: false,
+      outFields: ["*"],
+      zoomScale: 1000,
+      name: "Main KM",
+      placeholder: "example: 80+400"
+  },
+  {
+      layer: testUtilPt,
+      searchFields: ["Id"],
+      displayField: "Id",
+      exactMatch: false,
+      outFields: ["Id"],
+      name: "Unique ID (Point)",
+      placeholder: "example: MER0001-X01"
+  },
+  {
+      layer: testLine1,
+      searchFields: ["Id"],
+      displayField: "Id",
+      exactMatch: false,
+      outFields: ["Id"],
+      name: "Unique ID (Line)",
+      placeholder: "example: MER0001-X01"
+  }
+]
+});
+
+const searchExpand = new Expand({
+    view: view,
+    content: searchWidget,
+    expandIconClass: "esri-icon-search",
+    group: "top-right"
+  });
+  view.ui.add(searchExpand, {
+    position: "top-right"
+});
+
+searchExpand.watch("expanded", function() {
+    if(!searchExpand.expanded) {
+      searchWidget.searchTerm = null;
+    }
+});
+
+var legendExpand = new Expand({
+    view: view,
+    content: legend,
+    expandIconClass: "esri-icon-legend",
+    group: "top-right"
+});
+view.ui.add(legendExpand, {
+    position: "top-right"
+});
+
+// See-through-Ground        
+view.when(function() {
+    // allow navigation above and below the ground
+    map.ground.navigationConstraint = {
+        type: "none"
+    };
+    // the webscene has no basemap, so set a surfaceColor on the ground
+    map.ground.surfaceColor = "#fff";
+    // to see through the ground, set the ground opacity to 0.4
+    map.ground.opacity = 0.9; //
+});
+          
+document
+    .getElementById("opacityInput")
+    .addEventListener("change", function(event) {
+    //map.ground.opacity = event.target.checked ? 0.1 : 0.9;
+    map.ground.opacity = event.target.checked ? 0.1 : 0.6;
+});
+view.ui.add("menu", "bottom-right");
+
+
+      });
+    </script>
+  </head>
+  <body class="sassy-theme">
+    <div id="viewDiv">
+        <div class="dateDiv">As of July 8, 2022</div>
+        <div class="esri-widget" id="dropdownDiv">
+            <label for="sel-options">CP:</label>
+            <select id="valSelect" class="esri-widget"></select>
+            <label for="sel-options">Provider</label>
+            <select id="companySelect" class="esri-widget"></select>
+            <label for="sel-options">Type</label>
+            <select id="typeSelect" class="esri-widget"></select>
+        </div>
+      <div id="headerTitleDiv">SC UTILITY</div>
+      <div id="boxPower">
+        <div class="img">
+            <img src="https://EijiGorilla.github.io/Symbols/Power_Logo.png">
+            <label class="labelPower">Power</label>
+            <div id="chartPanel">
+              <div id="chartPowerDiv"></div>
+          </div>
+        </div>
+      </div>
+      <div id="boxTelecom">
+        <div class="img">
+            <img src="https://EijiGorilla.github.io/Symbols/Telecom_Logo.png">
+            <label class="labelTelecom">Telecom</label>
+            <div id="chartPanel">
+              <div id="chartTelecomDiv"></div>
+          </div>
+        </div>
+      </div>
+      <div id="boxWater">
+        <div class="img">
+            <img src="https://EijiGorilla.github.io/Symbols/Water_drop.png">
+            <label class="labelWater">Water</label>
+            <div id="chartPanel">
+              <div id="chartWaterDiv"></div>
+          </div>
+        </div>
+      </div>
+      <div id="boxSewage">
+        <div class="img">
+            <img src="https://EijiGorilla.github.io/Symbols/Sewage_Logo2.png">
+            <label class="labelSewage">Sewage</label>
+            <div id="chartPanel">
+              <div id="chartSewageDiv"></div>
+          </div>
+        </div>
+      </div>
+      <div id="boxOilGas">
+        <div class="img">
+            <img src="https://EijiGorilla.github.io/Symbols/Oil_Gas_Logo.png">
+            <label class="labelOilGas">Oil Gas</label>
+            <div id="chartPanel">
+              <div id="chartOilGasDiv"></div>
+          </div>
+        </div>
+      </div>
+      <div id="boxTotal">
+            <div id="labelTotalDiv">TOTAL</div>
+            <div id="totalProgressDiv"></div>
+      </div>
+    <div id="menu" class="esri-widget">
+      <input type="checkbox" id="opacityInput" unchecked />
+      <label for="opacityInput">No ground</label>
+  </div>
+</div>
+  </body>
