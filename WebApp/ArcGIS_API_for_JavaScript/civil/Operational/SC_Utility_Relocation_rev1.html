@@ -7,10 +7,15 @@
     />
     <!--
   ArcGIS API for JavaScript, https://js.arcgis.com
-  For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
-  https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
+  For more information about working on Building Scene Layer
+  https://pro.arcgis.com/en/pro-app/2.7/help/mapping/layer-properties/maintain-and-work-with-a-building-scene-layer.html
+  https://www.youtube.com/watch?v=maEXHMI9ddQ
+
+  # BuildingFiler
+  https://developers.arcgis.com/javascript/latest/api-reference/esri-layers-support-BuildingFilter.html
+
   -->
-<title>SC Utility Relocation</title>
+<title>SC Utility</title>
 
     <style>
     html,
@@ -77,11 +82,11 @@
       .labelSewage,
       .labelOilGas {
         color: white;
-        font-size: 2vw;
+        font-size: 1.9vw;
         margin: 0;
         padding-top: 5;
         float: right;
-        padding-left: 25;
+        padding-left: 15;
       }
 
       #labelTotalDiv {
@@ -243,7 +248,6 @@
       padding: 1;
       max-width: 250px;
       background-color: rgb(0, 0, 0, 0);
-      
     }
 
     #menu1 {
@@ -303,16 +307,16 @@
   
     </style>
 
-    <link
-      rel="stylesheet"
-      href="https://js.arcgis.com/4.23/esri/themes/dark/main.css"
-    />
-    <!-- Resources -->
-    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
-    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
-    <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
-    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-    <script src="https://js.arcgis.com/4.23/"></script>
+<link
+rel="stylesheet"
+href="https://js.arcgis.com/4.23/esri/themes/dark/main.css"
+/>
+<!-- Resources -->
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<script src="https://js.arcgis.com/4.23/"></script>
 
     <script>
       require([
@@ -332,6 +336,7 @@
         "esri/WebScene",
         "esri/portal/PortalItem",
         "esri/portal/Portal",
+        "esri/widgets/TimeSlider",
         "esri/widgets/Legend",
         "esri/widgets/LayerList",
         "esri/widgets/Fullscreen",
@@ -341,46 +346,57 @@
         "esri/renderers/smartMapping/statistics/summaryStatistics",
         "esri/tasks/support/StatisticDefinition",
         "esri/symbols/WebStyleSymbol",
+        "esri/TimeExtent",
         "esri/widgets/Expand",
         "esri/widgets/Editor",
         "esri/renderers/UniqueValueRenderer",
-        "esri/layers/support/Sublayer",
-        "esri/widgets/Search",
+        "esri/widgets/support/DatePicker",
+        "esri/widgets/FeatureTable",
         "esri/widgets/Compass",
-        "esri/widgets/BasemapToggle"
+        "esri/layers/ElevationLayer",
+        "esri/Ground",
+        "esri/layers/BuildingSceneLayer",
+        "esri/widgets/BuildingExplorer",
+        "esri/widgets/Slice",
+        "esri/analysis/SlicePlane",
+        "esri/renderers/SimpleRenderer",
+        "esri/symbols/MeshSymbol3D",
+        "esri/symbols/edges/SolidEdges3D",
+        "esri/layers/GroupLayer",
+        "esri/widgets/BasemapToggle",
+        "esri/widgets/Search"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
                   LabelClass, LabelSymbol3D, WebMap,
-                  WebScene, PortalItem, Portal, Legend, LayerList, Fullscreen,
+                  WebScene, PortalItem, Portal,
+                  TimeSlider, Legend, LayerList, Fullscreen,
                   GeometryService, Query, QueryTask, summaryStatistics,
-                  StatisticDefinition, WebStyleSymbol, Expand, Editor,
-                  UniqueValueRenderer, Sublayer, Search, Compass, BasemapToggle) {
+                  StatisticDefinition, WebStyleSymbol,
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
+                  FeatureTable, Compass, ElevationLayer, Ground,
+                  BuildingSceneLayer, BuildingExplorer, Slice, SlicePlane,
+                  SimpleRenderer, MeshSymbol3D, SolidEdges3D, GroupLayer,
+                  BasemapToggle, Search) {
 
-let chartLayerView;
-  const features = [];
-  
-//******************************//
-// Basemap and Scenview Setting //
-//******************************//
-        var basemap = new Basemap({
+
+////////////////////////////////////////////////////
+var basemap = new Basemap({
         baseLayers: [
           new VectorTileLayer({
             portalItem: {
-              id: "f666b3fb303c47ddb9b0dae032f800f5" // 3a62040541b84f528da3ac7b80cf4a63
+              id: "8a9ef2a144e8423786f6139408ac3424" 
             }
           })
         ]
       });
 
-         var map = new Map({
-              basemap: basemap, // "streets-night-vector", 
-              ground: "world-elevation"
-        }); 
-        //map.ground.surfaceColor = "#FFFF";
-        //map.ground.opacity = 0.5;
-         
-        var view = new SceneView({
+var map = new Map({
+    basemap: basemap, // "streets-night-vector", 
+    ground: "world-elevation"
+});
+
+var view = new SceneView({
             map: map,
             container: "viewDiv",
             viewingMode: "local",
@@ -404,32 +420,21 @@ let chartLayerView;
                     }
         });
 
-        const toggle = new BasemapToggle({
-          view: view,
-          nextBaseMap: "hybrid"
-        });
+// Basemap Toggle
+const toggle = new BasemapToggle({
+    view: view,
+    nextBaseMap: "hybrid"
+});
 
-        view.ui.add(toggle, "top-right");
+view.ui.add(toggle, "top-right");
+
+// Setup UI
+var chartTitleDiv = document.getElementById("chartTitleDiv");
+var headerDiv = document.getElementById("headerDiv");
+var headerTitleDiv = document.getElementById("headerTitleDiv");
+var applicationDiv = document.getElementById("applicationDiv");
 
 
-        function shiftCamera(deg) {
-          var camera = view.camera.clone();
-          camera.position.longitude += deg;
-          return camera;
-        }
-
-        function catchAbortError(error) {
-          if (error.name != "AbortError") {
-            console.error(error);
-          }
-        }
-           // Setup UI
-        var chartTitleDiv = document.getElementById("chartTitleDiv");
-        var headerDiv = document.getElementById("headerDiv");
-        var headerTitleDiv = document.getElementById("headerTitleDiv");
-        var applicationDiv = document.getElementById("applicationDiv");
-
-headerTitleDiv.innerHTML = "SC Utility Relocation";
 //*******************************//
 // Label Class Property Settings //
 //*******************************//
@@ -1667,10 +1672,7 @@ var testLine1 = new FeatureLayer({
 
         renderViaductLayer();
 
-/////////////////////////////////////////////////////////////////////////////////////
-//*******************************//
-//      Progress Chart           //
-//*******************************//
+/////
 /* Function for zooming to selected layers */
 function zoomToLayer(layer) {
   return layer.queryExtent().then(function(response) {
@@ -1684,25 +1686,24 @@ function zoomToLayer(layer) {
   });
 }
 
-//
+
+//***********************************************************************//
+//*******************************CHART***********************************//
+//***********************************************************************//
 const totalProgressTitleDiv = document.getElementById("totalProgressTitleDiv");
 const totalProgressDiv = document.getElementById("totalProgressDiv");
 
 
-// Start of am4core
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
-
-// As default, chart shows the progress of all the relocated layers (point + line)
+//totalProgressTitleDiv.innerHTML = "Total Progress";
 waterAllChart();
 powerAllChart();
 sewageAllChart();
 telecomAllChart();
 oilGasAllChart();
 
-
-totalProgressTitleDiv.innerHTML = "Total Progress (%)";
-
+////
 // Total progress for both points and lines combined
 function totalProgressPt() {
   var total_util_number = {
@@ -1769,8 +1770,7 @@ function totalProgressAll(){
 };
 totalProgressAll();
 
-
-/// Contract Package button /////////////////////
+// Define drop-down list select
 var cpSelect = document.getElementById("valSelect");
 var companySelect = document.getElementById("companySelect");
 var typeSelect = document.getElementById("typeSelect");
@@ -1801,33 +1801,7 @@ function queryForLotGeometries() {
     });
 
 }
-// 1. Write Function to filter Compnay and Type
-/// 1.1. Filter utility point for CP List
-/// *** this is replaced with filterUtilPointLineCP function.
-/*
-function filterUtilforCP() {
-  var query2 = testUtilPt.createQuery();
-  query2.where = testUtilPt.definitionExpression; // use filtered municipality. is this correct?
 
-  testUtilPt.queryFeatures(query2)
-    .then(getQuery2Values)
-    .then(getUniqueValues2)
-    .then(addToSelectQuery2);
-}
-*/
-/// 1.2. Filter Utility Point for Type List
-/*
-function filterUtilTypeCP() {
-  var query3 = testUtilPt.createQuery();
-  query3.where = testUtilPt.definitionExpression; // use filtered municipality. is this correct?
-
-  testUtilPt.queryFeatures(query3)
-    .then(getQuery3Values)
-    .then(getUniqueValues3)
-    .then(addToSelectQuery3);
-}
-
-*/
 /////////////////////////////////////////////////////////////////////////
 // 2. Get values and Return to list
 //Return an array of all the values in the 'CP' field'
@@ -1867,15 +1841,7 @@ function addToSelect(values) {
 
 /// 2.2. Company
 // Filter Company List when CP list changes
-/*
-function getQuery2Values(response) {
-  var featuresQuery2 = response.features;
-  var query2Values = featuresQuery2.map(function(feature) {
-    return feature.attributes.Company;
-  });
-  return query2Values;
-}
-*/
+
 //******************************************************************
 // Insert my custom code to add companies from both point and line
 function filterUtilPointLineCP(cpValue) {
@@ -2077,7 +2043,6 @@ utilPointQuery3()
   .then(totalProgressAll);
 } // end of filterUtilPointLineCP
 filterUtilPointLineType();
-//////////////////////////////////////////////////////////////////////////
 
 // Define zoomTo
 // This is necessary, as some companies have only points or lines, or both.
@@ -2086,6 +2051,7 @@ function ZoomToLayerQuery(values) {
     var regex = /\b(?:Point|Line)\b/gi;
     var subject = values.toString();
     let result = subject.match(regex);
+
     // both Point and Line
     if (result.length === 3) {
         zoomToLayer(testUtilPt);
@@ -2097,42 +2063,41 @@ function ZoomToLayerQuery(values) {
         zoomToLayer(testLine);
     }
 }
-
-
-
+///////////////////////////////////////////////////////////////////////
 // Set the definition expression on the Utility Point layer
 // to reflect the selecction of the user
 // Only for CP
 function setLotMunicipalOnlyExpression(newValue) {
-chartTitleDiv.innerHTML = chartTitleLabel;
+//chartTitleDiv.innerHTML = chartTitleLabel;
 
 if (newValue === 'None') {
-  testUtilPt.definitionExpression = null;
-  testUtilPt1.definitionExpression = null;
-  testLine.definitionExpression = null;
-  testLine1.definitionExpression = null;
-  viaductLayer.definitionExpression = null;
-
+    testUtilPt.definitionExpression = null;
+    testUtilPt1.definitionExpression = null;
+    testLine.definitionExpression = null;
+    testLine1.definitionExpression = null;
+    viaductLayer.definitionExpression = null;
+    
 } else {
-  testUtilPt.definitionExpression = "CP = '" + newValue + "'";
-  testUtilPt1.definitionExpression = "CP = '" + newValue + "'";
-  testLine.definitionExpression = "CP = '" + newValue + "'";
-  testLine1.definitionExpression = "CP = '" + newValue + "'";
-  viaductLayer.definitionExpression = "CP = '" + newValue + "'";
+    testUtilPt.definitionExpression = "CP = '" + newValue + "'";
+    testUtilPt1.definitionExpression = "CP = '" + newValue + "'";
+    testLine.definitionExpression = "CP = '" + newValue + "'";
+    testLine1.definitionExpression = "CP = '" + newValue + "'";
+    viaductLayer.definitionExpression = "CP = '" + newValue + "'";
+
 }
+    
     zoomToLayer(testUtilPt);
   
   return queryForLotGeometries();
 }
 
-
   function setLotDefinitionExpression(newValue1, newValue2, newValue3){
 // newValue: CP
 // newValue2: Utility Type
-// newValue3: Provider
+// newValue3: Company
 
 //1   
-if(newValue1 == 'None' && newValue2 == 'None' && newValue3 == 'None'){
+    if(newValue1 == 'None' && newValue2 == 'None' && newValue3 == 'None'){
     testUtilPt.definitionExpression = null;
     testUtilPt1.definitionExpression = null;
     testLine.definitionExpression = null;
@@ -2209,7 +2174,12 @@ if(newValue1 == 'None' && newValue2 == 'None' && newValue3 == 'None'){
   return queryForLotGeometries();
 }
 
-// Filter utility feature layers
+
+// 3. When a company selected, the company may only have
+
+
+/////////////////////////////////////////
+
 function filterUtilPt() {
   var query2 = testUtilPt.createQuery();
   query2.where = testUtilPt.definitionExpression; // use filtered municipality. is this correct?
@@ -2240,8 +2210,8 @@ const changeSelected = (e) => {
     $select.value = 'None'
   };
 
-
-// Select station from dropdown list
+// Dropdown List
+// Select CP from dropdown list
 cpSelect.addEventListener("change", function() {
     var type = event.target.value;
     var target = event.target;
@@ -2257,11 +2227,15 @@ cpSelect.addEventListener("change", function() {
 
     totalProgressAll();
 
+    var typeS = typeSelect.value;
+   
     waterAllChart();
     powerAllChart();
     sewageAllChart();
     telecomAllChart();
     oilGasAllChart();
+
+
 
     filterUtilPt();
     filterUtilPt1();
@@ -2271,8 +2245,9 @@ cpSelect.addEventListener("change", function() {
 });
 
  // Provider dropdown list 
- companySelect.addEventListener("change", function(event) {
+  companySelect.addEventListener("change", function(event) {
     const companyValue = event.target.value;
+
     changeSelected();
     
     var cpValue = cpSelect.value;
@@ -2305,7 +2280,6 @@ cpSelect.addEventListener("change", function() {
       oilGasAllChart();
     }
 
-
     totalProgressAll();
 
     filterUtilPt();
@@ -2315,8 +2289,9 @@ cpSelect.addEventListener("change", function() {
     
   });
 
-    // Utility Type: Point or Line
-    typeSelect.addEventListener("change", async function(event) {
+
+  // Utility Type: Point or Line
+typeSelect.addEventListener("change", async function(event) {
     const typeS = event.target.value;
     
     setLotDefinitionExpression(cpSelect.value, typeS, companySelect.value);
@@ -2343,6 +2318,7 @@ cpSelect.addEventListener("change", function() {
       oilGasAllChart();
     }
 
+      
     totalProgressAll();
 
     filterUtilPt();
@@ -2354,8 +2330,14 @@ cpSelect.addEventListener("change", function() {
     //zoomToLayer(testLine1);
     
   });
-
 // Click event handler for choices
+
+
+
+///
+let chartLayerView;
+const chartWaterDiv = document.getElementById("chartWaterDiv");
+
 // Chart ********************************
 
 // 1. Water
@@ -5777,14 +5759,12 @@ async function oilGasAllChart() {
 
 
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Popup Setting
 //*****************************//
 //      PopUp Settig           //
 //*****************************//
 // Utility Point
 var highlightSelect;
-
 view.when(function() {
   var popup = view.popup;
   popup.viewModel.on("trigger-action", function(event) {
@@ -5796,10 +5776,7 @@ view.when(function() {
       view.whenLayerView(testUtilPt).then(function(layerView) {
       testUtilPt.queryFeatures().then(function(results) {
           const ggg = results.features;
-          const rowN = ggg.length; //7
-          //var rrr = results.features[0].attributes.Id;
-          //var rrr = results.features[6].attributes.Id; // return Id of 7th row
-          
+          const rowN = ggg.length; //7         
           var i;
           let objID = [];
             for (i=0; i < rowN; i++) {
@@ -5831,19 +5808,12 @@ view.when(function() {
 
       view.on("click", function() {
         highlightSelect.remove();
-});
-
-//
-
-
-
-    }); // End of queryFeatures()
-
-
+    });
+}); // End of queryFeatures()
 }); // End of layerView
 
-    } // End of if (event.action.id...)
-  });
+} // End of if (event.action.id...)
+});
 }); // End of view.when()
 
 // Utility Line
@@ -5895,16 +5865,11 @@ view.when(function() {
         highlightSelect.remove();
 });
     }); // End of queryFeatures()
-
-
 }); // End of layerView
-
     } // End of if (event.action.id...)
   });
 }); // End of view.when()
 
-
-/////////////////////////////////////////////////////////////////////////////////////
 
 // Layer List
 var layerList = new LayerList({
@@ -5946,6 +5911,16 @@ var legend = new Legend({
   ]
 });
 
+var legendExpand = new Expand({
+    view: view,
+    content: legend,
+    expandIconClass: "esri-icon-legend",
+    group: "top-right"
+});
+view.ui.add(legendExpand, {
+    position: "top-right"
+});
+
 view.ui.empty("top-left");
 
 var layerListExpand = new Expand ({
@@ -5960,7 +5935,7 @@ view.ui.add(layerListExpand, {
 
 // Full screen logo
 fullscreen = new Fullscreen({
-  view: view
+  view: view,
 });
 view.ui.add(fullscreen, "top-right");
 
@@ -5969,7 +5944,7 @@ view.ui.add(fullscreen, "top-right");
 // Compass
 var compass = new Compass({
     view: view});
-    view.ui.add(compass, "top-right");
+view.ui.add(compass, "top-right");
 
     
 //*****************************//
@@ -6038,15 +6013,6 @@ searchExpand.watch("expanded", function() {
     }
 });
 
-var legendExpand = new Expand({
-    view: view,
-    content: legend,
-    expandIconClass: "esri-icon-legend",
-    group: "top-right"
-});
-view.ui.add(legendExpand, {
-    position: "top-right"
-});
 
 // See-through-Ground        
 view.when(function() {
@@ -6068,10 +6034,13 @@ document
 });
 view.ui.add("menu", "bottom-right");
 
+//view.ui.padding = { top: 100, left: 0, right: 0, bottom: 0 };
 
-      });
+
+});
     </script>
   </head>
+
   <body class="sassy-theme">
     <div id="viewDiv">
         <div class="dateDiv">As of July 8, 2022</div>
@@ -6133,6 +6102,7 @@ view.ui.add("menu", "bottom-right");
             <div id="labelTotalDiv">TOTAL</div>
             <div id="totalProgressDiv"></div>
       </div>
+
     <div id="menu" class="esri-widget">
       <input type="checkbox" id="opacityInput" unchecked />
       <label for="opacityInput">No ground</label>
