@@ -1,0 +1,399 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about working on Building Scene Layer
+  https://pro.arcgis.com/en/pro-app/2.7/help/mapping/layer-properties/maintain-and-work-with-a-building-scene-layer.html
+  https://www.youtube.com/watch?v=maEXHMI9ddQ
+
+  # BuildingFiler
+  https://developers.arcgis.com/javascript/latest/api-reference/esri-layers-support-BuildingFilter.html
+
+  -->
+<title>Station Structure (PO Section)</title>
+
+    <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    #headerTitleDiv {
+        font-size: 2.5vw;
+        vertical-align: middle;
+        padding-top: 3px;
+        z-index: 99;
+        position: absolute;
+        left: 13;
+        top: 18;
+        color: white;
+      }
+
+      #dropdownDiv {
+        background-color: rgb(0, 0, 0 ,0);
+        font-size: 1.1vw;
+        opacity: 1;
+        color: white;
+        font-weight: bold;
+        padding-right: 5;
+        padding-top: 6;
+        right: 20;
+        top: 10;
+        z-index: 99;
+        position: absolute;
+      }
+
+      .dateDiv {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: left;
+        font-weight: normal;
+        font-size: 1.1vw;
+        padding-top: 20px;
+        margin: 0;
+        z-index:99;
+        top: 55;
+        left: 30;
+        position: absolute;
+      }
+
+      #boxWater {
+        position: absolute;
+        z-index: 99;
+        width: 18%;
+        height: 25vh;
+        background-image: linear-gradient(rgb(0,0,0,0), rgb(0,185,242,0.4));
+        bottom: 20;
+        left: 10;
+
+      }
+
+      #chartPanelDiv {
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        z-index: 99;
+        position: absolute;
+        left: 0;
+        margin-top: 14%;
+        bottom: 80;
+      }
+
+      #chartdiv {
+          width: 20vw;
+          height: 37vh;
+          align-items: center;
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+          padding: 0;
+          margin: 0;
+      }
+
+
+ .panel {
+      padding: 0px;
+      margin:0;
+      box-sizing: border-box;
+      width: 15vw;
+      height: 40vh;
+      position: absolute;
+      top: 10%;
+      right: 1;
+      font-size: 1.3vw;
+      color: white;
+      background-color: rgb(0, 0, 0, 0);
+      z-index: 99;
+      transition: 3;
+      line-height: 2;
+    }
+
+.active, .test:hover {
+  background-color: rgba(77, 75, 75, 0);
+  color: orange;
+  font-size: 1.7vw;
+}
+
+
+    #menu {
+      padding: 0.8em;
+      max-width: 250px;
+      background-color: rgb(0, 0, 0, 0);
+    }
+
+    #menu1 {
+        padding: 0.8em;
+        width: 250px;
+        z-index: 99;
+        position: absolute;
+        right: 0;
+      }
+
+
+      #sliceContainer {
+        width: inherit;
+      }
+
+      #sliceOptions {
+        margin: 0 15px;
+      }
+
+      #sliceOptions>button {
+        margin-bottom: 15px;
+      }
+
+      #sliceContainer {
+        max-width: 228px;
+      }
+
+      br{content:' ';}
+      br:after{content:' ';}
+
+      .esri-layer-list__item-toggle-icon,
+     .esri-layer-list__item-title {
+      color: white;
+     }
+
+      .sassy-theme .esri-menu,
+      .sassy-theme .esri-building-explorer,
+      .sassy-theme .esri-popup__main-container,
+      .sassy-theme .esri-popup .esri-popup__pointer-direction,
+      .sassy-theme .esri-popup .esri-popup__button,
+      .sassy-theme .esri-button,
+      .sassy-theme .esri-input,
+      .sassy-theme .esri-legend,
+      .sassy-theme .esri-layer-list,
+      .sassy-theme .esri-widget a {
+        background-color: rgb(0, 0, 0, 0.5);
+        color: #fff;
+      }
+
+      ::-webkit-scrollbar {
+    display: none;
+    }
+
+      .sassy-theme .esri-legend__layer-caption {
+    display: none;
+  }
+  
+    </style>
+
+<link
+rel="stylesheet"
+href="https://js.arcgis.com/4.23/esri/themes/dark/main.css"
+/>
+<!-- Resources -->
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<script src="https://js.arcgis.com/4.23/"></script>
+
+    <script>
+      require([
+        "esri/Basemap",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/views/SceneView",
+        "esri/layers/FeatureLayer",
+        "esri/views/layers/support/FeatureFilter",
+        "esri/layers/SceneLayer",
+        "esri/layers/Layer",
+        "esri/layers/TileLayer",
+        "esri/layers/VectorTileLayer",
+        "esri/layers/support/LabelClass",
+        "esri/symbols/LabelSymbol3D",
+        "esri/WebMap",
+        "esri/WebScene",
+        "esri/portal/PortalItem",
+        "esri/portal/Portal",
+        "esri/widgets/TimeSlider",
+        "esri/widgets/Legend",
+        "esri/widgets/LayerList",
+        "esri/widgets/Fullscreen",
+        "esri/tasks/GeometryService",
+        "esri/tasks/support/Query",
+        "esri/tasks/QueryTask",
+        "esri/renderers/smartMapping/statistics/summaryStatistics",
+        "esri/tasks/support/StatisticDefinition",
+        "esri/symbols/WebStyleSymbol",
+        "esri/TimeExtent",
+        "esri/widgets/Expand",
+        "esri/widgets/Editor",
+        "esri/renderers/UniqueValueRenderer",
+        "esri/widgets/support/DatePicker",
+        "esri/widgets/FeatureTable",
+        "esri/widgets/Compass",
+        "esri/layers/ElevationLayer",
+        "esri/Ground",
+        "esri/layers/BuildingSceneLayer",
+        "esri/widgets/BuildingExplorer",
+        "esri/widgets/Slice",
+        "esri/analysis/SlicePlane",
+        "esri/renderers/SimpleRenderer",
+        "esri/symbols/MeshSymbol3D",
+        "esri/symbols/edges/SolidEdges3D",
+        "esri/layers/GroupLayer"
+      ], function(Basemap, Map, MapView, SceneView, 
+                  FeatureLayer, FeatureFilter,
+                  SceneLayer, Layer, TileLayer, VectorTileLayer,
+                  LabelClass, LabelSymbol3D, WebMap,
+                  WebScene, PortalItem, Portal,
+                  TimeSlider, Legend, LayerList, Fullscreen,
+                  GeometryService, Query, QueryTask, summaryStatistics,
+                  StatisticDefinition, WebStyleSymbol,
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
+                  FeatureTable, Compass, ElevationLayer, Ground,
+                  BuildingSceneLayer, BuildingExplorer, Slice, SlicePlane,
+                  SimpleRenderer, MeshSymbol3D, SolidEdges3D, GroupLayer) {
+
+
+////////////////////////////////////////////////////
+var basemap = new Basemap({
+        baseLayers: [
+          new VectorTileLayer({
+            portalItem: {
+              id: "8a9ef2a144e8423786f6139408ac3424" 
+            }
+          })
+        ]
+      });
+
+var map = new Map({
+              basemap: basemap, // "streets-night-vector", 
+              ground: "world-elevation"
+        }); 
+         
+        var view = new SceneView({
+            map: map,
+            container: "viewDiv",
+            viewingMode: "local",
+            camera: {
+                position: {
+                    x: 120.57930,
+                    y: 15.18,
+                    z: 500
+                    },
+                    tilt: 65
+                    },
+            environment: {
+                background: {
+                    type: "color", // autocasts as new ColorBackground()
+                    color: [0, 0, 0, 1]
+                    },
+                    // disable stars
+                    starsEnabled: false,
+                    //disable atmosphere
+                    atmosphereEnabled: false
+                    }
+        });
+
+
+///
+
+
+
+/////
+/* Function for zooming to selected layers */
+function zoomToLayer(layer) {
+  return layer.queryExtent().then(function(response) {
+    view.goTo(response.extent, { //response.extent
+      speedFactor: 2
+    }).catch(function(error) {
+      if (error.name != "AbortError") {
+        console.error(error);
+      }
+    });
+  });
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+        // See-through-Ground        
+        view.when(function() {
+          // allow navigation above and below the ground
+          map.ground.navigationConstraint = {
+            type: "none"
+          };
+          // the webscene has no basemap, so set a surfaceColor on the ground
+          map.ground.surfaceColor = "#fff";
+          // to see through the ground, set the ground opacity to 0.4
+          map.ground.opacity = 0.9; //
+        });
+
+                // See through Gound
+                document
+          .getElementById("opacityInput")
+          .addEventListener("change", function(event) {
+            //map.ground.opacity = event.target.checked ? 0.1 : 0.9;
+            map.ground.opacity = event.target.checked ? 0.1 : 0.6;
+          });
+
+        view.ui.add("menu", "bottom-left");
+
+
+///////////////////////////////////////////////////////
+var layerList = new LayerList({
+            view: view,
+            listItemCreatedFunction: function(event) {
+              const item = event.item;
+              if (item.title === ""){
+                item.visible = false
+              }
+            }
+          });
+
+var layerListExpand = new Expand ({
+  view: view,
+  content: layerList,
+  expandIconClass: "esri-icon-visible",
+  group: "bottom-right"
+});
+
+view.ui.add(layerListExpand, {
+  position: "bottom-right"
+});
+
+view.ui.empty("top-left");
+
+
+// Full screen logo
+view.ui.add(
+  new Fullscreen({
+    view: view,
+    element: viewDiv
+  }),
+  "bottom-right"
+  );
+
+      });
+    </script>
+  </head>
+
+  <body class="sassy-theme">
+    <div id="viewDiv">
+        <div class="dateDiv">As of July 8, 2022</div>
+        <div class="esri-widget" id="dropdownDiv">
+            <label for="sel-options">CP:</label>
+            <select id="valSelect" class="esri-widget"></select>
+            <label for="sel-options">Provider</label>
+            <select id="companySelect" class="esri-widget"></select>
+            <label for="sel-options">Type</label>
+            <select id="typeSelect" class="esri-widget"></select>
+        </div>
+      <div id="headerTitleDiv">N2 UTILITY</div>
+      <div id="boxWater">Water</div>
+    <div id="menu" class="esri-widget">
+      <input type="checkbox" id="opacityInput" unchecked />
+      <label for="opacityInput">See through ground</label>
+  </div>
+</div>
+  </body>
+</html>
