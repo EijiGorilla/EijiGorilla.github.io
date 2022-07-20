@@ -975,6 +975,7 @@ function zoomToLayer(layer) {
   });
 }
 
+//////////////
 
 const DropdownValue = document.getElementById("valSelect");
 
@@ -988,10 +989,54 @@ zoomToLayer(structureLayer);
 updateChart();
 summaryStats().then(MonthlyProgressChart);
 
+
+function getValues() {
+  var testArray = [];
+  var query = structureLayer.createQuery();
+  query.outFields = ["Station1"];
+  structureLayer.returnGeometry = true;
+  return structureLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features;
+    stats.forEach((result, index) => {
+      var attributes = result.attributes;
+      const values = attributes.Station1;
+      testArray.push(values);
+    });
+    return testArray;
+  });
+}
+
+function getUniqueValues(values) {
+    var uniqueValues = [];
+    values.forEach(function(item, i) {
+        if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
+            uniqueValues.push(item);
+            //headerTitleDiv.innerHTML = uniqueValues;
+        }
+    });
+    return uniqueValues;
+}
+
+function addToSelect(values) {
+  DropdownValue.options.length = 0;
+    values.sort();
+    values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
+    values.forEach(function(value) {
+        var option = document.createElement("option");
+        option.text = value;
+        DropdownValue.add(option);
+    });
+}
+getValues()
+  .then(getUniqueValues)
+  .then(addToSelect)
+
 // click event handler for choices
 DropdownValue.addEventListener("click", filterByTest);
 function filterByTest(event) {
   const selectedID = event.target.value;
+
+  //filterStructureStation(selectedID);
 
   if (selectedID === "None") {
     structureLayer.definitionExpression = null;
@@ -1969,24 +2014,7 @@ var layerListExpand = new Expand ({
         <div class="dateDiv">As of July 18, 2022</div>
         <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">Station:</label>
-            <select class="esri-widget" id="valSelect">
-                <option value="None">None</option>
-                <option value="Quirino Highway">Quirino Highway</option>
-                <option value="Tandang Sora">Tandang Sora</option>
-                <option value="North Ave">North Ave</option>
-                <option value="Quezon Ave">Quezon Ave</option>
-                <option value="East Ave">East Ave</option>
-                <option value="Anonas">Anonas</option>
-                <option value="Camp Aguinaldo">Camp Aguinaldo</option>
-                <option value="Ortigas">Ortigas</option>
-                <option value="Senate-DepEd">Senate-DepEd</option>
-                <option value="Shaw">Shaw</option>
-                <option value="Kalayaan Ave">Kalayaan Avenue</option>
-                <option value="Bonifacio Global City">BGC</option>
-                <option value="Terminal 3">Terminal 3</option>
-
-
-              </select>
+            <select class="esri-widget" id="valSelect"></select>
         </div>
       </div>
       <div class="container">
