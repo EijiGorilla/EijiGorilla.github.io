@@ -265,6 +265,17 @@
         padding-top: 10px;
         color:rgb(0, 197, 255);
       }
+
+      b {
+        color: rgb(0, 197, 255);
+        text-align: left;
+        font-weight: bold;
+        font-size: 1vw;
+        width: auto;
+        vertical-align: text-bottom;
+        padding: 0;
+        margin-top: 0;
+      }
       
       p {
         color: rgb(0, 197, 255);
@@ -337,9 +348,8 @@
         color: rgb(0, 197, 255);
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         text-align: center;
-        font-weight: normal;
-        margin-top: 20px;
-        padding: 0px 0px 5px 0px;
+        font-weight: bold;
+        font-size: 14px;
         }
 
       #totalNumberDiv,
@@ -578,7 +588,9 @@ href="https://js.arcgis.com/4.24/esri/themes/dark/main.css"
         "esri/layers/GraphicsLayer",
         "esri/widgets/Search",
         "esri/widgets/BasemapToggle",
-        "esri/popup/support/FieldInfoFormat"
+        "esri/popup/support/FieldInfoFormat",
+        "esri/PopupTemplate",
+        "esri/popup/content/CustomContent"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -589,7 +601,8 @@ href="https://js.arcgis.com/4.24/esri/themes/dark/main.css"
                   StatisticDefinition, WebStyleSymbol,
                   TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
                   FeatureTable, Compass, ElevationLayer, Ground,
-                  GraphicsLayer, Search, BasemapToggle, FieldInfoFormat) {
+                  GraphicsLayer, Search, BasemapToggle, FieldInfoFormat,
+                  PopupTemplate, CustomContent) {
 
 let chartLayerView;
 var highlightSelect;
@@ -1298,6 +1311,7 @@ var chainageLayer = new FeatureLayer ({
 //chainageLayer.listMode = "hide";
 map.add(chainageLayer, 1);
 
+///////////////////////////////////////////////////////////////////////////////
 // Pier No. (point feature)
 var PierNoLayer = new FeatureLayer ({
   portalItem: {
@@ -1312,36 +1326,113 @@ var PierNoLayer = new FeatureLayer ({
   title: "Pier No.",
   minScale: 150000,
   maxScale: 0,
-  outFields: ["*"],
-  popupTemplate: {
-          title: "<p>Pier No: {PIER} <br>Access Date: {AccessDate}</br></p>",
-          lastEditInfoEnabled: false,
-          returnGeometry: true,
-          content: [
-            {
-              type: "fields",
-              fieldInfos: [
-                {
-                  fieldName: "Municipality"
-                }
-                /*
-                {
-                  fieldName: "AccessDate",
-                  label: "<p>Access Date</p>",
-                  format: {
-                    dateFormat: "short-date"
-                  }
-                  
-                }
-                */
-              ]
-            }
-          ]
-        }
-        
+  outFields: ["*"],   
 },{utcOffset: 300});
 //chainageLayer.listMode = "hide";
 map.add(PierNoLayer, 3);
+
+// Date Format function
+function dateFormat(inputDate, format) {
+    //parse the input date
+    const date = new Date(inputDate);
+
+    //extract the parts of the date
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();    
+
+    //replace the month
+    format = format.replace("MM", month.toString().padStart(2,"0"));        
+
+    //replace the year
+    if (format.indexOf("yyyy") > -1) {
+        format = format.replace("yyyy", year.toString());
+    } else if (format.indexOf("yy") > -1) {
+        format = format.replace("yy", year.toString().substr(2,2));
+    }
+
+    //replace the day
+    format = format.replace("dd", day.toString().padStart(2,"0"));
+
+    return format;
+}
+
+// Custom Popup Content
+let customContent = new CustomContent({
+  outFields: ["*"],
+  creator: function(event) {
+    const stats = event.graphic.attributes.AccessDate;
+    
+    // Convert numeric to date format
+    var date = new Date(stats);
+    const dateValue = dateFormat(date, 'MM-dd-yyyy');
+
+    // If the date is before current date, popupContent should be "AVAILABLE"
+    const d1 = new Date('08-31-2022');
+    
+    if (date < d1) {
+      DATES = "AVAILABLE";
+    } else {
+      DATES = dateValue;
+    }
+
+   return `Access Date: <b>${DATES}</b>`;
+  }
+});
+
+/*
+function valueGetter(){
+  const concatArray = [];
+  view.when(function() { // note that without view.when this does not work
+    return view.whenLayerView(PierNoLayer).then(function(layerView) {
+      view.on("click", eventHandler);
+      
+      function eventHandler(event){
+        const opts = {
+          include: PierNoLayer
+        };
+        
+        // Promise: when clicked, execute 'getGrapchis', then 'photoFeatureLayer'
+        // carry over 'graphic'
+        view.hitTest(event,opts).then(getGraphics).then(testFunction);
+      }
+      
+      // graphic = photoLayer
+      function getGraphics(response) {
+        if (response.results.length) {
+          const graphic = response.results[0].graphic;
+          const attributes = graphic.attributes;
+          const objid = attributes.PIER;
+          //headerTitleDiv.innerHTML = objid;
+          // 'graphic' is used to obtain OBJECTID
+          //Array.push(objid);
+          return objid;
+        }
+      }
+    }); // End of view.whenLayerView
+    
+    function testFunction(values){
+      concatArray.push(values);
+      //headerTitleDiv.innerHTML = concatArray[concatArray.length - 1];
+      return values;    
+    }
+
+  }); // end of view.when()
+  
+  return "concatArray[concatArray.length - 1]"; // this is the return value to popupTemplate Content
+
+}
+*/
+const template = new PopupTemplate({
+  outFields: ["*"],
+  title: "Pier No: <b>{PIER}</b>",
+  lastEditInfoEnabled: false,
+  content: [customContent]
+});
+PierNoLayer.popupTemplate = template;
+
+
+//////////////////////////////////////////////////////////////////
 
 // Station box
 var stationBoxLayer = new FeatureLayer ({
