@@ -1396,13 +1396,35 @@ function totalNumberOfLots(){
   query.outStatistics = [totalLot];
   query.returnGeometry = true;
 
+  return lotLayer.queryFeatures(query).then(function(response){
+    var stats = response.features[0].attributes;
+
+    const LOT_TOTAL = stats.totalLot;
+    //totalNumberDiv.innerHTML = LOT_TOTAL;
+    return LOT_TOTAL;
+  });
+  
+}
+
+function totalNumberOfLotsAll(totalLotValue){
+  var totalLot = {
+    onStatisticField: "ID",
+    outStatisticFieldName: "totalLot",
+    statisticType: "count"
+  };
+  var query = lotLayer.createQuery();
+  query.outStatistics = [totalLot];
+  query.returnGeometry = true;
+
   lotLayer.queryFeatures(query).then(function(response){
     var stats = response.features[0].attributes;
 
     const LOT_TOTAL = stats.totalLot;
-    totalNumberDiv.innerHTML = LOT_TOTAL;
-  })
+    totalNumberDiv.innerHTML = totalLotValue + " (" + LOT_TOTAL + ")";
+  });
 }
+
+
 
 function totalNumberOfStructures(){
   var totalStructure = {
@@ -1510,7 +1532,7 @@ function thousands_separators(num)
 
 // Default state //
 updateChartLot();
-totalNumberOfLots();
+totalNumberOfLots().then(totalNumberOfLotsAll);
 updateChartStructure();
 totalNumberOfStructures();
 
@@ -1727,7 +1749,7 @@ landTypeSelect.addEventListener("change", function() {
   filterLotLandType();
 
   updateChartLot();
-  totalNumberOfLots();
+  totalNumberOfLots().then(totalNumberOfLotsAll);
   updateMoaChartLot();
   pteNumberLot();
   handedOverNumberLot();
@@ -1751,7 +1773,7 @@ stationSelect.addEventListener("change", function() {
     setLandTypeStationExpression();
     
     updateChartLot();
-    totalNumberOfLots();
+    totalNumberOfLots().then(totalNumberOfLotsAll);
     updateMoaChartLot();
     pteNumberLot();
     handedOverNumberLot();
