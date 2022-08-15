@@ -70,13 +70,17 @@ body,
 }
 
 #monthlyProgressChartDiv {
+  display: none;
     position: absolute;
     width: 60vw;
     height: 20vh;
-    background-color: rgb(0,0,0,0);
     z-index: 99;
     bottom: 30%;
-    left:13vw;   
+    left:13vw;
+    background-image: linear-gradient(rgb(0,0,0,0), rgb(0,185,242,0.4));
+    border-color: white;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    background-color: rgb(0,0,0,0.5);
 }
 
 .dateDiv {
@@ -2110,11 +2114,42 @@ for(var i=years[0]; i<=years[ylength-1]; i++){
  
 // OPTION 1:
   function summaryStats(){
+    const years = [2021,2022];
+const months = [1,2,3,4,5,6,7,8,9,10,11,12];
+const typesN = [1,2,3,4,5];
+
+const pile_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const pile_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+
+const pileC_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const pileC_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+
+const pier_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const pier_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+
+const pierH_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [],};
+const pierH_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [],};
+
+const precast_2021 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+const precast_2022 = {1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []};
+
+// Length of Year and Month array
+var ylength = years.length;
+var mlength = months.length;
+var arr = new Array();
+
+// Compile Year and Month in an empty Array
+for(var i=years[0]; i<=years[ylength-1]; i++){
+  for(var j=months[0]; j<=months[mlength-1]; j++){
+    var ym = i.toString() + "-" + j.toString();
+    arr.push(new Date(ym).toLocaleDateString('en-ZA'));
+  }
+}
     var total_count = {
     onStatisticField: "CASE WHEN Status1 = 4 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_count",
     statisticType: "sum"
-}
+  }
 
   var query = viaductLayer.createQuery();
   query.where = "Year IS NOT NULL";
@@ -2419,10 +2454,19 @@ createSeries("value5", "Precast");
 }
 
 // Monthly Progress Chart
-var monthlyProgressChartDiv = document.getElementById("monthlyProgressInput");
+var monthlyProgressInput = document.getElementById("monthlyProgressInput");
 view.when(function() {
-    monthlyProgressChartDiv.addEventListener("change", function(event) {
-        event.target.checked ? summaryStats().then(MonthlyProgressChart) : monthlyProgressChartDiv.visibility = "hidden";
+  monthlyProgressInput.addEventListener("change", function(event) {
+    
+    if (event.target.checked === true){
+      summaryStats().then(MonthlyProgressChart);
+      monthlyProgressChartDiv.style.display = 'block';
+    } else if (event.target.checked === false) {
+      monthlyProgressChartDiv.style.display = 'none';
+    }
+    
+    //monthlyProgressChartDiv.removeAttr("style");
+    //event.target.checked ? summaryStats().then(MonthlyProgressChart) : monthlyProgressChartDiv.style.display = 'none';
    
     });
     view.ui.add("menu", "bottom-right");
@@ -2692,7 +2736,7 @@ view.ui.add(compassWidget, "top-left");
         <label for="opacityInput">No ground</label>
       </div>
       <div id="menu1" class="esri-widget">
-        <input type="checkbox" id="monthlyProgressInput" onclick="monthlyProgressChartFunction()">
+        <input type="checkbox" id="monthlyProgressInput" unchecked />
         <label for="monthlyProgressInput">Monthly Progress</label>
       </div>
       <div id="monthlyProgressChartDiv"></div>
