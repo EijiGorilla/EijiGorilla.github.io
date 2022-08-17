@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+     <title>Portal Site</title>
+
+     <style>
+    html,
+    body,#viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+      background-color: gray;
+    }
+
+    #viewTitleDiv {
+        z-index: 99;
+        position: absolute;
+        color: rgb(138, 43, 226, 0.7);
+        font-family: 'candara';
+        font-size: 2vw;
+        font-weight:lighter;
+        letter-spacing: 0px;
+        margin-left: 1%;
+        
+    }
+
+    #mapBox {
+        z-index: 99;
+        position: absolute;
+        width: 25vw;
+        height: 50vh;
+        background-color:rgb(138, 43, 226, 0.7);
+        background-repeat: no-repeat;
+        bottom: 10%;
+        right: 10%;
+    }
+
+    #mapTypeInput {
+        position: absolute;
+        bottom: 5px;
+        right: 10px;
+    }
+
+    .styled {
+        z-index: 99;
+        position: absolute;
+        border-color: #fff;
+        border-width: thin;
+        line-height: 2.0;
+        padding: 1px 23px;
+        font-size: 0.9rem;
+        text-align: center;
+        color: #fff;
+        background-color: rgba(0, 0, 0, 0.5);
+        bottom: 30px;
+        right: 10px;
+    }
+
+    a {
+        color: #fff;
+    }
+
+    #mapTitleDiv {
+        margin-top: 15%;
+        color: #fff;
+        font-family: 'candara';
+        font-size: 3vw;
+        font-weight:lighter;
+        height: 35%;
+        text-align: right;
+        padding-right: 10px;
+        padding-bottom: 5px;
+        line-height: 3vw;
+    }
+
+    #catchyTitleDiv {
+        color: #fff;
+        font-family: 'candara';
+        font-size: 1.2vw;
+        text-align: right;
+        padding-right: 10px;
+        margin-left: 5%;
+        margin-bottom: 5%;
+    }
+
+    #descriptionDiv {
+        color: #fff;
+        font-family: 'candara';
+        font-size: 1.1vw;
+        font-weight:lighter;
+        text-align: right;
+        padding-right: 10px;
+        margin-left: 5%;
+    }
+
+    #landImage {
+        display: none;
+        width: 100%;
+        height: 100%;
+    }
+
+    #demolitionImage {
+        display: none;
+        width: 100%;
+        height: 100%;
+    }
+
+    #treeImage {
+        display: none;
+        width: 100%;
+        height: 100%;
+    }
+
+    #utilityImage {
+        display: none;
+        width: 100%;
+        height: 100%;
+    }
+
+    #tunnelImage {
+        display: none;
+        width: 100%;
+        height: 100%;
+    }
+
+    #stationStructureImage {
+        display: none;
+        width: 100%;
+        height: 100%;
+    }
+
+    #depotBuildingImage {
+        display: none;
+        width: 100%;
+        height: 100%;
+    }
+
+    #enviMonitoringImage {
+        display: none;
+        width: 100%;
+        height: 100%;
+    }
+
+
+     </style>
+     <link
+     rel="stylesheet"
+     href="https://js.arcgis.com/4.24/esri/themes/dark/main.css"
+     />
+     <script src="https://js.arcgis.com/4.24/"></script>
+     <script>
+        require([
+        "esri/Basemap",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/views/SceneView"
+        ], function(Basemap, Map, MapView, SceneView) {
+            // Define parameters
+            var mapTypeInput = document.getElementById("mapTypeInput");
+            var mapTitleDiv = document.getElementById("mapTitleDiv");
+            var catchyTitleDiv = document.getElementById("catchyTitleDiv");
+            var descriptionDiv = document.getElementById("descriptionDiv");
+
+            var landImage = document.getElementById("landImage");
+            var demolitionImage = document.getElementById("demolitionImage");
+            var treeImage = document.getElementById("treeImage");
+            var utilityImage = document.getElementById("utilityImage");
+            var tunnelImage = document.getElementById("tunnelImage");
+            var stationStructureImage =document.getElementById("stationStructureImage");
+            var depotBuildingImage = document.getElementById("depotBuildingImage"); 
+            var enviMonitoringImage = document.getElementById("enviMonitoringImage");
+            
+            var myLink = document.getElementById("myLink");
+
+            // Default: Land Acquisition
+            if (document.getElementById("landAcquisition").checked === true) {
+                mapTitleDiv.innerHTML = "Land Aquisition";
+                catchyTitleDiv.innerHTML = " MAPPING LAND ACQUISITION";
+                descriptionDiv.innerHTML = "VISUALIZING ACQUISITION OF LAND AND EXISTING BUILDINGS IN CP-101 TO CP-109";
+
+                landImage.style.display = "block";
+                demolitionImage.style.display = "none";
+                treeImage.style.display = "none";
+                utilityImage.style.display = "none";
+                tunnelImage.style.display = "none";
+                tunnelImage.style.display = "none";
+                stationStructureImage.style.display = "none";
+                depotBuildingImage.style.display = "none";
+
+                myLink.setAttribute('href', "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/MMSP_Land_and_Structure.html");
+            }
+
+            // AddEventListener
+            mapTypeInput.addEventListener("click", filterForSmartMaps);
+            function filterForSmartMaps(event) {
+                const selected = event.target.id;
+                if (selected === "landAcquisition") {
+                    mapTitleDiv.innerHTML = "Land Aquisition";
+                    catchyTitleDiv.innerHTML = "MAPPING LAND ACQUISITION";
+                    descriptionDiv.innerHTML = "VISUALIZING ACQUISITION OF LAND AND EXISTING BUILDINGS";
+
+                    landImage.style.display = "block";
+                    demolitionImage.style.display = "none";
+                    treeImage.style.display = "none";
+                    utilityImage.style.display = "none";
+                    tunnelImage.style.display = "none";
+                    stationStructureImage.style.display = "none";
+                    depotBuildingImage.style.display = "none";
+                    enviMonitoringImage.style.display = "none";
+
+                    myLink.setAttribute('href', "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/MMSP_Land_and_Structure.html");
+
+                } else if (selected === "demolition") {
+                    mapTitleDiv.innerHTML = "Demolition";
+                    catchyTitleDiv.innerHTML = "MAPPING DEMOLITION";
+                    descriptionDiv.innerHTML = "VISUALIZING DEMOLITION OF EXISTING STRUCTURE";
+
+                    landImage.style.display = "none";
+                    demolitionImage.style.display = "block";
+                    treeImage.style.display = "none";
+                    utilityImage.style.display = "none";
+                    tunnelImage.style.display = "none";
+                    stationStructureImage.style.display = "none";
+                    depotBuildingImage.style.display = "none";
+                    enviMonitoringImage.style.display = "none";
+
+                    myLink.setAttribute('href', "https://gis.railway-sector.com/portal/apps/opsdashboard/index.html#/55002a9e0abb4eb7bf17f85a6c59210e");
+
+                } else if (selected === "treeCutting") {
+                    mapTitleDiv.innerHTML = "Tree Cutting & Compensation";
+                    catchyTitleDiv.innerHTML = "LOCATIONS OF DEMOLISHED STRUCTURES";
+                    descriptionDiv.innerHTML = "VISUALIZING STATUS OF TREE CUTTING/EARTH-BALLING, AND TREE COMPENSATION";
+
+                    landImage.style.display = "none";
+                    demolitionImage.style.display = "none";
+                    treeImage.style.display = "block";
+                    utilityImage.style.display = "none";
+                    tunnelImage.style.display = "none";
+                    stationStructureImage.style.display = "none";
+                    depotBuildingImage.style.display = "none";
+                    enviMonitoringImage.style.display = "none";
+
+                    myLink.setAttribute('href', "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/MMSP_Tree_Cutting.html");
+                    
+                } else if (selected === "utilityRelocation") {
+                    mapTitleDiv.innerHTML = "Utility Relocation";
+                    catchyTitleDiv.innerHTML = "MAPPING UTILITIES IN 3D";
+                    descriptionDiv.innerHTML = "VISUALIZING UTILITY RELOCATION STATUS";
+
+                    landImage.style.display = "none";
+                    demolitionImage.style.display = "none";
+                    treeImage.style.display = "none";
+                    utilityImage.style.display = "block";
+                    tunnelImage.style.display = "none";
+                    stationStructureImage.style.display = "none";
+                    depotBuildingImage.style.display = "none";
+                    enviMonitoringImage.style.display = "none";
+
+                    myLink.setAttribute('href', "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/MMSP_Utility_Relocation.html");
+
+                }  else if (selected === "tunnelConstruction") {
+                    mapTitleDiv.innerHTML = "3D Tunnel Construction";
+                    catchyTitleDiv.innerHTML = "LOCATION OF CONSTRUCTED TUNNEL SEGEMENTS IN 3D";
+                    descriptionDiv.innerHTML = "VISUALIZING TUNNEL CONSTRUCTION VIA TBM/NATM & DILAPIDATION SURVEY STATUS";
+
+                    landImage.style.display = "none";
+                    demolitionImage.style.display = "none";
+                    treeImage.style.display = "none";
+                    utilityImage.style.display = "none";
+                    tunnelImage.style.display = "block";
+                    stationStructureImage.style.display = "none";
+                    depotBuildingImage.style.display = "none";
+                    enviMonitoringImage.style.display = "none";
+
+                    myLink.setAttribute('href', "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/MMSP_Tunnel_Construction.html");
+
+                }  else if (selected === "stationStructure") {
+                    mapTitleDiv.innerHTML = "Station Structure";
+                    catchyTitleDiv.innerHTML = "3D STATION STRUCTURES";
+                    descriptionDiv.innerHTML = "VISUALIZING CONSTRUCTINO STATUS OF STATION STRUCTURES";
+                    
+                    landImage.style.display = "none";
+                    demolitionImage.style.display = "none";
+                    treeImage.style.display = "none";
+                    utilityImage.style.display = "none";
+                    tunnelImage.style.display = "none";
+                    stationStructureImage.style.display = "block";
+                    depotBuildingImage.style.display = "none";
+                    enviMonitoringImage.style.display = "none";
+                    
+                    myLink.setAttribute('href', "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/MMSP_Utility_Relocation.html");
+
+                } else if (selected === "depotBuilding") {
+                    mapTitleDiv.innerHTML = "Depot Building";
+                    catchyTitleDiv.innerHTML = "3D DEPOT BUILDINGS";
+                    descriptionDiv.innerHTML = "VISUALIZING CONSTRUCTION STATUS OF DEPOT BUILDINGS";
+                    
+                    landImage.style.display = "none";
+                    demolitionImage.style.display = "none";
+                    treeImage.style.display = "none";
+                    utilityImage.style.display = "none";
+                    tunnelImage.style.display = "none";
+                    stationStructureImage.style.display = "none";
+                    depotBuildingImage.style.display = "block";
+                    enviMonitoringImage.style.display = "none";
+                    
+                    myLink.setAttribute('href', "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/MMSP_Utility_Relocation.html");
+
+                } else if (selected === "enviMonitoring") {
+                    mapTitleDiv.innerHTML = "Environment Monitoring";
+                    catchyTitleDiv.innerHTML = "ENVIRONMENTAL HOT SPOTS DURING CONSTRUCTION";
+                    descriptionDiv.innerHTML = "VISUALIZING MONITORING STATUS OF ENVIRONMENT INDICATORS DURING CONSTRUCTION";
+                    
+                    landImage.style.display = "none";
+                    demolitionImage.style.display = "none";
+                    treeImage.style.display = "none";
+                    utilityImage.style.display = "none";
+                    tunnelImage.style.display = "none";
+                    stationStructureImage.style.display = "none";
+                    depotBuildingImage.style.display = "none";
+                    enviMonitoringImage.style.display = "block";
+                    
+                    myLink.setAttribute('href', "https://gis.railway-sector.com/portal/apps/opsdashboard/index.html#/1d5a99f80cb241ad8c9f5ef6e53595f5");
+                }
+            }
+        });
+
+     </script>
+</head>
+<body>
+<div id="viewDiv">
+    <div id="viewTitleDiv">METRO MANILA SUBWAY PROJECT</div>
+    <img id="landImage" src="https://EijiGorilla.github.io/Symbols/Land_Acquisition_Image.jpg">
+    <img id="demolitionImage" src="https://EijiGorilla.github.io/Symbols/Demolition_Image.jpg">
+    <img id="treeImage" src="https://EijiGorilla.github.io/Symbols/Tree_Cutting_Image.jpg">
+    <img id="utilityImage" src="https://EijiGorilla.github.io/Symbols/Utility_Diversion_Image.jpg">
+    <img id="tunnelImage" src="https://EijiGorilla.github.io/Symbols/Tunnel_Image.png">
+    <img id="stationStructureImage" src="https://EijiGorilla.github.io/Symbols/Station_Structure_Image.jpg">
+    <img id="depotBuildingImage" src="https://EijiGorilla.github.io/Symbols/Depot_Building_Image.jpg">
+    <img id="enviMonitoringImage" src="https://EijiGorilla.github.io/Symbols/Environment_Monitoring_Image.jpg">
+    
+    <div id="mapBox">
+        <div id="mapTitleDiv"></div>
+        <div id="catchyTitleDiv"></div>
+        <div id="descriptionDiv"></div>
+        <button id="mapLinkButton" class="favorite styled" type="button"><a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/MMSP_Land_and_Structure.html" id="myLink" style="text-decoration: none;" target="_blank">VIEW MAP</a></button>
+        <div id="mapTypeInput">
+            <input type="radio" id="landAcquisition" name="mapTypeInput" checked/>
+            <input type="radio" id="demolition" name="mapTypeInput">
+            <input type="radio" id="treeCutting" name="mapTypeInput">
+            <input type="radio" id="utilityRelocation" name="mapTypeInput">
+            <input type="radio" id="tunnelConstruction" name="mapTypeInput">
+            <input type="radio" id="stationStructure" name="mapTypeInput">
+            <input type="radio" id="depotBuilding" name="mapTypeInput">
+            <input type="radio" id="enviMonitoring" name="mapTypeInput">
+        </div>
+    </div>   
+</div>
+</body>
+</html>
