@@ -713,68 +713,7 @@ var lotLayer = new FeatureLayer({
     layerId: 1,
     title: "Status of Land Acquisition",
     renderer: lotRenderer,
-    //popupEnabled: false,
-    popupTemplate: {
-            // autocasts as new PopupTemplate()
-            title: "<h5>CN: {CN}</h5>",
-            lastEditInfoEnabled: false,
-            returnGeometry: true,
-            actions: [
-       {
-        id: "find-trees",
-        title: "Trees"
-       }
-     ],
-            // Set content elements in the order to display.
-            // The first element displayed here is the fieldInfos.
-            content: [
-              {
-                // It is also possible to set the fieldInfos outside of the content
-                // directly in the popupTemplate. If no fieldInfos is specifically set
-                // in the content, it defaults to whatever may be set within the popupTemplate.
-                type: "fields", // FieldsContentElement
-                fieldInfos: [
-                  {
-                    fieldName: "relationships/0/TCP_Proces",
-                    visible: false,
-                    label: "Total number of trees",
-                    format: {
-                      places: 0,
-                      digitSeparator: true
-                    },
-                    statisticType: "count"
-                  },
-                  {
-                    fieldName: "CN",
-                    visible: false,
-                    label: "Lot No."
-                  },
-                  {
-                      fieldName: "TCP_Proces",
-                      label: "Status of Land Acquisition"
-                  },
-                  {
-                    fieldName: "Station"
-                  },
-                  {
-                    fieldName: "Priority"
-                  },
-                  {
-                    fieldName: "HandOverDate",
-                    label: "Hand-Over Date"
-                  }
-                ]
-              },
-              {
-                // You can also set a descriptive text element. This element
-                // uses an attribute from the featurelayer which displays a
-                // sentence giving the total amount of trees value within a
-                // specified census block. Text elements can only be set within the content.
-                type: "text", // TextContentElement
-                text: "<h5>There are {relationships/0/TCP_Proces} trees within this Lot.</h5>"
-              }
-             ]
-          },
+    popupEnabled: false,
           outFields: ["*"]
         });
         lotLayer.listMode = "hide";
@@ -1168,9 +1107,17 @@ stationSelect.addEventListener("change", function() {
     var type = event.target.value;
     var target = event.target;
 
+    var selectedLayer = document.querySelector('input[name="dataTypeInput"]:checked').id;
+    if (selectedLayer === "Tree Compensation") {
+      document.getElementById("Tree Cutting").checked = true;
+      updateChartCutting();
+    }
+    
+
     // Update All charts and numbers
     setLotMunicipalOnlyExpression(type);
     updateChartCutting();
+    updateChartTreeComp();
 
     filterLotStation1();
 
@@ -1187,24 +1134,27 @@ function filterLotStation1() {
 ///////////
 treeTCP_ProcesTypeButton.addEventListener("change", filterByType);
 function filterByType(e) {
+
   const selectedType = e.target.id;
   if(selectedType == "Tree Cutting") {
     compensationLayer.visible = false;
     treeCuttingLayer.visible = true;
 
     updateChartCutting();
-    testFunction(selectedType);
 
   } else if (selectedType == "Tree Compensation") {
     compensationLayer.visible = true;
     treeCuttingLayer.visible = false;
 
     updateChartTreeComp();
-    testFunction(selectedType);
 
   }
 
 }
+
+
+
+/////////////////////////////////////////////////////////
 
 async function updateChartCutting() {
   function tree_cutting_status(){
@@ -1757,183 +1707,6 @@ async function updateChartTreeComp() {
 //      PopUp Settig           //
 //*****************************//
 var highlightSelect;
-
-// testFunction allows to highlight Tree Cutting and Tree Compensation separately when
-// each of them is selected
-function testFunction(selectedType){
-
-if (selectedType == "Tree Cutting") {
-// Lot to tree Cutting
-view.when(function() {
-  var popup = view.popup;
-  popup.viewModel.on("trigger-action", function(event) {
-    if (event.action.id == "find-trees") {
-      var attributes = popup.viewModel.selectedFeature.attributes;
-      var info = attributes.Id; //
-      var infoObjId = attributes.ID; //1
-
-      view.whenLayerView(treeCuttingLayer).then(function(layerView) {
-        treeCuttingLayer.queryFeatures().then(function(results) {
-          const ggg = results.features;
-          const rowN = ggg.length; //7
-
-          //var rrr = results.features[0].attributes.Id;
-          //var rrr = results.features[6].attributes.Id; // return Id of 7th row
-          
-          var i;
-          let objID = [];
-            for (i=0; i < rowN; i++) {
-              if (results.features[i].attributes.ID_1 == infoObjId) {
-                  if (results.features[i].attributes.OBJECTID == infoObjId) {
-                      continue;
-                  }
-                  var obj = results.features[i].attributes.OBJECTID;
-                  objID.push(obj);
-                }
-            }
-
-      var queryExt = new Query({
-        //objectIds: [1,2,3,4,5]
-        //objectIds: objID
-        objectIds: objID
-      });
-
-      treeCuttingLayer.queryExtent(queryExt).then(function(result) {
-        if (result.extent) {
-          view.goTo(result.extent)
-        }
-      });
-
-      if (highlightSelect) {
-        highlightSelect.remove();
-      }
-      highlightSelect = layerView.highlight(objID);
-
-      view.on("click", function() {
-        highlightSelect.remove();
-});
-    }); // End of queryFeatures()
-}); // End of layerView
-
-    } // End of if (event.action.id...)
-  });
-}); // End of view.when()
-} else if (selectedType == "Tree Compensation") {
-  view.when(function() {
-  var popup = view.popup;
-  popup.viewModel.on("trigger-action", function(event) {
-    if (event.action.id == "find-trees") {
-      var attributes = popup.viewModel.selectedFeature.attributes;
-      var info = attributes.Id; //
-      var infoObjId = attributes.ID; //1
-
-      view.whenLayerView(compensationLayer).then(function(layerView) {
-        compensationLayer.queryFeatures().then(function(results) {
-          const ggg = results.features;
-          const rowN = ggg.length; //7
-
-          //var rrr = results.features[0].attributes.Id;
-          //var rrr = results.features[6].attributes.Id; // return Id of 7th row
-          
-          var i;
-          let objID = [];
-            for (i=0; i < rowN; i++) {
-              if (results.features[i].attributes.ID_1 == infoObjId) {
-                  if (results.features[i].attributes.OBJECTID == infoObjId) {
-                      continue;
-                  }
-                  var obj = results.features[i].attributes.OBJECTID;
-                  objID.push(obj);
-                }
-            }
-
-      var queryExt = new Query({
-        //objectIds: [1,2,3,4,5]
-        //objectIds: objID
-        objectIds: objID
-      });
-
-      treeCuttingLayer.queryExtent(queryExt).then(function(result) {
-        if (result.extent) {
-          view.goTo(result.extent)
-        }
-      });
-
-      if (highlightSelect) {
-        highlightSelect.remove();
-      }
-      highlightSelect = layerView.highlight(objID);
-
-      view.on("click", function() {
-        highlightSelect.remove();
-});
-    }); // End of queryFeatures()
-}); // End of layerView
-
-    } // End of if (event.action.id...)
-  });
-}); // End of view.when()
-}
-
-} // End of testFunction
-
-
-// Trees to Lot
-view.when(function() {
-  var popup = view.popup;
-  popup.viewModel.on("trigger-action", function(event) {
-    if (event.action.id == "find-lot") {
-      var attributes = popup.viewModel.selectedFeature.attributes;
-      var info = attributes.Id;
-      var infoObjId = attributes.ID_1; //1  
-
-      view.whenLayerView(lotLayer).then(function(layerView) {
-        lotLayer.queryFeatures().then(function(results) {
-          const ggg = results.features;
-          const rowN = ggg.length; //7
-
-          //var rrr = results.features[0].attributes.Id;
-          //var rrr = results.features[6].attributes.Id; // return Id of 7th row
-          
-          var i;
-          let objID = [];
-            for (i=0; i < rowN; i++) {
-              if (results.features[i].attributes.ID == infoObjId) {
-                  if (results.features[i].attributes.OBJECTID == infoObjId) {
-                      continue;
-                  }
-                  var obj = results.features[i].attributes.OBJECTID;
-                  objID.push(obj);
-                }
-            }
-
-      var queryExt = new Query({
-        //objectIds: [1,2,3,4,5]
-        //objectIds: objID
-        objectIds: objID
-      });
-
-      lotLayer.queryExtent(queryExt).then(function(result) {
-        if (result.extent) {
-          view.goTo(result.extent)
-        }
-      });
-
-      if (highlightSelect) {
-        highlightSelect.remove();
-      }
-      highlightSelect = layerView.highlight(objID);
-
-      view.on("click", function() {
-        highlightSelect.remove();
-});
-    }); // End of queryFeatures()
-}); // End of layerView
-
-    } // End of if (event.action.id...)
-  });
-}); // End of view.when()
-
 
 /////////////////////////////////////////////////////////////////////////////////////
 /*
