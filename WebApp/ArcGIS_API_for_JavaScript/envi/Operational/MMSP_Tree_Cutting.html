@@ -216,7 +216,9 @@
         "esri/renderers/UniqueValueRenderer",
         "esri/layers/support/Sublayer",
         "esri/widgets/Search",
-        "esri/widgets/Compass"
+        "esri/widgets/Compass",
+        "esri/smartMapping/labels/clusters",
+        "esri/smartMapping/popup/clusters"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -224,7 +226,7 @@
                   WebScene, PortalItem, Portal, Legend, LayerList, Fullscreen,
                   geometryService, Query,
                   StatisticDefinition, WebStyleSymbol, Expand, Editor,
-                  UniqueValueRenderer, Sublayer, Search, Compass) {
+                  UniqueValueRenderer, Sublayer, Search, Compass, clusterLabelCreator, clusterPopupCreator) {
 
 let chartLayerView;
 var highlightSelect;
@@ -895,6 +897,83 @@ var compensationLayer = new FeatureLayer ({
 });
 map.add(compensationLayer,1);
 
+
+
+// Point clustering
+// Override the default symbol representing the cluster extent
+view.popup.viewModel.selectedClusterBoundaryFeature.symbol = {
+  type: "simple-fill",
+  style: "solid",
+  color: "rgba(50,50,50,0.15)",
+  outline: {
+    width: 0.5,
+    color: "rgba(50,50,50,0.25)"
+  }
+};
+
+treeCuttingLayer
+          .when()
+          .then(generateClusterConfig)
+          .then((featureReduction) => {
+            treeCuttingLayer.featureReduction = featureReduction;
+
+            const toggleButton = document.getElementById("toggle-cluster");
+            toggleButton.addEventListener("click", toggleClustering);
+
+            // To turn off clustering on a layer, set the
+            // featureReduction property to null
+            function toggleClustering() {
+              if (isWithinScaleThreshold()) {
+                let fr = treeCuttingLayer.featureReduction;
+                treeCuttingLayer.featureReduction =
+                  fr && fr.type === "cluster" ? null : featureReduction;
+              }
+              toggleButton.innerText =
+                toggleButton.innerText === "Enable Clustering"
+                  ? "Disable Clustering"
+                  : "Enable Clustering";
+            }
+
+            view.watch("scale", (scale) => {
+              if (toggleButton.innerText === "Disable Clustering") {
+                treeCuttingLayer.featureReduction = isWithinScaleThreshold()
+                  ? featureReduction
+                  : null;
+              }
+            });
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+
+        function isWithinScaleThreshold() {
+          return view.scale > 5000;
+        }
+
+        async function generateClusterConfig(layer) {
+          // generates default popupTemplate
+          const popupTemplate = await clusterPopupCreator
+            .getTemplates({ layer })
+            .then(
+              (popupTemplateResponse) =>
+                popupTemplateResponse.primaryTemplate.value
+            );
+
+          // generates default labelingInfo
+          const { labelingInfo, clusterMinSize } = await clusterLabelCreator
+            .getLabelSchemes({ layer, view })
+            .then((labelSchemes) => labelSchemes.primaryScheme);
+
+          return {
+            type: "cluster",
+            popupTemplate,
+            labelingInfo,
+            clusterMinSize
+          };
+        }
+
+
+// Point clustering
 
 /////////////////////////////////////////////////////////////////////////////////////
 //*******************************//
@@ -1909,6 +1988,11 @@ view.ui.add(legendExpand, {
         <select id="valSelect" class="esri-widget" width="150" style="width: 150px"></select>
       </div>
       <div id="chartPanel">
+        <div style="padding-top: 10px;">
+          <button id="toggle-cluster" class="esri-button">
+            Disable Clustering
+          </button>
+        </div>
         <div id="chartdiv"></div>
       </div>
       <div id="dataTypeInput">
