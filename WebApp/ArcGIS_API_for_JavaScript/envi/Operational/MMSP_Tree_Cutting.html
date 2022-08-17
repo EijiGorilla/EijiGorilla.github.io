@@ -914,6 +914,7 @@ map.add(compensationLayer,1);
 
 
 // Point clustering
+// Tree-Cutting Layer
 // Override the default symbol representing the cluster extent
 view.popup.viewModel.selectedClusterBoundaryFeature.symbol = {
   type: "simple-fill",
@@ -987,7 +988,68 @@ treeCuttingLayer
         }
 
 
-// Point clustering
+// Tree Compensation Layer
+compensationLayer
+          .when()
+          .then(generateClusterConfig)
+          .then((featureReduction) => {
+            compensationLayer.featureReduction = featureReduction;
+
+            const toggleButton = document.getElementById("toggle-cluster");
+            toggleButton.addEventListener("click", toggleClustering);
+
+            // To turn off clustering on a layer, set the
+            // featureReduction property to null
+            function toggleClustering() {
+              if (isWithinScaleThreshold()) {
+                let fr = compensationLayer.featureReduction;
+                compensationLayer.featureReduction =
+                  fr && fr.type === "cluster" ? null : featureReduction;
+              }
+              toggleButton.innerText =
+                toggleButton.innerText === "Enable Clustering"
+                  ? "Disable Clustering"
+                  : "Enable Clustering";
+            }
+
+            view.watch("scale", (scale) => {
+              if (toggleButton.innerText === "Disable Clustering") {
+                compensationLayer.featureReduction = isWithinScaleThreshold()
+                  ? featureReduction
+                  : null;
+              }
+            });
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+
+        function isWithinScaleThreshold() {
+          return view.scale > 5000;
+        }
+
+        async function generateClusterConfig(layer) {
+          // generates default popupTemplate
+          const popupTemplate = await clusterPopupCreator
+            .getTemplates({ layer })
+            .then(
+              (popupTemplateResponse) =>
+                popupTemplateResponse.primaryTemplate.value
+            );
+
+          // generates default labelingInfo
+          const { labelingInfo, clusterMinSize } = await clusterLabelCreator
+            .getLabelSchemes({ layer, view })
+            .then((labelSchemes) => labelSchemes.primaryScheme);
+
+          return {
+            type: "cluster",
+            popupTemplate,
+            labelingInfo,
+            clusterMinSize
+          };
+        }
+
 
 /////////////////////////////////////////////////////////////////////////////////////
 //*******************************//
