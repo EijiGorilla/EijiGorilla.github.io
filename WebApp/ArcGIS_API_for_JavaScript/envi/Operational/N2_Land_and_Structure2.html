@@ -1445,6 +1445,7 @@ map.add(fncLayer,1);
 //<p>Lot No: {LotID} <br>Hand-Over Date: {HandOverDate}</br>
 // Relocation Status point layer
 
+var headerTitleDiv = document.getElementById("headerTitleDiv");
 // Land 
 var lotLayer = new FeatureLayer({
   portalItem: {
@@ -1490,7 +1491,7 @@ let customContentLot = new CustomContent({
 
     // Extract AsscessDate of clicked PierNoLayer
     const lotNo = event.graphic.attributes.LotID;
-    const handOverDate = event.graphic.attributes.HandOverDate1;
+    const handOverDate = event.graphic.attributes.HandOverDate;
     const handOverArea = event.graphic.attributes.percentHandedOver;
     const statusLot = event.graphic.attributes.StatusLA;
     const landUse = event.graphic.attributes.LandUse;
@@ -1499,9 +1500,15 @@ let customContentLot = new CustomContent({
     const landOwner = event.graphic.attributes.LandOwner;
     
     // Convert numeric to date format
+    
     var date = new Date(handOverDate);
-    const DATES = dateFormat(date, 'MM-dd-yyyy');
+    var DATES = dateFormat(date, 'MM-dd-yyyy');
 
+    if (DATES === '01-01-1970') {
+      var finalDate = "Undefined"
+    } else {
+      var finalDate = dateFormat(date, 'MM-dd-yyyy');
+    }
     // Convert domain code to domain name
     /// 1. Status
     if (statusLot >= 0) {
@@ -1514,7 +1521,7 @@ let customContentLot = new CustomContent({
     }
 
 
-   return `<ul><li>Hand-Over Date:   <b>${DATES}</b></li><br>
+   return `<ul><li>Hand-Over Date:   <b>${finalDate}</b></li><br>
                <li>Handed-Over Area: <b>${handOverArea} %</b></li><br>
                <li>Status:           <b>${statusLotTemp}</b></li><br>
                <li>Land Use:         <b>${landUseTemp}</b></li><br>
@@ -1812,7 +1819,7 @@ map.add(reloISFLayer);
 var applicationDiv = document.getElementById("applicationDiv");
 
 var headerDiv = document.getElementById("headerDiv");
-var headerTitleDiv = document.getElementById("headerTitleDiv");
+
 
 var lengendDiv = document.getElementById("lengendDiv");
 var lotListExproDiv = document.getElementById("lotListExproDiv");
