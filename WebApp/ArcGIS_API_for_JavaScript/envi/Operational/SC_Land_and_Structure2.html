@@ -699,19 +699,43 @@ var labelChainage = new LabelClass({
 });
 
 // Pier No label
-var labelPierNo = new LabelClass({
-  labelExpressionInfo: {expression: "$feature.PIER"},
-  symbol: {
-    type: "text",
-    color: [255, 255, 255],
-    haloColor: "black",
-    haloSize: 0.5,
-    font: {
-      size: 15,
-      weight: "bold"
-    }
-  }
-});
+/// Change label color with different AccessDate
+function createTextSymbol(color) {
+  return {
+            type: "text", // autocasts as new TextSymbol()
+            font: {
+              size: 15,
+              weight: "bold"
+            },
+            color: color,
+            haloColor: "black",
+            haloSize: 1
+          };
+}
+
+// when AccessDate is on or before '2022-01-01'
+const alreadyAccessDate = "$feature.PIER";
+const alreadyAccessDateClass = {
+  labelExpressionInfo: {
+    expression: alreadyAccessDate
+  },
+  labelPlacement: "above-center",
+  where: "AccessDate <= date'2022-01-01'"
+};
+alreadyAccessDateClass.symbol = createTextSymbol("#00c5ff");
+
+// when AccessDate is after '2022-02-01'
+const yetAccessDate = "$feature.PIER";
+const yetAccessDateClass = {
+  labelExpressionInfo: {
+    expression:yetAccessDate
+  },
+  labelPlacement: "above-center",
+  where: "AccessDate > date'2022-08-01'"
+};
+yetAccessDateClass.symbol = createTextSymbol("#ffffff");
+
+
 
 // Station label
 
@@ -1311,7 +1335,7 @@ var PierNoLayer = new FeatureLayer ({
     }
   },
   layerId: 6,
-  labelingInfo: [labelPierNo],
+  labelingInfo: [alreadyAccessDateClass, yetAccessDateClass],
   renderer: pierNoRenderer,
   title: "Pier No.",
   minScale: 150000,
@@ -1370,8 +1394,7 @@ let customContent = new CustomContent({
     }
 
    //return `Access Date: <b>${DATES}</b>`;
-   return `<b>${pierNo}</b><br>
-           Access Date: <b>${DATES}</b>`;
+   return `Access Date: <b>${DATES}</b>`;
 
   }
 });
