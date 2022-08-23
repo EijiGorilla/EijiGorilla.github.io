@@ -1,0 +1,500 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+      Sample
+    </title>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      #legendDiv {
+        background-color: rgb(0, 0, 0, 0.5);
+        z-index: 99;
+        position: absolute;
+        display: none;
+      }
+
+
+      #titleDiv {
+        position: absolute;
+        font-style: normal;
+        font-weight: bold;
+        font-size: 3.8vw;
+        color: white;
+        background-color: rgb(0, 0, 0, 0);
+        width: 35vw;
+        z-index: 99;
+        top: 30;
+        left: 30;
+
+      }
+
+      #applicationDiv {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;         
+      }
+
+      #menu {
+  padding: 3px 3px 3px 3px;
+  background-color: rgb(0,0,0,0.3);
+  color: white;
+}
+      #messageDiv {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      #chartPanelDiv {
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        z-index: 99;
+        position: absolute;
+        left: 0;
+        margin-top: 14%;
+      }
+
+      #chartdiv {
+          width: 59vh;
+          height: 47vh;
+          align-items: center;
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+          padding: 0;
+          margin: 0;
+      }
+
+      .panel {
+      padding: 0px;
+      box-sizing: border-box;
+      width: 30vw;
+      height: 10vh;
+      position: absolute;
+      top: 1.8%;
+      right: 0;
+      font-size: 1.5vw;
+      color: white;
+      background-color: rgb(0, 0, 0, 0);
+      overflow: auto;
+      z-index: 99;
+      transition: 3;
+    }
+
+    h6 {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: center;
+        font-weight: normal;
+        font-size: 1vw;
+        }
+    
+    .active, .test:hover {
+      background-color: rgba(77, 75, 75, 0);
+        color: orange;
+        font-size: 2.3vw;
+}
+
+    /* Esris Setting */
+    .esri-layer-list__item-toggle-icon,
+      .esri-layer-list__item-title {
+        color: white;
+     }
+
+      .sassy-theme .esri-popup__header-title {
+        width: 25vw;
+        background-color: rgba(0, 0, 0, 0.8);
+      }
+      
+      .sassy-theme .esri-menu,
+      .sassy-theme .esri-popup__main-container,
+      .sassy-theme .esri-popup .esri-popup__pointer-direction,
+      .sassy-theme .esri-popup .esri-popup__button,
+      .sassy-theme .esri-button,
+      .sassy-theme .esri-input,
+      .sassy-theme .esri-layer-list,
+      .sassy-theme .esri-widget {
+        background-color: rgb(0, 0, 0, 0.5);
+        color: #fff;
+      }
+      
+
+
+      .sassy-theme .esri-legend--card__carousel-indicator-container,
+      .sassy-theme .esri-legend__group-layer-child,
+      .sassy-theme .esri-legend__layer-body {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+      .sassy-theme .esri-legend__layer-caption {
+        display: none;
+      }
+
+    /* Browser Setting */
+      ::-webkit-scrollbar {
+        display: none;
+      }
+
+    </style>
+
+    <link
+    rel="stylesheet"
+    href="https://js.arcgis.com/4.24/esri/themes/dark/main.css"
+    />
+<!-- Resources -->
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<script src="https://js.arcgis.com/4.24/"></script>
+
+    <script>
+      require([
+      "esri/Basemap",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/TileLayer",
+        "esri/layers/FeatureLayer",
+        "esri/widgets/Expand",
+        "esri/widgets/Legend",
+        "esri/rest/support/Query",
+        "esri/widgets/Fullscreen",
+        "esri/symbols/TextSymbol",
+        "esri/views/SceneView",
+        "esri/widgets/LayerList",
+        "esri/layers/VectorTileLayer",
+        "esri/widgets/BasemapToggle"
+      ], function(
+        Basemap,
+        Map,
+        MapView,
+        TileLayer,
+        FeatureLayer,
+        Expand,
+        Legend,
+        Query,
+        Fullscreen,
+        TextSymbol,
+        SceneView,
+        LayerList,
+        VectorTileLayer,
+        BasemapToggle
+
+      ) {
+// Basemap
+var basemap = new Basemap({
+  baseLayers: [
+    new VectorTileLayer({
+      portalItem: {
+        id: "8a9ef2a144e8423786f6139408ac3424"
+      }
+    })
+  ]
+});
+
+// Add Map
+var map = new Map({
+  basemap: basemap, // "streets-night-vector"
+  ground: "world-elevation" // ground: "no"
+}); 
+//map.ground.surfaceColor = "#FFFF";
+//map.ground.opacity = 0.5;
+
+
+// Add scene view
+var view = new SceneView({
+  map: map,
+  container: "viewDiv",
+  viewingMode: "local",
+  camera: {
+    position: {
+      x: 121.01,
+      y: 14.61,
+      z: 60000
+    },
+    tilt: 50
+  },
+  environment: {
+    background: {
+      type: "color", // autocasts as new ColorBackground()
+      color: [0, 0, 0, 1]
+    },
+    
+    // disable stars
+    starsEnabled: false,
+          
+    //disable atmosphere
+    atmosphereEnabled: false
+  }
+});
+
+// Basemap Toggle
+const toggle = new BasemapToggle({
+  view: view,
+  nextBaseMap: "hybrid"
+});
+view.ui.add(toggle, "top-right");
+      
+
+// Major Road network
+var majorRoadLayer = new FeatureLayer({
+  portalItem: {
+                id:"ab0e0cd5e38d471ba24c5177a4f7279a"
+            },
+            title: "Major Road",
+            outFields: ["*"],
+            popupEnabled: false,
+            layerId: 2,
+            minScale: 550000,
+            maxScale: 0,
+});
+map.add(majorRoadLayer);
+
+// Expressway
+var expressRoad = new FeatureLayer({
+    portalItem: {
+        id: "ab0e0cd5e38d471ba24c5177a4f7279a"
+    },
+    title: "Expressway",
+    layerId: 3,
+    outFields: ["*"],
+    popupEnabled: false,
+    minScale: 550000,
+    maxScale: 0,
+});
+map.add(expressRoad);
+
+// Municipal Boundary
+var municipalBoundary = new FeatureLayer({
+    portalItem: {
+        id: "ab0e0cd5e38d471ba24c5177a4f7279a"
+    },
+    title: "Municipal Boundary",
+    layerId: 4,
+    outFields: ["*"],
+    popupEnabled: false
+});
+map.add(municipalBoundary);
+
+// Administrative Points
+var AdminPoints = new FeatureLayer({
+    portalItem: {
+        id: "ab0e0cd5e38d471ba24c5177a4f7279a"
+    },
+    title: "Administrative Points",
+    layerId: 1,
+    outFields: ["*"],
+    popupEnabled: false
+});
+map.add(AdminPoints);
+
+// Damage points
+var verticalOffsetExisting = {
+  screenLength: 100,
+  maxWorldLength: 100,
+  minWorldLength: 15
+};
+
+function getUniqueValueSymbol(name, color, sizeS) {
+    return {
+        type: "point-3d", // autocasts as new PointSymbol3D()
+        symbolLayers: [
+            {
+                type: "icon", // autocasts as new IconSymbol3DLayer()
+                resource: {
+                  href: name
+                },
+                size: sizeS,
+                outline: {
+                  color: "white",
+                  size: 2
+                }
+              }
+            ],
+            verticalOffset: verticalOffsetExisting,
+
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: "white",
+              size: 1,
+              border: {
+                color: "grey"
+              }
+            }
+        }
+    }
+
+
+
+var damagePoints = new FeatureLayer({
+    portalItem: {
+        id: "ab0e0cd5e38d471ba24c5177a4f7279a"
+    },
+    title: "Damage Ratings of Road",
+    layerId: 0,
+    outFields: ["*"],
+    popupEnabled: false,
+    minScale: 550000,
+    maxScale: 0,
+})
+map.add(damagePoints);
+
+// Coundary Boundary
+var phpBoundary = new FeatureLayer({
+          portalItem: {
+                id:"ab0e0cd5e38d471ba24c5177a4f7279a"
+            },
+            layerId: 8,
+            title: "Boundary",
+            outFields: ["*"],
+            labelsVisible: false,
+            popupEnabled: false
+        });
+phpBoundary.listMode = "hide";
+map.add(phpBoundary);
+
+
+        // listen to the view's click event
+        
+    // Pier Chart to summarize damage ratings of hospitals in Ukraine
+let chartLayerView;
+var highlightSelect;
+
+var titleDiv = document.getElementById("titleDiv");
+const chartPanelDiv = document.getElementById("chartPanelDiv");
+
+
+/* Function for zooming to selected layers */
+function zoomToLayer(layer) {
+          return layer.queryExtent().then((response) => {
+            view.goTo(response.extent).catch((error) => {
+              console.error(error);
+            });
+          });
+        }
+
+
+
+
+/////////////////////////////////////////////////////////
+view.ui.empty("top-left");
+
+// Full screen logo
+view.ui.add(
+  new Fullscreen({
+    view: view,
+    element: viewDiv
+  }),
+  "bottom-left"
+  );
+
+
+var legend = new Legend({
+  view: view,
+  container: legendDiv,
+  layerInfos: [
+    {
+        layer: damagePoints,
+        title: "Damage Ratings of Road"
+    },
+  {
+    layer: majorRoadLayer,
+    title: "Major Raod"
+  },
+  {
+    layer: expressRoad,
+    title: "Expressway"
+  },
+  {
+    layer: AdminPoints,
+    title: "Adminstrative Points"
+  },
+  {
+    layer: municipalBoundary,
+    title: "Municipal Boundary"
+  },
+  {
+    layer: phpBoundary,
+    title: "Country Boundary"
+  }
+]
+});
+
+var legendExpand = new Expand({
+    view: view,
+    content: legend,
+    expandIconClass: "esri-icon-legend",
+    group: "bottom-right"
+});
+view.ui.add(legendExpand, {
+    position: "top-right"
+});
+
+
+// LayerList and Add legend to the LayerList
+var layerList = new LayerList({
+  view: view,
+  listItemCreatedFunction: function(event) {
+    const item = event.item;
+    if (item.title === "Damage Ratings of Road"){
+      item.visible = false
+    }
+  }
+});
+
+var layerListExpand = new Expand ({
+    view: view,
+    content: layerList,
+    expandIconClass: "esri-icon-visible",
+    group: "top-right"
+});
+view.ui.add(layerListExpand, {
+    position: "top-right"
+});
+
+// See-through-Ground
+view.when(function() {
+  // allow navigation above and below the ground
+  map.ground.navigationConstraint = {
+    type: "none"
+  };
+  // the webscene has no basemap, so set a surfaceColor on the ground
+  map.ground.surfaceColor = "#fff";
+          
+  // to see through the ground, set the ground opacity to 0.4
+  map.ground.opacity = 0.9;
+});
+document.getElementById("opacityInput")
+        .addEventListener("change", function(event) {
+          map.ground.opacity = event.target.checked ? 0.1 : 0.6;
+        });
+view.ui.add("menu", "bottom-right");
+
+      });
+    </script>
+  </head>
+  <body class="sassy-theme">
+    <div id="viewDiv">
+      <div id="titleDiv" class="esri-widget">ROAD DAMAGE</div>
+    <div id="chartPanelDiv">
+      <div id="chartdiv"></div>
+    </div>
+  <div id="menu" class="esri-widget">
+    <input type="checkbox" id="opacityInput" unchecked />
+    <label for="opacityInput">See through ground</label>
+  </div>
+  <div id="legendDiv" class="esri-widget"></div>
+</div>
+  </body>
+</html>
