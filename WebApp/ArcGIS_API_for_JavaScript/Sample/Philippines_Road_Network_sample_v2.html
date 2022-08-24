@@ -73,6 +73,7 @@
         top: 19;
         z-index: 99;
         position: absolute;
+        
       }
 
       #chartPanelDiv {
@@ -193,7 +194,8 @@
         "esri/views/SceneView",
         "esri/widgets/LayerList",
         "esri/layers/VectorTileLayer",
-        "esri/widgets/BasemapToggle"
+        "esri/widgets/BasemapToggle",
+        "esri/layers/SceneLayer"
       ], function(
         Basemap,
         Map,
@@ -208,7 +210,8 @@
         SceneView,
         LayerList,
         VectorTileLayer,
-        BasemapToggle
+        BasemapToggle,
+        SceneLayer
 
       ) {
 // Basemap
@@ -266,6 +269,37 @@ const toggle = new BasemapToggle({
 });
 view.ui.add(toggle, "top-right");
       
+// OpenStreetMap 3D Buildings
+let osmSymbol = {
+  type: "mesh-3d",
+  symbolLayers: [
+    {
+      type: "fill",
+      material: {
+        color: [74, 80, 87, 0.5],
+        colorMixMode: "replace"
+      },
+      edges: {
+        type: "solid", // autocasts as new SolidEdges3D()
+        color: [225, 225, 225, 0.3]
+      }
+  }
+]
+};
+
+
+var osm3D = new SceneLayer({
+  portalItem: {
+    id: "ca0470dbbddb4db28bad74ed39949e25"
+  },
+  title: "OpenStreetMap 3D Buildings"
+});
+map.add(osm3D);
+osm3D.renderer = {
+  type: "simple",
+  symbol: osmSymbol
+}
+
 
 // Major Road network
 var majorRoadRenderer = {
@@ -358,6 +392,7 @@ var municipalBoundary = new FeatureLayer({
 map.add(municipalBoundary);
 
 // Administrative Points
+/*
 var AdminPoints = new FeatureLayer({
     portalItem: {
         id: "ab0e0cd5e38d471ba24c5177a4f7279a"
@@ -368,7 +403,7 @@ var AdminPoints = new FeatureLayer({
     popupEnabled: false
 });
 map.add(AdminPoints);
-
+*/
 // Damage points
 var verticalOffsetMajorDamage = {
   screenLength: 100,
@@ -455,7 +490,7 @@ var damageRatingSymbol = {
             label: "Basic",
             symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/Warning Symbol/Basic.svg",
-                20,
+                30,
                 "Basic"
             )
         },
@@ -464,7 +499,7 @@ var damageRatingSymbol = {
             label: "Minor",
             symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/Warning Symbol/Minor.svg",
-                20,
+                30,
                 "Minor"
             )
         },
@@ -473,7 +508,7 @@ var damageRatingSymbol = {
             label: "Moderate",
             symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/Warning Symbol/Moderate.svg",
-                20,
+                30,
                 "Moderate"
             )
         },
@@ -482,7 +517,7 @@ var damageRatingSymbol = {
             label: "Major",
             symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/Warning Symbol/Major.svg",
-                20,
+                30,
                 "Major"
             )
         }
@@ -835,10 +870,6 @@ var legend = new Legend({
   {
     layer: expressRoad,
     title: "Expressway"
-  },
-  {
-    layer: AdminPoints,
-    title: "Adminstrative Points"
   },
   {
     layer: municipalBoundary,
