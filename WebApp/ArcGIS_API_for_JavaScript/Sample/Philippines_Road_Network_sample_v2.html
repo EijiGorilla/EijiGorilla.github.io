@@ -60,6 +60,21 @@
         padding-right: 10px;
       }
 
+      #dropdownDiv {
+        display: none;
+        background-color: rgb(0, 0, 0 ,0);
+        font-size: 1.1vw;
+        opacity: 1;
+        color: white;
+        font-weight: bold;
+        padding-right: 5;
+        padding-top: 6;
+        right: 100;
+        top: 19;
+        z-index: 99;
+        position: absolute;
+      }
+
       #chartPanelDiv {
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         z-index: 99;
@@ -201,7 +216,7 @@ var basemap = new Basemap({
   baseLayers: [
     new VectorTileLayer({
       portalItem: {
-        id: "8a9ef2a144e8423786f6139408ac3424"
+        id: "0a0d74b5fbc0431fa0f6c938d0b04505"
       }
     })
   ]
@@ -210,7 +225,8 @@ var basemap = new Basemap({
 // Add Map
 var map = new Map({
   basemap: basemap, // "streets-night-vector"
-  ground: "world-elevation" // ground: "no"
+  //ground: "world-elevation"
+
 }); 
 //map.ground.surfaceColor = "#FFFF";
 //map.ground.opacity = 0.5;
@@ -252,6 +268,34 @@ view.ui.add(toggle, "top-right");
       
 
 // Major Road network
+var majorRoadRenderer = {
+  type: "unique-value",
+  valueExpression: "When($feature.ROAD_SEC_CLASS == 'Primary', 'Primary', \
+                           $feature.ROAD_SEC_CLASS == 'Secondary', 'Secondary', \
+                           $feature.ROAD_SEC_CLASS)",
+  uniqueValueInfos: [
+    {
+      value: 'Primary',
+      label: 'Primary',
+      symbol: {
+        type: "simple-line",
+        color: [236, 76, 0],
+        width: "4px",
+        style: "solid"
+      }
+    },
+    {
+      value: 'Secondary',
+      label: 'Secondary',
+      symbol: {
+        type: "simple-line",
+        color: [0, 169, 230],
+        width: "2px",
+        style: "solid"
+      }
+    }
+  ]
+}
 var majorRoadLayer = new FeatureLayer({
   portalItem: {
                 id:"ab0e0cd5e38d471ba24c5177a4f7279a"
@@ -260,21 +304,42 @@ var majorRoadLayer = new FeatureLayer({
             outFields: ["*"],
             popupEnabled: false,
             layerId: 2,
-            minScale: 550000,
-            maxScale: 0,
+            elevationInfo: {
+              mode: "on-the-ground"
+            },
+            renderer: majorRoadRenderer,
+            minScale: 1200000,
+    maxScale: 0,
+            returnGeometry: true
+
 });
 map.add(majorRoadLayer);
 
 // Expressway
+var expressRoadRenderer = {
+  type: "simple",
+  symbol: {
+        type: "simple-line",
+        color: [56, 168, 0],
+        width: "4px",
+        style: "solid"
+      }
+};
+
 var expressRoad = new FeatureLayer({
     portalItem: {
         id: "ab0e0cd5e38d471ba24c5177a4f7279a"
     },
     title: "Expressway",
     layerId: 3,
+    elevationInfo: {
+              mode: "on-the-ground"
+            },
     outFields: ["*"],
+    renderer: expressRoadRenderer,
     popupEnabled: false,
-    minScale: 550000,
+    returnGeometry: true,
+    minScale: 1200000,
     maxScale: 0,
 });
 map.add(expressRoad);
@@ -287,6 +352,7 @@ var municipalBoundary = new FeatureLayer({
     title: "Municipal Boundary",
     layerId: 4,
     outFields: ["*"],
+    returnGeometry: true,
     popupEnabled: false
 });
 map.add(municipalBoundary);
@@ -416,7 +482,7 @@ var damageRatingSymbol = {
             label: "Major",
             symbol: getUniqueValueSymbol(
                 "https://EijiGorilla.github.io/Symbols/Warning Symbol/Major.svg",
-                40,
+                20,
                 "Major"
             )
         }
@@ -433,8 +499,9 @@ var damagePoints = new FeatureLayer({
     renderer: damageRatingSymbol,
     outFields: ["*"],
     popupEnabled: false,
-    minScale: 550000,
+    minScale: 1200000,
     maxScale: 0,
+    returnGeometry: true
 })
 map.add(damagePoints);
 
@@ -449,7 +516,6 @@ var phpBoundary = new FeatureLayer({
             labelsVisible: false,
             popupEnabled: false
         });
-phpBoundary.listMode = "hide";
 map.add(phpBoundary);
 
 
@@ -473,6 +539,8 @@ function zoomToLayer(layer) {
         }
 
 
+var roadTypeSelect = document.getElementById("valSelect");
+
 // Chart
 // Call amCharts 4
 am4core.ready(function() {
@@ -480,6 +548,37 @@ am4core.useTheme(am4themes_animated);
 
 updateChart();
 
+// Define roadTypeExpression
+function roadTypeExpression(value) {
+  titleDiv.innerHTML = value;
+  if (value === 'All') {
+    majorRoadLayer.definitionExpresssion = null;
+    expressRoad.definitionExpresssion = null;
+    majorRoadLayer.visible = true;
+    expressRoad.visible = true;
+
+  } else if (value === 'Primary') {
+    majorRoadLayer.definitionExpresssion = "ROAD_SEC_CLASS = 'Primary'";
+    majorRoadLayer.visible = true;
+    expressRoad.visible = false;
+
+  } else if(value === 'Secondary') {
+    majorRoadLayer.definitionExpresssion = "ROAD_SEC_CLASS = 'Secondary'";
+    majorRoadLayer.visible = true;
+    expressRoad.visible = false;
+
+  } else if (value == 'Express') {
+    majorRoadLayer.visible = false;
+    expressRoad.visible = true;
+  }
+}
+
+roadTypeSelect.addEventListener("change", function() {
+  var type = event.target.value;
+  roadTypeExpression(type);
+  updateChart();
+
+});
 
 
 // Hospital Damage Chart
@@ -768,11 +867,9 @@ var layerList = new LayerList({
   view: view,
   listItemCreatedFunction: function(event) {
     const item = event.item;
-    /*
-    if (item.title === "Damage Ratings of Road"){
+    if (item.title === "Municipal Boundary" || item.title === "Boundary"){
       item.visible = false
     }
-    */
   }
 });
 
@@ -809,15 +906,24 @@ view.ui.add("menu", "bottom-right");
   </head>
   <body class="sassy-theme">
     <div id="viewDiv">
+      <div class="esri-widget" id="dropdownDiv">
+        <label for="sel-options">Road Type:</label>
+        <select class="esri-widget" id="valSelect" width="120" style="width: 120px">
+            <option value="All">All</option>
+            <option value="Primary">Primary</option>
+            <option value="Secondary">Secondary</option>
+            <option value="Express">Express Road</option>
+          </select>
+      </div>
       <div id="titleDiv" class="esri-widget">ROAD DAMAGE</div>
-    <div id="chartPanelDiv">
-      <div id="chartdiv"></div>
+      <div id="chartPanelDiv">
+        <div id="chartdiv"></div>
+      </div>
+      <div id="menu" class="esri-widget">
+        <input type="checkbox" id="opacityInput" unchecked />
+        <label for="opacityInput">See through ground</label>
+      </div>
+      <div id="legendDiv" class="esri-widget"></div>
     </div>
-  <div id="menu" class="esri-widget">
-    <input type="checkbox" id="opacityInput" unchecked />
-    <label for="opacityInput">See through ground</label>
-  </div>
-  <div id="legendDiv" class="esri-widget"></div>
-</div>
   </body>
 </html>
