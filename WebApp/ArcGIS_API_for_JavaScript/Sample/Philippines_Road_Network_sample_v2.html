@@ -272,7 +272,7 @@
         "esri/layers/VectorTileLayer",
         "esri/widgets/BasemapToggle",
         "esri/layers/SceneLayer",
-        "esri/layers/support/LabelClass",
+        "esri/layers/support/LabelClass"
 
       ], function(
         Basemap,
@@ -515,7 +515,7 @@ var municipalBoundary = new FeatureLayer({
     popupEnabled: false,
     returnGeometry: true
 });
-map.add(municipalBoundary);
+map.add(municipalBoundary,2);
 
 
 // Damage points
@@ -652,7 +652,7 @@ var damagePoints = new FeatureLayer({
     maxScale: 0,
     returnGeometry: true
 })
-map.add(damagePoints);
+map.add(damagePoints,1);
 
 // Coundary Boundary
 var phpBoundary = new FeatureLayer({
@@ -698,6 +698,7 @@ am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
 // Default Setting
+zoomToLayer(damagePoints);
 updateChart();
 
 // Create dropdown list for Municipality
@@ -716,6 +717,17 @@ function queryForLotGeometries() {
     var municipalQuery = damagePoints.createQuery();
 
     return damagePoints.queryFeatures(municipalQuery).then(function(response) {
+        municipalGeometries = response.features.map(function(feature) {
+            return feature.geometry;
+        });
+        return municipalGeometries;
+    });
+  }
+
+  function queryForMunicipalBoundaryGeometries() {
+    var municipalQuery = damagePoints.createQuery();
+
+    return municipalBoundary.queryFeatures(municipalQuery).then(function(response) {
         municipalGeometries = response.features.map(function(feature) {
             return feature.geometry;
         });
@@ -771,7 +783,7 @@ function municipalExpression(value) {
   }
 
 
-  return queryForLotGeometries;
+  return queryForMunicipalBoundaryGeometries();
 
 }
 
