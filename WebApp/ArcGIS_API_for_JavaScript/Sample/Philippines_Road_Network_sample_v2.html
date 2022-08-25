@@ -38,7 +38,6 @@
         z-index: 99;
         top: 30;
         left: 30;
-
       }
 
       #applicationDiv {
@@ -61,7 +60,6 @@
       }
 
       #dropdownDiv {
-        display: none;
         background-color: rgb(0, 0, 0 ,0);
         font-size: 1.1vw;
         opacity: 1;
@@ -97,22 +95,101 @@
           margin: 0;
       }
 
-      .panel {
-      padding: 0px;
-      box-sizing: border-box;
-      width: 30vw;
-      height: 10vh;
-      position: absolute;
-      top: 1.8%;
-      right: 0;
-      font-size: 1.5vw;
-      color: white;
-      background-color: rgb(0, 0, 0, 0);
-      overflow: auto;
-      z-index: 99;
-      transition: 3;
-    }
+      /*-Major Road Damage List-*/
+      .panel-side {
+        z-index: 99;
+        position: absolute;
+        right: 5px;
+        top: 30%;
+        padding: 0px;
+        box-sizing: border-box;
+        width: 12vw;
+        height: 60%;
+        position: fixed;
+        margin: 1 3 3 1;
+        color: #fff;
+        background-image: linear-gradient(rgb(0,0,0,0), rgb(0,185,242,0.4));
+        border-color: white;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+        background-color: rgb(0,0,0,0.5);
+        overflow-y: scroll;
+        overflow-x: auto;
+      }
 
+    .panel-side h2 {
+      padding-bottom: 10px;
+        margin: 0;
+        width: 12.25vw;
+        font-size: 1.1vw;
+        font-weight: 600;
+        text-align: center;
+        color: white;
+        background-color: rgb(0, 0, 0);
+        position: sticky;
+        top: 0;
+      }
+
+      .panel-side h2 b {
+        color: white;
+        padding-left: 10px;
+      }
+
+      .panel-side img {
+        padding-top: 5%;
+        width: 28;
+        height: 28;
+        animation: fadeIn 5s infinite;
+      }
+
+      @keyframes fadeIn {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+      }
+
+
+      .panel-side ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-weight: 100;
+        color: white;
+        font-size: 1.2vw;
+        background-color: rgb(0, 0, 0, 0.4);
+      }
+
+      .panel-side li {
+        list-style: none;
+        padding: 3% 5%;
+        font-size: 0.8vw;
+        background-color: rgb(0, 0, 0, 0);
+      }
+
+      .panel-side li b{
+        color: red;
+        font-size: 0.8vw;
+      }
+
+      .panel-result {
+        cursor: pointer;
+        margin: 0px 0;
+        background-color: rgb(0, 0, 0, 0.4);
+      }
+
+      .panel-result:hover,
+      .panel-result:focus,
+      .panel-result.selected {
+        background-color: rgba(73, 72, 72, 0.4);
+      }
+      
+      #majorRoadDamageList {
+        background-color: rgb(0, 0, 0, 0.4);
+        width: 16vw;
+        height: 88vh;
+      }
+
+
+
+    /*-General-*/
     h6 {
         color: rgb(0, 197, 255);
         font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
@@ -134,7 +211,7 @@
      }
 
       .sassy-theme .esri-popup__header-title {
-        width: 25vw;
+        width: 17vw;
         background-color: rgba(0, 0, 0, 0.8);
       }
       
@@ -145,18 +222,17 @@
       .sassy-theme .esri-button,
       .sassy-theme .esri-input,
       .sassy-theme .esri-layer-list,
-      .sassy-theme .esri-widget {
+      .sassy-theme .esri-widget a {
         background-color: rgb(0, 0, 0, 0.5);
         color: #fff;
       }
       
+      .sassy-theme .esri-legend .esri-legend__layer-cell--info {
+        background-color: black;
+        color: white;
+        font-size: 0.85vw;
+      }
 
-
-      .sassy-theme .esri-legend--card__carousel-indicator-container,
-      .sassy-theme .esri-legend__group-layer-child,
-      .sassy-theme .esri-legend__layer-body {
-      background-color: rgba(0, 0, 0, 0.5);
-    }
       .sassy-theme .esri-legend__layer-caption {
         display: none;
       }
@@ -195,7 +271,9 @@
         "esri/widgets/LayerList",
         "esri/layers/VectorTileLayer",
         "esri/widgets/BasemapToggle",
-        "esri/layers/SceneLayer"
+        "esri/layers/SceneLayer",
+        "esri/layers/support/LabelClass",
+
       ], function(
         Basemap,
         Map,
@@ -211,7 +289,8 @@
         LayerList,
         VectorTileLayer,
         BasemapToggle,
-        SceneLayer
+        SceneLayer,
+        LabelClass
 
       ) {
 // Basemap
@@ -268,7 +347,13 @@ const toggle = new BasemapToggle({
   nextBaseMap: "hybrid"
 });
 view.ui.add(toggle, "top-right");
-      
+
+function catchAbortError(error) {
+  if (error.name != "AbortError") {
+    console.error(error);
+  }
+}
+
 // OpenStreetMap 3D Buildings
 let osmSymbol = {
   type: "mesh-3d",
@@ -379,6 +464,46 @@ var expressRoad = new FeatureLayer({
 map.add(expressRoad);
 
 // Municipal Boundary
+var municialLabelClass = {
+  symbol: {
+            type: "label-3d",// autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: {
+                  color: "white"
+                },
+                size: 10,
+                color: "black",
+                haloColor: "black",
+                haloSize: 1,
+                font: {
+                  family: "Ubuntu Mono",
+                  //weight: "bold"
+                },
+              }
+            ],
+            verticalOffset: {
+              screenLength: 100,
+              maxWorldLength: 600,
+              minWorldLength: 300
+            },
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: "white",
+              size: 0.7,
+              border: {
+                color: "grey"
+              }
+            }
+          },
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: "$feature.MUNICIPALITY"
+            //value: "{TEXTSTRING}"
+        }
+      }
+
 var municipalBoundary = new FeatureLayer({
     portalItem: {
         id: "ab0e0cd5e38d471ba24c5177a4f7279a"
@@ -386,24 +511,13 @@ var municipalBoundary = new FeatureLayer({
     title: "Municipal Boundary",
     layerId: 4,
     outFields: ["*"],
-    returnGeometry: true,
-    popupEnabled: false
+    labelingInfo: [municialLabelClass],
+    popupEnabled: false,
+    returnGeometry: true
 });
 map.add(municipalBoundary);
 
-// Administrative Points
-/*
-var AdminPoints = new FeatureLayer({
-    portalItem: {
-        id: "ab0e0cd5e38d471ba24c5177a4f7279a"
-    },
-    title: "Administrative Points",
-    layerId: 1,
-    outFields: ["*"],
-    popupEnabled: false
-});
-map.add(AdminPoints);
-*/
+
 // Damage points
 var verticalOffsetMajorDamage = {
   screenLength: 100,
@@ -562,61 +676,200 @@ var highlightSelect;
 
 var titleDiv = document.getElementById("titleDiv");
 const chartPanelDiv = document.getElementById("chartPanelDiv");
+var municipalSelect = document.getElementById("municipalSelect");
 
 
 /* Function for zooming to selected layers */
 function zoomToLayer(layer) {
-          return layer.queryExtent().then((response) => {
-            view.goTo(response.extent).catch((error) => {
-              console.error(error);
-            });
-          });
-        }
-
-
-var roadTypeSelect = document.getElementById("valSelect");
+  return layer.queryExtent().then(function(response) {
+    view.goTo(response.extent, { //response.extent
+      speedFactor: 2
+    }).catch(function(error) {
+      if (error.name != "AbortError") {
+        console.error(error);
+      }
+    });
+  });
+}
 
 // Chart
 // Call amCharts 4
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
+// Default Setting
 updateChart();
 
-// Define roadTypeExpression
-function roadTypeExpression(value) {
-  titleDiv.innerHTML = value;
-  if (value === 'All') {
-    majorRoadLayer.definitionExpresssion = null;
-    expressRoad.definitionExpresssion = null;
-    majorRoadLayer.visible = true;
-    expressRoad.visible = true;
+// Create dropdown list for Municipality
+view.when(function() {
+    return damagePoints.when(function() {
+        var query = damagePoints.createQuery();
+        return damagePoints.queryFeatures(query);
+    });
+})
+.then(getValues)
+.then(getUniqueValues)
+.then(addToSelect)
 
-  } else if (value === 'Primary') {
-    majorRoadLayer.definitionExpresssion = "ROAD_SEC_CLASS = 'Primary'";
-    majorRoadLayer.visible = true;
-    expressRoad.visible = false;
+/// 1.3. Query for geometry
+function queryForLotGeometries() {
+    var municipalQuery = damagePoints.createQuery();
 
-  } else if(value === 'Secondary') {
-    majorRoadLayer.definitionExpresssion = "ROAD_SEC_CLASS = 'Secondary'";
-    majorRoadLayer.visible = true;
-    expressRoad.visible = false;
-
-  } else if (value == 'Express') {
-    majorRoadLayer.visible = false;
-    expressRoad.visible = true;
+    return damagePoints.queryFeatures(municipalQuery).then(function(response) {
+        municipalGeometries = response.features.map(function(feature) {
+            return feature.geometry;
+        });
+        return municipalGeometries;
+    });
   }
+
+  /// 2.1. Land Type
+function getValues(response) {
+    var features = response.features;
+    var values = features.map(function(feature) {
+        return feature.attributes.MUNICIPALITY;
+    });
+    return values;
 }
 
-roadTypeSelect.addEventListener("change", function() {
+// Return an array of unique values in Type field of the lot Layer
+function getUniqueValues(values) {
+    var uniqueValues = [];
+
+    values.forEach(function(item, i) {
+        if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
+            uniqueValues.push(item);
+            //headerTitleDiv.innerHTML = uniqueValues;
+        }
+    });
+    return uniqueValues;
+}
+
+// Add the unique values to Land Type select element
+function addToSelect(values) {
+    values.sort();
+    values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
+    values.forEach(function(value) {
+        var option = document.createElement("option");
+        option.text = value;
+        municipalSelect.add(option);
+    });
+}
+
+function municipalExpression(value) {
+  if (value === 'None') {
+    municipalBoundary.definitionExpression = null;
+    damagePoints.definitionExpression = null;
+    municipalBoundary.visible = false;
+    zoomToLayer(municipalBoundary);
+
+  } else {
+    municipalBoundary.definitionExpression = "MUNICIPALITY = '" + value + "'";
+    damagePoints.definitionExpression = "MUNICIPALITY = '" + value + "'";
+    zoomToLayer(municipalBoundary);
+    municipalBoundary.visible = true;
+  }
+
+
+  return queryForLotGeometries;
+
+}
+
+municipalSelect.addEventListener("change", function() {
   var type = event.target.value;
-  roadTypeExpression(type);
+
+  municipalExpression(type);
   updateChart();
+
+  filterDamagePoints();
+  filterMunicipalBoundary();
 
 });
 
 
-// Hospital Damage Chart
+function filterDamagePoints() {
+  var query2 = damagePoints.createQuery();
+  query2.where = damagePoints.definitionExpression; // use filtered stations
+}
+
+function filterMunicipalBoundary() {
+  var query2 = municipalBoundary.createQuery();
+  query2.where = municipalBoundary.definitionExpression; // use filtered stations
+}
+
+
+
+
+
+//------------- list of Major Road Damage ------------------//
+view.when(function() {
+  //reloStatusLayer.outFields = ["Name", "StatusRC", "Status"];
+  
+  var majorRoadDamageList = document.getElementById("majorRoadDamageList");
+  
+  // Obtain a list of Owner's names and status
+  view.whenLayerView(damagePoints).then(function(damagelayerView) {
+    damagelayerView.watch("updating", function(val) {
+      if (!val) {
+
+        // Query for only Expropriation lots
+        var query = new Query();
+        query.where = "Rating = 4";
+        damagelayerView.queryFeatures(query).then(function(result) {
+          majorRoadDamageList.innerHTML = "";
+          result.features.forEach(function(feature) {
+            var attributes = feature.attributes;
+            var li = document.createElement("li");
+            li.setAttribute("class", "panel-result");
+
+            // Add Expropriation lots to list
+            li.innerHTML = "<b>" + attributes.SECTION_ID + "</b>" + "<br>" + attributes.ROAD_SEC_CLASS + "</br>" + attributes.ROAD_NAME;
+            li.addEventListener("click", function(event) {
+              var target = event.target;
+              var objectId = feature.attributes.OBJECTID;
+              var queryExtent = new Query({
+                objectIds: [objectId]
+              });
+              
+              // Query extent for selected expropriation lot in the list
+              damagelayerView.queryExtent(queryExtent).then(function(result) {
+                if (result.extent) {
+                  view.goTo({
+                    target: result.extent,
+                    speedFactor: 2,
+                    zoom: 17})
+                    .catch(function(error) {
+                      if (error.name != "AbortError") {
+                        console.error(error);
+                      }
+                    }); // End of catch
+                  } // End of if (result.extent)
+                }); // End of layerView.queryExtent
+                
+                // Highlight selected lots
+                if (highlightSelect) {
+                  highlightSelect.remove();
+                }
+                highlightSelect = damagelayerView.highlight([objectId]);
+                
+                view.on("click", function() {
+                  damagelayerView.filter = null;
+                  highlightSelect.remove();
+                });
+              
+              }); // End of li.addEventListener
+              majorRoadDamageList.appendChild(li);
+            }); // End of result.features.forEach
+          }); // End of layerView.queryFeatures
+        } // End of if (!val)
+     }); // End of layerView.watch
+  }); // End of view.whenLayerView
+}); // End of view.when()
+
+
+
+
+// Road Damage Chart:-------------------------------------------------------
 async function updateChart() {
     function DamageRating(){
   return {
@@ -937,16 +1190,11 @@ view.ui.add("menu", "bottom-right");
   </head>
   <body class="sassy-theme">
     <div id="viewDiv">
-      <div class="esri-widget" id="dropdownDiv">
-        <label for="sel-options">Road Type:</label>
-        <select class="esri-widget" id="valSelect" width="120" style="width: 120px">
-            <option value="All">All</option>
-            <option value="Primary">Primary</option>
-            <option value="Secondary">Secondary</option>
-            <option value="Express">Express Road</option>
-          </select>
-      </div>
       <div id="titleDiv" class="esri-widget">ROAD DAMAGE</div>
+      <div class="esri-widget" id="dropdownDiv">
+        <label for="sel-options">Municipality</label>
+        <select id="municipalSelect" class="esri-widget"></select>
+      </div>
       <div id="chartPanelDiv">
         <div id="chartdiv"></div>
       </div>
@@ -955,6 +1203,12 @@ view.ui.add("menu", "bottom-right");
         <label for="opacityInput">See through ground</label>
       </div>
       <div id="legendDiv" class="esri-widget"></div>
+      <div class="panel-side esri-widget">
+        <h2><img id="listImage" src="https://EijiGorilla.github.io/Symbols/Warning Symbol/Major.svg"><b>Major Damage</b></h2>
+        <ul id="majorRoadDamageList">
+          <li>Loading&hellip;</li>
+        </ul>
+      </div>
     </div>
   </body>
 </html>
