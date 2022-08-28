@@ -1082,10 +1082,11 @@ function setLotMunicipalOnlyExpression(newValue) {
       constBoundary.definitionExpression = "Station1 = '" + newValue + "'";
   }
 
+  /*
     if (!treeCuttingLayer.visible) {
       treeCuttingLayer.visible = true;
     }
-    
+    */
     return queryForLotGeometries();
 }
 
@@ -1104,54 +1105,98 @@ function queryForLotGeometries() {
 
 // Statino Dropdown list Event Listener
 stationSelect.addEventListener("change", function() {
-    var type = event.target.value;
+    var selectedStation = event.target.value;
     var target = event.target;
 
-    var selectedLayer = document.querySelector('input[name="dataTypeInput"]:checked').id;
-    if (selectedLayer === "Tree Compensation") {
-      document.getElementById("Tree Cutting").checked = true;
-      updateChartCutting();
-      treeCuttingLayer.visible = true;
-      compensationLayer.visible = false;
-    } else {
-      updateChartCutting();
-      treeCuttingLayer.visible = true;
-      compensationLayer.visible = false;
-    }
-    
+    var selectedType = document.querySelector('input[name="dataTypeInput"]:checked').id;
 
-    // Update All charts and numbers
-    setLotMunicipalOnlyExpression(type);
-    filterLotStation1();
+    // Station: None and Type: Tree Cutting
+    if (selectedStation === 'None' && selectedType === 'Tree Cutting') {
+      treeCuttingLayer.visible = true;
+      compensationLayer.visible = false;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartCutting();
+      filterCutStation();
+
+    // Station: None and Type: Tree Compensation
+    } else if (selectedStation === 'None' && selectedType === 'Tree Compensation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = true;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartTreeComp();
+      filterCompenStation();
+
+    // Station: Others and Type: Tree Cutting
+    } else if (selectedStation !== 'None' && selectedType === 'Tree Cutting') {
+      treeCuttingLayer.visible = true;
+      compensationLayer.visible = false;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartCutting();
+      filterCutStation();
+      
+    // Station: Others and Type: Tree Compensation  
+    } else if (selectedStation !== 'None' && selectedType === 'Tree Compensation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = true;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartTreeComp();
+      filterCompenStation();
+    }
 
     zoomToLayer(constBoundary);
 });
 
 // Filter lot and ISF layers
-function filterLotStation1() {
+function filterCutStation() {
   var query2 = treeCuttingLayer.createQuery();
   query2.where = treeCuttingLayer.definitionExpression; // use filtered stations
+}
 
+function filterCompenStation() {
+  var query2 = compensationLayer.createQuery();
+  query2.where = compensationLayer.definitionExpression; // use filtered stations
 }
 
 ///////////
 treeTCP_ProcesTypeButton.addEventListener("change", filterByType);
 function filterByType(e) {
 
+  var selectedStation = stationSelect.value;
   const selectedType = e.target.id;
-  if(selectedType == "Tree Cutting") {
-    compensationLayer.visible = false;
-    treeCuttingLayer.visible = true;
 
-    updateChartCutting();
+    // Station: None and Type: Tree Cutting
+    if (selectedStation === 'None' && selectedType === 'Tree Cutting') {
+      treeCuttingLayer.visible = true;
+      compensationLayer.visible = false;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartCutting();
+      filterCutStation();
 
-  } else if (selectedType == "Tree Compensation") {
-    compensationLayer.visible = true;
-    treeCuttingLayer.visible = false;
+    // Station: None and Type: Tree Compensation
+    } else if (selectedStation === 'None' && selectedType === 'Tree Compensation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = true;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartTreeComp();
+      filterCompenStation();
 
-    updateChartTreeComp();
+    // Station: Others and Type: Tree Cutting
+    } else if (selectedStation !== 'None' && selectedType === 'Tree Cutting') {
+      treeCuttingLayer.visible = true;
+      compensationLayer.visible = false;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartCutting();
+      filterCutStation();
+      
+    // Station: Others and Type: Tree Compensation  
+    } else if (selectedStation !== 'None' && selectedType === 'Tree Compensation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = true;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartTreeComp();
+      filterCompenStation();
+    }
 
-  }
 
 }
 

@@ -1071,6 +1071,7 @@ conservationLayer
 
 
 /////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
 //*******************************//
 //      Progress Chart           //
 //*******************************//
@@ -1163,10 +1164,6 @@ function setLotMunicipalOnlyExpression(newValue) {
     conservationLayer.definitionExpression = "CP = '" + newValue + "'";
   }
 
-    if (!treeCuttingLayer.visible) {
-      treeCuttingLayer.visible = true;
-    }
-    
     return queryForLotGeometries();
 }
 
@@ -1185,64 +1182,155 @@ function queryForLotGeometries() {
 
 // CP Dropdown list Event Listener
 cpSelect.addEventListener("change", function() {
-    var type = event.target.value;
-    var target = event.target;
+    var selectedCP = event.target.value;
+    var selectedType = document.querySelector('input[name="dataTypeInput"]:checked').id;
 
-    var selectedLayer = document.querySelector('input[name="dataTypeInput"]:checked').id;
-    if (selectedLayer === "Compensation" || selectedLayer === "Conservation") {
-      document.getElementById("Tree Cutting").checked = true;
-      updateChartCutting();
+    // Station: None and Type: Tree Cutting
+    if (selectedCP === 'None' && selectedType === 'Tree Cutting') {
       treeCuttingLayer.visible = true;
       compensationLayer.visible = false;
       conservationLayer.visible = false;
-    } else {
+      setLotMunicipalOnlyExpression(selectedCP);
       updateChartCutting();
+      filterCutStation();
+      zoomToLayer(treeCuttingLayer);
+
+    // Station: None and Type: Tree Compensation
+    } else if (selectedCP === 'None' && selectedType === 'Compensation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = true;
+      conservationLayer.visible = false;
+      setLotMunicipalOnlyExpression(selectedCP);
+      updateChartCompensation();
+      filterCompenStation();
+      zoomToLayer(compensationLayer);
+
+    // Station: None and Type: Tree Conservation
+      } else if (selectedCP === 'None' && selectedType === 'Conservation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = false;
+      conservationLayer.visible = true;
+      setLotMunicipalOnlyExpression(selectedCP);
+      updateChartConservation();
+      filterConserveStation();
+      zoomToLayer(conservationLayer);
+
+    // Station: Others and Type: Tree Cutting
+    } else if (selectedCP !== 'None' && selectedType === 'Tree Cutting') {
       treeCuttingLayer.visible = true;
       compensationLayer.visible = false;
       conservationLayer.visible = false;
+      setLotMunicipalOnlyExpression(selectedCP);
+      updateChartCutting();
+      filterCutStation();
+      zoomToLayer(treeCuttingLayer);
+      
+    // Station: Others and Type: Tree Compensation  
+    } else if (selectedCP !== 'None' && selectedType === 'Compensation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = true;
+      conservationLayer.visible = false;
+      setLotMunicipalOnlyExpression(selectedCP);
+      updateChartCompensation();
+      filterCompenStation();
+      zoomToLayer(compensationLayer);
+
+    // Station: Others and Type: Tree Conservation  
+    } else if (selectedCP !== 'None' && selectedType === 'Conservation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = false;
+      conservationLayer.visible = true;
+      setLotMunicipalOnlyExpression(selectedCP);
+      updateChartConservation();
+      filterConserveStation();
+      zoomToLayer(conservationLayer);
     }
 
-    // Update All charts and numbers
-    setLotMunicipalOnlyExpression(type);
-
-
-    filterLotStation1();
-
-    zoomToLayer(treeCuttingLayer);
+    
 });
 
 // Filter lot and ISF layers
-function filterLotStation1() {
+function filterCutStation() {
   var query2 = treeCuttingLayer.createQuery();
   query2.where = treeCuttingLayer.definitionExpression; // use filtered stations
+}
 
+function filterCompenStation() {
+  var query2 = compensationLayer.createQuery();
+  query2.where = compensationLayer.definitionExpression; // use filtered stations
+}
+
+function filterConserveStation() {
+  var query2 = conservationLayer.createQuery();
+  query2.where = conservationLayer.definitionExpression; // use filtered stations
 }
 
 ///////////
 treeStatusTypeButton.addEventListener("change", filterByType);
 function filterByType(e) {
   const selectedType = e.target.id;
-  if(selectedType == "Tree Cutting") {
-    compensationLayer.visible = false;
-    conservationLayer.visible = false;
-    treeCuttingLayer.visible = true;
+  var selectedCP = cpSelect.value;
 
-    updateChartCutting();
+      // Station: None and Type: Tree Cutting
+      if (selectedCP === 'None' && selectedType === 'Tree Cutting') {
+      treeCuttingLayer.visible = true;
+      compensationLayer.visible = false;
+      conservationLayer.visible = false;
+      setLotMunicipalOnlyExpression(selectedCP);
+      updateChartCutting();
+      filterCutStation();
+      zoomToLayer(treeCuttingLayer);
 
-  } else if (selectedType == "Compensation") {
-    compensationLayer.visible = true;
-    conservationLayer.visible = false;
-    treeCuttingLayer.visible = false;
+    // Station: None and Type: Tree Compensation
+    } else if (selectedCP === 'None' && selectedType === 'Compensation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = true;
+      conservationLayer.visible = false;
+      setLotMunicipalOnlyExpression(selectedCP);
+      updateChartCompensation();
+      filterCompenStation();
+      zoomToLayer(compensationLayer);
 
-    updateChartCompensation();
+    // Station: None and Type: Tree Conservation
+      } else if (selectedCP === 'None' && selectedType === 'Conservation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = false;
+      conservationLayer.visible = true;
+      setLotMunicipalOnlyExpression(selectedCP);
+      updateChartConservation();
+      filterConserveStation();
+      zoomToLayer(conservationLayer);
 
-  } else if (selectedType == "Conservation") {
-    compensationLayer.visible = false;
-    conservationLayer.visible = true;
-    treeCuttingLayer.visible = false;
+    // Station: Others and Type: Tree Cutting
+    } else if (selectedCP !== 'None' && selectedType === 'Tree Cutting') {
+      treeCuttingLayer.visible = true;
+      compensationLayer.visible = false;
+      conservationLayer.visible = false;
+      setLotMunicipalOnlyExpression(selectedCP);
+      updateChartCutting();
+      filterCutStation();
+      zoomToLayer(treeCuttingLayer);
+      
+    // Station: Others and Type: Tree Compensation  
+    } else if (selectedCP !== 'None' && selectedType === 'Compensation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = true;
+      conservationLayer.visible = false;
+      setLotMunicipalOnlyExpression(selectedCP);
+      updateChartCompensation();
+      filterCompenStation();
+      zoomToLayer(compensationLayer);
 
-    updateChartConservation();
-  }
+    // Station: Others and Type: Tree Conservation  
+    } else if (selectedCP !== 'None' && selectedType === 'Conservation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = false;
+      conservationLayer.visible = true;
+      setLotMunicipalOnlyExpression(selectedCP);
+      updateChartConservation();
+      filterConserveStation();
+      zoomToLayer(conservationLayer);
+    }
 
 }
 
@@ -2166,7 +2254,7 @@ view.ui.add(legendExpand, {
   <body class="sassy-theme">
     <div id="viewDiv">
       <div class="dateDiv">As of August 1, 2022</div>
-      <div id="headerTitleDiv">SC TREES</div>
+      <div id="headerTitleDiv">N2 TREES</div>
       <div class="esri-widget" id="dropdownDiv">
         <label for="sel-options">CP:</label>
         <select id="valSelect" class="esri-widget" width="150" style="width: 150px"></select>
