@@ -92,6 +92,59 @@ body {
     }
 
 
+
+    #tab1:checked~.panels #area1,
+    #tab2:checked~.panels #area2,
+    #tab3:checked~.panels #area3,
+    #tab4:checked~.panels #area4 {
+        display: block;
+        padding: 0;
+        margin: 0;
+        background-color: rgb(0, 48, 77, 0.95);
+      }
+
+
+      .tab_lab1, .tab_lab2, .tab_lab3, .tab_lab4 {
+        padding-left: 1.3rem;
+      width: 100%;
+      font-size: 1.5rem;
+      color: white;
+      }
+
+      .tab_wrap {
+        width: 100%;
+        text-align: center;
+      }
+
+      #tab1:checked~.tab_lab1,
+      #tab2:checked~.tab_lab2,
+      #tab3:checked~.tab_lab3,
+      #tab4:checked~.tab_lab4 {
+        text-decoration: underline;
+        text-decoration-color: orange;
+      }
+
+
+      .panel {
+        padding: 1px;
+        display: none;
+      }
+
+      #area1, #area2 {
+        text-align: left;
+      }
+
+      input[name="check"] {
+        display: none;
+      }
+
+      .tab_contents {
+        width: 100%;
+        background-color: rgb(0, 48, 77, 0.95);
+        margin-top: 1.5rem;
+      }
+
+
       #menu {
   padding: 3px 3px 3px 3px;
   background-color: rgb(0,0,0,0.3);
@@ -139,7 +192,7 @@ body {
       }
 
       /*-Major Road Damage List-*/
-      #majorRoadDamageList {
+      #majorRoadDamageList, #roadIdList {
         background-color: rgb(0, 48, 77, 1); /* #00304D*/;
         width: 100%;
         height: 88vh;
@@ -862,11 +915,15 @@ const graphicsLayer = new GraphicsLayer({
 
   }
 
+
+
+
+
 //------------- list of Major Road Damage ------------------//
 
   //reloStatusLayer.outFields = ["Name", "StatusRC", "Status"];
-  
-  var majorRoadDamageList = document.getElementById("majorRoadDamageList");
+
+
   function damageRating() {
     return {
     1: "Basic",
@@ -876,17 +933,23 @@ const graphicsLayer = new GraphicsLayer({
   }
   }
 
-  // Obtain a list of Owner's names and status
-  view.whenLayerView(damagePoints).then(function(layerView) {
-    layerView.watch("updating", function(val) {
-      if (!val) {
+  let streetlayerView;
+let idLayerView;
 
+ // List of STREET
+ var majorRoadDamageList = document.getElementById("majorRoadDamageList");
+
+ view.when(function() {
+  view.whenLayerView(damagePoints).then(function(streetlayerView) {
+    streetlayerView.watch("updating", function(val) {
+      
+      if (!val) {
         // Query for only Expropriation lots
         //var query = new Query();
         //query.geometry = true;
         //query.returnGeometry = true;
         //query.where = "Rating = 4";
-        layerView.queryFeatures({
+        streetlayerView.queryFeatures({
             // Display listed items only in display extent
             geometry: view.extent,
             returnGeometry: true,
@@ -914,16 +977,9 @@ const graphicsLayer = new GraphicsLayer({
                 objectIds: [objectId]
               });
 
-              // Display detailed information 
-              const damageRating = attributes.Rating;
-              //const repairStatus = attributes.Status_Repair;
-              const streeName = attributes.ROAD_NAME;
-              //const reportText = attributes.Comment;
-              
-
               // Go to the clicked spot
               // Query extent for selected expropriation lot in the list
-              layerView.queryExtent(queryExtent).then(function(result) {
+              streetlayerView.queryExtent(queryExtent).then(function(result) {
                 if (result.extent) {
                   view.goTo({
                     target: result.extent,
@@ -941,10 +997,10 @@ const graphicsLayer = new GraphicsLayer({
                 if (highlightSelect) {
                   highlightSelect.remove();
                 }
-                highlightSelect = layerView.highlight([objectId]);
+                highlightSelect = streetlayerView.highlight([objectId]);
                 
                 view.on("click", function() {
-                    layerView.filter = null;
+                  streetlayerView.filter = null;
                   highlightSelect.remove();
                 });
               
@@ -958,20 +1014,113 @@ const graphicsLayer = new GraphicsLayer({
                 if (highlightSelect) {
                   highlightSelect.remove();
                 }
-                highlightSelect = layerView.highlight([objectId]);
+                highlightSelect = streetlayerView.highlight([objectId]);
 
                 view.on("click", function() {
-                    layerView.filter = null;
+                  streetlayerView.filter = null;
                   highlightSelect.remove();
                 });
               });
             }); // End of result.features.forEach
           }); // End of layerView.queryFeatures
-        } // End of if (!val)
+        }
      }); // End of layerView.watch
   }); // End of view.whenLayerView
+});
 
+// ID
+var roadIdList = document.getElementById("roadIdList");
 
+view.when(function() {
+view.whenLayerView(damagePoints).then(function(idLayerView) {
+  idLayerView.watch("updating", function(val) {
+    
+    if (!val) {
+      // Query for only Expropriation lots
+      //var query = new Query();
+      //query.geometry = true;
+      //query.returnGeometry = true;
+      //query.where = "Rating = 4";
+      idLayerView.queryFeatures({
+          // Display listed items only in display extent
+          geometry: view.extent,
+          returnGeometry: true,
+          orderByFields: ["SECTION_ID"]
+      }).then(function(result) {
+        roadIdList.innerHTML = "";
+
+        // Count the number of listed items in display extent
+        damageCountInViewDiv.innerHTML = result.features.length + "<b>" +" DAMAGES IN VIEW" + "</b>";
+
+        result.features.forEach(function(feature) {
+          var attributes = feature.attributes;
+          var li = document.createElement("li");
+          li.setAttribute("class", "panel-result");
+
+          // Add Expropriation lots to list
+          let rating = attributes.Rating;
+          li.innerHTML = "<b>" + attributes.SECTION_ID + "</b>" + "<br>" + damageRating()[rating].toUpperCase() + " DAMAGE";
+
+          // Click an item in the list event
+          li.addEventListener("click", function(event) {
+            var target = event.target;
+            var objectId = feature.attributes.OBJECTID;
+            var queryExtent = new Query({
+              objectIds: [objectId]
+            });
+
+            // Go to the clicked spot
+            // Query extent for selected expropriation lot in the list
+            idLayerView.queryExtent(queryExtent).then(function(result) {
+              if (result.extent) {
+                view.goTo({
+                  target: result.extent,
+                  speedFactor: 2,
+                  zoom: 17})
+                  .catch(function(error) {
+                    if (error.name != "AbortError") {
+                      console.error(error);
+                    }
+                  }); // End of catch
+                } // End of if (result.extent)
+              }); // End of idLayerView.queryExtent
+              
+              // Highlight selected lots
+              if (highlightSelect) {
+                highlightSelect.remove();
+              }
+              highlightSelect = idLayerView.highlight([objectId]);
+              
+              view.on("click", function() {
+                  idLayerView.filter = null;
+                highlightSelect.remove();
+              });
+            
+            }); // End of li.addEventListener
+            roadIdList.appendChild(li);
+            //majorRoadDamageList.appendChild(li);
+
+            // Hover a mouse over the list and highlight
+            li.addEventListener("mouseenter", function(event) {
+              var objectId = feature.attributes.OBJECTID;
+              
+              if (highlightSelect) {
+                highlightSelect.remove();
+              }
+              highlightSelect = idLayerView.highlight([objectId]);
+
+              view.on("click", function() {
+                  idLayerView.filter = null;
+                highlightSelect.remove();
+              });
+            });
+          }); // End of result.features.forEach
+        }); // End of idLayerView.queryFeatures
+
+      }
+   }); // End of idLayerView.watch
+}); // End of view.whenLayerView
+});
 
 
 
@@ -1292,18 +1441,35 @@ view.ui.add(layerListExpand, {
         <div id="informationDiv" class="box">
             <div id="titleDiv" class="esri-widget">ROAD DAMAGE</div>
             <div id="damageCountInViewDiv"></div>
-            <div class="listChangeDiv">
-                <ul id="listChangeList">
-                  <li style="display:inline" class="test active" id="STREET">STREET</li>
-                  <li style="display:inline" class="test" id="ID">ID</li>
-                  <li style="display:inline" class="test" id="CITY">CITY</li>
-                  <li style="display:inline" class="test" id="SUMMARY">SUMMARY</li>
-                </ul>
-              </div>
             <div class="panel-side esri-widget">
-                <ul id="majorRoadDamageList">
-                    <li class="damage-item">Loading&hellip;</li>
-                </ul>
+              <section class="tab_contents">
+                <div class="tab_wrap">
+                  <input id="tab1" type="radio" name="check" checked>
+                  <label for="tab1" class="tab_lab1">STREET</label>
+                  <input id="tab2" type="radio" name="check">
+                  <label for="tab2" class="tab_lab2">ID</label>
+                  <input id="tab3" type="radio" name="check">
+                  <label for="tab3" class="tab_lab3">CITY</label>
+                  <input id="tab4" type="radio" name="check">
+                  <label for="tab4" class="tab_lab4">SUMMARY</label>
+                  <div class="panels">
+                    <div id="area1" class="panel">
+                      <ul id="majorRoadDamageList">
+                        <li>Loading&hellip;</li>
+                      </ul>
+                    </div>
+                    <div id="area2" class="panel">
+                      <ul id="roadIdList">
+                        <li>Loading&hellip;</li>
+                      </ul>
+                    </div>
+                  </div>       
+                </div>
+              </section>
+            </div>
+            <div id="summaryDiv">
+              <div id="damageChartDiv">test_damage_chart</div>
+              <div id="budgetChartDiv">test_budget_chart</div>
             </div>
     </div>
 </body>
