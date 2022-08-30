@@ -670,9 +670,12 @@ let treeTree_CompeRenderer = {
 // Station1 point feature
 var stationLayer = new FeatureLayer({
     portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 2,
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 1,
   definitionExpression: "Project = 'MMSP'"
               //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
 });
@@ -682,9 +685,12 @@ map.add(stationLayer, 0);
 // Construction boundary
 var constBoundary = new FeatureLayer({
   portalItem: {
-    id: "5a0b175a1f214b5394e26ff554bf8b79"
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
   },
-  layerId: 5,
+  layerId: 4,
   outFields: ["*"],
   renderer: ConstructionBoundaryFill,
   definitionExpression: "MappingBoundary = 1",
@@ -699,9 +705,12 @@ map.add(constBoundary);
 
 var lotLayer = new FeatureLayer({
     portalItem: {
-        id: "ce8796a2cefe4ed78b308cbd8eed9e06"
+        id: "032432d931624de9bf5ff03f1f9d7016",
+        portal: {
+            url: "https://gis.railway-sector.com/portal"
+        }
     },
-  layerId: 15,
+    layerId: 1,
     title: "Status of Land Acquisition",
     renderer: lotRenderer,
     popupEnabled: false,
@@ -713,12 +722,15 @@ var lotLayer = new FeatureLayer({
 // Tree Cutting
 var treeCuttingLayer = new FeatureLayer ({
     portalItem: {
-    id: "f411ae40cd35446d8221a3fa52aca8ef"
+    id: "30cdb9f9775146308a05dd17cfbfa87a",
+    portal: {
+        url: "https://gis.railway-sector.com/portal"
+    }
   },
   elevationInfo: {
             mode: "on-the-ground"
           },
-  layerId: 2,
+  layerId: 1,
   outFields: ["*"],
   title: "Status of Tree Cutting",
   renderer: treeCuttingRenderer,
@@ -777,10 +789,13 @@ map.add(treeCuttingLayer,2);
 // Tree Tree_Compe
 var compensationLayer = new FeatureLayer ({
     portalItem: {
-    id: "f411ae40cd35446d8221a3fa52aca8ef"
+    id: "30cdb9f9775146308a05dd17cfbfa87a",
+    portal: {
+        url: "https://gis.railway-sector.com/portal"
+    }
   },
   outFields: ["*"],
-  layerId: 2,
+  layerId: 1,
   title: "Status of Tree Compensation",
   renderer: treeTree_CompeRenderer,
   popupTemplate: {
@@ -1067,10 +1082,11 @@ function setLotMunicipalOnlyExpression(newValue) {
       constBoundary.definitionExpression = "Station1 = '" + newValue + "'";
   }
 
+  /*
     if (!treeCuttingLayer.visible) {
       treeCuttingLayer.visible = true;
     }
-    
+    */
     return queryForLotGeometries();
 }
 
@@ -1089,50 +1105,98 @@ function queryForLotGeometries() {
 
 // Statino Dropdown list Event Listener
 stationSelect.addEventListener("change", function() {
-    var type = event.target.value;
+    var selectedStation = event.target.value;
     var target = event.target;
 
-    var selectedLayer = document.querySelector('input[name="dataTypeInput"]:checked').id;
-    if (selectedLayer === "Tree Compensation") {
-      document.getElementById("Tree Cutting").checked = true;
-      updateChartCutting();
-    } else {
-      updateChartCutting();
-    }
-    
+    var selectedType = document.querySelector('input[name="dataTypeInput"]:checked').id;
 
-    // Update All charts and numbers
-    setLotMunicipalOnlyExpression(type);
-    filterLotStation1();
+    // Station: None and Type: Tree Cutting
+    if (selectedStation === 'None' && selectedType === 'Tree Cutting') {
+      treeCuttingLayer.visible = true;
+      compensationLayer.visible = false;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartCutting();
+      filterCutStation();
+
+    // Station: None and Type: Tree Compensation
+    } else if (selectedStation === 'None' && selectedType === 'Tree Compensation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = true;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartTreeComp();
+      filterCompenStation();
+
+    // Station: Others and Type: Tree Cutting
+    } else if (selectedStation !== 'None' && selectedType === 'Tree Cutting') {
+      treeCuttingLayer.visible = true;
+      compensationLayer.visible = false;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartCutting();
+      filterCutStation();
+      
+    // Station: Others and Type: Tree Compensation  
+    } else if (selectedStation !== 'None' && selectedType === 'Tree Compensation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = true;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartTreeComp();
+      filterCompenStation();
+    }
 
     zoomToLayer(constBoundary);
 });
 
 // Filter lot and ISF layers
-function filterLotStation1() {
+function filterCutStation() {
   var query2 = treeCuttingLayer.createQuery();
   query2.where = treeCuttingLayer.definitionExpression; // use filtered stations
+}
 
+function filterCompenStation() {
+  var query2 = compensationLayer.createQuery();
+  query2.where = compensationLayer.definitionExpression; // use filtered stations
 }
 
 ///////////
 treeTCP_ProcesTypeButton.addEventListener("change", filterByType);
 function filterByType(e) {
 
+  var selectedStation = stationSelect.value;
   const selectedType = e.target.id;
-  if(selectedType == "Tree Cutting") {
-    compensationLayer.visible = false;
-    treeCuttingLayer.visible = true;
 
-    updateChartCutting();
+    // Station: None and Type: Tree Cutting
+    if (selectedStation === 'None' && selectedType === 'Tree Cutting') {
+      treeCuttingLayer.visible = true;
+      compensationLayer.visible = false;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartCutting();
+      filterCutStation();
 
-  } else if (selectedType == "Tree Compensation") {
-    compensationLayer.visible = true;
-    treeCuttingLayer.visible = false;
+    // Station: None and Type: Tree Compensation
+    } else if (selectedStation === 'None' && selectedType === 'Tree Compensation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = true;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartTreeComp();
+      filterCompenStation();
 
-    updateChartTreeComp();
+    // Station: Others and Type: Tree Cutting
+    } else if (selectedStation !== 'None' && selectedType === 'Tree Cutting') {
+      treeCuttingLayer.visible = true;
+      compensationLayer.visible = false;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartCutting();
+      filterCutStation();
+      
+    // Station: Others and Type: Tree Compensation  
+    } else if (selectedStation !== 'None' && selectedType === 'Tree Compensation') {
+      treeCuttingLayer.visible = false;
+      compensationLayer.visible = true;
+      setLotMunicipalOnlyExpression(selectedStation);
+      updateChartTreeComp();
+      filterCompenStation();
+    }
 
-  }
 
 }
 
@@ -1814,7 +1878,7 @@ view.ui.add(legendExpand, {
   </head>
   <body class="sassy-theme">
     <div id="viewDiv">
-      <div class="dateDiv">As of August 15, 2022</div>
+      <div class="dateDiv">As of August 22, 2022</div>
       <div id="headerTitleDiv">MMSP TREES</div>
       <div class="esri-widget" id="dropdownDiv">
         <label for="sel-options">Station:</label>
