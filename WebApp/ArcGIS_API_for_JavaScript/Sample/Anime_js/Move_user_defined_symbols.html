@@ -1,0 +1,252 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>
+      Sample
+    </title>
+    <style>
+
+html,
+body,
+#viewDiv {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#titleDiv {
+  background-color: lightgray;
+  color: black;
+  padding: 5px;
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  font-size: 20pt;
+  font-weight: bolder;
+  width: 100%;
+  height: 30px;
+  text-align: center;
+  opacity: 0.75;
+}
+    </style>
+
+    <link
+    rel="stylesheet"
+    href="https://js.arcgis.com/4.24/esri/themes/dark/main.css"
+    />
+<!-- Resources -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.0/anime.min.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<script src="https://js.arcgis.com/4.24/"></script>
+
+    <script>
+      require([
+      "esri/views/SceneView",
+  "esri/WebScene",
+  "esri/layers/GeoJSONLayer",
+  "esri/layers/GraphicsLayer",
+  "esri/Graphic",
+  "esri/symbols/WebStyleSymbol",
+  "esri/core/reactiveUtils",
+  "esri/Map",
+  "esri/layers/TileLayer",
+  "esri/layers/VectorTileLayer",
+  "esri/geometry/Circle"
+      ], function(
+        SceneView,
+  WebScene,
+  GeoJSONLayer,
+  GraphicsLayer,
+  Graphic,
+  WebStyleSymbol,
+  reactiveUtils,
+  Map,
+  TileLayer,
+  VectorTileLayer,
+  Circle
+      ) {
+
+  // Flight path
+  var pointA = { latitude: 52.55573101150287, longitude: 13.266720847998348 };
+  var pointB = { latitude: 52.5572892898179, longitude: 13.28166875630727 };
+  var pointC = { latitude: 52.55841014549657, longitude: 13.293069950833013 };
+  var pointD = { latitude: 52.55941014549657, longitude: 13.303069950833013 };
+
+  var scale = 1.5;
+
+  /*
+  var scene = new WebScene({
+    portalItem: {
+      id: "85a1d98e43f34ba5bcf8d9aa4d3a44be"
+    }
+  });
+  */
+
+  // Add scene view
+  var map = new Map({
+  basemap: {
+            baseLayers: [
+              new TileLayer({
+                portalItem: {
+                  id: "1b243539f4514b6ba35e7d995890db1d" // world hillshade
+                }
+              }),
+              new VectorTileLayer({
+                portalItem: {
+                  id: "0a0d74b5fbc0431fa0f6c938d0b04505" // community style vector tiles
+                },
+                blendMode: "multiply"
+              })
+            ]
+          },
+          ground: "world-elevation"
+
+}); 
+
+  var view = new SceneView({
+    // qualityProfile: "high",
+    map: map,
+    container: "viewDiv",
+    camera: {
+      position: {
+        spatialReference: { latestWkid: 3857, wkid: 102100 },
+        x: 1477298.9087823536,
+        y: 6901582.610172488,
+        z: 118.85361315403134
+      },
+      heading: 110.19422534050881,
+      tilt: 82.04763573016989
+    }
+  });
+  view.ui.add(["toggle-play", "toggle-pause"], "top-left");
+
+  var graphicsLayer = new GraphicsLayer({
+    elevationInfo: {
+      mode: "relative-to-ground"
+    }
+  });
+
+  // Add a 3D point graphics
+  var plane = new Graphic({
+    geometry: { ...pointA, z: 100, type: "point" }
+  });
+
+  // Add custom 3D web style symbol
+  function customSymbol3D(name) {
+  return {
+    type: "web-style",
+    portal: "https://www.maps.arcgis.com",
+
+    // IMPORTANT: Your browser needs to be able to open the following link. It will say insecure so need to go to advanced.
+    styleUrl: "https://www.maps.arcgis.com/sharing/rest/content/items/c04d4d4145f64f8fa38407dd5331dd1f/data",
+    name: name
+  };
+}
+
+ // Add your own image
+function getUniqueValueSymbol(name, sizeS) {
+            return {
+            type: "point-3d", // autocasts as new PointSymbol3D()
+            symbolLayers: [
+              {
+                type: "icon", // autocasts as new IconSymbol3DLayer()
+                resource: {
+                  href: name
+                },
+                size: sizeS,
+                outline: {
+                  color: "white",
+                  size: 2
+                }
+              }
+            ]
+          };
+        }
+
+  
+  // Add to graphicsLayer
+  (async () => {
+
+    //var symbol = customSymbol3D("3D_Telecom_BTS");
+    var symbol = getUniqueValueSymbol("https://EijiGorilla.github.io/Symbols/Demolished.png", 50);
+    plane.symbol = symbol;
+
+    graphicsLayer.add(plane);
+  })();
+
+
+  (async () => {
+    await view.when();
+    view.map.basemap.referenceLayers = [];
+    view.map.add(graphicsLayer);
+    view.environment.atmosphere.quality = "high";
+  })();
+
+  var point = plane.geometry.clone();
+
+  var animation = anime
+    .timeline({
+      autoplay: false,
+      targets: point,
+      loop: true,
+      duration: 5000,
+      update: function() {
+        plane.geometry = point.clone(); // clone new position. Without clone, position is not updated
+      }
+    })
+    .add({
+      ...pointB,
+      easing: "linear"
+    })
+    .add(
+      {
+        z: 0,
+        easing: "easeOutSine"
+      },
+      0
+    )
+    .add({
+      ...pointC,
+      easing: "easeOutSine"
+    })
+    .add({
+      z:10,
+      ...pointD,
+      easing: "linear"
+    });
+
+
+  document.querySelector("#toggle-play").onclick = () => {
+    document.querySelector("#toggle-play").style.display = "none";
+    document.querySelector("#toggle-pause").style.display = "";
+    animation.play();
+  };
+  document.querySelector("#toggle-pause").onclick = () => {
+    document.querySelector("#toggle-pause").style.display = "none";
+    document.querySelector("#toggle-play").style.display = "";
+    animation.pause();
+  };
+
+      });
+    </script>
+  </head>
+  <body class="sassy-theme">
+    <div id="viewDiv" class="esri-widget">
+      <div id="toggle-play" class="esri-widget esri-widget--button esri-interactive" title="Play Pause">
+        <span class="esri-icon-play" />
+      </div>
+      <div id="toggle-pause" class="esri-widget esri-widget--button esri-interactive" title="Play Pause" style="display: none;">
+        <span class="esri-icon-pause" />
+      </div>
+    </div>
+</body>
+</html>
