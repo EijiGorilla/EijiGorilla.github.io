@@ -1,3 +1,4 @@
+// Sample
 var point1 = {latitude: 14.65485964, longitude: 120.9988027};
 var point2 = {latitude: 14.65415704, longitude: 120.99827729};
 var point3 = {latitude: 14.65338464, longitude: 120.99786549};
