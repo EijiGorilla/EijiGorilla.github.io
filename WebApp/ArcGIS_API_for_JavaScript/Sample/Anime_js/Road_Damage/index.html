@@ -62,6 +62,27 @@ body {
   bottom: 0;
 }
 
+img {
+  width: 30;
+  height: 30;
+  float: left;
+  margin-top: 0.3rem;
+  margin-left: 1rem;
+  margin-bottom: 1rem;
+  animation: pulse-animation 2s infinite;
+  border-radius: 50%;
+  box-shadow: 0px 0px 1px 1px #0000001a;
+}
+@keyframes pulse-animation {
+  0% {
+    box-shadow: 0 0 0 0px rgba(225, 225, 225, 0.9);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+  }
+}
+
+
 #legendDiv {
   background-color: rgb(0, 0, 0, 0.5);
   z-index: 99;
@@ -328,6 +349,18 @@ body {
         margin-left: 2rem;
         margin-top: 0.5rem;
         margin-bottom: 0;
+}
+
+#damageLabel h3 {
+  color: orange;
+  font-family: Avenir Next;
+  text-align: left;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-left: 2rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+  padding-top: 0.5rem;
 }
 
     /*-General-*/
@@ -608,7 +641,7 @@ let osmSymbol = {
       },
       edges: {
         type: "solid", // autocasts as new SolidEdges3D()
-        color: [225, 225, 225, 0.3]
+        color: [225, 225, 225, 0.5]
       }
   }
 ]
@@ -1066,7 +1099,8 @@ var pointE34 = {latitude: 14.60027246, longitude: 120.99086499};
 var graphicsLayer = new GraphicsLayer({
     elevationInfo: {
       mode: "relative-to-ground"
-    }
+    },
+    title: "Moving Points"
   });
 
 // Add a 3D point graphics
@@ -1868,18 +1902,20 @@ animation5.pause();
 
 /////////////////////////////////////////////
 // Major Road network
+const colorsRoad = ["#dc4b00", "#3c6ccc", "#d9dc00", "#91d900"];
 var majorRoadRenderer = {
   type: "unique-value",
   valueExpression: "When($feature.ROAD_SEC_CLASS == 'Primary', 'Primary', \
                            $feature.ROAD_SEC_CLASS == 'Secondary', 'Secondary', \
                            $feature.ROAD_SEC_CLASS)",
   uniqueValueInfos: [
-    {
+    {// #00b3ff|#424038|#cccccc
+
       value: 'Primary',
       label: 'Primary',
       symbol: {
         type: "simple-line",
-        color: "#FF0000",
+        color: colorsRoad[0],
         width: "3px",
         style: "solid"
       }
@@ -1889,7 +1925,7 @@ var majorRoadRenderer = {
       label: 'Secondary',
       symbol: {
         type: "simple-line",
-        color: "#E69800",
+        color: colorsRoad[1],
         width: "3px",
         style: "solid"
       }
@@ -1899,7 +1935,7 @@ var majorRoadRenderer = {
       label: 'Tertiary',
       symbol: {
         type: "simple-line",
-        color: "#4DAF4A",
+        color: colorsRoad[2],
         width: "1px",
         style: "solid"
       }
@@ -1930,7 +1966,7 @@ var expressRoadRenderer = {
   type: "simple",
   symbol: {
         type: "simple-line",
-        color: "#377EB8",
+        color: colorsRoad[3],
         width: "3px",
         style: "solid"
       }
@@ -1955,6 +1991,8 @@ var expressRoad = new FeatureLayer({
 map.add(expressRoad);
 
 // Municipal Boundary
+// #353d45|#566068|#78838c|#f0f4f7
+
 var municialLabelClass = {
   symbol: {
             type: "label-3d",// autocasts as new LabelSymbol3D()
@@ -1996,15 +2034,15 @@ var municialLabelClass = {
       }
 
       //NO__OF_BGYS_
-let ngcpDpwhRoadRenderer = {
+let municipalBoundaryRenderer = {
   type: "simple",
   symbol: {
       type: "simple-fill",
       color: [0, 197, 255, 0.05],
       style: "solid",
       outline: {
-        color: "white",
-        width: 3,
+        color: "#f0f4f7",
+        width: 1.5,
         style: "short-dot"
       }
     }
@@ -2015,7 +2053,7 @@ var municipalBoundary = new FeatureLayer({
     },
     title: "Municipal Boundary",
     layerId: 3,
-    renderer: ngcpDpwhRoadRenderer,
+    renderer: municipalBoundaryRenderer,
     outFields: ["*"],
     labelingInfo: [municialLabelClass],
     popupEnabled: false,
@@ -2263,6 +2301,9 @@ var streetNameLabel = document.getElementById('streetNameLabel');
 var reportLabel = document.getElementById('reportLabel');
 var estimatedCostLabel = document.getElementById('estimatedCostLabel');
 
+// Image of damage 
+var img1 = document.getElementById('img1');
+
 // Default Setting: list
 chartPanelDiv.style.display = "none";
 detailInfoDiv.style.display = "none";
@@ -2366,7 +2407,20 @@ document.querySelector('.list_panel2 input').addEventListener('change', e => {
               var reportComment = attributes.Comment;
               var repairCost = attributes.Cost;
 
-              damageLabel.innerHTML = "DAMAGE" + "<br>" + "<h6>" + "STATUS" + "</h6>" + "<h3>" + damageRating()[rating].toUpperCase() + "</h3>";
+              if (damageRating()[rating] === 'Major') {
+                img1.setAttribute('src', "https://EijiGorilla.github.io/Symbols/Warning Symbol/Major.png");
+              
+              } else if (damageRating()[rating] === 'Moderate') {
+                img1.setAttribute('src', "https://EijiGorilla.github.io/Symbols/Warning Symbol/Moderate.png");
+
+              } else if (damageRating()[rating] === 'Minor') {
+                img1.setAttribute('src', "https://EijiGorilla.github.io/Symbols/Warning Symbol/Minor.png");
+
+              } else if (damageRating()[rating] === 'Basic') {
+                img1.setAttribute('src', "https://EijiGorilla.github.io/Symbols/Warning Symbol/Basic.png");
+              }
+
+              damageLabel.innerHTML = "<h3>" + damageRating()[rating].toUpperCase() + "</h3>";             
               repaireStatusLabel.innerHTML = "REPAIREMENT" + "<br>" + "<h6>" + "STATUS" + "</h6>" + "<h3>" + repairStatus()[repair].toUpperCase() + "</h3>";
               streetNameLabel.innerHTML = "STREET" + "<br>" + "<h7>" + street + "</h7>";
               reportLabel.innerHTML = "REPORT" + "<br>" + "<h7>" + reportComment + "</h7>";
@@ -3379,8 +3433,9 @@ view.ui.add(layerListExpand, {
             </div>
           </div>
           <div id="detailInfoDiv">
-            <div id="streetNameLabel"></div>
+            <img src="https://EijiGorilla.github.io/Symbols/Warning Symbol/Major.png" id="img1">
             <div id="damageLabel"></div>
+            <div id="streetNameLabel"></div>
             <div id="repaireStatusLabel"></div>
             <div id="reportLabel"></div>
             <div id="estimatedCostLabel"></div>
