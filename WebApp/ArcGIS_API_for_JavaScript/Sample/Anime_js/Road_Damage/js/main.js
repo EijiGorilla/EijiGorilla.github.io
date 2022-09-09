@@ -1381,6 +1381,7 @@ informationScreenDiv.innerHTML = "<br>" + "<b>" + "ABOUT THIS APP" + "</b>" + "<
 }
 
 
+
 // Click 'CLOSE' button: 
 document.querySelector('#information_panel input').addEventListener('change', e => {
 informationScreenDiv.style.display = e.target.checked ? 'none' : 'block';
@@ -1390,8 +1391,6 @@ applicationDiv.setAttribute('style', '');
 //applicationDiv.style.display = 'block'; 
 });
 //
-
-
 
 // Default Setting: list
 chartPanelDiv.style.display = "none";
@@ -2425,13 +2424,12 @@ view: view
 view.ui.add(homeWidget, "top-left");
 
 // Full screen logo
-view.ui.add(
-new Fullscreen({
+var fullScreen = new Fullscreen({
   view: view,
   element: applicationDiv
-}),
-"top-left"
-);
+});
+
+view.ui.add(fullScreen, "top-left")
 
 
 var legend = new Legend({
