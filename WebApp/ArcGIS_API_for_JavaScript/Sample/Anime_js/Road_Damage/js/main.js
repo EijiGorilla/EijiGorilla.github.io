@@ -138,7 +138,8 @@ var osm3D = new SceneLayer({
 portalItem: {
   id: "ca0470dbbddb4db28bad74ed39949e25"
 },
-title: "OpenStreetMap 3D Buildings"
+title: "OpenStreetMap 3D Buildings",
+popupEnabled: false
 });
 map.add(osm3D);
 osm3D.renderer = {
@@ -1291,10 +1292,41 @@ var damagePoints = new FeatureLayer({
   layerId: 0,
   renderer: damageRatingSymbol,
   outFields: ["*"],
-  popupEnabled: false,
   minScale: 1200000,
   maxScale: 0,
-  returnGeometry: true
+  returnGeometry: true,
+  popupTemplate: {
+    title: "<b>{Rating} damage</b>",
+    lastEditInfoEnabled: false,
+    returnGeometry: true,
+    content: [
+      {
+        type: "fields",
+        fieldInfos: [
+          {
+            fieldName: "Section ID",
+            label: "ID Number"
+          },
+          {
+            fieldName: "Municipality",
+            label: "Municipality"
+          },
+          {
+            fieldName: "Cost",
+            label: "Repaire Cost"
+          },
+          {
+            fieldName: "Repair_Status",
+            label: "Repaire Status"
+          },
+          {
+            fieldName: "Comment",
+            label: "Comment"
+          }
+        ]
+      }
+    ]
+  }
 })
 map.add(damagePoints,1);
 
