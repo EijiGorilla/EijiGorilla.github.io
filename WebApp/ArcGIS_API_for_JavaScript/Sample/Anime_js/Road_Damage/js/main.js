@@ -936,16 +936,15 @@ animation5.pause();
 };
 
 
-
-
-
-
-
-
-
-
-
-
+function lookAround() {
+  if (!view.interacting) {
+    const camera = view.camera.clone();
+    camera.heading += 0.05;
+    view.goTo(camera, { animate: false });
+    requestAnimationFrame(lookAround);
+  }
+}
+lookAround();
 
 
 
