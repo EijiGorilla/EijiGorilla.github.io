@@ -21,6 +21,10 @@ require([
       "esri/Graphic",
       "esri/symbols/WebStyleSymbol",
       "esri/core/reactiveUtils",
+      "esri/widgets/Weather",
+      "esri/widgets/Daylight",
+      "esri/Camera",
+      "esri/geometry/Point"
 
     ], function(
       Basemap,
@@ -44,7 +48,11 @@ require([
       Home,
       Graphic,
       WebStyleSymbol,
-      reactiveUtils
+      reactiveUtils,
+      Weather,
+      Daylight,
+      Camera,
+      Point
 
     ) {
 
@@ -76,16 +84,8 @@ map.ground.surfaceColor = '#004C73';
 var view = new SceneView({
 map: map,
 container: "viewDiv",
-viewingMode: "local",
-camera: {
-  position: {
-    x: 120.9777186,
-    y: 14.5600295,
-    z: 3000
-  },
-  tilt: 70,
-  heading: 10
-},
+viewingMode: "global",
+qualityProfile: "high",
 environment: {
   background: {
     type: "color", // autocasts as new ColorBackground()
@@ -93,10 +93,19 @@ environment: {
   },
   
   // disable stars
-  starsEnabled: false,
+  starsEnabled: true,
         
   //disable atmosphere
   atmosphereEnabled: false
+},
+camera: {
+  position: {
+    x: 120.9777186,
+    y: 14.5600295,
+    z: 2000
+  },
+  tilt: 70,
+  heading: 0
 }
 });
 
@@ -935,23 +944,6 @@ animation5.pause();
 
 };
 
-
-function lookAround() {
-  if (!view.interacting) {
-    const camera = view.camera.clone();
-    camera.heading += 0.05;
-    view.goTo(camera, { animate: false });
-    requestAnimationFrame(lookAround);
-  }
-}
-lookAround();
-
-
-
-
-
-
-
 /////////////////////////////////////////////
 // Major Road network
 const colorsRoad = ["#dc4b00", "#3c6ccc", "#d9dc00", "#91d900"];
@@ -1090,13 +1082,15 @@ let municipalBoundaryRenderer = {
 type: "simple",
 symbol: {
     type: "simple-fill",
-    color: [0, 197, 255, 0.05],
+    color: [0, 0, 0, 0], //[0, 197, 255, 0.05]
     style: "solid",
+    /*
     outline: {
       color: "#f0f4f7",
       width: 1.5,
       style: "short-dot"
     }
+    */
   }
 }
 var municipalBoundary = new FeatureLayer({
@@ -1151,6 +1145,7 @@ function getUniqueValueSymbol(name, sizeS, damage) {
             }
           }
       }
+
   } else if (damage === "Moderate") {
       return {
       type: "point-3d", // autocasts as new PointSymbol3D()
@@ -1328,6 +1323,17 @@ var damagePoints = new FeatureLayer({
   }
 })
 map.add(damagePoints,1);
+
+// Code to look around to see what's behind it.
+function lookAround() {
+  if (!view.interacting) {
+    const camera = view.camera.clone();
+    camera.heading += 0.05;
+    view.goTo(camera, { animate: false });
+    requestAnimationFrame(lookAround);
+  }
+}
+lookAround();
 
 
       // listen to the view's click event
@@ -2502,9 +2508,6 @@ var layerList = new LayerList({
 view: view,
 listItemCreatedFunction: function(event) {
   const item = event.item;
-  if (item.title === "Municipal Boundary"){
-    item.visible = false
-  }
 }
 });
 

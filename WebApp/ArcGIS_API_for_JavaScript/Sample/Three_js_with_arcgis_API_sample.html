@@ -18,6 +18,12 @@
     height: 100%;
     width: 100%;
   }
+
+  #menu {
+  padding: 3px 3px 3px 3px;
+  background-color: rgb(0,0,0,0.3);
+  color: white;
+}
 </style>
 
 <!-- Our application -->
@@ -57,30 +63,43 @@ function(
 
   // Create a map
   //////////////////////////////////////////////////////////////////////////////////////
+  
   var map = new Map({
-    basemap: "gray",
+    basemap: "dark-gray",
     ground: "world-elevation"
   });
 
   // Create a SceneView
   //////////////////////////////////////////////////////////////////////////////////////
-  var view = new SceneView({
-    container: "viewDiv",
-    map: map,
-    viewingMode: "global",
-    camera: {
-      position: {
-        x: -9932671,
-        y: 2380007,
-        z: 1687219,
-        spatialReference: {wkid: 102100}
-      },
-      heading: 0,
-      tilt: 35
+// Add scene view
+var view = new SceneView({
+  map: map,
+  container: "viewDiv",
+  viewingMode: "local",
+  camera: {
+    position: {
+      x: 120.75200,
+      y: 14.90,
+      z: 2500,
+      spatialReference: {wkid: 3857}
     },
-  });
+    tilt: 65
+  },
+  environment: {
+    background: {
+      type: "color", // autocasts as new ColorBackground()
+      color: [0, 0, 0, 1]
+    },
+    
+    // disable stars
+    starsEnabled: false,
+          
+    //disable atmosphere
+    atmosphereEnabled: false
+  }
+});
 
-  // Disable lighting based on the current camera position.
+ // Disable lighting based on the current camera position.
   // We want to display the lighting according to the current time of day.
   view.environment.lighting.cameraTrackingEnabled = false;
 
@@ -97,7 +116,7 @@ function(
 
     iss: null,                                                          // ISS model
     issScale: 40000,                                                    // scale for the iss model
-    issMaterial: new THREE.MeshLambertMaterial({ color: 0xe03110 }),    // material for the ISS model
+    issMaterial: new THREE.MeshLambertMaterial({ color: 0x2194ce, transparent: true, opacity: 0.5 }),    // material for the ISS model
 
     cameraPositionInitialized: false, // we focus the view on the ISS once we receive our first data point
     positionHistory: [],              // all ISS positions received so far
@@ -177,11 +196,7 @@ function(
       });*/
 
       // create cube to mark the ISS position (instead of loading an OBJ)
-      const geometry = new THREE.BoxBufferGeometry(
-        this.issScale,
-        this.issScale,
-        this.issScale
-      );
+      const geometry = new THREE.SphereBufferGeometry(120*1000, 16, 16);
       this.iss = new THREE.Mesh(geometry, this.issMaterial);
       this.scene.add(this.iss);
 
@@ -190,7 +205,7 @@ function(
       mat.transparent = true;
       mat.opacity = 0.5;
       this.region = new THREE.Mesh(
-        new THREE.TorusBufferGeometry(2294*1000, 100*1000, 16, 64),
+        new THREE.TorusBufferGeometry(1000*1000, 10*1000, 16, 64),
         mat
       );
       this.scene.add(this.region);
@@ -227,7 +242,7 @@ function(
 
         // for the region, we position a torus slightly under ground
         // the torus also needs to be rotated to lie flat on the ground
-        posEst = [posEst[0], posEst[1], -450*1000];
+        posEst = [posEst[0], posEst[1], -1*1000];
 
         var transform = new THREE.Matrix4();
         transform.fromArray(externalRenderers.renderCoordinateTransformAt(view, posEst, SpatialReference.WGS84, new Array(16)));
@@ -284,7 +299,8 @@ function(
      * Computes an estimate for the position of the ISS based on the current time.
      */
     computeISSPosition: function() {
-      if (this.positionHistory.length == 0) { return [0, 0, 0]; }
+      // This sets the initial position of object marker
+      if (this.positionHistory.length == 0) { return [9.993, 53.679, 40000]; }
 
       if (this.positionHistory.length == 1) {
         var entry1 = this.positionHistory[this.positionHistory.length - 1];
@@ -383,12 +399,37 @@ function(
 
   // register the external renderer
   externalRenderers.add(view, issExternalRenderer);
+
+  // See-through-Ground
+view.when(function() {
+  // allow navigation above and below the ground
+  map.ground.navigationConstraint = {
+    type: "none"
+  };
+  // the webscene has no basemap, so set a surfaceColor on the ground
+  map.ground.surfaceColor = "#fff";
+          
+  // to see through the ground, set the ground opacity to 0.4
+  map.ground.opacity = 0.9;
+});
+          
+document.getElementById("opacityInput")
+        .addEventListener("change", function(event) {
+          map.ground.opacity = event.target.checked ? 0.1 : 0.6;
+        });
+view.ui.add("menu", "bottom-right");
+
 });
 </script>
 </head>
 
 <body>
-  <div id="viewDiv"></div>
+  <div id="viewDiv">
+    <div id="menu" class="esri-widget">
+      <input type="checkbox" id="opacityInput" unchecked />
+      <label for="opacityInput">See through ground</label>
+    </div>
+  </div>
 </body>
 
 </html>
