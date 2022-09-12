@@ -52,7 +52,7 @@ require([
       Weather,
       Daylight,
       Camera,
-      Point
+      Point,
 
     ) {
 
@@ -73,7 +73,8 @@ basemap: {
             })
           ]
         },
-        ground: "world-elevation"
+        ground: "world-elevation",
+        optimizePanAnimation: false
 
 }); 
 map.ground.surfaceColor = '#004C73';
@@ -100,12 +101,12 @@ environment: {
 },
 camera: {
   position: {
-    x: 120.9777186,
-    y: 14.5600295,
+    x: 120.9777186,//120.9777186,
+    y: 14.5600295,//14.5600295,
     z: 2000
   },
-  tilt: 70,
-  heading: 0
+  tilt: 60,
+  heading: 340
 }
 });
 
@@ -1336,9 +1337,13 @@ function lookAround() {
 lookAround();
 
 
-      // listen to the view's click event
-      
-  // Pier Chart to summarize damage ratings of hospitals in Ukraine
+
+// Fly through experiment
+
+
+
+//  
+// Pier Chart to summarize damage ratings of hospitals in Ukraine
 let chartLayerView;
 var highlightSelect;
 

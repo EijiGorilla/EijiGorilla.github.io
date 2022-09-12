@@ -1,0 +1,435 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+      SF Camera Path Animation 
+    </title>
+    <style>
+ html, body, #viewDiv {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%; 
+}
+    </style>
+
+    <link
+    rel="stylesheet"
+    href="https://js.arcgis.com/4.24/esri/themes/dark/main.css"
+    />
+<!-- Resources -->
+<script type="text/javascript">
+  var dojoConfig = {
+    async: true
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/animejs@3.0.1/lib/anime.min.js"></script>
+<script src="https://js.arcgis.com/4.24/"></script>
+
+    <script>
+      require([
+      "esri/Map",
+  "esri/views/SceneView",
+  "esri/layers/GeoJSONLayer",
+  "esri/geometry/geometryEngineAsync",
+  "esri/geometry/support/webMercatorUtils",
+  "esri/geometry/SpatialReference",
+  "esri/layers/GraphicsLayer",
+  "esri/core/reactiveUtils",
+  "esri/geometry/Point"
+      ], function(
+        Map,
+  SceneView,
+  GeoJSONLayer,
+  geometryEngine,
+  webMercatorUtils,
+  SpatialReference,
+  GraphicsLayer,
+  reactiveUtils,
+  Point
+
+      ) {
+        const spatialReference = SpatialReference.WebMercator;
+  
+  var map = new Map({
+    basemap: "gray",
+    ground: "world-elevation"
+  });
+
+  var view = new SceneView({
+    container: "viewDiv",
+    map: map,
+  });
+  view.ui.add("start", "top-left");
+  window.view = view;
+
+  var layer = new GeoJSONLayer({
+    url:
+      "https://gist.githubusercontent.com/arnofiva/f16cd336dc1d3d5f750f9ae50b7d8394/raw/sf-camera-path.geojson",
+    renderer: {
+      type: "simple",
+      field: "mag",
+      symbol: {
+        type: "line-3d",
+        symbolLayers: [{
+          type: "line",
+          size: 3,
+          material: { color: "gray" }
+        }]
+      }
+    }
+  });
+  layer.queryExtent().then(function(results){
+    view.goTo({
+      target: results.extent,
+      tilt: 60,
+    }, {
+     // animate: false,
+    });
+  });
+
+  var gl = new GraphicsLayer();
+
+  map.addMany([layer, gl]);
+
+  const queryParams = layer.createQuery();
+
+  layer
+    .queryFeatures(queryParams).then(function(result) {
+      const queryGeometry = result.features[0].geometry;
+      console.log("Original geometry", queryGeometry.paths[0].length, queryGeometry.paths[0]);
+
+      const originalGeometry = webMercatorUtils.geographicToWebMercator(
+       queryGeometry
+      );
+    
+      return geometryEngine
+        .generalize(originalGeometry, 400)
+        .then(function(geometry) {
+          return [geometry, originalGeometry]
+        });
+    })
+    .then(function([geometry, projectedGeometry]) {
+      console.log("Generalized geometry", geometry.paths[0].length, geometry.paths[0]);
+    
+      geometry.paths[0].forEach(function(vertex) {
+        view.graphics.add({
+          geometry: {
+            spatialReference: spatialReference,
+            type: "point",
+            x: vertex[0],
+            y: vertex[1],
+          },
+          symbol: {
+            type: "point-3d",
+            symbolLayers: [{
+              type: "icon",
+              size: 8,
+              resource: { primitive: "circle" },
+              material: { color: "dodgerblue" }
+            }],
+            verticalOffset: {
+              screenLength: 40,
+              maxWorldLength: 400
+            },
+            callout: {
+              type: "line",
+              size: .1,
+              color: [50, 50, 50],
+              border: {
+                width: 0,
+                color: [50, 50, 50]
+              }
+            }
+          }
+        });
+      }); // End of geometry.paths[0].forEach
+
+      document.getElementById("start").addEventListener("click", function() {
+        view.map.ground
+          .createElevationSampler(geometry.extent)
+          .then(function(sampler) {
+            animateLine(projectedGeometry, geometry, sampler);
+        });
+      }); // End of addEventListener
+      return [geometry, projectedGeometry];
+    }) // End of .then(function([geometry, projectedGeometry]) {
+    .then(function([geometry, projectedGeometry]) {
+
+      var i = 0;
+      var j = 0;
+      var path = geometry.paths[0];
+      var originalPath = projectedGeometry.paths[0];
+      while (i < path.length && j < originalPath.length) {
+        while (j < originalPath.length) {
+          if (path[i][0] === originalPath[j][0] && path[i][1] === originalPath[j][1]) {
+            break;
+          }
+          j++;
+        }
+        i++;
+      }
+
+      if (j < originalPath.length) {
+        console.log("Found vertice for each");
+      } else {
+        console.log("No point found for ", i);
+      }
+    }) // End of then(function([geometry, projectedGeometry]) {
+    .catch(console.error);
+
+  function createGraphic(path, splinePath) {
+    gl.removeAll();
+
+    gl.add({
+      geometry: {
+        type: "polyline",
+        paths: [path],
+        spatialReference: spatialReference,
+      },
+      symbol: {
+        type: "line-3d",
+        symbolLayers: [
+          {
+            type: "line",
+            size: 3,
+            material: { color: "darkorange" }
+          }
+        ]
+      }
+    });
+    
+    if (splinePath && 2 <= splinePath.length) {
+      gl.add({
+        geometry: {
+          type: "polyline",
+          paths: [splinePath],
+          spatialReference: spatialReference
+        },
+        symbol: {
+          type: "line-3d", // autocasts as new LineSymbol3D()
+          symbolLayers: [
+            {
+              type: "line", // autocasts as new LineSymbol3DLayer()
+              size: 1, // points
+              material: { color: "blue" }
+            }
+          ]
+        }
+      });
+    }
+  } // End of createGraphic
+
+  function distance(pointA, pointB) {
+    const a = pointA[0] - pointB[0];
+    const b = pointA[1] - pointB[1];
+    return Math.sqrt(a * a + b * b);
+  }
+
+  function heading(pointA, pointB) {
+    const atan2 = Math.atan2(pointB[1] - pointA[1], pointB[0] - pointA[0]);
+    return (
+      90 - atan2 * 180 / Math.PI
+    );
+  }
+
+  function spline(p1, p2, t1, t2, s) {
+    // https://www.cubic.org/docs/hermite.htm
+
+    // calculate basis functions
+    const s2 = Math.pow(s, 2);
+    const s3 = Math.pow(s, 3);
+    const h1 =  2 * s3 - 3 * s2 + 1;          // calculate basis function 1
+    const h2 = -2 * s3 + 3 * s2;              // calculate basis function 2
+    const h3 =      s3 - 2 * s2 + s;          // calculate basis function 3
+    const h4 =      s3     - s2;              // calculate basis function 4
+
+    // calculate new point
+    const p = [];
+    for (var i = 0; i < p1.length; i++) {
+      p.push(h1 * p1[i] + h2 * p2[i] + h3 * t1[i] + h4 * t2[i]);
+    }
+    return p;
+  }
+  
+  function animateLine(geometry, generalizedGeometry, sampler) {
+    const AREA_ANIMATION_DURATION = 20000;
+    const path = geometry.paths[0];
+    const splinePath = generalizedGeometry.paths[0];
+    const start = path[0];
+    const waypoints = path.slice(1);
+    const tangents = [];
+    const splineCurve = [];
+    waypoints.push(start);
+
+    const durations = [];
+    const splineDurations = [0];
+    let totalLength = 0;
+
+    splinePath.forEach((point, index) => {
+      const a = 0.5;
+      const prevIndex = index === 0 ? splinePath.length - 1 : index - 1;
+      const nextIndex = index === splinePath.length - 1 ? 0 : index + 1;
+      const tangent = [
+        (splinePath[nextIndex][0]-splinePath[prevIndex][0]) * a,
+        (splinePath[nextIndex][1]-splinePath[prevIndex][1]) * a,
+      ];
+      tangents.push(tangent);
+    });
+    
+    waypoints.forEach((point, index) => {
+      const length = distance(point, path[index]);
+      durations.push(length);
+      totalLength += length;
+    });
+
+    let splineIndex = 0;
+    durations.forEach((duration, index) => {
+      durations[index] = duration * AREA_ANIMATION_DURATION / totalLength;
+      splineDurations[splineIndex] += durations[index];
+      if (splineIndex + 1 < splinePath.length) {
+        if (splinePath[splineIndex + 1][0] === waypoints[index][0] && splinePath[splineIndex + 1][1] === waypoints[index][1]) {
+          splineIndex++;
+          splineDurations.push(0);
+        }
+      }
+    });
+
+    const paths = [start];
+
+    const movingPoint = {
+      spatialReference: spatialReference,
+      x: start[0],
+      y: start[1]
+    };
+
+    const initialDistance = distance(start, [
+      view.camera.position.x,
+      view.camera.position.y
+    ]);
+    let previousElevation = sampler.queryElevation(new Point(movingPoint)).z;
+
+    function updateAnimation() {
+
+      if (paths.length && splineCurve.length) {
+        createGraphic(paths.concat([[movingPoint.x, movingPoint.y]]), splineCurve);
+
+        // Update camera
+        const splinePoint = {
+          spatialReference: spatialReference,
+          x: splineCurve[splineCurve.length-1][0],
+          y: splineCurve[splineCurve.length-1][1]
+        };
+        const camera = view.camera.clone();
+        // const elevation = sampler.queryElevation(new Point(splinePoint)).z;
+        
+        // Position
+        const currentDistance = distance(
+          [splinePoint.x, splinePoint.y],
+          [view.camera.position.x, view.camera.position.y]
+        );
+        const dX = splinePoint.x - camera.position.x;
+        const dY = splinePoint.y - camera.position.y;
+
+        camera.position.x =
+          camera.position.x +
+          dX * (currentDistance - initialDistance) / initialDistance;
+        camera.position.y =
+          camera.position.y +
+          dY * (currentDistance - initialDistance) / initialDistance;
+        // camera.position.z = camera.position.z + (elevation - previousElevation);
+
+        // Heading
+        camera.heading = heading(
+          [view.camera.position.x, view.camera.position.y],
+          [splinePoint.x, splinePoint.y]
+        );
+        view.camera = camera;
+
+        // previousElevation = elevation;
+      }
+    }
+    
+    function completeAnimation() {
+      paths.push([movingPoint.x, movingPoint.y]);
+    }
+    
+    let index = 0;
+    splineIndex = 0;
+    let startTime = null;
+    let splineStartTime = null;
+    let p1 = null;
+    let s1 = null;
+    function step(timestamp) {
+
+      if (durations.length <= index || splineDurations.length <= splineIndex) {
+        console.log("Completed animation");
+        return;
+      }
+      
+      if (!startTime) {
+        startTime = timestamp;
+        p1 = [movingPoint.x, movingPoint.y];
+      }
+      if (!splineStartTime) {
+        splineStartTime = timestamp;
+        s1 = splinePath[splineIndex];
+      }
+      
+      var progress = timestamp - startTime;
+      var splineProgress = timestamp - splineStartTime;
+
+      const sp = Math.min(1.0, progress / durations[index]);
+      movingPoint.x = p1[0] + (waypoints[index][0] - p1[0]) * sp;
+      movingPoint.y = p1[1] + (waypoints[index][1] - p1[1]) * sp;
+      
+      const ss = Math.min(1.0, splineProgress / splineDurations[splineIndex]);
+      const nextSplineIndex = (splineIndex + 1) % splinePath.length;
+      const splinePoint = spline(s1, splinePath[nextSplineIndex], tangents[splineIndex], tangents[nextSplineIndex], ss);
+      
+      splineCurve.push(splinePoint);
+      updateAnimation();
+      
+      if (progress >= durations[index]) {
+        completeAnimation();
+        startTime = timestamp + (durations[index] - progress);
+        p1 = [movingPoint.x, movingPoint.y];
+        index++;
+        if (splineProgress >= splineDurations[splineIndex]) {
+          splineStartTime = timestamp + (splineDurations[splineIndex] - splineProgress);
+          splineIndex++;
+          s1 = splinePath[splineIndex];
+        }
+      }
+      
+      window.requestAnimationFrame(step);
+    }
+    window.requestAnimationFrame(step);
+    
+    // waypoints.forEach((point, index) => {
+    //   timeline = timeline.add({
+    //     targets: movingPoint,
+    //     x: point[0],
+    //     y: point[1],
+    //     duration: durations[index],
+    //     easing: "linear",
+    //     complete: () => {
+    //       paths.push([movingPoint.x, movingPoint.y]);
+    //     }
+    //   });
+    // });
+  }
+      });
+    </script>
+  </head>
+  <body>
+    <div id="viewDiv">
+        <div id="start" class="esri-widget esri-widget--button esri-interactive" title="Play/Pause"><span id="playButtonIcon" class="esri-icon-play"></span></div>
+      </div>
+  </body>
+</html>
