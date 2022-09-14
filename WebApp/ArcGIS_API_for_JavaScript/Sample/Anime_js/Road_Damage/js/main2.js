@@ -1335,6 +1335,258 @@ var damagePoints = new FeatureLayer({
 })
 map.add(damagePoints,1);
 
+// Code to look around to see what's behind it.
+tempDiv = document.getElementById("tempDiv");
+
+
+// Clone the camera to modify its properties
+const camera = view.camera.clone();
+
+// Calculate heading
+function heading(pointA, pointB) {
+  const atan2 = Math.atan2(pointB[1] - pointA[1], pointB[0] - pointA[0]);
+  return (
+    90 - atan2 * 180 / Math.PI
+  );
+}
+
+// moving points for animation
+
+  var ps1 = {y: 14.65485964, x: 120.9988027, z: 20};
+  var ps2 = {y: 14.65415704, x: 120.99827729, z: 20};
+  var ps3 = {y: 14.65338464, x: 120.99786549, z: 20};
+  var ps4 = {y: 14.65258607, x: 120.99751129, z: 20};
+  var ps5 = {y: 14.65178518, x: 120.99716246, z: 20};
+  var ps6 = {y: 14.65098639, x: 120.99680852, z: 20};
+  var ps7 = {y: 14.65018651, x: 120.99645716, z: 20};
+  var ps8 = {y: 14.64938722, x: 120.9961044, z: 20};
+  var ps9 = {y: 14.64858785, x: 120.99575181, z: 20};
+  var ps10 = {y: 14.6477879, x: 120.99540063, z: 20};
+  var ps11 = {y: 14.64698523, x: 120.99505617, z: 20};
+  var ps12 = {y: 14.64618036, x: 120.9947172, z: 20};
+  var ps13 = {y: 14.64536681, x: 120.99440424, z: 20};
+  var ps14 = {y: 14.64452621, x: 120.99455161, z: 20};
+  var ps15 = {y: 14.64402225, x: 120.99526784, z: 20};
+  var ps16 = {y: 14.64392507, x: 120.99613567, z: 20};
+  var ps17 = {y: 14.64392619, x: 120.99703398, z: 20};
+  var ps18 = {y: 14.64393226, x: 120.99793225, z: 20};
+  var ps19 = {y: 14.64396144, x: 120.99882967, z: 20};
+  var ps20 = {y: 14.6440887, x: 120.99971803, z: 20};
+  var ps21 = {y: 14.64423012, x: 121.00060437, z: 20};
+  var ps22 = {y: 14.64437298, x: 121.00149047, z: 20};
+  var ps23 = {y: 14.64451831, x: 121.00237613, z: 20};
+  var ps24 = {y: 14.64469796, x: 121.00325481, z: 20};
+  var ps25 = {y: 14.64478453, x: 121.00414505, z: 20};
+  var ps26 = {y: 14.6446608, x: 121.00503337, z: 20};
+  var ps27 = {y: 14.64413962, x: 121.00570524, z: 20};
+  var ps28 = {y: 14.64328764, x: 121.00583428, z: 20};
+  var ps29 = {y: 14.64242924, x: 121.00594838, z: 20};
+  var ps30 = {y: 14.64158202, x: 121.00614887, z: 20};
+  var ps31 = {y: 14.6407342, x: 121.00634662, z: 20};
+  var ps32 = {y: 14.63988701, x: 121.00654726, z: 20};
+  var ps33 = {y: 14.63907599, x: 121.0068514, z: 20};
+  var ps34 = {y: 14.63844699, x: 121.0074641, z: 20};
+  var ps35 = {y: 14.63788265, x: 121.00814716, z: 20};
+  var ps36 = {y: 14.63712519, x: 121.00856126, z: 20};
+  var ps37 = {y: 14.63626551, x: 121.00868051, z: 20};
+  var ps38 = {y: 14.63540052, x: 121.00876847, z: 20};
+  var ps39 = {y: 14.63453549, x: 121.00885603, z: 20};
+  var ps40 = {y: 14.63367021, x: 121.00894099, z: 20};
+  var ps41 = {y: 14.6328163, x: 121.00908665, z: 20};
+  var ps42 = {y: 14.63204799, x: 121.00949007, z: 20};
+  var ps43 = {y: 14.6313697, x: 121.01005179, z: 20};
+  var ps44 = {y: 14.63079698, x: 121.01072559, z: 20};
+  var ps45 = {y: 14.63022775, x: 121.01140438, z: 20};
+  var ps46 = {y: 14.62962103, x: 121.01204723, z: 20};
+  var ps47 = {y: 14.62898608, x: 121.01266068, z: 20};
+  var ps48 = {y: 14.62835251, x: 121.01327567, z: 20};
+  var ps49 = {y: 14.62771976, x: 121.01389156, z: 20};
+  var ps50 = {y: 14.62708586, x: 121.01450618, z: 20};
+  
+  const comp_ps = [ps1, ps2, ps3, ps4, ps5, ps6, ps7,
+                   ps8, ps9, ps10, ps11, ps12, ps13, ps14, ps15,
+                  ps16, ps17, ps18, ps19, ps20, ps21, ps22, ps23,
+                  ps24, ps25, ps26, ps27, ps28, ps29, ps30, ps31,
+                  ps32, ps33, ps34, ps35, ps36, ps37, ps38, ps39,
+                  ps40, ps41, ps42, ps43, ps44, ps45, ps46, ps47, ps48, ps49, ps50];
+
+// Set new values for heading and tilt
+async function startAnimation(slideNo) {
+
+  if (slideNo < comp_ps.length) {
+    if (slideNo === 0) {
+      camera.heading = heading([view.camera.position.x, view.camera.position.y],
+                               [comp_ps[slideNo].x, comp_ps[slideNo].y])
+    } else {
+      camera.heading = heading([comp_ps[slideNo].x, comp_ps[slideNo].y],
+        [comp_ps[slideNo + 1].x, comp_ps[slideNo + 1].y])
+    }
+    
+    camera.tilt = 80;
+    camera.position = comp_ps[slideNo];
+    
+    await view.goTo(camera, {animate: true, speedFactor: 0.5, easing: 'linear'}) // Linear easing keeps the same speed
+    window.setTimeout(function(){
+      startAnimation(slideNo + 1);
+    },0);
+  }
+}
+
+// Initialize animation
+window.setTimeout(function(){
+  startAnimation(0);
+}, 10000);
+
+/*
+var layer = new FeatureLayer({
+  portalItem: {
+    id: "be3fbf4f1a43438a9272a18602820864"
+  },
+  title: "test",
+  outFields: ["*"]
+});
+map.add(layer);
+
+let animationRunning = false;
+const ANIMATION_DURATION = 1000 * 60 * 2; // 2 minutes
+function lookAround() {
+      if (!animationRunning) {
+        var query = layer.createQuery();
+        query.returnGeometry = true;
+        query.returnZ = true;
+        query.where = "";
+        return layer.queryFeatures(query).then(response => {
+          return response.features[0].geometry;
+        })
+        .then(line => animateCameraAlongLine(line))
+        .catch(console.error);
+      }
+
+     // 1. Calculate distance between points
+     function distance(pointA, pointB) {
+      const a = pointA[0] - pointB[0];
+      const b = pointA[1] - pointB[1];
+      return Math.sqrt(a * a + b * b);
+    }
+
+    // 2. Calculate heading between points
+    function heading(pointA, pointB) {
+      const atan2 = Math.atan2(pointB[1] - pointA[1], pointB[0] - pointA[0]);
+      return (
+        90 - atan2 * 180 / Math.PI
+      );
+    }
+
+    // 3. animateCameraAlongLine
+    function animateCameraAlongLine(geometry) {
+      const path = geometry.paths[0];
+      tempDiv.innerHTML = path;
+      const start = path[0];
+      const waypoints = path.slice(1);
+      
+      const durations = [];
+      let totalLength = 0;
+
+      waypoints.forEach((point, index) => {
+        const length = distance(point, path[index]);
+        durations.push(length);
+        totalLength += length;
+      });
+      //tempDiv.innerHTML = durations;
+      durations.forEach((duration, index) => {
+        durations[index] = (duration * ANIMATION_DURATION) / totalLength;
+      });
+
+      const paths = [start];
+      //tempDiv.innerHTML = start;
+      const movingPoint = {
+        type: "point",
+        spatialReference: geometry.spatialReference,
+        x: start[0],
+        y: start[1],
+        z: start[2],
+      };
+      //tempDiv.innerHTML = movingPoint.x;
+
+      const initialDistance = distance(start, [view.camera.position.x, view.camera.position.y]);
+      //tempDiv.innerHTML = initialDistance;
+
+
+      function completeAnimation() {
+        paths.push([movingPoint.x, movingPoint.y, movingPoint.z]);
+      }
+      
+      let index = 0;
+      let startTime = null;
+      let previousPoint = null;
+      
+      function step(timestamp) {
+
+        // if durations length reaches zero, stop the execution
+        if (durations.length <= index) {
+          return;
+        }
+
+        // Initial condition:
+        // if startTime is null, startTime = timestamp, and
+        // previousPoint = initial position of movingPoint
+      if (!startTime) {
+        startTime = timestamp;
+        previousPoint = [movingPoint.x, movingPoint.y, movingPoint.z];
+      }
+
+      // After initial condition;
+      var progress = timestamp - startTime;
+      //tempDiv.innerHTML = progress + "; " + previousPoint;
+      const sp = Math.min(1.0, progress / durations[index]);
+      //tempDiv.innerHTML = sp;
+      movingPoint.x = previousPoint[0] + (waypoints[index][0] - previousPoint[0]) * sp;
+      movingPoint.y = previousPoint[1] + (waypoints[index][1] - previousPoint[1]) * sp;
+      movingPoint.z = previousPoint[2] + (waypoints[index][2] - previousPoint[2]) * sp;
+
+      if (paths.length) {
+        // Update camera
+        const camera = view.camera.clone();
+
+        // Position
+        const currentDistance = distance(
+          [movingPoint.x, movingPoint.y],
+          [view.camera.position.x, view.camera.position.y]
+        );
+        const dX = movingPoint.x - camera.position.x;
+        const dY = movingPoint.y - camera.position.y;
+        const dZ = movingPoint.z - camera.position.z;
+
+        camera.position.x = camera.position.x + (dX * (currentDistance - initialDistance)) / initialDistance;
+        camera.position.y = camera.position.y + (dY * (currentDistance - initialDistance)) / initialDistance;
+        camera.position.z = camera.position.z + (dZ * (currentDistance - initialDistance)) / initialDistance;
+
+        // Heading
+        camera.heading = heading([view.camera.position.x, view.camera.position.y],
+                                 [movingPoint.x, movingPoint.y]);
+
+        //view.goTo(camera, {animate: true, speedFactor: 0.5});
+        view.camera = camera;
+      } // End of if (paths.length)
+
+      if (progress >= durations[index]) {
+        completeAnimation();
+        startTime = timestamp + (durations[index] - progress);
+        previousPoint = [movingPoint.x, movingPoint.y, movingPoint.z];
+        index++;
+      }
+      if (animationRunning) {
+        window.requestAnimationFrame(step);
+      }
+    } // End of function step(timestamp)
+    window.requestAnimationFrame(step);
+    }
+  };
+
+  lookAround();
+*/
+
+/*
 function lookAround() {
   if (!view.interacting) {
     const camera = view.camera.clone();
@@ -1344,6 +1596,31 @@ function lookAround() {
   }
 }
 lookAround();
+*/
+
+var layer = new FeatureLayer({
+  portalItem: {
+    id: "be3fbf4f1a43438a9272a18602820864"
+  },
+  title: "test",
+  outFields: ["*"],
+  returnGeometry: true
+});
+map.add(layer);
+
+
+//
+/*
+// goTo returns a Promise which resolves when the animation has finished.
+// This promise may be chained to create a sequence of animations.
+view.goTo(graphic1)
+    .then(function() {
+      return view.goTo(graphic2);
+    })
+    .then(function() {
+      return view.goTo(graphic3);
+    });
+*/
 
 //  
 // Pier Chart to summarize damage ratings of hospitals in Ukraine
