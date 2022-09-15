@@ -29,7 +29,8 @@ require([
       "esri/geometry/geometryEngineAsync",
       "esri/geometry/support/webMercatorUtils",
       "esri/geometry/SpatialReference",
-      "esri/geometry/Polyline"
+      "esri/geometry/Polyline",
+      "esri/renderers/SimpleRenderer"
 
     ], function(
       Basemap,
@@ -62,7 +63,8 @@ require([
       geometryEngine,
       webMercatorUtils,
       SpatialReference,
-      Polyline
+      Polyline,
+      SimpleRenderer
 
     ) {
       const spatialReference = SpatialReference.WebMercator;
@@ -203,13 +205,17 @@ var democar5 = new Graphic({
 
 // user Defined
 //var symbol = customSymbol3D("3D_Telecom_BTS");
-//var symbol = getUniqueValueSymbol("https://EijiGorilla.github.io/Symbols/Demolished.png", 50);
+//var symbol = getUniqueValueSymbol("https://EijiGorilla.github.io/Symbols/Demolished.png", 50, "Basic");
 
 var scale = 1.5;
+
+
 var webStyleSymbol = new WebStyleSymbol({
-name: "Standing Circle",
+name: "Standing Circle", //"Standing Circle"
 styleName: "EsriIconsStyle"
 });
+
+
 
 var symbol = await webStyleSymbol.fetchSymbol();
 symbol.symbolLayers.items[0].heading = 80;
@@ -219,7 +225,44 @@ symbol.symbolLayers.items[0].width *= scale;
 symbol.symbolLayers.items[0].material.color *= "white";
 symbol.symbolLayers.items[0].size *= 0.5;
 
+/*
+const symbol = {
+  type: "point-3d",
+  symbolLayers: [
+    {
+      type: "object",
+      height: 50,
+      resource: {
+        href: "https://developers.arcgis.com/javascript/latest/sample-code/import-gltf/live/canoe.glb"
+      },
+      heading: 90
+    }
+  ]
+}
+
+
 // Attache the above properties to all the points
+      function generateRenderer(heading){
+        return new SimpleRenderer({
+          symbol: {
+            type: "point-3d",
+            symbolLayers: [
+              {
+                type: "object",
+                height: 50,
+                resource: {
+                  href: "https://developers.arcgis.com/javascript/latest/sample-code/import-gltf/live/canoe.glb"
+                },
+                heading: 90
+              }
+            ]
+          }
+        });
+      }
+      
+      // constant width and height in pixels
+*/
+
 democar1.symbol = symbol;
 democar2.symbol = symbol;
 democar3.symbol = symbol;
@@ -239,6 +282,8 @@ view.environment.atmosphere.quality = "high";
 })();
 
 // Initila clone (copy) of all the points
+// Creates a deep clone of the graphic's first symbol layer
+
 var pointSymbol = democar1.geometry.clone();
 var pointSymbol2 = democar2.geometry.clone();
 var pointSymbol3 = democar3.geometry.clone();
@@ -261,6 +306,7 @@ loop: true,
 duration: total_time,
 update: function() {
   democar1.geometry = pointSymbol.clone(); // clone new position. Without clone, position is not updated
+ 
 }
 });
 
