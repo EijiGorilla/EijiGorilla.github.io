@@ -239,7 +239,7 @@ var view = new SceneView({
       // update ISS and region position
       ///////////////////////////////////////////////////////////////////////////////////
       if (this.iss) {
-        var posEst = this.computeISSPosition();
+        var posEst = [120.55, 13.5, 1000];
 
         var renderPos = [0, 0, 0];
         externalRenderers.toRenderCoordinates(view, posEst, 0, SpatialReference.WGS84, renderPos, 0, 1);
@@ -300,109 +300,6 @@ var view = new SceneView({
     lastPosition: null,
     lastTime: null,
 
-    /**
-     * Computes an estimate for the position of the ISS based on the current time.
-     */
-    computeISSPosition: function() {
-      // This sets the initial position of object marker
-      if (this.positionHistory.length == 0) { return [120.55, 13.5, 1000]; }
-
-      if (this.positionHistory.length == 1) {
-        var entry1 = this.positionHistory[this.positionHistory.length - 1];
-        return entry1.pos;
-      }
-
-      var now = Date.now() / 1000;
-      var entry1 = this.positionHistory[this.positionHistory.length - 1];
-
-      // initialize the remembered ISS position
-      if (!this.lastPosition) {
-        this.lastPosition = entry1.pos;
-        this.lastTime = entry1.time;
-      }
-
-      // compute a new estimated position
-      var dt1 = now - entry1.time;
-      var est1 = [
-        entry1.pos[0] + dt1* entry1.vel[0],
-        entry1.pos[1] + dt1* entry1.vel[1],
-      ];
-
-      // compute the delta of current and newly estimated position
-      var dPos = [
-        est1[0] - this.lastPosition[0],
-        est1[1] - this.lastPosition[1],
-      ];
-
-      // compute required velocity to reach newly estimated position
-      // but cap the actual velocity to 1.2 times the currently estimated ISS velocity
-      var dt = now - this.lastTime;
-      if (dt === 0) { dt = 1.0/1000; }
-
-      var catchupVel = Math.sqrt(dPos[0]*dPos[0] + dPos[1]*dPos[1]) / dt;
-      var maxVel = 1.2 * Math.sqrt(entry1.vel[0]*entry1.vel[0] + entry1.vel[1]*entry1.vel[1]);
-      var factor = catchupVel <= maxVel ? 1.0 : maxVel / catchupVel;
-
-      // move the current position towards the estimated position
-      var newPos = [
-        this.lastPosition[0] + dPos[0] * factor,
-        this.lastPosition[1] + dPos[1] * factor,
-        entry1.pos[2]
-      ];
-
-      this.lastPosition = newPos;
-      this.lastTime = now;
-
-      return newPos;
-    },
-
-    /**
-     * This function starts a chain of calls querying the current ISS position from open-notify.org every 5 seconds.
-     */
-/*
-    queryISSPosition: function() {
-      esriRequest("//open-notify-api.herokuapp.com/iss-now.json", {
-        callbackParamName: "callback",
-        responseType: "json"
-      })
-      .then(function(response) {
-        var result = response.data;
-
-        var vel = [0,0];
-        if (this.positionHistory.length > 0) {
-          var last = this.positionHistory[this.positionHistory.length - 1];
-          var deltaT = result.timestamp - last.time;
-          var vLon = (result.iss_position.longitude - last.pos[0]) / deltaT;
-          var vLat = (result.iss_position.latitude - last.pos[1]) / deltaT;
-          vel = [vLon, vLat];
-        }
-
-        this.positionHistory.push({
-          pos: [result.iss_position.longitude, result.iss_position.latitude, 400 * 1000],
-          time: result.timestamp,
-          vel: vel,
-        });
-
-        // create a new marker object from the second most recent position update
-        if (this.positionHistory.length >= 2) {
-          var entry = this.positionHistory[this.positionHistory.length - 2];
-
-          var renderPos = [0, 0, 0];
-          externalRenderers.toRenderCoordinates(view, entry.pos, 0, SpatialReference.WGS84, renderPos, 0, 1);
-
-          var markerObject = new THREE.Mesh(this.markerGeometry, this.markerMaterial);
-          markerObject.position.set(renderPos[0], renderPos[1], renderPos[2]);
-          this.scene.add(markerObject);
-        }
-      }.bind(this))
-      //.always(function() { // change "always" to "then"
-      .then(function() {
-        // request a new position update in 5 seconds
-        setTimeout(this.queryISSPosition.bind(this), 5000);
-      }.bind(this));
-    }
-    */
-    
   }
 
   // register the external renderer
