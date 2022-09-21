@@ -5,11 +5,11 @@
 <title>Use three.js from an external renderer - 4.4</title>
 
 <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/css/main.css">
-<!--script src="https://js.arcgis.com/4.4/"></script-->
-<!--script src="js/three.js"></script-->
-<!--script src="https://cdn.skypack.dev/three@0.132.2"></script-->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.144.0/three.js"></script>
-<script type="module" src="/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/examples/3d-obj-loader/assets/OBJLoader.js"></script>
+<!--script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.144.0/three.js"--></script>
+<!--script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.144.0/three.min.js"></script-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r134/examples/js/loaders/OBJLoader.js"></script>
+<!--script type="module" src="/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/examples/3d-obj-loader/assets/OBJLoader.js"></script-->
 <script src="https://js.arcgis.com/4.24/"></script>
 
 <style>
@@ -36,14 +36,16 @@ require([
   "esri/views/3d/externalRenderers",
   "esri/geometry/SpatialReference",
   "esri/request",
-  "dojo/domReady!"
+  "dojo/domReady!",
+  "esri/core/Accessor"
 ],
 function(
   Map,
   SceneView,
   externalRenderers,
   SpatialReference,
-  esriRequest
+  esriRequest,
+  Accessor
 ) {
 
   // Different compared to the ArcGIS JS API 4.4 sample: 
@@ -64,12 +66,11 @@ function(
   // Note: This all also works for JS API versions higher than 4.8 (also with the newest: 4.23). But newer versions run into CORS error when trying to access the ISS location JSON. 
 
   // make sure to sync between three.min.js version and OBJLoader version: https://discourse.threejs.org/t/buffergeometry-setattribute-is-not-a-function-error/22856
- 
   // Create a map
   //////////////////////////////////////////////////////////////////////////////////////
   
   var map = new Map({
-    basemap: "dark-gray",
+    basemap: "dark-gray-vector",
     ground: "world-elevation"
   });
 
@@ -174,14 +175,14 @@ var view = new SceneView({
       this.scene.add(this.sun);
 
       // setup markers
-      this.markerGeometry = new THREE.SphereBufferGeometry(12*1000, 16, 16);
+      this.markerGeometry = new THREE.SphereGeometry(12*1000, 16, 16);
       this.markerMaterial = new THREE.MeshBasicMaterial({ color: 0xe03110, transparent: true, opacity: 0.75});
       
       
       
       // load ISS mesh
-      var issMeshUrl = "EijiGorilla.github.io/Symbols/3D_Web_Style/TelecomBTS3.obj";
-      var loader = new THREE.OBJLoader(THREE.DefaultLoadingManager);
+      var issMeshUrl = "https://EijiGorilla.github.io/Symbols/3D_Web_Style/Streetlight2.obj";
+      var loader = new THREE.OBJLoader();
       loader.load(issMeshUrl, function(object3d) {
         console.log("ISS mesh loaded.");
         this.iss = object3d;
@@ -203,23 +204,23 @@ var view = new SceneView({
       });
 
       // create cube to mark the ISS position (instead of loading an OBJ)
-      const geometry = new THREE.SphereBufferGeometry(120*1000, 16, 16);
-      this.iss = new THREE.Mesh(geometry, this.issMaterial);
-      this.scene.add(this.iss);
+      //const geometry = new THREE.SphereBufferGeometry(120*10, 16, 16);
+     // this.iss = new THREE.Mesh(geometry, this.issMaterial);
+     // this.scene.add(this.iss);
 
       // create the horizon model
       var mat = new THREE.MeshBasicMaterial({ color: 0x2194ce });
       mat.transparent = true;
       mat.opacity = 0.5;
       this.region = new THREE.Mesh(
-        new THREE.TorusBufferGeometry(1000*1000, 10*1000, 16, 64),
+        new THREE.TorusGeometry(1000*1000, 10*1000, 16, 64),
         mat
       );
       this.scene.add(this.region);
 
 
       // start querying the ISS position
-      this.queryISSPosition();
+      //this.queryISSPosition();
 
       // cleanup after ourselfs
       context.resetWebGLState();
@@ -241,7 +242,7 @@ var view = new SceneView({
       // update ISS and region position
       ///////////////////////////////////////////////////////////////////////////////////
       if (this.iss) {
-        var posEst = this.computeISSPosition();
+        var posEst = [120.55, 13.5, 1000]; // this.computeISSPosition();
 
         var renderPos = [0, 0, 0];
         externalRenderers.toRenderCoordinates(view, posEst, 0, SpatialReference.WGS84, renderPos, 0, 1);
@@ -281,8 +282,8 @@ var view = new SceneView({
       this.ambient.intensity = l.ambient.intensity;
       this.ambient.color = new THREE.Color(l.ambient.color[0], l.ambient.color[1], l.ambient.color[2]);
 
-      this.iss.rotation.x += 0.01;
-      this.iss.rotation.y += 0.01;
+      //this.iss.rotation.x += 0.01;
+      //this.iss.rotation.y += 0.01;
 
       // draw the scene
       /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -305,9 +306,13 @@ var view = new SceneView({
     /**
      * Computes an estimate for the position of the ISS based on the current time.
      */
+
+     /*
     computeISSPosition: function() {
       // This sets the initial position of object marker
-      if (this.positionHistory.length == 0) { return [120.55, 13.5, 1000]; }
+      if (this.positionHistory.length == 0) { return [0, 0, 0]; } //120.55, 13.5, 1000]
+
+      
 
       if (this.positionHistory.length == 1) {
         var entry1 = this.positionHistory[this.positionHistory.length - 1];
@@ -356,13 +361,16 @@ var view = new SceneView({
       this.lastTime = now;
 
       return newPos;
+
     },
+*/
 
     /**
      * This function starts a chain of calls querying the current ISS position from open-notify.org every 5 seconds.
      */
+    /*
     queryISSPosition: function() {
-      esriRequest("//open-notify-api.herokuapp.com/iss-now.json", {
+      esriRequest("http://api.open-notify.org/iss-now.json", {
         callbackParamName: "callback",
         responseType: "json"
       })
@@ -402,6 +410,7 @@ var view = new SceneView({
         setTimeout(this.queryISSPosition.bind(this), 5000);
       }.bind(this));
     }
+    */
   }
 
   // register the external renderer
