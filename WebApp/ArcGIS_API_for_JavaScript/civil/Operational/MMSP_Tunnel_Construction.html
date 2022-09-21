@@ -349,7 +349,12 @@ img {
         "esri/layers/ElevationLayer",
         "esri/Ground",
         "esri/widgets/Search",
-        "esri/widgets/BasemapToggle"
+        "esri/widgets/BasemapToggle",
+        "esri/geometry/geometryEngine",
+        "esri/geometry/Polygon",
+        "esri/geometry/support/webMercatorUtils",
+        "esri/layers/GraphicsLayer",
+        "esri/geometry/SpatialReference"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -360,10 +365,12 @@ img {
                   StatisticDefinition, WebStyleSymbol,
                   TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
                   FeatureTable, Compass, TimeExtent, ElevationLayer, Ground, Search,
-                  BasemapToggle) {
+                  BasemapToggle, geometryEngine, Polygon,
+                  webMercatorUtils, GraphicsLayer, SpatialReference) {
 
 let chartLayerView;
 //const features = [];
+const spatialReference = SpatialReference.WebMercator;
 
         var basemap = new Basemap({
         baseLayers: [
@@ -527,15 +534,14 @@ var tbmSpotLabel2 = new LabelClass({
       {
         type: "text",
         material: {
-          color: [0, 197, 255]
+          color: "#E83618"
         },
-        size: 20,
-        color: "black",
+        size: 15,
         haloColor: "black",
         haloSize: 1,
         font: {
           family: "Ubuntu Mono",
-          weight: "regular"
+          weight: "bold"
         },
       }
     ],
@@ -546,10 +552,10 @@ var tbmSpotLabel2 = new LabelClass({
     },
     callout: {
       type: "line",
-      size: 0.5,
-      color: [0, 0, 0],
+      size: 3,
+      color: "#E83618",
       border: {
-        color: [255, 255, 255, 0.7]
+        color: "#E83618"
       }
     }
   },
@@ -559,7 +565,9 @@ var tbmSpotLabel2 = new LabelClass({
     //'DefaultValue($feature.GeoTechName, "no data")'
     //"IIF($feature.Score >= 13, '', '')"
     //value: "{Type}"
-  }
+  },
+  maxScale: 200,
+  minScale: 1000,
 });
 
 
@@ -1242,12 +1250,92 @@ let tbmAlignRenderer = {
     defaultSymbol: defaultTBMAlign
 };
 
+// Add graphics Layer
+var graphicsLayer = new GraphicsLayer({
+  elevationInfo: {
+    mode: "relative-to-ground",
+    featureExpressionInfo: {
+        expression: "Geometry($feature).z * -0.5"
+    },
+    unit: "meters"
+  },
+  screenSizePerspectiveEnabled: true,
+  outFields: ["*"],
+  title: "TBM Spot"
+});
 
+map.add(graphicsLayer);
 //*******************************//
 //      Progress Chart           //
 //*******************************//
 const totalProgressTitleDiv = document.getElementById("totalProgressTitleDiv");
 const totalProgressDiv = document.getElementById("totalProgressDiv");
+
+// Find current position of TBM
+// The current position refers to the spot of minimum segment No.
+
+var query = tbmTunnelLayer.createQuery();
+query.returnGeometry = true;
+query.where = "tbmSpot = 1"; // to be constructed
+query.groupByFieldsForStatistics = ["line"];
+
+tbmTunnelLayer.queryFeatures(query).then(function(response) {
+    stats = response.features;   
+
+    stats.forEach((result, index) => {
+        const attributes = result.attributes;
+        const lineType = attributes.line;
+        const segmentNo = attributes.segmentno;
+        const vertex = result.geometry.paths[0];
+        
+        const long = (vertex[0][0] + vertex[1][0]) / 2;
+        const lat = (vertex[0][1] + vertex[1][1]) / 2;
+        // longitude: vertex[0][0]
+        // latitude: vertex[0][1]
+
+            view.graphics.add({
+                geometry: {
+                    spatialReference: spatialReference,
+                    type: "point",
+                    x: long,
+                    y: lat,
+                    z: -0.1
+                },
+                symbol: {
+                type: "point-3d",
+                symbolLayers: [
+                    {
+                        type: "icon",
+                        resource: {
+                          href: "https://EijiGorilla.github.io/Symbols/TBM_LOGO2.png"
+                        },
+                        size: 30
+                        //resource: {primitive: "circle"},
+                        //material: {color: "green"}
+                    }
+                ],
+                verticalOffset: {
+                    screenLength: 100,
+                    maxWorldLength: 500,
+                    minWorldLength: 40
+                },
+                callout: {
+                    type: "line",
+                    size: 1.5,
+                    color: "#E83618",
+                    border: {
+                        color: "#E83618"
+                    }
+                },
+                maxScale: 1000,
+                minScale: 25000000
+            }
+            });
+
+
+    });
+
+});
 
 // Total progress //
 function totalProgressTBM() {
@@ -1389,7 +1477,7 @@ return uniqueValues;
 
 function addToSelectSection(values) {
   values.sort();
-  values.unshift('None');
+  //values.unshift('None');
   values.forEach(function(value) {
     var option = document.createElement("option");
     option.text = value;
