@@ -117,6 +117,8 @@ var view = new SceneView({
     renderer: null,     // three.js renderer
     camera: null,       // three.js camera
     scene: null,        // three.js scene
+    mixer: null,
+    clock: null,
 
     ambient: null,      // three.js ambient light source
     sun: null,          // three.js sun light source
@@ -134,6 +136,9 @@ var view = new SceneView({
     /**
      * Setup function, called once by the ArcGIS JS API.
      */
+
+     // Reference for animation: https://jsfiddle.net/rixi/djqz1nb5/11/
+     animate();
     setup: function(context) {
 
       // initialize the three.js renderer
@@ -169,6 +174,9 @@ var view = new SceneView({
       // setup the camera
       this.camera = new THREE.PerspectiveCamera();
 
+      // Set time for animation
+      clock = new THREE.Clock();
+
       // setup scene lighting
       this.ambient = new THREE.AmbientLight( 0xffffff, 0.5);
       this.scene.add(this.ambient);
@@ -182,16 +190,23 @@ var view = new SceneView({
       
       
       // load ISS mesh
-      var issMeshUrl = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/wraith.glb";
+      var issMeshUrl = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Wraith_Animated.glb";
       var loaderGLTF = new THREE.GLTFLoader(); // check this: https://qgenhate.hatenablog.com/ [object not an instance of THREE.Object3D]
       let example = new THREE.Object3D();
       loaderGLTF.load(
         issMeshUrl,
         function(gltf) {
           console.log("ISS mesh loaded.");
+
+          // Mixer for animation
+          mixer = new THREE.AnimationMixer(gltf.scene);
+
           example = gltf.scene;
           //example.scale.set(0.01, 0.01, 0.01);
           this.iss = example;
+
+          var action = mixer.clipAction(gltf.animations[0]).play();
+          console.log(action);
 
         // apply ISS material to all nodes in the geometry
         //this.iss.traverse( function ( child ) {
@@ -205,7 +220,7 @@ var view = new SceneView({
         this.iss.scale.set(this.issScale,this.issScale,this.issScale);
 
         // Fix rotation
-        this.iss.rotation.x = -5;
+        this.iss.rotation.x = -5.5;
 
         // add the model
         this.scene.add(this.iss); // original: this.iss
@@ -280,6 +295,15 @@ var view = new SceneView({
           });
         }
       }
+
+      // update animated object
+      function animate() {
+        requestAnimationFrame(animate);
+        if (mixer) {
+            mixer.update(clock.getDelta());
+        }
+        this.renderer.render(this.scene, this.camera);
+    }
 
       // update lighting
       /////////////////////////////////////////////////////////////////////////////////////////////////////
