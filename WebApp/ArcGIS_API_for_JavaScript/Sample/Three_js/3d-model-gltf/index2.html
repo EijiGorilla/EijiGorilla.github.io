@@ -198,15 +198,9 @@ var view = new SceneView({
         function(gltf) {
           console.log("ISS mesh loaded.");
 
-          // Mixer for animation
-          this.mixer = new THREE.AnimationMixer(gltf.scene);
-
           example = gltf.scene;
           //example.scale.set(0.01, 0.01, 0.01);
           this.iss = example;
-
-          var action = mixer.clipAction(gltf.animations[0]).play();
-          console.log(action);
 
         // apply ISS material to all nodes in the geometry
         //this.iss.traverse( function ( child ) {
@@ -225,6 +219,16 @@ var view = new SceneView({
         // add the model
         this.scene.add(this.iss); // original: this.iss
         console.log("ISS mesh added.");
+
+        // Mixer for animation
+        this.mixer = new THREE.AnimationMixer(this.iss);
+
+        this.iss.animations.forEach((clip) => {
+          this.mixer.clipAction(clip).play();
+        });
+
+
+
       }.bind(this), undefined, function(error) {
         console.error("Error loading ISS mesh. ", error);
       });
@@ -299,8 +303,8 @@ var view = new SceneView({
       // update animated object
       function animate() {
         requestAnimationFrame(animate);
-        if (mixer) {
-            mixer.update(this.clock.getDelta());
+        if (this.mixer) {
+            this.mixer.update(this.clock.getDelta());
         }
         this.renderer.render(this.scene, this.camera);
     }
