@@ -117,6 +117,8 @@ var view = new SceneView({
     renderer: null,     // three.js renderer
     camera: null,       // three.js camera
     scene: null,        // three.js scene
+    mixer: null,
+    clock: null,
 
     ambient: null,      // three.js ambient light source
     sun: null,          // three.js sun light source
@@ -134,6 +136,9 @@ var view = new SceneView({
     /**
      * Setup function, called once by the ArcGIS JS API.
      */
+
+     // Reference for animation: https://jsfiddle.net/rixi/djqz1nb5/11/
+     
     setup: function(context) {
 
       // initialize the three.js renderer
@@ -169,6 +174,9 @@ var view = new SceneView({
       // setup the camera
       this.camera = new THREE.PerspectiveCamera();
 
+      // Set time for animation
+      this.clock = new THREE.Clock();
+
       // setup scene lighting
       this.ambient = new THREE.AmbientLight( 0xffffff, 0.5);
       this.scene.add(this.ambient);
@@ -189,6 +197,7 @@ var view = new SceneView({
         issMeshUrl,
         function(gltf) {
           console.log("ISS mesh loaded.");
+
           example = gltf.scene;
           //example.scale.set(0.01, 0.01, 0.01);
           this.iss = example;
@@ -210,6 +219,11 @@ var view = new SceneView({
         // add the model
         this.scene.add(this.iss); // original: this.iss
         console.log("ISS mesh added.");
+
+        // Mixer for animation
+        this.mixer = new THREE.AnimationMixer(this.iss);
+
+
       }.bind(this), undefined, function(error) {
         console.error("Error loading ISS mesh. ", error);
       });
@@ -280,6 +294,17 @@ var view = new SceneView({
           });
         }
       }
+            // update animated object
+           // requestAnimationFrame();
+        this.iss.animations.forEach((clip) => {
+          this.mixer.clipAction(clip).play();
+        });
+        
+        if (this.mixer) {
+            this.mixer.update(this.clock.getDelta());
+        }
+
+
 
       // update lighting
       /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -464,4 +489,3 @@ view.ui.add("menu", "bottom-right");
 </body>
 
 </html>
-
