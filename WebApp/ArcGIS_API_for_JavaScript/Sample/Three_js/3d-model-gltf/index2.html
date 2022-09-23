@@ -1,0 +1,463 @@
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Use three.js from an external renderer - 4.4</title>
+
+<link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/css/main.css">
+<!--script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.144.0/three.js"></script-->
+<!--script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.144.0/three.min.js"></script-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r134/examples/js/loaders/GLTFLoader.js"></script>
+<!--script type="module" src="/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/js/GLTFLoader.js"></script-->
+<!--script type="module" src="/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/examples/3d-obj-loader/assets/OBJLoader.js"></script-->
+<script src="https://js.arcgis.com/4.24/"></script>
+
+<style>
+  html, body, #viewDiv {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+  }
+
+  #menu {
+  padding: 3px 3px 3px 3px;
+  background-color: rgb(0,0,0,0.3);
+  color: white;
+}
+</style>
+
+<!-- Our application -->
+<script>
+
+require([
+  "esri/Map",
+  "esri/views/SceneView",
+  "esri/views/3d/externalRenderers",
+  "esri/geometry/SpatialReference",
+  "esri/request",
+  "dojo/domReady!",
+  "esri/core/Accessor"
+],
+function(
+  Map,
+  SceneView,
+  externalRenderers,
+  SpatialReference,
+  esriRequest,
+  Accessor
+) {
+
+  // Different compared to the ArcGIS JS API 4.4 sample: 
+  // 1. Change to use newer JS API version, if needed (both the style and the script)
+  // 2. Change to import the JS API script AFTER Three.js
+  // 3. Change to use a newer Three.js version
+  //    Note that the OBJLoader needs to be of the same Three.js version. 
+  //    Therefore, for simplicity, in this sample I use a simple cube geometry instead of the imported OBJ.
+  //        (Line 179)
+  // 4. Due to some Three.js updates: 
+  //    4.1 change: this.renderer.resetGLState() to this.renderer.resetState()
+  //        (Line 268)
+  //    4.2 add after that: context.bindRenderTarget()
+  //        (Line 270)
+  // 5. In "queryISSPosition" function, change "always" to "then". 
+  //        (Line 377)
+  // https://developers.arcgis.com/javascript/latest/cors/
+  // Note: This all also works for JS API versions higher than 4.8 (also with the newest: 4.23). But newer versions run into CORS error when trying to access the ISS location JSON. 
+
+  // make sure to sync between three.min.js version and OBJLoader version: https://discourse.threejs.org/t/buffergeometry-setattribute-is-not-a-function-error/22856
+  // Create a map
+  //////////////////////////////////////////////////////////////////////////////////////
+  
+  var map = new Map({
+    basemap: "dark-gray-vector",
+    ground: "world-elevation"
+  });
+
+  // Create a SceneView
+  //////////////////////////////////////////////////////////////////////////////////////
+// Add scene view
+
+var view = new SceneView({
+  map: map,
+  container: "viewDiv",
+  viewingMode: "global",
+  camera: {
+    position: {
+      x: 120.55,
+      y: 13.5,
+      z: 1000,
+      spatialReference: {wkid: 3857}
+    },
+    tilt: 65
+  },
+  environment: {
+    background: {
+      type: "color", // autocasts as new ColorBackground()
+      color: [0, 0, 0, 1]
+    },
+    
+    // disable stars
+    starsEnabled: false,
+          
+    //disable atmosphere
+    atmosphereEnabled: false
+  }
+});
+
+ // Disable lighting based on the current camera position.
+  // We want to display the lighting according to the current time of day.
+  view.environment.lighting.cameraTrackingEnabled = false;
+
+  // Create our custom external renderer
+  //////////////////////////////////////////////////////////////////////////////////////
+
+  var issExternalRenderer = {
+    renderer: null,     // three.js renderer
+    camera: null,       // three.js camera
+    scene: null,        // three.js scene
+
+    ambient: null,      // three.js ambient light source
+    sun: null,          // three.js sun light source
+
+    iss: null,                                                          // ISS model
+    issScale: 40000,                                                    // scale for the iss model
+    issMaterial: new THREE.MeshLambertMaterial({ color: 0x2194ce, transparent: true, opacity: 0.5 }),    // material for the ISS model
+
+    cameraPositionInitialized: false, // we focus the view on the ISS once we receive our first data point
+    positionHistory: [],              // all ISS positions received so far
+
+    markerMaterial: null,    // material for the markers left by the ISS
+    markerGeometry: null,    // geometry for the markers left by the ISS
+
+    /**
+     * Setup function, called once by the ArcGIS JS API.
+     */
+    setup: function(context) {
+
+      // initialize the three.js renderer
+      //////////////////////////////////////////////////////////////////////////////////////
+      this.renderer = new THREE.WebGLRenderer({
+        context: context.gl,
+        premultipliedAlpha: false
+      });
+      this.renderer.setPixelRatio(window.devicePixelRatio);
+      this.renderer.setViewport(0, 0, view.width, view.height);
+
+      // prevent three.js from clearing the buffers provided by the ArcGIS JS API.
+      this.renderer.autoClearDepth = false;
+      this.renderer.autoClearStencil = false;
+      this.renderer.autoClearColor = false;
+
+      // The ArcGIS JS API renders to custom offscreen buffers, and not to the default framebuffers.
+      // We have to inject this bit of code into the three.js runtime in order for it to bind those
+      // buffers instead of the default ones.
+      var originalSetRenderTarget = this.renderer.setRenderTarget.bind(this.renderer);
+      this.renderer.setRenderTarget = function(target) {
+        originalSetRenderTarget(target);
+        if (target == null) {
+          context.bindRenderTarget();
+        }
+      }
+
+      // setup the three.js scene
+      ///////////////////////////////////////////////////////////////////////////////////////
+
+      this.scene = new THREE.Scene();
+
+      // setup the camera
+      this.camera = new THREE.PerspectiveCamera();
+
+      // setup scene lighting
+      this.ambient = new THREE.AmbientLight( 0xffffff, 0.5);
+      this.scene.add(this.ambient);
+      this.sun = new THREE.DirectionalLight(0xffffff, 0.5);
+      this.scene.add(this.sun);
+
+      // setup markers
+      this.markerGeometry = new THREE.SphereGeometry(12*1000, 16, 16);
+      this.markerMaterial = new THREE.MeshBasicMaterial({ color: 0xe03110, transparent: true, opacity: 0.75});
+      
+      
+      
+      // load ISS mesh
+      var issMeshUrl = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/wraith.glb";
+      var loaderGLTF = new THREE.GLTFLoader(); // check this: https://qgenhate.hatenablog.com/ [object not an instance of THREE.Object3D]
+      let example = new THREE.Object3D();
+      loaderGLTF.load(
+        issMeshUrl,
+        function(gltf) {
+          console.log("ISS mesh loaded.");
+          example = gltf.scene;
+          //example.scale.set(0.01, 0.01, 0.01);
+          this.iss = example;
+
+        // apply ISS material to all nodes in the geometry
+        //this.iss.traverse( function ( child ) {
+        //  if ( child instanceof THREE.Mesh ) {
+        //    child.material = this.issMaterial;
+        //  }
+        //}.bind(this));
+
+
+        // set the specified scale for the model
+        this.iss.scale.set(this.issScale,this.issScale,this.issScale);
+
+        // add the model
+        this.scene.add(this.iss); // original: this.iss
+        console.log("ISS mesh added.");
+      }.bind(this), undefined, function(error) {
+        console.error("Error loading ISS mesh. ", error);
+      });
+
+      const light = new THREE.DirectionalLight(0xffffff, 1);
+      light.position.set(2,2,5);
+    this.scene.add(light);
+
+      //create cube to mark the ISS position (instead of loading an OBJ)
+     // const geometry = new THREE.SphereBufferGeometry(120*1000, 16, 16);
+    // this.iss = new THREE.Mesh(geometry, this.issMaterial);
+    // this.scene.add(this.iss);
+
+      // create the horizon model
+      var mat = new THREE.MeshBasicMaterial({ color: 0x2194ce });
+      mat.transparent = true;
+      mat.opacity = 0.5;
+      this.region = new THREE.Mesh(
+        new THREE.TorusGeometry(1000*1000, 10*1000, 16, 64),
+        mat
+      );
+      this.scene.add(this.region);
+
+
+      // start querying the ISS position
+      //this.queryISSPosition();
+
+      // cleanup after ourselfs
+      context.resetWebGLState();
+    },
+
+    render: function(context) {
+
+      // update camera parameters
+      ///////////////////////////////////////////////////////////////////////////////////
+      var cam = context.camera;
+
+      this.camera.position.set(cam.eye[0], cam.eye[1], cam.eye[2]);
+      this.camera.up.set(cam.up[0], cam.up[1], cam.up[2]);
+      this.camera.lookAt(new THREE.Vector3(cam.center[0], cam.center[1], cam.center[2]));
+
+      // Projection matrix can be copied directly
+      this.camera.projectionMatrix.fromArray(cam.projectionMatrix);
+
+      // update ISS and region position
+      ///////////////////////////////////////////////////////////////////////////////////
+      if (this.iss) {
+        var posEst = [120.55, 13.5, 1000]; // this.computeISSPosition();
+
+        var renderPos = [0, 0, 0]; // original: [0, 0, 0]
+        externalRenderers.toRenderCoordinates(view, posEst, 0, SpatialReference.WGS84, renderPos, 0, 1);
+        this.iss.position.set(renderPos[0], renderPos[1], renderPos[2]);
+
+        // for the region, we position a torus slightly under ground
+        // the torus also needs to be rotated to lie flat on the ground
+        posEst = [posEst[0], posEst[1], -1*1000];
+
+        var transform = new THREE.Matrix4();
+        transform.fromArray(externalRenderers.renderCoordinateTransformAt(view, posEst, SpatialReference.WGS84, new Array(16)));
+        transform.decompose(this.region.position, this.region.quaternion, this.region.scale);
+
+        // if we haven't initialized the view position yet, we do so now
+        if (this.positionHistory.length > 0 &&  !this.cameraPositionInitialized) {
+          this.cameraPositionInitialized = true;
+          view.goTo({
+            target: [posEst[0], posEst[1]],
+            zoom: 5,
+          });
+        }
+      }
+
+      // update lighting
+      /////////////////////////////////////////////////////////////////////////////////////////////////////
+      view.environment.lighting.date = Date.now();
+
+      var l = context.sunLight;
+      this.sun.position.set(
+        l.direction[0],
+        l.direction[1],
+        l.direction[2]
+      );
+      this.sun.intensity = l.diffuse.intensity;
+      this.sun.color = new THREE.Color(l.diffuse.color[0], l.diffuse.color[1], l.diffuse.color[2]);
+
+      this.ambient.intensity = l.ambient.intensity;
+      this.ambient.color = new THREE.Color(l.ambient.color[0], l.ambient.color[1], l.ambient.color[2]);
+
+      //this.iss.rotation.x += 0.01;
+      //this.iss.rotation.y += 0.01;
+
+      // draw the scene
+      /////////////////////////////////////////////////////////////////////////////////////////////////////
+      //this.renderer.resetGLState(); // Looks like resetGLState method got moved. Change it to: 
+      this.renderer.resetState();
+      // And after this, newly needed: 
+      context.bindRenderTarget();
+      this.renderer.render(this.scene, this.camera);
+
+      // as we want to smoothly animate the ISS movement, immediately request a re-render
+      externalRenderers.requestRender(view);
+
+      // cleanup
+      context.resetWebGLState();
+    },
+
+    lastPosition: null,
+    lastTime: null,
+
+    /**
+     * Computes an estimate for the position of the ISS based on the current time.
+     */
+
+     /*
+    computeISSPosition: function() {
+      // This sets the initial position of object marker
+      if (this.positionHistory.length == 0) { return [0, 0, 0]; } //120.55, 13.5, 1000]
+
+      
+
+      if (this.positionHistory.length == 1) {
+        var entry1 = this.positionHistory[this.positionHistory.length - 1];
+        return entry1.pos;
+      }
+
+      var now = Date.now() / 1000;
+      var entry1 = this.positionHistory[this.positionHistory.length - 1];
+
+      // initialize the remembered ISS position
+      if (!this.lastPosition) {
+        this.lastPosition = entry1.pos;
+        this.lastTime = entry1.time;
+      }
+
+      // compute a new estimated position
+      var dt1 = now - entry1.time;
+      var est1 = [
+        entry1.pos[0] + dt1* entry1.vel[0],
+        entry1.pos[1] + dt1* entry1.vel[1],
+      ];
+
+      // compute the delta of current and newly estimated position
+      var dPos = [
+        est1[0] - this.lastPosition[0],
+        est1[1] - this.lastPosition[1],
+      ];
+
+      // compute required velocity to reach newly estimated position
+      // but cap the actual velocity to 1.2 times the currently estimated ISS velocity
+      var dt = now - this.lastTime;
+      if (dt === 0) { dt = 1.0/1000; }
+
+      var catchupVel = Math.sqrt(dPos[0]*dPos[0] + dPos[1]*dPos[1]) / dt;
+      var maxVel = 1.2 * Math.sqrt(entry1.vel[0]*entry1.vel[0] + entry1.vel[1]*entry1.vel[1]);
+      var factor = catchupVel <= maxVel ? 1.0 : maxVel / catchupVel;
+
+      // move the current position towards the estimated position
+      var newPos = [
+        this.lastPosition[0] + dPos[0] * factor,
+        this.lastPosition[1] + dPos[1] * factor,
+        entry1.pos[2]
+      ];
+
+      this.lastPosition = newPos;
+      this.lastTime = now;
+
+      return newPos;
+
+    },
+*/
+
+    /**
+     * This function starts a chain of calls querying the current ISS position from open-notify.org every 5 seconds.
+     */
+    /*
+    queryISSPosition: function() {
+      esriRequest("http://api.open-notify.org/iss-now.json", {
+        callbackParamName: "callback",
+        responseType: "json"
+      })
+      .then(function(response) {
+        var result = response.data;
+
+        var vel = [0,0];
+        if (this.positionHistory.length > 0) {
+          var last = this.positionHistory[this.positionHistory.length - 1];
+          var deltaT = result.timestamp - last.time;
+          var vLon = (result.iss_position.longitude - last.pos[0]) / deltaT;
+          var vLat = (result.iss_position.latitude - last.pos[1]) / deltaT;
+          vel = [vLon, vLat];
+        }
+
+        this.positionHistory.push({
+          pos: [result.iss_position.longitude, result.iss_position.latitude, 400 * 1000],
+          time: result.timestamp,
+          vel: vel,
+        });
+
+        // create a new marker object from the second most recent position update
+        if (this.positionHistory.length >= 2) {
+          var entry = this.positionHistory[this.positionHistory.length - 2];
+
+          var renderPos = [0, 0, 0];
+          externalRenderers.toRenderCoordinates(view, entry.pos, 0, SpatialReference.WGS84, renderPos, 0, 1);
+
+          var markerObject = new THREE.Mesh(this.markerGeometry, this.markerMaterial);
+          markerObject.position.set(renderPos[0], renderPos[1], renderPos[2]);
+          this.scene.add(markerObject);
+        }
+      }.bind(this))
+      //.always(function() { // change "always" to "then"
+      .then(function() {
+        // request a new position update in 5 seconds
+        setTimeout(this.queryISSPosition.bind(this), 5000);
+      }.bind(this));
+    }
+    */
+  }
+
+  // register the external renderer
+  externalRenderers.add(view, issExternalRenderer);
+
+  // See-through-Ground
+view.when(function() {
+  // allow navigation above and below the ground
+  map.ground.navigationConstraint = {
+    type: "none"
+  };
+  // the webscene has no basemap, so set a surfaceColor on the ground
+  map.ground.surfaceColor = "#fff";
+          
+  // to see through the ground, set the ground opacity to 0.4
+  map.ground.opacity = 0.9;
+});
+          
+document.getElementById("opacityInput")
+        .addEventListener("change", function(event) {
+          map.ground.opacity = event.target.checked ? 0.1 : 0.8;
+        });
+view.ui.add("menu", "bottom-right");
+
+});
+</script>
+</head>
+
+<body>
+  <div id="viewDiv">
+    <div id="menu" class="esri-widget">
+      <input type="checkbox" id="opacityInput" unchecked />
+      <label for="opacityInput">See through ground</label>
+    </div>
+  </div>
+</body>
+
+</html>
