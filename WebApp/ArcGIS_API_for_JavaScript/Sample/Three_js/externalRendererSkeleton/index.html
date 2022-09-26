@@ -5,14 +5,14 @@
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <title>Use three.js from an external renderer - 4.1</title>
 
-    <link rel="stylesheet" href="https://js.arcgis.com/4.1/esri/css/main.css">
+    <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/css/main.css">
 
     <script src="https://unpkg.com/three@0.144.0/build/three.js"></script>
-    <script src="https://unpkg.com/three@0.144.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://unpkg.com/three@0.144.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="js/libs/stats.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/7/Stats.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
 
-    <script src="https://js.arcgis.com/4.1/"></script>
+    <script src="https://js.arcgis.com/4.24/"></script>
 
     <style>
         html, body, #viewDiv {
@@ -35,16 +35,16 @@
     <!-- Our application -->
     <script>
         require([
-          "esri/core/declare",
+          "esri/core/Accessor",
           "esri/Map",
           "esri/views/SceneView",
           "esri/geometry/Point",
           "esri/geometry/Polyline",
           "esri/views/3d/externalRenderers",
           "esri/geometry/SpatialReference",
-          "esri/tasks/RouteTask",
-          "esri/tasks/support/RouteParameters",
-          "esri/tasks/support/FeatureSet",
+          "esri/rest/route",
+          "esri/rest/support/RouteParameters",
+          "esri/rest/support/FeatureSet",
           "esri/layers/GraphicsLayer",
           "esri/Graphic",
           "esri/symbols/SimpleMarkerSymbol",
@@ -57,14 +57,14 @@
           "dojo/domReady!"
         ],
         function (
-          declare,
+        Accessor,
           Map,
           SceneView,
           Point,
           Polyline,
           externalRenderers,
           SpatialReference,
-          RouteTask,
+          route,
           RouteParameters,
           FeatureSet,
           GraphicsLayer,
@@ -77,22 +77,8 @@
           on,
           query
         ) {
-
-            // proxy the route requests to avoid prompt for log in
-            //urlUtils.addProxyRule({
-            //    urlPrefix: "route.arcgis.com",
-            //    proxyUrl: "/sproxy/"
-            //});
-
-            // Point the URL to a valid route service
-            var routeTask = new RouteTask({
-                url: "https://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World"
-            });
-
             // The stops and route result will be stored in this layer
             var routeLyr = new GraphicsLayer();
-
-            var externalRenderer = null;
 
             // Setup the route parameters
             var routeParams = new RouteParameters({
@@ -116,13 +102,12 @@
                 color: [0, 0, 255, 0.5],
                 width: 5
             });
-
             // Create a map
             //////////////////////////////////////////////////////////////////////////////////////
             var map = new Map({
-                basemap: "gray",
+                basemap: "dark-gray-vector",
                 ground: "world-elevation",
-                layers: [routeLyr] // Add the route layer to the map
+              layers: [routeLyr]
             });
 
             // Create a SceneView
@@ -136,15 +121,25 @@
                         x: 9,
                         y: 45,
                         z: 10000,
-                        spatialReference: SpatialReference.WGS84
+                        spatialReference: {wkid: 3857}
                     },
                     heading: 0,
                     tilt: 35
                 },
+                environment: {
+                    background: {
+                        type: "color", // autocasts as new ColorBackground()
+                        color: [0, 0, 0, 1]
+                    }
+                }
             });
 
             // Adds a graphic when the user clicks the map. If 2 or more points exist, route is solved.
-            on(view, "click", addStop);
+            //on(view, "click", addStop);
+            view.on("click", function() {
+                addStop();
+
+            });
 
             function addStop(event) {
 
@@ -213,35 +208,43 @@
 
 
                 // register the external renderer
-                externalRenderer = new skeletonRenderer(pl);
-                externalRenderers.add(view, externalRenderer);
+                const myExternalRenderer = new skeletonRenderer(view, pl);
+                externalRenderers.add(view, myExternalRenderer);
 
             }
-
             // Disable lighting based on the current camera position.
             // We want to display the lighting according to the current time of day.
             view.environment.lighting.cameraTrackingEnabled = false;
 
             // Create our custom external renderer
             //////////////////////////////////////////////////////////////////////////////////////
-
-            var skeletonRenderer = declare(null, {
+            //https://github.nicogis.it/externalRendererSkeleton/
+            var skeletonRenderer = Accessor.createSubclass({ // if '|| {}' is not added beside null,
+            // you will receive the following error 'Cannot destructure property of xx of 'null' as it is null'
+                view: null,
+                //pl: null,
                 renderer: null,     // three.js renderer
                 camera: null,       // three.js camera
                 scene: null,        // three.js scene
                 vertexIdx: 0,
                 ambient: null,      // three.js ambient light source
                 sun: null,          // three.js sun light source
-
                 mixer: null,
                 clock: null,
                 clips: null,
                 animate: null,
-                iss: null,                                                          // ISS model
+                light: null,
+                iss: null,                                                    // ISS model
+                issScale: 500,                                            // scale for the iss model
+                path: null,
 
-                issScale: 400,                                                    // scale for the iss model
-
-                issMaterial: new THREE.MeshLambertMaterial({ color: 0x2194ce, transparent: true, opacity: 0.5 }),
+                cameraPositionInitialized: false, // we focus the view on the ISS once we receive our first data point
+                positionHistory: [],
+              
+                constructor: function (view, pl) {
+                  this.view = view;
+                    this.path = pl.paths[0]; //pl.paths[0];
+                },
 
                 /**
                  * Setup function, called once by the ArcGIS JS API.
@@ -256,6 +259,7 @@
                     });
                     this.renderer.setPixelRatio(window.devicePixelRatio);
                     this.renderer.setSize(context.camera.fullWidth, context.camera.fullHeight);
+                    this.renderer.setViewport(0, 0, view.width, view.height);
 
                     // prevent three.js from clearing the buffers provided by the ArcGIS JS API.
                     this.renderer.autoClearDepth = false;
@@ -279,8 +283,7 @@
                     this.scene = new THREE.Scene();
 
                     // setup the camera
-                    var cam = context.camera;
-                    this.camera = new THREE.PerspectiveCamera(cam.fovY, cam.aspect, cam.near, cam.far);
+                    this.camera = new THREE.PerspectiveCamera();
 
                     // setup scene lighting
                     this.ambient = new THREE.AmbientLight(0xffffff, 0.5);
@@ -290,63 +293,58 @@
 
                     this.clock = new THREE.Clock();
 
-                    var issMeshUrl = "https://EijiGorilla.github.io/glTF/canoe.glb";
+                    var issMeshUrl = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Wraith_Animated.glb";
+                    // "https://EijiGorilla.github.io/glTF/canoe.glb"
+
+                    //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Wraith_Animated.glb";
+                    var loaderGLTF = new THREE.GLTFLoader(); // check this: https://qgenhate.hatenablog.com/ [object not an instance of THREE.Object3D]
+                    let example = new THREE.Object3D();
       
-      //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Wraith_Animated.glb";
-      var loaderGLTF = new THREE.GLTFLoader(); // check this: https://qgenhate.hatenablog.com/ [object not an instance of THREE.Object3D]
-      let example = new THREE.Object3D();
-      
-      loaderGLTF.load(issMeshUrl,
-        function(gltf) {
-          console.log("ISS mesh loaded.");
+                    loaderGLTF.load(issMeshUrl,
+                    function(gltf) {
+                        console.log("ISS mesh loaded.");
+                        
+                        example = gltf.scene;
+                        this.iss = example;
+                        
+                        // apply ISS material to all nodes in the geometry
+                        //this.iss.traverse( function ( child ) {
+                        //  if ( child instanceof THREE.Mesh ) {
+                        //    child.material = this.issMaterial;
+                        //  }
+                        //}.bind(this));
+                        
+                        // set the specified scale for the model
+                        this.iss.scale.set(this.issScale, this.issScale, this.issScale);
 
-          example = gltf.scene;
-          //example.scale.set(0.01, 0.01, 0.01);
-          this.iss = example;
+                        // Fix rotation
+                        //this.iss.rotation.x = 10;
+                        
+                        // add the model
+                        this.scene.add(this.iss); // original: this.iss
+                        console.log("ISS mesh added.");
 
-        // apply ISS material to all nodes in the geometry
-        //this.iss.traverse( function ( child ) {
-        //  if ( child instanceof THREE.Mesh ) {
-        //    child.material = this.issMaterial;
-        //  }
-        //}.bind(this));
-
-
-        // set the specified scale for the model
-        this.iss.scale.set(this.issScale, this.issScale, this.issScale);
-
-        // Fix rotation
-        this.iss.rotation.x = -4.7;
-
-        // add the model
-        this.scene.add(this.iss); // original: this.iss
-        console.log("ISS mesh added.");
-
-        // Mixer for animation
-        this.mixer = new THREE.AnimationMixer(this.iss);
-        this.mixer.clipAction(gltf.animations[0]).play();
+                        // Mixer for animation
+                        this.mixer = new THREE.AnimationMixer(this.iss);
+                        this.mixer.clipAction(gltf.animations[0]).play();
 
         
-        //this.clips = this.iss.animations;
-            // update animated object
-           // requestAnimationFrame();
+                        //this.clips = this.iss.animations;
+                        // update animated object
+                        // requestAnimationFrame();
+                    
+                    }.bind(this), undefined, function(error) {
+                        console.error("Error loading ISS mesh. ", error);
+                    });
 
-        
-      }.bind(this), undefined, function(error) {
-        console.error("Error loading ISS mesh. ", error);
-      });
-
-
+                    this.light = new THREE.DirectionalLight(0xffffff, 1);
+                    this.light.position.set(2,2,5);
+                    this.scene.add(this.light);
 
                     // cleanup after ourselfs
                     context.resetWebGLState();
                 },
-                /**
-                * Dojo constructor
-                */
-                constructor: function (pl) {
-                    this.path = pl.paths[0];
-                },
+
                 render: function (context) {
 
                     // update camera parameters
@@ -360,9 +358,14 @@
                     // Projection matrix can be copied directly
                     this.camera.projectionMatrix.fromArray(cam.projectionMatrix);
 
-                    if (this.iss.geometry) {
-
-                        if (this.path.length == (this.vertexIdx + 1))
+                    if (this.iss) {
+                        
+                        // Add this.mixer.update first; otherwise, the object will not be animated.s
+                        if (this.mixer) {
+                            this.mixer.update(this.clock.getDelta());
+                        }
+                        
+                            if (this.path.length == (this.vertexIdx + 1))
                         {
                             this.vertexIdx = 0;
                         }
@@ -377,7 +380,7 @@
 
                         pt.spatialReference = SpatialReference.WebMercator;
 
-                        z = view.basemapTerrain.getElevation(p);
+                        z = 5; // view.basemapTerrain.getElevation(p);
 
                         pos = [pt.x, pt.y, z];
 
@@ -391,7 +394,7 @@
                         transform.fromArray(externalRenderers.renderCoordinateTransformAt(view, pos, SpatialReference.WebMercator, new Array(16)));
 
                         this.iss.position.set(transform.elements[12], transform.elements[13], transform.elements[14]);
-
+                    
                         var p0;
                         var p1;
 
@@ -411,20 +414,20 @@
                         var m2 = new THREE.Matrix4();
                         var m3 = new THREE.Matrix4();
 
-                        m1.makeRotationX(THREE.Math.degToRad(90));
-                        m2.makeRotationY(THREE.Math.degToRad(10));
-                        m3.makeRotationZ(THREE.Math.degToRad(315));
+                        m1.makeRotationX(THREE.MathUtils.degToRad(90));
+                        m2.makeRotationY(THREE.MathUtils.degToRad(10));
+                        m3.makeRotationZ(THREE.MathUtils.degToRad(315));
 
                         rotation.multiplyMatrices(m1, m2);
                         rotation.multiply(m3);
 
-                        this.blendMesh.setRotationFromMatrix(rotation);
+                        this.iss.setRotationFromMatrix(rotation);
 
-                        var scale = this.gui.getTimeScale();
+                        var scale = 10; //this.gui.getTimeScale();
                         var delta = this.clock.getDelta();
                         var stepSize = delta * scale;
-                        this.iss.update(stepSize);
-
+                       // this.iss.update(stepSize);
+                        
                     }
 
                     // update lighting
@@ -445,21 +448,32 @@
 
                     // draw the scene
                     /////////////////////////////////////////////////////////////////////////////////////////////////////
-                    this.renderer.resetGLState();
+                    this.renderer.resetState();
+                    context.bindRenderTarget();
                     this.renderer.render(this.scene, this.camera);
                     externalRenderers.requestRender(view);
 
                     // cleanup
                     context.resetWebGLState();
-                }
-            });
+                },
+            })
+            externalRenderers.add(view, skeletonRenderer);
 
+            view.when(function() {
+                // allow navigation above and below the ground
+                map.ground.navigationConstraint = {
+                    type: "none"
+                };
+                // the webscene has no basemap, so set a surfaceColor on the ground
+                map.ground.surfaceColor = "#fff";
+        
+                // to see through the ground, set the ground opacity to 0.4
+                map.ground.opacity = 0.9;
+            });
         });
     </script>
 </head>
-
 <body>
     <div id="viewDiv"></div>
 </body>
-
 </html>
