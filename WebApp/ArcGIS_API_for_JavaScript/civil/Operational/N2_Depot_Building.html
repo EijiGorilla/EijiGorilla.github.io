@@ -288,7 +288,6 @@
       }
 
 
-      
       #optionsDiv {
         font-size: 1.8vw;
         font-weight: normal;
@@ -454,7 +453,8 @@ href="https://js.arcgis.com/4.24/esri/themes/dark/main.css"
         "esri/widgets/FeatureTable",
         "esri/widgets/Compass",
         "esri/layers/ElevationLayer",
-        "esri/Ground"
+        "esri/Ground",
+        "esri/widgets/Search"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -464,7 +464,7 @@ href="https://js.arcgis.com/4.24/esri/themes/dark/main.css"
                   geometryService, Query,
                   StatisticDefinition, WebStyleSymbol,
                   TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
-                  FeatureTable, Compass, ElevationLayer, Ground) {
+                  FeatureTable, Compass, ElevationLayer, Ground, Search) {
 
 let chartLayerView;
 ////////////////////////////////////////////////////
@@ -629,8 +629,8 @@ let buildingSpotSymbol = {
   type: "simple",  // autocasts as new SimpleRenderer()
   symbol: {
     type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
-    size: 0,
-    color: [0, 0, 0, 0],
+    size: 5,
+    color: "white",
     outline: {  // autocasts as new SimpleLineSymbol()
       width: 0.5,
       color: [0, 0, 0, 0]
@@ -693,7 +693,7 @@ var buildingLocation = new FeatureLayer({
         }
     },
     elevationInfo: {
-    mode: "on-the-ground"
+    mode: "relative-to-ground"
   },
     title: "Building Spot",
     renderer: buildingSpotSymbol,
@@ -913,6 +913,7 @@ view.when(function() {
     view.hitTest(event).then(function(response) {
       const feature = response.results[0].graphic.attributes.Name;
         structureLayer.definitionExpression = "Name = '" + feature + "'";
+        zoomToLayer(structureLayer);
         perBuildingProgress();
         chartStFoundation();
         chartStColumn();
@@ -3122,6 +3123,28 @@ function chartOthers() {
             position: "bottom-left"
           });
 */
+
+// Search
+var searchWidget = new Search({
+view: view,
+locationEnabled: false,
+includeDefaultSources: false,
+sources: [
+  {
+    layer: buildingLocation,
+    searchFields: ["Name", "LAYER"],
+    displayField: "Name",
+    exactMatch: false,
+    outFields: ["Name"],
+    name: "Building Name",
+    placeholder: "Building Name"
+}
+]
+});
+view.ui.add(searchWidget, "top-right");
+//
+
+// Legend
 var legend = new Legend({
   view: view,
   container: document.getElementById("legendDiv"),
@@ -3147,6 +3170,8 @@ view.ui.add(legendExpand, {
     position: "top-right"
 });
 
+
+// Layer List
 var layerListExpand = new Expand ({
             view: view,
             content: layerList,
@@ -3260,6 +3285,7 @@ var layerListExpand = new Expand ({
           <div id="menu" class="esri-widget">
             <input type="checkbox" id="opacityInput" unchecked />
             <label for="opacityInput">No ground</label>
-        </div>
+          </div>
+  </div>
   </body>
 </html>
