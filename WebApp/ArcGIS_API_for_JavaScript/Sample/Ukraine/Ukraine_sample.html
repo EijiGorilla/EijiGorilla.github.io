@@ -146,14 +146,14 @@
 
     <link
     rel="stylesheet"
-    href="https://js.arcgis.com/4.23/esri/themes/dark/main.css"
+    href="https://js.arcgis.com/4.24/esri/themes/dark/main.css"
     />
 <!-- Resources -->
 <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
 <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-<script src="https://js.arcgis.com/4.23/"></script>
+<script src="https://js.arcgis.com/4.24/"></script>
 
     <script>
       require([
@@ -166,8 +166,7 @@
         "esri/layers/GroupLayer",
         "esri/widgets/Expand",
         "esri/widgets/Legend",
-        "esri/tasks/support/Query",
-        "esri/tasks/QueryTask",
+        "esri/rest/support/Query",
         "esri/widgets/Fullscreen",
         "esri/symbols/TextSymbol",
         "esri/views/SceneView",
@@ -183,7 +182,6 @@
         Expand,
         Legend,
         Query,
-        QueryTask,
         Fullscreen,
         TextSymbol,
         SceneView,
@@ -242,10 +240,21 @@ let textSymbol = {
   }
 };
 
+// Military front line
+var frontLine = new FeatureLayer({
+    portalItem: {
+        id: "5707eb58d6a7452cbc783ee458ea6b8a"
+    },
+    title: "Military Frontline",
+    layerId: 85,
+    popupEnabled: false
+});
+
+
 // Hospital Damage Rating
         var hospitalLayer = new FeatureLayer({
             portalItem: {
-                id:"5319d21523614a2ea5e0018854e90c34"
+                id:"5707eb58d6a7452cbc783ee458ea6b8a"
             },
             title: "Hospital Damage Rating",
             layerId: 4,
@@ -264,7 +273,8 @@ let textSymbol = {
                   ]
                 }
               ]
-            }
+            },
+            definitionExpression: "Note = 'Kyiv'"
         });
 
 
@@ -272,7 +282,7 @@ let textSymbol = {
 // Hospital Restoration Cost
 var hospitalCostLayer = new FeatureLayer({
             portalItem: {
-                id:"5319d21523614a2ea5e0018854e90c34"
+                id:"5707eb58d6a7452cbc783ee458ea6b8a"
             },
             title: "Hospital Restoration Cost",
             layerId: 36,
@@ -280,13 +290,14 @@ var hospitalCostLayer = new FeatureLayer({
             popupTemplate: {
               title: "Restoration Cost for this hospital is ${Cost}",
               returnGeometry: true
-            }
+            },
+            definitionExpression: "Note = 'Kyiv'"
         });
 
 // Bridge Damage Rating
 var bridgeLayer = new FeatureLayer({
             portalItem: {
-                id:"5319d21523614a2ea5e0018854e90c34"
+                id:"5707eb58d6a7452cbc783ee458ea6b8a"
             },
             title: "Bridge Damage Rating",
             layerId: 33,
@@ -294,15 +305,34 @@ var bridgeLayer = new FeatureLayer({
             popupTemplate: {
               title: "Damage Status of ths Bridge: {Damage}",
               returnGeometry: true
-            }
+            },
+            definitionExpression: "note = 'International'"
         });
 
 // Populated places layer
+const populationLabel = {  // autocasts as new LabelClass()
+  symbol: {
+    type: "text",  // autocasts as new TextSymbol()
+    color: "black",
+    haloColor: "white",
+    haloSize: 0.7,
+    font: {  // autocast as new Font()
+       size: 15,
+       weight: "bold"
+     }
+  },
+  labelPlacement: "above-right",
+  labelExpressionInfo: {
+    expression: "$feature.ADM4_EN"
+  }
+};
+
+
 var populatedPlaceLayer = new FeatureLayer({
   portalItem: {
-                id:"5319d21523614a2ea5e0018854e90c34"
+                id:"5707eb58d6a7452cbc783ee458ea6b8a"
             },
-            title: "Populated Place",
+            title: "Major City",
             layerId: 37,
             outFields: ["*"],
             popupTemplate: {
@@ -327,13 +357,15 @@ var populatedPlaceLayer = new FeatureLayer({
                   ]
                 }
               ]
-            }
+            },
+            labelingInfo: [populationLabel],
+            definitionExpression: "Type_ = 'national capital'",
 });
 
 // Population
 var populationLayer = new FeatureLayer({
   portalItem: {
-                id:"5319d21523614a2ea5e0018854e90c34"
+                id:"5707eb58d6a7452cbc783ee458ea6b8a"
             },
             title: "Population",
             layerId: 32,
@@ -358,10 +390,10 @@ var populationLayer = new FeatureLayer({
 // Major Road network
 var majorRoadLayer = new FeatureLayer({
   portalItem: {
-                id:"5319d21523614a2ea5e0018854e90c34"
+                id:"5707eb58d6a7452cbc783ee458ea6b8a"
             },
             title: "Major Road",
-            layerId: 30,
+            layerId: 84,
             outFields: ["*"],
             popupEnabled: false
 });
@@ -369,7 +401,7 @@ var majorRoadLayer = new FeatureLayer({
 // Coundary Boundary
 var ukrainBoundary = new FeatureLayer({
           portalItem: {
-                id:"5319d21523614a2ea5e0018854e90c34"
+                id:"5707eb58d6a7452cbc783ee458ea6b8a"
             },
             title: "Boundary",
             //labelingInfo: [textSymbol],
@@ -380,14 +412,14 @@ var ukrainBoundary = new FeatureLayer({
         });
         ukrainBoundary.listMode = "hide";
         
+//
+//ukrainBoundary.renderer = {
+//type: "simple", // autocasts as new SimpleRenderer()
+//symbol: textSymbol
+//};
 
-ukrainBoundary.renderer = {
-type: "simple", // autocasts as new SimpleRenderer()
-symbol: textSymbol
-};
-
-        // this layer is only used to query for the intersecting country when the map is clicked
-        const countries = new FeatureLayer({
+// this layer is only used to query for the intersecting country when the map is clicked
+const countries = new FeatureLayer({
           portalItem: {
             id: "53a1e68de7e4499cad77c80daba46a94"
           },
@@ -432,7 +464,10 @@ symbol: textSymbol
 groupLayer.listMode = "hide";
 
         var map = new Map({
-          layers: [worldImagery, groupLayer,ukrainBoundary, populationLayer,majorRoadLayer,bridgeLayer,hospitalCostLayer,hospitalLayer,populatedPlaceLayer]
+          layers: [worldImagery, groupLayer,ukrainBoundary,
+                   populationLayer,majorRoadLayer,bridgeLayer,
+                   hospitalCostLayer,hospitalLayer,populatedPlaceLayer,
+                   frontLine]
         });
 
         var view = new MapView({
@@ -1075,6 +1110,10 @@ var legend = new Legend({
   view: view,
   container: legendDiv,
   layerInfos: [
+    {
+        layer: frontLine,
+        title: "Military Frontline"
+    },
   {
     layer: hospitalLayer,
     title: "Hospital Damage Rating"
@@ -1118,7 +1157,7 @@ var layerList = new LayerList({
   view: view,
   listItemCreatedFunction: function(event) {
     const item = event.item;
-    if (item.title === "Bridge Damage Rating" || item.title === "Populated Place"){
+    if (item.title === "Bridge Damage Rating"){
       item.visible = false
     }
     if (item.layer.type !== "group"){
