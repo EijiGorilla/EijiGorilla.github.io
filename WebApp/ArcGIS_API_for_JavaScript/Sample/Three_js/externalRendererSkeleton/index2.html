@@ -9,6 +9,7 @@
 
     <script src="https://unpkg.com/three@0.144.0/build/three.js"></script>
     <script src="https://unpkg.com/three@0.144.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://unpkg.com/three@0.144.0/examples/js/modifiers/CurveModifier.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/7/Stats.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
 
@@ -236,7 +237,9 @@
                 issScale: 100,                                     // scale for the iss model
                 path: null,
               count: null,
+              curve: null,
               up: null,
+              flow: null,
               timeDelta: null,
 
                 cameraPositionInitialized: false, // we focus the view on the ISS once we receive our first data point
@@ -324,7 +327,8 @@
                         this.mixer = new THREE.AnimationMixer(this.iss);
                         this.mixer.clipAction(gltf.animations[0]).play();
 
-        
+
+                       //this.iss.update(stepSize);
                         //this.clips = this.iss.animations;
                         // update animated object
                         // requestAnimationFrame();
@@ -347,6 +351,7 @@
                       this.pp = new THREE.Vector3( );
                       this.quaternion = new THREE.Quaternion();
 
+                      this.flow = new THREE.Flow(this.iss);
                     // cleanup after ourselfs
                     context.resetWebGLState();
                 },
@@ -368,9 +373,10 @@
                              
                         // Add this.mixer.update first; otherwise, the object will not be animated.s
                         if (this.mixer) {
-                          this.timeDelta = this.clock.getDelta();
-                          //this.timeDelta *= 0.1;
-                          this.mixer.update(this.timeDelta);         
+                            var scale = 0.0001; //this.gui.getTimeScale();
+                            var delta = this.clock.getDelta();
+
+                          this.mixer.update(delta);         
                         }
    
                             if (this.path.length == (this.vertexIdx + 1))
@@ -425,7 +431,6 @@
                           console.log(transform.elements[12], transform.elements[13], transform.elements[14]);
                         }
                            
-                     
                     
                         var p0;
                         var p1;
@@ -455,9 +460,23 @@
                       // https://answers.unity.com/questions/36255/lookat-to-only-rotate-on-y-axis-how.html
                       // how to use '.up' with lookAt?
                       //geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( Math.PI / 2 ) );
-                      this.iss.up = this.up;
+                      //this.iss.up = this.up;
                       
-                      this.iss.lookAt(rotation.elements[12], rotation.elements[13], rotation.elements[14]);
+                      //this.iss.lookAt(rotation.elements[12], rotation.elements[13], rotation.elements[14]);
+
+
+                      // use flow
+                      //https://hofk.de/main/discourse.threejs/2021/MotionAlongCurve/MotionAlongCurve.html
+                      const somePoints = [
+                        {x: transform.elements[12], y: transform.elements[13], z: transform.elements[14]},
+                        {x: rotation.elements[12], y: rotation.elements[13], z: rotation.elements[14]},
+                      ]
+
+                      this.curve = new THREE.CatmullRomCurve3( somePoints );
+                      console.log(this.curve);
+
+                      this.flow.updateCurve(0, this.curve);
+                      this.flow.moveAlongCurve(0.0006);
               
                       // transformation matrix for rotation
                       /*
