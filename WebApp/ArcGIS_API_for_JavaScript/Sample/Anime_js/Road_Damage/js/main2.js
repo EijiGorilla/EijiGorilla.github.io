@@ -30,7 +30,8 @@ require([
       "esri/geometry/support/webMercatorUtils",
       "esri/geometry/SpatialReference",
       "esri/geometry/Polyline",
-      "esri/renderers/SimpleRenderer"
+      "esri/renderers/SimpleRenderer",
+      "esri/geometry/Mesh"
 
     ], function(
       Basemap,
@@ -64,7 +65,8 @@ require([
       webMercatorUtils,
       SpatialReference,
       Polyline,
-      SimpleRenderer
+      SimpleRenderer,
+      Mesh
 
     ) {
       const spatialReference = SpatialReference.WebMercator;
@@ -97,7 +99,7 @@ map.ground.surfaceColor = '#004C73';
 var view = new SceneView({
 map: map,
 container: "viewDiv",
-viewingMode: "global",
+viewingMode: "local",
 qualityProfile: "high",
 environment: {
   background: {
@@ -113,8 +115,8 @@ environment: {
 },
 camera: {
   position: {
-    x: 120.9777186,//120.9777186,
-    y: 14.5600295,//14.5600295,
+    x: 120.9988027,//120.9777186,
+    y: 14.65485964,//14.5600295,
     z: 2000
   },
   tilt: 65,
@@ -170,6 +172,10 @@ symbol: osmSymbol
 }
 
 
+
+url = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/wraith.glb";
+
+
 // Add graphicsLayer
 var graphicsLayer = new GraphicsLayer({
   elevationInfo: {
@@ -178,25 +184,45 @@ var graphicsLayer = new GraphicsLayer({
   title: "Moving Points"
 });
 
-// Add a 3D point graphics
+
+// ObjectSymbol3D
+const symbol1 = {
+  type: "point-3d",  // autocasts as new PointSymbol3D()
+  symbolLayers: [{
+    type: "object",  // autocasts as new ObjectSymbol3DLayer()
+    resource: {
+      href: "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/wraith.glb"
+    },
+    height: 5,
+    heading: 180,
+    material: {
+      color: "yellow"
+    }
+  }]
+};
+
+// Add a 3D pint graphics
+
+
 var democar1 = new Graphic({
-  geometry: { ...point1, z: 0, type: "point" }
+  geometry: { ...point1, type: "point" },
+
 });
 
 var democar2 = new Graphic({
-  geometry: { ...pointB1, z: 0, type: "point" }
+  geometry: { ...pointB1, type: "point" }
 });
 
 var democar3 = new Graphic({
-  geometry: { ...pointB10, z: 0, type: "point" }
+  geometry: { ...pointB10, type: "point" }
 });
 
 var democar4 = new Graphic({
-  geometry: { ...pointD1, z: 0, type: "point" }
+  geometry: { ...pointD1, type: "point" }
 });
 
 var democar5 = new Graphic({
-  geometry: { ...pointE1, z: 0, type: "point" }
+  geometry: { ...pointE1, type: "point" }
 });
 
 // Promise 3D web sybmol properties and wait until the properties are finished
@@ -211,11 +237,9 @@ var scale = 1.5;
 
 
 var webStyleSymbol = new WebStyleSymbol({
-name: "Standing Circle", //"Standing Circle"
+name: "Standing Circle", //
 styleName: "EsriIconsStyle"
 });
-
-
 
 var symbol = await webStyleSymbol.fetchSymbol();
 symbol.symbolLayers.items[0].heading = 80;
@@ -225,53 +249,20 @@ symbol.symbolLayers.items[0].width *= scale;
 symbol.symbolLayers.items[0].material.color *= "white";
 symbol.symbolLayers.items[0].size *= 0.5;
 
-/*
-const symbol = {
-  type: "point-3d",
-  symbolLayers: [
-    {
-      type: "object",
-      height: 50,
-      resource: {
-        href: "https://developers.arcgis.com/javascript/latest/sample-code/import-gltf/live/canoe.glb"
-      },
-      heading: 90
-    }
-  ]
-}
 
-
-// Attache the above properties to all the points
-      function generateRenderer(heading){
-        return new SimpleRenderer({
-          symbol: {
-            type: "point-3d",
-            symbolLayers: [
-              {
-                type: "object",
-                height: 50,
-                resource: {
-                  href: "https://developers.arcgis.com/javascript/latest/sample-code/import-gltf/live/canoe.glb"
-                },
-                heading: 90
-              }
-            ]
-          }
-        });
-      }
-      
-      // constant width and height in pixels
-*/
-
-democar1.symbol = symbol;
+democar1.symbol = symbol1;
 democar2.symbol = symbol;
 democar3.symbol = symbol;
 democar4.symbol = symbol;
 democar5.symbol = symbol;
 
+
+
 // Add the points to graphicsLayer
 graphicsLayer.addMany([democar1, democar2, democar3, democar4, democar5]);
+
 })();
+
 
 // Promise and wait until map is added
 (async () => {
@@ -283,12 +274,12 @@ view.environment.atmosphere.quality = "high";
 
 // Initila clone (copy) of all the points
 // Creates a deep clone of the graphic's first symbol layer
-
 var pointSymbol = democar1.geometry.clone();
 var pointSymbol2 = democar2.geometry.clone();
 var pointSymbol3 = democar3.geometry.clone();
 var pointSymbol4 = democar4.geometry.clone();
 var pointSymbol5 = democar4.geometry.clone();
+
 
 // Define duration: determines the speed
 var total_time = 5000
@@ -304,10 +295,11 @@ direction: 'alternate',
 targets: pointSymbol,
 loop: true,
 duration: total_time,
-update: function() {
+update: function() 
+{
   democar1.geometry = pointSymbol.clone(); // clone new position. Without clone, position is not updated
- 
 }
+
 });
 
 // 2. Second 
@@ -526,7 +518,7 @@ animation.add({...point1, easing: 'linear'})
 .add({...point164, easing: 'linear'})
 .add({...point165, easing: 'linear'})
 .add({...point166, easing: 'linear'})
-.add({z: 0, easing: 'easeOutSine'},0)
+.add({ easing: 'easeOutSine'},0)
 
 /// 2nd point
 animation2.add({...pointB1, easing: 'linear'})
@@ -719,7 +711,7 @@ animation2.add({...pointB1, easing: 'linear'})
 .add({...pointB187, easing: 'linear'})
 .add({...pointB188, easing: 'linear'})
 .add({...pointB189, easing: 'linear'})
-.add({z: 0, easing: 'easeOutSine'},0)
+.add({ easing: 'easeOutSine'},0)
 
 /// 3rd point
 animation3.add({...pointB10, easing: 'linear'})
@@ -902,7 +894,7 @@ animation3.add({...pointB10, easing: 'linear'})
 .add({...pointB187, easing: 'linear'})
 .add({...pointB188, easing: 'linear'})
 .add({...pointB189, easing: 'linear'})
-.add({z: 0, easing: 'easeOutSine'},0)
+.add({ easing: 'easeOutSine'},0)
 
 // Fourth point
 animation4.add({...pointD1, easing: 'linear'})
@@ -939,7 +931,7 @@ animation4.add({...pointD1, easing: 'linear'})
 .add({...pointD32, easing: 'linear'})
 .add({...pointD33, easing: 'linear'})
 .add({...pointD34, easing: 'linear'})
-.add({z: 0, easing: 'easeOutSine'},0)
+.add({ easing: 'easeOutSine'},0)
 
 animation5.add({...pointE1, easing: 'linear'})
 .add({...pointE2, easing: 'linear'})
@@ -975,7 +967,7 @@ animation5.add({...pointE1, easing: 'linear'})
 .add({...pointE32, easing: 'linear'})
 .add({...pointE33, easing: 'linear'})
 .add({...pointE34, easing: 'linear'})
-.add({z: 0, easing: 'easeOutSine'},0)
+.add({ easing: 'easeOutSine'},0)
 
 
 
@@ -1644,15 +1636,7 @@ function lookAround() {
 lookAround();
 */
 
-var layer = new FeatureLayer({
-  portalItem: {
-    id: "be3fbf4f1a43438a9272a18602820864"
-  },
-  title: "test",
-  outFields: ["*"],
-  returnGeometry: true
-});
-map.add(layer);
+
 
 
 //
