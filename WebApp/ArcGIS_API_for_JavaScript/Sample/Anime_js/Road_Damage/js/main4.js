@@ -363,7 +363,8 @@ var map = new Map({
             var issMeshUrl = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/externalRendererSkeleton/models/Running.fbx";
             var loaderGLTF = new THREE.FBXLoader(); // check this: https://qgenhate.hatenablog.com/ [object not an instance of THREE.Object3D]
             let example = new THREE.Object3D();
-
+// check this for error. 
+//https://github.com/jscastro76/threebox/blob/master/src/objects/loaders/FBXLoader.js#L2
             loaderGLTF.load(issMeshUrl,
             function(gltf) {
                 console.log("ISS mesh loaded.");
