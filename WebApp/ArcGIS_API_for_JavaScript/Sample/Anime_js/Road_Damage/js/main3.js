@@ -319,7 +319,7 @@ var map = new Map({
         routeLyr.add(routeResult);
       
       // the speed of the object becomes low with maximum segment of length
-      var pl = geometryEngine.densify(routeResult.geometry, 0.3, "meters");
+      var pl = geometryEngine.densify(routeResult.geometry, 1, "meters");
 
         // register the external renderer
         const myExternalRenderer = new skeletonRenderer(view, pl);
