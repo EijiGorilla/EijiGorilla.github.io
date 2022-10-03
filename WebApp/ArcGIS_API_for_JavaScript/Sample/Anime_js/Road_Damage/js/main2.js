@@ -31,7 +31,19 @@ require([
       "esri/geometry/SpatialReference",
       "esri/geometry/Polyline",
       "esri/renderers/SimpleRenderer",
-      "esri/geometry/Mesh"
+      "esri/geometry/Mesh",
+      "esri/views/3d/externalRenderers",
+      "esri/rest/route",
+      "esri/rest/support/RouteParameters",
+      "esri/rest/support/FeatureSet",
+      "esri/symbols/SimpleMarkerSymbol",
+      "esri/symbols/SimpleLineSymbol",
+      "esri/Color",
+      "esri/geometry/geometryEngine",
+      "esri/core/urlUtils",
+      "dojo/on",
+      "dojo/query",
+      "dojo/domReady!"
 
     ], function(
       Basemap,
@@ -66,10 +78,50 @@ require([
       SpatialReference,
       Polyline,
       SimpleRenderer,
-      Mesh
+      Mesh,
+      externalRenderers,
+      route,
+      RouteParameters,
+      FeatureSet,
+      SimpleMarkerSymbol,
+      SimpleLineSymbol,
+      Color,
+      geometryEngine,
+      urlUtils,
+      on,
+      query
+
 
     ) {
       const spatialReference = SpatialReference.WebMercator;
+
+// The stops and route result will be stored in this layer
+            var routeLyr = new GraphicsLayer();
+
+            // Setup the route parameters
+            var routeParams = new RouteParameters({
+                stops: new FeatureSet(),
+                outSpatialReference: { // autocasts as new SpatialReference()
+                    wkid: 3857
+                }
+            });
+
+            // Define the symbology used to display the stops
+            var stopSymbol = new SimpleMarkerSymbol({
+                style: "cross",
+                size: 15,
+                outline: { // autocasts as new SimpleLineSymbol()
+                    width: 4
+                }
+            });
+
+            // Define the symbology used to display the route
+            var routeSymbol = new SimpleLineSymbol({
+                color: [0, 0, 255, 0.5],
+                width: 5
+            });
+
+
 // Add Map
 var map = new Map({
 basemap: {
@@ -172,8 +224,6 @@ symbol: osmSymbol
 }
 
 
-
-url = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/wraith.glb";
 
 
 // Add graphicsLayer
@@ -2742,6 +2792,11 @@ var chart = am4core.create("chartdiv1", am4charts.PieChart);
 } // End of updateBudgetRepairChart()
 
 }); // End of am4core.ready
+
+////////////////////////////////////////////////////////
+
+
+
 
 /////////////////////////////////////////////////////////
 // Empty top-left widget
