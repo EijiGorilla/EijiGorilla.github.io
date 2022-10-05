@@ -301,7 +301,7 @@ var map = new Map({
         animate: null,
         light: null,
         iss: null,                                                    // ISS model
-        issScale: 3,                                     // scale for the iss model
+        issScale: 30,                                     // scale for the iss model
         path: null,
       count: null,
       up: null,
