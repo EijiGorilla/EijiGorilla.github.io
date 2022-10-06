@@ -364,7 +364,7 @@ require([
               });
 
               // 2nd GLB Object:
-              var issMeshUrl2 = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Truck.gltf"; 
+              var issMeshUrl2 = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Running5.gltf"; 
               let example2 = new THREE.Object3D();
               loaderGLTF.load(issMeshUrl2,
                 function(gltf) {
