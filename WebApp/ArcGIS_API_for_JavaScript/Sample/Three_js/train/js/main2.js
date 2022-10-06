@@ -259,7 +259,8 @@ require([
           light: null,
           iss: null,
           iss2: null,                                                   // ISS model
-          issScale: 3,                                     // scale for the iss model
+          issScale: 3,                                 // scale for the iss model
+          issScale2: 100,
           path: null,
         count: null,
         up: null,
@@ -381,7 +382,7 @@ require([
                     //}.bind(this));
                    
                     // set the specified scale for the model
-                    this.iss2.scale.set(this.issScale, this.issScale, this.issScale);
+                    this.iss2.scale.set(this.issScale2, this.issScale2, this.issScale2);
                     
                     // add the model
                     this.scene.add(this.iss2); // original: this.iss
