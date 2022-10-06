@@ -100,14 +100,15 @@ require([
               background: {
                   type: "color", // autocasts as new ColorBackground()
                   color: [0, 0, 0, 1]
+              },
+              lighting: {
+                // enable shadows for all the objects in a scene
+                directShadowsEnabled: true,
+                // set the date and a time of the day for the current camera location
+                date: new Date("Sat Oct 15 2022 02:00:00 GMT+0100 (CET)")
               }
           }
-      });
-    
-   
-   
-   
-   
+      });   
   
     // Add viaduct
     let viaductSymbol = {
@@ -228,7 +229,7 @@ require([
           routeLyr.add(routeResult);
         
         // the speed of the object becomes low with maximum segment of length
-        var pl = geometryEngine.densify(routeResult.geometry, 0.2, "meters");
+        var pl = geometryEngine.densify(routeResult.geometry, 0.1, "meters");
           // register the external renderer
           const myExternalRenderer = new skeletonRenderer(view, pl);
           externalRenderers.add(view, myExternalRenderer);
@@ -252,19 +253,21 @@ require([
           ambient: null,      // three.js ambient light source
           sun: null,          // three.js sun light source
           mixer: null,
-          mixer2: null,
           clock: null,
           clips: null,
           animate: null,
           light: null,
-          iss: null,
+          iss: null, 
           iss2: null,                                                   // ISS model
-          issScale: 3,                                 // scale for the iss model
-          issScale2: 5,
+          issScale: 3,                                     // scale for the iss model
+          issScale2: 0.1,
           path: null,
         count: null,
         up: null,
         timeDelta: null,
+        markerMaterial: null,    // material for the markers left by the ISS
+        markerGeometry: null,    // geometry for the markers left by the ISS
+        //issMaterial: new THREE.MeshLambertMaterial({ color: 0x2194ce, transparent: true, opacity: 0.1 }), 
   
           cameraPositionInitialized: false, // we focus the view on the ISS once we receive our first data point
           positionHistory: [],
@@ -316,6 +319,10 @@ require([
               this.scene.add(this.ambient);
               this.sun = new THREE.DirectionalLight(0xffffff, 0.5);
               this.scene.add(this.sun);
+
+            // setup markers
+              this.markerGeometry = new THREE.SphereBufferGeometry(12*1000, 16, 16);
+              this.markerMaterial = new THREE.MeshBasicMaterial({ color: 0xe03110, transparent: true, opacity: 0.5});
   
               this.clock = new THREE.Clock();
   
@@ -359,57 +366,42 @@ require([
                   //this.clips = this.iss.animations;
                   // update animated object
                   // requestAnimationFrame();
-
+              
               }.bind(this), undefined, function(error) {
                   console.error("Error loading ISS mesh. ", error);
               });
 
-              // 2nd GLB Object:
-              var issMeshUrl2 = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Truck.gltf"; 
-              let example2 = new THREE.Object3D();
-              loaderGLTF.load(issMeshUrl2,
-                function(gltf) {
-                    console.log("ISS2 mesh loaded.");
-                   
-                    example2 = gltf.scene;
-                    this.iss2 = example2;
-                    
-                    // apply ISS material to all nodes in the geometry
-                    //this.iss.traverse( function ( child ) {
-                    //  if ( child instanceof THREE.Mesh ) {
-                    //    child.material = this.issMaterial;
-                    //  }
-                    //}.bind(this));
-                   
-                    // set the specified scale for the model
-                    this.iss2.scale.set(this.issScale2, this.issScale2, this.issScale2);
-                    
-                    // add the model
-                    this.scene.add(this.iss2); // original: this.iss
-                    console.log("ISS2 mesh added.");
-    
-                    // Mixer for animation
-                    this.mixer2 = new THREE.AnimationMixer(this.iss2);
-                    this.mixer2.clipAction(gltf.animations[0]).play();
-    
-                   //this.iss.update(stepSize);
-                    //this.clips = this.iss.animations;
-                    // update animated object
-                    // requestAnimationFrame();
-  
-                }.bind(this), undefined, function(error) {
-                    console.error("Error loading ISS2 mesh. ", error);
-                });
+              // 2nd Object
+              var issMeshUrl2 = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Waterwheel.glb"; 
+              //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Car4ReScaled.glb"
+              loaderGLTF.load(issMeshUrl2, function(gltf) {
+                console.log("ISS2 mesh loaded");
+
+                example = gltf.scene;
+                this.iss2 = example;
+
+                // apply ISS material to all nodes in the geometry
+                //this.iss2.traverse( function ( child ) {
+                //    if ( child instanceof THREE.Mesh ) {
+                //        child.material = this.issMaterial;
+                //   }
+                //}.bind(this));
+
+                this.iss2.scale.set(this.issScale2, this.issScale2, this.issScale2)
+                this.scene.add(this.iss2);
+                console.log("ISS2 mesh added");
+
+                this.mixer = new THREE.AnimationMixer(this.iss2);
+                this.mixer.clipAction(gltf.animations[0]).play();
 
 
 
-
-
-
-              ///
+              }.bind(this), undefined, function(error) {
+                console.error("Error loading ISS mesh. ", error);
+              });
   
               this.light = new THREE.DirectionalLight(0xffffff, 1);
-              this.light.position.set(2,2,5);
+              this.light.position.set(0, 1, 0);
               this.scene.add(this.light);
             
             // rotation 
@@ -439,7 +431,6 @@ require([
               this.camera.projectionMatrix.fromArray(cam.projectionMatrix);
             
   
-              // 1st Object: iss
               if (this.iss) {
                        
                   // Add this.mixer.update first; otherwise, the object will not be animated.s
@@ -526,91 +517,97 @@ require([
                 this.iss.up = this.up;
                 
                 this.iss.lookAt(rotation.elements[12], rotation.elements[13], rotation.elements[14]);
-                    
               }
-
-              // 2nd Object: 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+              // 2nd object
               if (this.iss2) {
-                                  // Add this.mixer.update first; otherwise, the object will not be animated.s
-                  if (this.mixer2) {
-                      var delta2 = this.clock.getDelta();
-                      this.mixer2.update(delta2);         
-                  }
-                      if (this.path.length == (this.vertexIdx + 1))
-                  {
-                      this.vertexIdx = 0;
-                  }
-                
-                var p2 = this.path[this.vertexIdx + 1]; // vertexIdx = 0
-                var p12 = this.path[this.vertexIdx + 2];
-                
-              
-                // Define Z:
-                // It is important that the same Z values are set for both current (pt) and next points (pt1)
-                // Otherwise, the object will be tilted.
-                const changeZ = 0;
-                const offset2 = 10;
-                const offsetZ2 = -5;
-  
-                  var pt2 = new Point({
-                      x: p2[0] + offset2, // longitude
-                      y: p2[1], // latitude
-                      z: p2[2] + offsetZ2
-                  });
-  
-                  pt2.spatialReference = SpatialReference.WebMercator;
-  
-                  //z = offsetZ; // view.basemapTerrain.getElevation(p);
-  
-                  pos2 = [pt2.x, pt2.y, pt2.z];
-  
-                  this.vertexIdx++;
-  
-                  if (this.path.length == (this.vertexIdx)) {
-                      this.vertexIdx--;
-                  }
-                
-  
-                  var transform2 = new THREE.Matrix4();
-                  transform2.fromArray(externalRenderers.renderCoordinateTransformAt(view, pos2, SpatialReference.WebMercator, new Array(16)));
-  
-                 this.iss2.position.set(transform2.elements[12], transform2.elements[13], transform2.elements[14]);
-                
- 
-                  var p02;
-                  var p12;
-  
-                  if ((this.path.length - 1) == (this.vertexIdx))
-                  {
-                      p02 = this.path[--this.vertexIdx];
-                      p12 = this.path[this.vertexIdx];
-                  }
-                  else
-                  {
-                      p02 = this.path[this.vertexIdx];
-                      p12 = this.path[++this.vertexIdx];
-                  }
-                
-               // Option 1: use lookAt 
-                
-                var rotation2 = new THREE.Matrix4();
-                
-                  var pt12 = new Point({
-                      x: p12[0] + offset2, // longitude
-                      y: p12[1], // latitude
-                      z: p12[2] + offsetZ2
-                  });
-                posR2 = [pt12.x, pt12.y, pt12.z];
-                rotation2.fromArray(externalRenderers.renderCoordinateTransformAt(view, posR2, SpatialReference.WebMercator, new Array(16)));
-                // https://answers.unity.com/questions/36255/lookat-to-only-rotate-on-y-axis-how.html
-                // how to use '.up' with lookAt?
-                //geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( Math.PI / 2 ) );
-                this.iss2.up = this.up;
-                
-                this.iss2.lookAt(rotation2.elements[12], rotation2.elements[13], rotation2.elements[14]);
+                       
+                // Add this.mixer.update first; otherwise, the object will not be animated.s
+                if (this.mixer) {
+                    var scale = 0.0001; //this.gui.getTimeScale();
+                    var delta = this.clock.getDelta();
 
-              }
-              //
+                  this.mixer.update(delta);         
+                }
+
+                    if (this.path.length == (this.vertexIdx + 1))
+                {
+                    this.vertexIdx = 0;
+                }
+              
+                var p = this.path[this.vertexIdx]; // vertexIdx = 0
+              var p1 = this.path[this.vertexIdx + 1];
+              
+            
+              // Define Z:
+              // It is important that the same Z values are set for both current (pt) and next points (pt1)
+              // Otherwise, the object will be tilted.
+              const changeZ = 0;
+              const offset = 40;
+              const offsetZ = -5;
+
+                var pt = new Point({
+                    x: p[0] + offset, // longitude
+                    y: p[1], // latitude
+                    z: p[2] + offsetZ
+                });
+
+                pt.spatialReference = SpatialReference.WebMercator;
+
+                //z = offsetZ; // view.basemapTerrain.getElevation(p);
+
+                pos = [pt.x, pt.y, pt.z];
+
+                this.vertexIdx++;
+
+                if (this.path.length == (this.vertexIdx)) {
+                    this.vertexIdx--;
+                }
+              
+
+                var transform = new THREE.Matrix4();
+                transform.fromArray(externalRenderers.renderCoordinateTransformAt(view, pos, SpatialReference.WebMercator, new Array(16)));
+
+               this.iss2.position.set(transform.elements[12], transform.elements[13], transform.elements[14]);
+              
+              this.count ++;
+                if (this.count === 1) {
+                  console.log(transform.elements[12], transform.elements[13], transform.elements[14]);
+                }
+
+                var p0;
+                var p1;
+
+                if ((this.path.length - 1) == (this.vertexIdx))
+                {
+                    p0 = this.path[--this.vertexIdx];
+                    p1 = this.path[this.vertexIdx];
+                }
+                else
+                {
+                    p0 = this.path[this.vertexIdx];
+                    p1 = this.path[++this.vertexIdx];
+                }
+              
+             // Option 1: use lookAt 
+              
+              var rotation = new THREE.Matrix4();
+              
+                var pt1 = new Point({
+                    x: p1[0] + offset, // longitude
+                    y: p1[1], // latitude
+                    z: p1[2] + offsetZ
+                });
+              posR = [pt1.x, pt1.y, pt1.z];
+              rotation.fromArray(externalRenderers.renderCoordinateTransformAt(view, posR, SpatialReference.WebMercator, new Array(16)));
+              // https://answers.unity.com/questions/36255/lookat-to-only-rotate-on-y-axis-how.html
+              // how to use '.up' with lookAt?
+              //geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( Math.PI / 2 ) );
+              this.iss2.up = this.up;
+              
+              this.iss2.lookAt(rotation.elements[12], rotation.elements[13], rotation.elements[14]);
+            }
+
   
               // update lighting
               /////////////////////////////////////////////////////////////////////////////////////////////////////
