@@ -260,7 +260,7 @@ require([
           iss: null,
           iss2: null,                                                   // ISS model
           issScale: 3,                                 // scale for the iss model
-          issScale2: 100,
+          issScale2: 40,
           path: null,
         count: null,
         up: null,
@@ -365,7 +365,7 @@ require([
               });
 
               // 2nd GLB Object:
-              var issMeshUrl2 = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Running.glb"; 
+              var issMeshUrl2 = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/RunningBig.glb"; 
               let example2 = new THREE.Object3D();
               loaderGLTF.load(issMeshUrl2,
                 function(gltf) {
