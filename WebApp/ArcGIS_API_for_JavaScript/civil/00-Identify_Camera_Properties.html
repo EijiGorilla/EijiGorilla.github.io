@@ -1,0 +1,107 @@
+<html>
+  <head>
+    <style>
+    html,
+body,
+#viewDiv {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.overlay {
+  position: absolute;
+  width: 200px;
+  bottom: 40px;
+  right: 40px;
+  background-color: rgba(80, 80, 80, 0.5);
+  font-family: "Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+.overlay pre {
+  text-align: left;
+  font-weight: bold;
+  color: white;
+}
+
+.esri-view-surface--inset-outline:focus::after {
+    outline: none !important;
+}
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.16/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.16/"></script>
+    <script>
+      require(["esri/views/SceneView", "esri/Map"], function(
+  SceneView,
+  Map
+) {
+  var scene = new Map({
+    basemap: "hybrid",
+    ground: "world-elevation"
+  });
+
+  var view = new SceneView({
+    map: scene,
+    container: "viewDiv",
+    camera: {
+      position: [
+        8.22216751,
+        46.48873434,
+        13032241.44725,
+      ],
+      heading: 0.00,
+      tilt: 0.16,
+    }
+  });
+  
+  function getCamera() {
+    const p = view.camera.position;
+
+    if (p.spatialReference.isWebMercator || p.spatialReference.isWGS84) {
+      return `  view.camera = {
+    position: [
+      ${p.longitude.toFixed(8)},
+      ${p.latitude.toFixed(8)},
+      ${p.z.toFixed(5)}
+    ],
+    heading: ${view.camera.heading.toFixed(2)},
+    tilt: ${view.camera.tilt.toFixed(2)}
+  }`;
+    }
+    else {
+      return `  view.camera = {
+    position: {
+      x: ${p.x.toFixed(5)},
+      y: ${p.y.toFixed(5)},
+      z: ${p.z.toFixed(3)},
+      spatialReference: ${p.spatialReference.wkid}
+    },
+    heading: ${view.camera.heading.toFixed(2)},
+    tilt: ${view.camera.tilt.toFixed(2)}
+  }`;
+    }
+  };
+  
+  view.watch("camera", () => {
+    const json = getCamera();
+    cameraJSON.innerText = json;
+  });
+  
+});
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv" />
+    
+    <div class="overlay">
+      <center>
+        <pre id="cameraJSON">
+          
+        </pre>
+      </center>
+    </div>
+  </body>
+</html>
