@@ -260,7 +260,7 @@ require([
           iss: null, 
           iss2: null,                                                   // ISS model
           issScale: 3,                                     // scale for the iss model
-          issScale2: 500,
+          issScale2: 10,
           path: null,
         count: null,
         up: null,
