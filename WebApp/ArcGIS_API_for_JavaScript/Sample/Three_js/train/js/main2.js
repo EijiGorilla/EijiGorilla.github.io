@@ -372,7 +372,7 @@ require([
               });
 
               // 2nd Object
-              var issMeshUrl2 = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Waterwheel.glb"; 
+              var issMeshUrl2 = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Running5.glb"; 
               //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Waterwheel.glb"
               //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Car4ReScaled.glb"
               loaderGLTF.load(issMeshUrl2, function(gltf) {
