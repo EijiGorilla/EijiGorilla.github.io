@@ -156,6 +156,36 @@
       .sassy-theme .esri-legend__layer-caption {
     display: none;
   }
+
+  .overlay {
+  position: absolute;
+  width: 100%;
+  bottom: 50px;
+  left: 0px;
+  background-color: rgba(80, 80, 80, 0);
+  text-align: center;
+  font-family: "Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+.button {
+  cursor: pointer;
+  font-size: 45pt !important;
+  font-weight: bold !important;
+  color: rgb(230, 230, 230);
+}
+
+.button:hover, #label {
+  color: white;
+}
+
+.button, #label {
+  margin: 15px;
+}
+
+
+.esri-view-surface--inset-outline:focus::after {
+    outline: none !important;
+}
   
     </style>
 
@@ -298,6 +328,49 @@ osm3D.renderer = {
   symbol: osmSymbol
 }
 
+//////////////
+let abort = false;
+  let center = null;
+  function rotate() {
+    if (!view.interacting && !abort) {
+      
+      play.style.display = "none";
+      pause.style.display = "block";
+      
+      center = center || view.center;
+      
+      view.goTo({
+        heading: view.camera.heading + 0.2,
+        center
+      }, {animate: false});
+      
+      requestAnimationFrame(rotate);
+    } else {
+      abort = false;
+      center = null;
+      play.style.display = "block";
+      pause.style.display = "none";
+    }
+  } // end
+  
+  play.onclick = rotate;
+  pause.onclick = function() {
+    abort = true;
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////
 
 
 // Label Class
@@ -1122,6 +1195,13 @@ view.ui.add(
   <div id="chartPanelDiv">
     <div id="chartdiv"></div>
 </div>
+<div class="overlay">
+  <div>
+    <span id="play" class="button esri-icon-play" style="display: block;" />
+  </div>
+  <div>
+    <span id="pause" class="button esri-icon-pause" style="display: none;" />
+  </div>
 </div>
   </body>
 </html>
