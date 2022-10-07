@@ -372,7 +372,7 @@ require([
               });
 
               // 2nd Object
-              var issMeshUrl2 = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Running3.glb"; 
+              var issMeshUrl2 = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Waterwheel.glb"; 
               //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Waterwheel.glb"
               //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Car4ReScaled.glb"
               loaderGLTF.load(issMeshUrl2, function(gltf) {
@@ -455,7 +455,7 @@ require([
                 // It is important that the same Z values are set for both current (pt) and next points (pt1)
                 // Otherwise, the object will be tilted.
                 const changeZ = 0;
-                const offset = 10;
+                const offset = 9;
                 const offsetZ = -5;
   
                   var pt = new Point({
