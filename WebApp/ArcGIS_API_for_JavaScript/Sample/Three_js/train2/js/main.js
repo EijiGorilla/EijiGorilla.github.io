@@ -328,13 +328,6 @@ require([
               this.clock = new THREE.Clock();
   
               var issMeshUrl = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/externalRendererSkeleton/models/train_locomotive.glb"; 
-                  
-                 //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/externalRendererSkeleton/models/train_locomotive.glb"
-             //     "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Truck.gltf";
-             // "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Running3.glb"; 
-             //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Wraith_Animated.glb";
-              // "https://EijiGorilla.github.io/glTF/canoe.glb"
-  
               var loaderGLTF = new THREE.GLTFLoader(); // check this: https://qgenhate.hatenablog.com/ [object not an instance of THREE.Object3D]
               let example = new THREE.Object3D();
   
@@ -378,6 +371,7 @@ require([
               // "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Running.glb"; 
               //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Waterwheel.glb"
               //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Car4ReScaled.glb"
+
               loader.load(issMeshUrl2, function(object) {
                 console.log("ISS2 mesh loaded");
 
@@ -390,13 +384,11 @@ require([
                 //   }
                 //}.bind(this));
 
-                this.scene.add(this.iss2);
-                console.log("ISS2 mesh added");
-
                 this.mixer = new THREE.AnimationMixer(this.iss2);
                 this.mixer.clipAction(object.animations[0]).play();
 
-
+                this.scene.add(this.iss2);
+                console.log("ISS2 mesh added");
 
               }.bind(this), undefined, function(error) {
                 console.error("Error loading ISS mesh. ", error);
@@ -522,16 +514,15 @@ require([
               }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
               // 2nd object
-              if (this.iss2) {
-                this.iss2.scale.set(this.issScale2, this.issScale2, this.issScale2)
-                       
+              if (this.iss2) {                       
                 // Add this.mixer.update first; otherwise, the object will not be animated.s
                 if (this.mixer) {
                     var scale2 = 0.5; //this.gui.getTimeScale();
                     var delta = this.clock.getDelta() * scale2;
-
-                  this.mixer.update(delta);         
+                     this.mixer.update(delta);         
                 }
+                this.iss2.scale.set(this.issScale2, this.issScale2, this.issScale2)
+
 
                     if (this.path.length == (this.vertexIdx + 1))
                 {

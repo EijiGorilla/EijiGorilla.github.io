@@ -261,7 +261,7 @@ require([
           iss: null, 
           iss2: null,                                                   // ISS model
           issScale: 3,                                     // scale for the iss model
-          issScale2: 100,
+          issScale2: 10,
           path: null,
         count: null,
         up: null,
@@ -395,8 +395,8 @@ require([
                 this.scene.add(this.iss2);
                 console.log("ISS2 mesh added");
 
-                this.mixer = new THREE.AnimationMixer(this.iss2);
-                this.mixer.clipAction(gltf.animations[0]).play();
+                this.mixer2 = new THREE.AnimationMixer(this.iss2);
+                this.mixer2.clipAction(gltf.animations[0]).play();
 
 
 
@@ -527,11 +527,11 @@ require([
               if (this.iss2) {
                        
                 // Add this.mixer.update first; otherwise, the object will not be animated.s
-                if (this.mixer) {
+                if (this.mixer2) {
                     var scale2 = 80; //this.gui.getTimeScale();
                     var delta = this.clock.getDelta() * scale2;
 
-                  this.mixer.update(delta);         
+                  this.mixer2.update(delta);         
                 }
 
                     if (this.path.length == (this.vertexIdx + 1))
