@@ -373,16 +373,15 @@ require([
               });
 
               // 2nd Object
-              let example2 = new THREE.Object3D();
+              var loader = new THREE.FBXLoader();
               var issMeshUrl2 = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Running1.glb"; 
               // "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Running.glb"; 
               //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Waterwheel.glb"
               //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Car4ReScaled.glb"
-              loaderGLTF.load(issMeshUrl2, function(gltf) {
+              loader.load(issMeshUrl2, function(object) {
                 console.log("ISS2 mesh loaded");
 
-                example2 = gltf.scene;
-                this.iss2 = example2;
+                this.iss2 = object;
 
                 // apply ISS material to all nodes in the geometry
                 //this.iss2.traverse( function ( child ) {
@@ -391,12 +390,11 @@ require([
                 //   }
                 //}.bind(this));
 
-                this.iss2.scale.set(this.issScale2, this.issScale2, this.issScale2)
                 this.scene.add(this.iss2);
                 console.log("ISS2 mesh added");
 
                 this.mixer = new THREE.AnimationMixer(this.iss2);
-                this.mixer.clipAction(gltf.animations[0]).play();
+                this.mixer.clipAction(object.animations[0]).play();
 
 
 
@@ -525,10 +523,11 @@ require([
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
               // 2nd object
               if (this.iss2) {
+                this.iss2.scale.set(this.issScale2, this.issScale2, this.issScale2)
                        
                 // Add this.mixer.update first; otherwise, the object will not be animated.s
                 if (this.mixer) {
-                    var scale2 = 80; //this.gui.getTimeScale();
+                    var scale2 = 0.5; //this.gui.getTimeScale();
                     var delta = this.clock.getDelta() * scale2;
 
                   this.mixer.update(delta);         
