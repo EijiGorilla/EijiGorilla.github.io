@@ -261,7 +261,7 @@ require([
           iss: null, 
           iss2: null,                                                   // ISS model
           issScale: 3,                                     // scale for the iss model
-          issScale2: 1,
+          issScale2: 0.3,
           path: null,
         count: null,
         up: null,
@@ -374,7 +374,7 @@ require([
 
               // 2nd Object
               let example2 = new THREE.Object3D();
-              var issMeshUrl2 = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Waterwheel.glb"; 
+              var issMeshUrl2 = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Running.glb"; 
               // "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Running.glb"; 
               //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Waterwheel.glb"
               //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Car4ReScaled.glb"
