@@ -327,7 +327,7 @@ require([
   
               this.clock = new THREE.Clock();
   
-              var issMeshUrl = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Locomotive.gltf"; 
+              var issMeshUrl = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Locomotive.glb"; 
                   
                  //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/externalRendererSkeleton/models/train_locomotive.glb"
              //     "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Truck.gltf";
@@ -458,8 +458,8 @@ require([
                 // It is important that the same Z values are set for both current (pt) and next points (pt1)
                 // Otherwise, the object will be tilted.
                 const changeZ = 0;
-                const offset = 9;
-                const offsetZ = -5;
+                const offset = 0;
+                const offsetZ = 0;
   
                   var pt = new Point({
                       x: p[0] + offset, // longitude
