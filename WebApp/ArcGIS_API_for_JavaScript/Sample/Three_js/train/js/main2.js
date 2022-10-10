@@ -327,7 +327,7 @@ require([
   
               this.clock = new THREE.Clock();
   
-              var issMeshUrl = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/externalRendererSkeleton/models/train_locomotive.glb"; 
+              var issMeshUrl = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Locomotive.gltf"; 
                   
                  //"https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/externalRendererSkeleton/models/train_locomotive.glb"
              //     "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Truck.gltf";
