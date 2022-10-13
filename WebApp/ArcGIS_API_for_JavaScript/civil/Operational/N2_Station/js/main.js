@@ -4,7 +4,7 @@ require([
     "esri/views/MapView",
     "esri/views/SceneView",
     "esri/layers/FeatureLayer",
-    "esri/views/layers/support/FeatureFilter",
+    "esri/layers/support/FeatureFilter",
     "esri/layers/SceneLayer",
     "esri/layers/Layer",
     "esri/layers/TileLayer",
@@ -390,34 +390,30 @@ let abort = false;
 let center = null;
 function rotate() {
 if (!view.interacting && !abort) {
-play.style.display = "none";
-pause.style.display = "block";
+    play.style.display = "none";
+    pause.style.display = "block";
+    
+    center = center || view.center;
+    
+    view.goTo({
+    heading: view.camera.heading + 0.2,
+    center,
+    zoom: 20
+    }, {animate: false});
   
-center = center || view.center;
-  
-view.goTo({
-  heading: view.camera.heading + 0.2,
-  center,
-  zoom: 20
-}, {animate: false});
-  
-requestAnimationFrame(rotate);
+    requestAnimationFrame(rotate);
 } else {
-abort = false;
-center = null;
-play.style.display = "block";
-pause.style.display = "none"; 
+    abort = false;
+    center = null;
+    play.style.display = "block";
+    pause.style.display = "none"; 
 }
 } // end
-
-
-play.onclick = rotate;
-pause.onclick = function() {
-abort = true;
+    play.onclick = rotate;
+    pause.onclick = function() {
+    abort = true;
 };
 const camera = view.camera.clone();
-
-
 
 ////////////////////////////////
 var stationList = document.getElementById("stationList");
@@ -444,7 +440,7 @@ combineAll();
 
 //
 // Set new values for heading and tilt
-async function startAnimation(row_C) {
+function startAnimation(row_C) {
     if (!view.interacting) {
 
         var calumpitSt = {x: 120.770421, y: 14.902323};
@@ -505,8 +501,7 @@ async function startAnimation(row_C) {
             center = view.center;
             view.goTo({center});
     
-    
-            await rotate();
+            rotate();
     
             window.setTimeout(function(){
                 startAnimation(row_C + 1);
@@ -525,10 +520,9 @@ async function startAnimation(row_C) {
             startAnimation(row_C);
             abort = true; //  
         }
-    } else {
-        row_C = undefined;
-    } // End of !view.interacting
+    }// End of !view.interacting
 
+    
 } // End of startAnimation()
 
 // Initialize animation
@@ -1017,15 +1011,15 @@ structuralColumns()
       map.ground.opacity = 0.9; //
     });
 
-            // See through Gound
-            document
-      .getElementById("opacityInput")
-      .addEventListener("change", function(event) {
-        //map.ground.opacity = event.target.checked ? 0.1 : 0.9;
-        map.ground.opacity = event.target.checked ? 0.1 : 0.6;
-      });
+// See through Gound
+document
+.getElementById("opacityInput")
+.addEventListener("change", function(event) {
+    //map.ground.opacity = event.target.checked ? 0.1 : 0.9;
+    map.ground.opacity = event.target.checked ? 0.1 : 0.6;
+});
 
-    view.ui.add("menu", "bottom-left");
+view.ui.add("menu", "bottom-left");
 
 
 ///////////////////////////////////////////////////////
@@ -1041,21 +1035,21 @@ var layerList = new LayerList({
       });
 
 var layerListExpand = new Expand ({
-view: view,
-content: layerList,
-expandIconClass: "esri-icon-visible",
-group: "bottom-right"
+    view: view,
+    content: layerList,
+    expandIconClass: "esri-icon-visible",
+    group: "bottom-right"
 });
 
 view.ui.add(layerListExpand, {
-position: "bottom-right"
+    position: "bottom-right"
 });
 
 // Full screen logo
 view.ui.add(
-new Fullscreen({
-view: view,
-element: viewDiv
+    new Fullscreen({
+    view: view,
+    element: viewDiv
 }),
 "bottom-right"
 );
