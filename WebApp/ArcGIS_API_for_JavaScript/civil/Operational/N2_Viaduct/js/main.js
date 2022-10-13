@@ -240,7 +240,7 @@ require([
         routeLyr.add(routeResult);
       
       // the speed of the object becomes low with maximum segment of length
-      var pl = geometryEngine.densify(routeResult.geometry, 0.1, "meters");
+      var pl = geometryEngine.densify(routeResult.geometry, 0.5, "meters");
         // register the external renderer
         const myExternalRenderer = new skeletonRenderer(view, pl);
         externalRenderers.add(view, myExternalRenderer);

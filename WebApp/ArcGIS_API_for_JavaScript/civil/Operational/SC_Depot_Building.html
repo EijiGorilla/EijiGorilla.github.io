@@ -454,7 +454,9 @@ href="https://js.arcgis.com/4.24/esri/themes/dark/main.css"
         "esri/widgets/Compass",
         "esri/layers/ElevationLayer",
         "esri/Ground",
-        "esri/widgets/Search"
+        "esri/widgets/Search",
+        "esri/layers/BuildingSceneLayer",
+        "esri/widgets/BuildingExplorer"
       ], function(Basemap, Map, MapView, SceneView, 
                   FeatureLayer, FeatureFilter,
                   SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -464,7 +466,8 @@ href="https://js.arcgis.com/4.24/esri/themes/dark/main.css"
                   geometryService, Query,
                   StatisticDefinition, WebStyleSymbol,
                   TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
-                  FeatureTable, Compass, ElevationLayer, Ground, Search) {
+                  FeatureTable, Compass, ElevationLayer, Ground, Search,
+                  BuildingSceneLayer, BuildingExplorer) {
 
 let chartLayerView;
 ////////////////////////////////////////////////////
@@ -535,15 +538,6 @@ var basemap = new Basemap({
 //*******************************//
 // Label Class Property Settings //
 //*******************************//
- // Chainage Label
- var labelChainage = new LabelClass({
-  labelExpressionInfo: {expression: "$feature.KmSpot"},
-  symbol: {
-    type: "text",
-    color: [85, 255, 0],
-    size: 25
-  }
-});
 
 // Station Label
 var labelClass = new LabelClass({
@@ -638,20 +632,6 @@ let buildingSpotSymbol = {
   }
 };
 
-// Chainage symbol
-var chainageRenderer = {
-    type: "simple",
-    symbol: {
-      type: "simple-marker",
-      size: 5,
-      color: [255, 255, 255, 0.9],
-      outline: {
-        width: 0.2,
-        color: "black"
-      }
-    }
-  };
-
  // Station Symbol
         function stationsSymbol(name) {
           return {
@@ -703,35 +683,14 @@ var buildingLocation = new FeatureLayer({
 });
 map.add(buildingLocation);
 
-// Centerline and chainage
-var chainageLayer = new FeatureLayer ({
-  portalItem: {
-    id: "590680d19f2e48fdbd8bcddce3aaedb5",
-    portal: {
-                  url: "https://gis.railway-sector.com/portal"
-                } 
-  },
-  layerId: 5,
-  title: "Chainage",
-  elevationInfo: {
-    mode: "relative-to-ground"
-  },
-  labelingInfo: [labelChainage],
-  renderer: chainageRenderer,
-  outFields: ["*"],
-  popupEnabled: false
-
-});
-//chainageLayer.listMode = "hide";
-map.add(chainageLayer, 1);
 
 // ROW //
 var rowLayer = new FeatureLayer ({
   portalItem: {
-    id: "590680d19f2e48fdbd8bcddce3aaedb5",
+    id: "d3926383cf3548569372216edb808996",
     portal: {
-                  url: "https://gis.railway-sector.com/portal"
-                }   
+      url: "https://gis.railway-sector.com/portal"
+    }   
   },
   layerId: 1,
   title: "ROW",
@@ -739,140 +698,439 @@ var rowLayer = new FeatureLayer ({
 });
 map.add(rowLayer,2);
 
-// Station
-var buildingLayer = new SceneLayer({
+// Depot Building Layer
+const buildingLayer = new BuildingSceneLayer({
   portalItem: {
-                id: "207cb34b8a324b40985b5805862c4b29",
-                portal: {
-                  url: "https://gis.railway-sector.com/portal"
-                }
-            },
-             labelingInfo: [labelClass],
-             renderer: stationsRenderer,
-             elevationInfo: {
-                 // this elevation mode will place points on top of
-                 // buildings or other SceneLayer 3D objects
-                 mode: "relative-to-ground"
-                 }
-             //definitionExpression: "Extension = 'N2'"
-              //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
-        });
-        stationLayer.listMode = "hide";
-        map.add(stationLayer, 0);
+    id: "71cd6e6eecb445a2999e0bd97a675c46",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  outFields: ["*"],
+  elevationInfo: {
+    mode: "relative-to-ground"
+  },
+  title: "SC Depot Building"
+});
+map.add(buildingLayer);
+
+const buildingExplorer = new BuildingExplorer({
+  view: view,
+  layers: [buildingLayer]
+});
+view.ui.add(buildingExplorer, "bottom-right");
+
+// only display the building levels filter
+buildingExplorer.visibleElements = {
+  phases: false,
+  disciplines: false
+};
 
 
-// Station structures
-        var structureLayer = new SceneLayer({ //structureLayer
-          portalItem: {
-            id: "657134597b0f4f2095ce3485d2ea05cf",
-            portal: {
-              url: "https://gis.railway-sector.com/portal"
-            }
-          },
-          popupTemplate: {
-     title: "<h5>{Status}</h5>",
-     lastEditInfoEnabled: false,
-     returnGeometry: true,
-     content: [
-       {
-         type: "fields",
-         fieldInfos: [
-           {
-             fieldName: "StructureType",
-             label: "Structure Type"
-           },
-           {
-             fieldName: "StructureLevel",
-             label: "Structure Level"
-           },
-           {
-             fieldName: "Type",
-             label: "Type of Structure"
-           },
-           {
-             fieldName: "SubType",
-             label: "Subtype of Structure",
-           }
-         ]
-       }
-     ]
-   },
-            elevationInfo: {
-                mode: "absolute-height",
-                offset: 0
-            },
-            title: "Station Structure"
-            // when filter using date, example below. use this format
-            //definitionExpression: "EndDate = date'2020-6-3'"
-        });
-        structureLayer.listMode = "hide";
-        map.add(structureLayer, 1);
+// Discipline: Architectural
+var columnsLayer = null;
+var doorsLayer = null;
+var floorsLayer = null;
+var roofsLayer = null;
+var wallsLayer = null;
+var stairsLayer = null;
+var windowsLayer = null;
 
-        function renderStructureLayer() {
-          const renderer = new UniqueValueRenderer({
-            field: "Status"
-          });
+// Discipline: Structural
+var stFramingLayer = null;
+var stColumnLayer = null;
+var stFoundationLayer = null;
 
-          for (let property in colors) {
-            if (colors.hasOwnProperty(property)) {
-              renderer.addUniqueValueInfo({
-                value: property,
-                symbol: {
-                  type: "mesh-3d",
-                  symbolLayers: [
-                    {
-                      type: "fill",
-                      material: {
-                        color: colors[property],
-                        colorMixMode: "replace"
-                      },
-                      edges: {
-                        type: "solid", // autocasts as new SolidEdges3D()
-                        color: [225, 225, 225, 0.3]
-                        }
-                    }
-                  ]
-                 }
-              });
-            }
-          }
+// Compile building scene layers
+buildingLayer.when(() => {
+  buildingLayer.allSublayers.forEach((layer) => {
+    switch(layer.modelName) {
+      // Because of performance reasons, the Full Model view is
+      // by default set to false. In this scene the Full Model should be visible.
+      case "FullModel":
+        layer.visible = true;
+        break;
+        case "Overview":
+        case "Rooms":
+          layer.visible = false;
+          break;
+        
+        // Extract layers that should not be hidden by the sllice widget?
+        case "Doors":
+          doorsLayer = layer;
+          //excludedLayers.push(layer);
+          break;
 
-          structureLayer.renderer = renderer;
-        }
+        case "Columns":
+          columnsLayer = layer;
+          //excludedLayers.push(layer);
+          break;
 
-        renderStructureLayer();
+        case "Floors":
+          floorsLayer = layer;
+          //excludedLayers
+          break;
 
-// Radio Button Selection //        
-// Selection of 'D-Wall' or 'Station Box' only for visualization (not chart)
+        case "Roofs":
+          roofsLayer = layer;
+          break;
+
+        case "Walls":
+          wallsLayer = layer;
+          break;
+
+        case "Windows":
+          windowsLayer = layer;
+          break;
+
+        case "StructuralFraming":
+          stFramingLayer = layer;
+          break;
+    
+        case "StructuralColumns":
+          stColumnLayer = layer;
+          break;
+    
+        case "StructuralFoundation":
+          stFoundationLayer = layer;
+          break;
+
+        default:
+          layer.visible = true;
+    }
+  });
+});
+
 
 //*******************************//
 //      Progress Chart           //
 //*******************************//
 
 // Total progress //
-function perBuildingProgress() {
+function totalProgressStFoundation() {
+  // structural Foundation
   var total_complete = {
-  onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
-  outStatisticFieldName: "total_complete",
-  statisticType: "sum"
-};
+    onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_complete",
+    statisticType: "sum"
+  };
 
-var total_obs = {
-  onStatisticField: "Status",
-  outStatisticFieldName: "total_obs",
-  statisticType: "count"
-};
-var query = structureLayer.createQuery();
-query.outStatistics = [total_complete, total_obs];
-query.returnGeometry = true;
-structureLayer.queryFeatures(query).then(function(response) {
-  var stats = response.features[0].attributes;
+  var total_obs = {
+    onStatisticField: "Status",
+    outStatisticFieldName: "total_obs",
+    statisticType: "count"
+  };
+  
+  var query = stFoundationLayer.createQuery();
+  query.outStatistics = [total_complete, total_obs];
+  query.returnGeometry = true;
+  return stFoundationLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
 
-  const total_complete = stats.total_complete;
-  const total_obs = stats.total_obs;
-  document.getElementById("totalProgressDiv").innerHTML = ((total_complete/total_obs)*100).toFixed(1) + " %";
-});
+    const total_comp = stats.total_complete;
+    const total_obs = stats.total_obs;
+    const compile_stFoundation = [total_comp, total_obs];
+    return compile_stFoundation;
+  });
 }
+
+  // structural columns
+  function totalProgressStColumn(compile_stFoundation) {
+    // structural Foundation
+    var total_complete = {
+      onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete",
+      statisticType: "sum"
+    };
+
+    var total_obs = {
+      onStatisticField: "Status",
+      outStatisticFieldName: "total_obs",
+      statisticType: "count"
+    };
+    
+    var query = stColumnLayer.createQuery();
+    query.outStatistics = [total_complete, total_obs];
+    query.returnGeometry = true;
+    return stColumnLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features[0].attributes;
+
+      const total_comp = stats.total_complete;
+      const total_obs = stats.total_obs;
+      const comp_comp = total_comp + compile_stFoundation[0];
+      const comp_obs = total_obs + compile_stFoundation[1];
+      const compile_stColumn = [comp_comp, comp_obs];
+
+      return compile_stColumn;
+    });
+  }
+
+  // structura framing
+  function totalProgressStFraming(compile_stColumn) {
+    // structural Foundation
+    var total_complete = {
+      onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete",
+      statisticType: "sum"
+    };
+
+    var total_obs = {
+      onStatisticField: "Status",
+      outStatisticFieldName: "total_obs",
+      statisticType: "count"
+    };
+    
+    var query = stFramingLayer.createQuery();
+    query.outStatistics = [total_complete, total_obs];
+    query.returnGeometry = true;
+    return stFramingLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features[0].attributes;
+
+      const total_comp = stats.total_complete;
+      const total_obs = stats.total_obs;
+      const comp_comp = total_comp + compile_stColumn[0];
+      const comp_obs = total_obs + compile_stColumn[1];
+      const compile_stFraming = [comp_comp, comp_obs];
+
+      return compile_stFraming;
+    });
+  }
+
+  // Columns
+  function totalProgressColumns(compile_stFraming) {
+    // structural Foundation
+    var total_complete = {
+      onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete",
+      statisticType: "sum"
+    };
+
+    var total_obs = {
+      onStatisticField: "Status",
+      outStatisticFieldName: "total_obs",
+      statisticType: "count"
+    };
+    
+    var query = columnsLayer.createQuery();
+    query.outStatistics = [total_complete, total_obs];
+    query.returnGeometry = true;
+    return columnsLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features[0].attributes;
+
+      const total_comp = stats.total_complete;
+      const total_obs = stats.total_obs;
+      const comp_comp = total_comp + compile_stFraming[0];
+      const comp_obs = total_obs + compile_stFraming[1];
+      const compile_columns = [comp_comp, comp_obs];
+
+      return compile_columns;
+    });
+  }
+
+  // Doors
+  function totalProgressDoors(compile_columns) {
+    // structural Foundation
+    var total_complete = {
+      onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete",
+      statisticType: "sum"
+    };
+
+    var total_obs = {
+      onStatisticField: "Status",
+      outStatisticFieldName: "total_obs",
+      statisticType: "count"
+    };
+    
+    var query = doorsLayer.createQuery();
+    query.outStatistics = [total_complete, total_obs];
+    query.returnGeometry = true;
+    return doorsLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features[0].attributes;
+
+      const total_comp = stats.total_complete;
+      const total_obs = stats.total_obs;
+      const comp_comp = total_comp + compile_columns[0];
+      const comp_obs = total_obs + compile_columns[1];
+      const compile_doors = [comp_comp, comp_obs];
+
+      return compile_doors;
+    });
+  }
+
+  // Floors
+  function totalProgressFloors(compile_doors) {
+    // structural Foundation
+    var total_complete = {
+      onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete",
+      statisticType: "sum"
+    };
+
+    var total_obs = {
+      onStatisticField: "Status",
+      outStatisticFieldName: "total_obs",
+      statisticType: "count"
+    };
+    
+    var query = floorsLayer.createQuery();
+    query.outStatistics = [total_complete, total_obs];
+    query.returnGeometry = true;
+    return floorsLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features[0].attributes;
+
+      const total_comp = stats.total_complete;
+      const total_obs = stats.total_obs;
+      const comp_comp = total_comp + compile_doors[0];
+      const comp_obs = total_obs + compile_doors[1];
+      const compile_floors = [comp_comp, comp_obs];
+
+      return compile_floors;
+    });
+  }
+
+  // Roofs
+  function totalProgressRoofs(compile_floors) {
+    // structural Foundation
+    var total_complete = {
+      onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete",
+      statisticType: "sum"
+    };
+
+    var total_obs = {
+      onStatisticField: "Status",
+      outStatisticFieldName: "total_obs",
+      statisticType: "count"
+    };
+    
+    var query = roofsLayer.createQuery();
+    query.outStatistics = [total_complete, total_obs];
+    query.returnGeometry = true;
+    return roofsLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features[0].attributes;
+
+      const total_comp = stats.total_complete;
+      const total_obs = stats.total_obs;
+      const comp_comp = total_comp + compile_floors[0];
+      const comp_obs = total_obs + compile_floors[1];
+      const compile_roofs = [comp_comp, comp_obs];
+
+      return compile_roofs;
+    });
+  }
+
+  // Walls
+function totalProgressWalls(compile_roofs) {
+    // structural Foundation
+    var total_complete = {
+      onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete",
+      statisticType: "sum"
+    };
+
+    var total_obs = {
+      onStatisticField: "Status",
+      outStatisticFieldName: "total_obs",
+      statisticType: "count"
+    };
+    
+    var query = wallsLayer.createQuery();
+    query.outStatistics = [total_complete, total_obs];
+    query.returnGeometry = true;
+    return wallsLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features[0].attributes;
+
+      const total_comp = stats.total_complete;
+      const total_obs = stats.total_obs;
+      const comp_comp = total_comp + compile_roofs[0];
+      const comp_obs = total_obs + compile_roofs[1];
+      const compile_walls = [comp_comp, comp_obs];
+
+      return compile_walls;
+    });
+  }
+  
+  // Stairs
+  function totalProgressStairs(compile_walls) {
+    // structural Foundation
+    var total_complete = {
+      onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete",
+      statisticType: "sum"
+    };
+
+    var total_obs = {
+      onStatisticField: "Status",
+      outStatisticFieldName: "total_obs",
+      statisticType: "count"
+    };
+    
+    var query = stairsLayer.createQuery();
+    query.outStatistics = [total_complete, total_obs];
+    query.returnGeometry = true;
+    return stairsLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features[0].attributes;
+
+      const total_comp = stats.total_complete;
+      const total_obs = stats.total_obs;
+      const comp_comp = total_comp + compile_walls[0];
+      const comp_obs = total_obs + compile_walls[1];
+      const compile_stairs = [comp_comp, comp_obs];
+
+      return compile_stairs;
+    });
+  }
+  
+  // Windows
+  function totalProgressWindows(compile_stairs) {
+    // structural Foundation
+    var total_complete = {
+      onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete",
+      statisticType: "sum"
+    };
+
+    var total_obs = {
+      onStatisticField: "Status",
+      outStatisticFieldName: "total_obs",
+      statisticType: "count"
+    };
+    
+    var query = windowsLayer.createQuery();
+    query.outStatistics = [total_complete, total_obs];
+    query.returnGeometry = true;
+    return windowsLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features[0].attributes;
+
+      const total_comp = stats.total_complete;
+      const total_obs = stats.total_obs;
+      const comp_comp = total_comp + compile_stairs[0];
+      const comp_obs = total_obs + compile_stairs[1];
+      const compile_windows = [comp_comp, comp_obs];
+
+      return compile_windows;
+    });
+  }
+  
+  // Combine All
+  function progressAll(compile_windows) {
+    document.getElementById("totalProgressDiv").innerHTML = ((compile_windows[0]/compile_windows[1])*100).toFixed(1) + " %";
+  }
+
+  function totalProgressDepot() {
+    totalProgressStFoundation()
+      .then(totalProgressStColumn)
+      .then(totalProgressStFraming)
+      .then(totalProgressColumns)
+      .then(totalProgressDoors)
+      .then(totalProgressFloors)
+      .then(totalProgressRoofs)
+      .then(totalProgressWalls)
+      .then(totalProgressStairs)
+      .then(totalProgressWindows)
+      .then(progressAll)
+  }
 
 
 /* Function for zooming to selected layers */
@@ -894,8 +1152,37 @@ am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
 // Default selection = 'None'
-structureLayer.definitionExpression = "Name = 'LRS'";
-perBuildingProgress();
+buildingLayer.when(() => {
+// All depot names for SC:
+//"TMO"  "MCS"  "DB1"  "WPH1" "WPH2"
+//"SH1"  "BPS"  "MPS"  "OCC"  "CPS"  "CNT"  "FP1"  "DSP"  "LRS"  "URS"  "WRS" 
+//"CMV"  "LOS"  "DHS"  "LGS"  "TGB" 
+const defaultDepot = "Name = '" + "OCC" + "'";
+columnsLayer.definitionExpression = defaultDepot;
+doorsLayer.definitionExpression = defaultDepot;
+floorsLayer.definitionExpression = defaultDepot;
+roofsLayer.definitionExpression = defaultDepot;
+wallsLayer.definitionExpression = defaultDepot;
+stairsLayer.definitionExpression = defaultDepot;
+windowsLayer.definitionExpression = defaultDepot;
+
+stFramingLayer.definitionExpression = defaultDepot;
+stColumnLayer.definitionExpression = defaultDepot;
+stFoundationLayer.definitionExpression = defaultDepot;
+
+columnsLayer.visible = true;
+doorsLayer.visible = true;
+floorsLayer.visible = true;
+roofsLayer.visible = true;
+wallsLayer.visible = true;
+stairsLayer.visible = true;
+windowsLayer.visible = true;
+
+stFramingLayer.visible = true;
+stColumnLayer.visible = true;
+stFoundationLayer.visible = true;
+
+totalProgressDepot();
 chartStFoundation();
 chartStColumn();
 chartStFraming();
@@ -904,25 +1191,39 @@ chartFloors();
 chartWalls();
 chartColumns();
 chartOthers();
-zoomToLayer(structureLayer);
+zoomToLayer(stFramingLayer);
 
+combineOthers();
+});
 
 // click the label and display selected bulidng
 view.when(function() {
   view.on("click", function(event) {
     view.hitTest(event).then(function(response) {
       const feature = response.results[0].graphic.attributes.Name;
-        structureLayer.definitionExpression = "Name = '" + feature + "'";
-        zoomToLayer(structureLayer);
-        perBuildingProgress();
-        chartStFoundation();
-        chartStColumn();
-        chartStFraming();
-        chartRoofs();
-        chartFloors();
-        chartWalls();
-        chartColumns();
-        chartOthers();
+      const updatedName = "Name = '" + feature + "'";
+      columnsLayer.definitionExpression = updatedName;
+      doorsLayer.definitionExpression = updatedName;
+      floorsLayer.definitionExpression = updatedName;
+      roofsLayer.definitionExpression = updatedName;
+      wallsLayer.definitionExpression = updatedName;
+      stairsLayer.definitionExpression = updatedName;
+      windowsLayer.definitionExpression = updatedName;
+
+      stFramingLayer.definitionExpression = updatedName;
+      stColumnLayer.definitionExpression = updatedName;
+      stFoundationLayer.definitionExpression = updatedName;
+
+      zoomToLayer(stFramingLayer);
+      totalProgressDepot()
+      chartStFoundation();
+      chartStColumn();
+      chartStFraming();
+      chartRoofs();
+      chartFloors();
+      chartWalls();
+      chartColumns();
+      combineOthers();
     })
   })
 });
@@ -948,11 +1249,11 @@ function chartStFoundation() {
     statisticType: "sum"  
   };
 
-  var query = structureLayer.createQuery();
+  var query = stFoundationLayer.createQuery();
   query.outStatistics = [total_stFoundation_tobec, total_stFoundation_underc, total_stFoundation_comp];
   query.returnGeometry = true;
 
-  structureLayer.queryFeatures(query).then(function(response) {
+  stFoundationLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
     const foundation_tobec = stats.total_stFoundation_tobec;
@@ -1135,13 +1436,12 @@ function chartStFoundation() {
                 
                 // Point 1:
                 view.when(function() {
-                    view.whenLayerView(structureLayer).then(function (layerView) {
+                    view.whenLayerView(stFoundationLayer).then(function (layerView) {
                         chartLayerView = layerView;
-                        arrLviews.push(layerView);
+                        ///arrLviews.push(layerView);
                         chartElement.style.visibility = "visible";
                         
-                        //testUtilPt1.definitionExpression = sqlExpression;
-                        structureLayer.queryFeatures().then(function(results) {
+                        stFoundationLayer.queryFeatures().then(function(results) {
                             const ggg = results.features;
                             const rowN = ggg.length;
                             
@@ -1155,7 +1455,7 @@ function chartStFoundation() {
                                 objectIds: objID
                             });
                             
-                            structureLayer.queryExtent(queryExt).then(function(result) {
+                            stFoundationLayer.queryExtent(queryExt).then(function(result) {
                                 if (result.extent) {
                                     view.goTo(result.extent)
                                 }
@@ -1166,25 +1466,13 @@ function chartStFoundation() {
                             });
                         }); // end of query features   
                     }); // end of when layerview
-
-                // Point: 2
-                view.whenLayerView(structureLayer).then(function (layerView) {
-                    chartLayerView = layerView;
-                    arrLviews.push(layerView);
-                    chartElement.style.visibility = "visible";
-                    
-                    view.on("click", function() {
-                        layerView.filter = null;
-                    });
-                }); // end of when layerview
             }); // end of view.when
 
             // Query view using compiled arrays
-            for(var i = 0; i < arrLviews.length; i++) {
-                arrLviews[i].filter = {
-                    where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus
-                }
-            }
+            chartLayerView.filter = {
+              where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+                    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+            };
         } // End of filterByChart
     } // end of createSeries function
     
@@ -1193,10 +1481,6 @@ function chartStFoundation() {
     createSeries("value3", "Incomplete");
 
 }); // end of queryFeatures
-
-
-
-
 } // End of Chart
 
 // 2. Structural Column
@@ -1219,11 +1503,11 @@ function chartStColumn() {
     statisticType: "sum"  
   };
 
-  var query = structureLayer.createQuery();
+  var query = stColumnLayer.createQuery();
   query.outStatistics = [total_stColumn_tobec, total_stColumn_underc, total_stColumn_comp];
   query.returnGeometry = true;
 
-  structureLayer.queryFeatures(query).then(function(response) {
+  stColumnLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
     const column_tobec = stats.total_stColumn_tobec;
@@ -1406,13 +1690,13 @@ function chartStColumn() {
                 
                 // Point 1:
                 view.when(function() {
-                    view.whenLayerView(structureLayer).then(function (layerView) {
+                    view.whenLayerView(stColumnLayer).then(function (layerView) {
                         chartLayerView = layerView;
-                        arrLviews.push(layerView);
+                        //arrLviews.push(layerView);
                         chartElement.style.visibility = "visible";
                         
                         //testUtilPt1.definitionExpression = sqlExpression;
-                        structureLayer.queryFeatures().then(function(results) {
+                        stColumnLayer.queryFeatures().then(function(results) {
                             const ggg = results.features;
                             const rowN = ggg.length;
                             
@@ -1426,7 +1710,7 @@ function chartStColumn() {
                                 objectIds: objID
                             });
                             
-                            structureLayer.queryExtent(queryExt).then(function(result) {
+                            stColumnLayer.queryExtent(queryExt).then(function(result) {
                                 if (result.extent) {
                                     view.goTo(result.extent)
                                 }
@@ -1437,25 +1721,13 @@ function chartStColumn() {
                             });
                         }); // end of query features   
                     }); // end of when layerview
-
-                // Point: 2
-                view.whenLayerView(structureLayer).then(function (layerView) {
-                    chartLayerView = layerView;
-                    arrLviews.push(layerView);
-                    chartElement.style.visibility = "visible";
-                    
-                    view.on("click", function() {
-                        layerView.filter = null;
-                    });
-                }); // end of when layerview
             }); // end of view.when
 
             // Query view using compiled arrays
-            for(var i = 0; i < arrLviews.length; i++) {
-                arrLviews[i].filter = {
-                    where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus
-                }
-            }
+            chartLayerView.filter = {
+              where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+                    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+            };
         } // End of filterByChart
     } // end of createSeries function
     
@@ -1464,10 +1736,6 @@ function chartStColumn() {
     createSeries("value3", "Incomplete");
 
 }); // end of queryFeatures
-
-
-
-
 } // End of Chart
 
 
@@ -1491,11 +1759,11 @@ function chartStFraming() {
     statisticType: "sum"  
   };
 
-  var query = structureLayer.createQuery();
+  var query = stFramingLayer.createQuery();
   query.outStatistics = [total_stFraming_tobec, total_stFraming_underc, total_stFraming_comp];
   query.returnGeometry = true;
 
-  structureLayer.queryFeatures(query).then(function(response) {
+  stFramingLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
     const framing_tobec = stats.total_stFraming_tobec;
@@ -1678,13 +1946,13 @@ function chartStFraming() {
                 
                 // Point 1:
                 view.when(function() {
-                    view.whenLayerView(structureLayer).then(function (layerView) {
+                    view.whenLayerView(stFramingLayer).then(function (layerView) {
                         chartLayerView = layerView;
                         arrLviews.push(layerView);
                         chartElement.style.visibility = "visible";
                         
                         //testUtilPt1.definitionExpression = sqlExpression;
-                        structureLayer.queryFeatures().then(function(results) {
+                        stFramingLayer.queryFeatures().then(function(results) {
                             const ggg = results.features;
                             const rowN = ggg.length;
                             
@@ -1698,7 +1966,7 @@ function chartStFraming() {
                                 objectIds: objID
                             });
                             
-                            structureLayer.queryExtent(queryExt).then(function(result) {
+                            stFramingLayer.queryExtent(queryExt).then(function(result) {
                                 if (result.extent) {
                                     view.goTo(result.extent)
                                 }
@@ -1711,7 +1979,7 @@ function chartStFraming() {
                     }); // end of when layerview
 
                 // Point: 2
-                view.whenLayerView(structureLayer).then(function (layerView) {
+                view.whenLayerView(stFramingLayer).then(function (layerView) {
                     chartLayerView = layerView;
                     arrLviews.push(layerView);
                     chartElement.style.visibility = "visible";
@@ -1723,11 +1991,10 @@ function chartStFraming() {
             }); // end of view.when
 
             // Query view using compiled arrays
-            for(var i = 0; i < arrLviews.length; i++) {
-                arrLviews[i].filter = {
-                    where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus
-                }
-            }
+            chartLayerView.filter = {
+              where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+                    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+            };
         } // End of filterByChart
     } // end of createSeries function
     
@@ -1736,10 +2003,6 @@ function chartStFraming() {
     createSeries("value3", "Incomplete");
 
 }); // end of queryFeatures
-
-
-
-
 } // End of Chart
 
 
@@ -1763,11 +2026,11 @@ function chartRoofs() {
     statisticType: "sum"  
   };
 
-  var query = structureLayer.createQuery();
+  var query = roofsLayer.createQuery();
   query.outStatistics = [total_roofs_tobec, total_roofs_underc, total_roofs_comp];
   query.returnGeometry = true;
 
-  structureLayer.queryFeatures(query).then(function(response) {
+  roofsLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
     const roofs_tobec = stats.total_roofs_tobec;
@@ -1950,13 +2213,13 @@ function chartRoofs() {
                 
                 // Point 1:
                 view.when(function() {
-                    view.whenLayerView(structureLayer).then(function (layerView) {
+                    view.whenLayerView(roofsLayer).then(function (layerView) {
                         chartLayerView = layerView;
                         arrLviews.push(layerView);
                         chartElement.style.visibility = "visible";
                         
                         //testUtilPt1.definitionExpression = sqlExpression;
-                        structureLayer.queryFeatures().then(function(results) {
+                        roofsLayer.queryFeatures().then(function(results) {
                             const ggg = results.features;
                             const rowN = ggg.length;
                             
@@ -1970,7 +2233,7 @@ function chartRoofs() {
                                 objectIds: objID
                             });
                             
-                            structureLayer.queryExtent(queryExt).then(function(result) {
+                            roofsLayer.queryExtent(queryExt).then(function(result) {
                                 if (result.extent) {
                                     view.goTo(result.extent)
                                 }
@@ -1981,25 +2244,13 @@ function chartRoofs() {
                             });
                         }); // end of query features   
                     }); // end of when layerview
-
-                // Point: 2
-                view.whenLayerView(structureLayer).then(function (layerView) {
-                    chartLayerView = layerView;
-                    arrLviews.push(layerView);
-                    chartElement.style.visibility = "visible";
-                    
-                    view.on("click", function() {
-                        layerView.filter = null;
-                    });
-                }); // end of when layerview
             }); // end of view.when
 
             // Query view using compiled arrays
-            for(var i = 0; i < arrLviews.length; i++) {
-                arrLviews[i].filter = {
-                    where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus
-                }
-            }
+            chartLayerView.filter = {
+              where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+                    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+            };
         } // End of filterByChart
     } // end of createSeries function
     
@@ -2008,10 +2259,6 @@ function chartRoofs() {
     createSeries("value3", "Incomplete");
 
 }); // end of queryFeatures
-
-
-
-
 } // End of Chart
 
 
@@ -2035,11 +2282,11 @@ function chartFloors() {
     statisticType: "sum"  
   };
 
-  var query = structureLayer.createQuery();
+  var query = floorsLayer.createQuery();
   query.outStatistics = [total_floors_tobec, total_floors_underc, total_floors_comp];
   query.returnGeometry = true;
 
-  structureLayer.queryFeatures(query).then(function(response) {
+  floorsLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
     const floors_tobec = stats.total_floors_tobec;
@@ -2222,13 +2469,13 @@ function chartFloors() {
                 
                 // Point 1:
                 view.when(function() {
-                    view.whenLayerView(structureLayer).then(function (layerView) {
+                    view.whenLayerView(floorsLayer).then(function (layerView) {
                         chartLayerView = layerView;
                         arrLviews.push(layerView);
                         chartElement.style.visibility = "visible";
                         
                         //testUtilPt1.definitionExpression = sqlExpression;
-                        structureLayer.queryFeatures().then(function(results) {
+                        floorsLayer.queryFeatures().then(function(results) {
                             const ggg = results.features;
                             const rowN = ggg.length;
                             
@@ -2242,7 +2489,7 @@ function chartFloors() {
                                 objectIds: objID
                             });
                             
-                            structureLayer.queryExtent(queryExt).then(function(result) {
+                            floorsLayer.queryExtent(queryExt).then(function(result) {
                                 if (result.extent) {
                                     view.goTo(result.extent)
                                 }
@@ -2253,25 +2500,13 @@ function chartFloors() {
                             });
                         }); // end of query features   
                     }); // end of when layerview
-
-                // Point: 2
-                view.whenLayerView(structureLayer).then(function (layerView) {
-                    chartLayerView = layerView;
-                    arrLviews.push(layerView);
-                    chartElement.style.visibility = "visible";
-                    
-                    view.on("click", function() {
-                        layerView.filter = null;
-                    });
-                }); // end of when layerview
             }); // end of view.when
 
             // Query view using compiled arrays
-            for(var i = 0; i < arrLviews.length; i++) {
-                arrLviews[i].filter = {
-                    where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus
-                }
-            }
+            chartLayerView.filter = {
+              where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+                    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+            };
         } // End of filterByChart
     } // end of createSeries function
     
@@ -2280,10 +2515,6 @@ function chartFloors() {
     createSeries("value3", "Incomplete");
 
 }); // end of queryFeatures
-
-
-
-
 } // End of Chart
 
 
@@ -2307,11 +2538,11 @@ function chartWalls() {
     statisticType: "sum"  
   };
 
-  var query = structureLayer.createQuery();
+  var query = wallsLayer.createQuery();
   query.outStatistics = [total_walls_tobec, total_walls_underc, total_walls_comp];
   query.returnGeometry = true;
 
-  structureLayer.queryFeatures(query).then(function(response) {
+  wallsLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
     const walls_tobec = stats.total_walls_tobec;
@@ -2494,13 +2725,13 @@ function chartWalls() {
                 
                 // Point 1:
                 view.when(function() {
-                    view.whenLayerView(structureLayer).then(function (layerView) {
+                    view.whenLayerView(wallsLayer).then(function (layerView) {
                         chartLayerView = layerView;
                         arrLviews.push(layerView);
                         chartElement.style.visibility = "visible";
                         
                         //testUtilPt1.definitionExpression = sqlExpression;
-                        structureLayer.queryFeatures().then(function(results) {
+                        wallsLayer.queryFeatures().then(function(results) {
                             const ggg = results.features;
                             const rowN = ggg.length;
                             
@@ -2514,7 +2745,7 @@ function chartWalls() {
                                 objectIds: objID
                             });
                             
-                            structureLayer.queryExtent(queryExt).then(function(result) {
+                            wallsLayer.queryExtent(queryExt).then(function(result) {
                                 if (result.extent) {
                                     view.goTo(result.extent)
                                 }
@@ -2525,25 +2756,13 @@ function chartWalls() {
                             });
                         }); // end of query features   
                     }); // end of when layerview
-
-                // Point: 2
-                view.whenLayerView(structureLayer).then(function (layerView) {
-                    chartLayerView = layerView;
-                    arrLviews.push(layerView);
-                    chartElement.style.visibility = "visible";
-                    
-                    view.on("click", function() {
-                        layerView.filter = null;
-                    });
-                }); // end of when layerview
             }); // end of view.when
 
             // Query view using compiled arrays
-            for(var i = 0; i < arrLviews.length; i++) {
-                arrLviews[i].filter = {
-                    where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus
-                }
-            }
+            chartLayerView.filter = {
+              where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus
+                    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+            };
         } // End of filterByChart
     } // end of createSeries function
     
@@ -2552,10 +2771,6 @@ function chartWalls() {
     createSeries("value3", "Incomplete");
 
 }); // end of queryFeatures
-
-
-
-
 } // End of Chart
 
 
@@ -2579,11 +2794,11 @@ function chartColumns() {
     statisticType: "sum"  
   };
 
-  var query = structureLayer.createQuery();
+  var query = columnsLayer.createQuery();
   query.outStatistics = [total_columns_tobec, total_columns_underc, total_columns_comp];
   query.returnGeometry = true;
 
-  structureLayer.queryFeatures(query).then(function(response) {
+  columnsLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
     const columns_tobec = stats.total_columns_tobec;
@@ -2766,13 +2981,13 @@ function chartColumns() {
                 
                 // Point 1:
                 view.when(function() {
-                    view.whenLayerView(structureLayer).then(function (layerView) {
+                    view.whenLayerView(columnsLayer).then(function (layerView) {
                         chartLayerView = layerView;
                         arrLviews.push(layerView);
                         chartElement.style.visibility = "visible";
                         
                         //testUtilPt1.definitionExpression = sqlExpression;
-                        structureLayer.queryFeatures().then(function(results) {
+                        columnsLayer.queryFeatures().then(function(results) {
                             const ggg = results.features;
                             const rowN = ggg.length;
                             
@@ -2786,7 +3001,7 @@ function chartColumns() {
                                 objectIds: objID
                             });
                             
-                            structureLayer.queryExtent(queryExt).then(function(result) {
+                            columnsLayer.queryExtent(queryExt).then(function(result) {
                                 if (result.extent) {
                                     view.goTo(result.extent)
                                 }
@@ -2797,25 +3012,10 @@ function chartColumns() {
                             });
                         }); // end of query features   
                     }); // end of when layerview
-
-                // Point: 2
-                view.whenLayerView(structureLayer).then(function (layerView) {
-                    chartLayerView = layerView;
-                    arrLviews.push(layerView);
-                    chartElement.style.visibility = "visible";
-                    
-                    view.on("click", function() {
-                        layerView.filter = null;
-                    });
-                }); // end of when layerview
             }); // end of view.when
 
             // Query view using compiled arrays
-            for(var i = 0; i < arrLviews.length; i++) {
-                arrLviews[i].filter = {
-                    where: "Type = " + selectedLayer + " AND " +  "Status = " + selectedStatus
-                }
-            }
+
         } // End of filterByChart
     } // end of createSeries function
     
@@ -2824,43 +3024,130 @@ function chartColumns() {
     createSeries("value3", "Incomplete");
 
 }); // end of queryFeatures
-
-
-
-
 } // End of Chart
 
 
 // 8. Others
-function chartOthers() {
-    var total_others_tobec = {
+// We need to compile three architectural discipline layers
+// 1. doorsLayer
+// 2. stairsLayer
+// 3. windowsLayer
+function doorsL() {
+  var total_doors_tobec = {
     onStatisticField: "CASE WHEN (Type = 8 and Status = 1) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_others_tobec",
+    outStatisticFieldName: "total_doors_tobec",
     statisticType: "sum"
   };
 
-  var total_others_underc = {
+  var total_doors_underc = {
     onStatisticField: "CASE WHEN (Type = 8 and Status = 2) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_others_underc",
+    outStatisticFieldName: "total_doors_underc",
     statisticType: "sum"  
   };
 
-  var total_others_comp = {
+  var total_doors_comp = {
     onStatisticField: "CASE WHEN (Type = 8 and Status = 4) THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_others_comp",
+    outStatisticFieldName: "total_doors_comp",
     statisticType: "sum"  
   };
 
-  var query = structureLayer.createQuery();
-  query.outStatistics = [total_others_tobec, total_others_underc, total_others_comp];
+  var query = doorsLayer.createQuery();
+  query.outStatistics = [total_doors_tobec, total_doors_underc, total_doors_comp];
   query.returnGeometry = true;
 
-  structureLayer.queryFeatures(query).then(function(response) {
+  return doorsLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
-    const others_tobec = stats.total_others_tobec;
-    const others_underc = stats.total_others_underc;
-    const others_comp = stats.total_others_comp;
+    const doors_tobeC = stats.total_doors_tobec;
+    const doors_underC = stats.total_doors_underc;
+    const doors_comp = stats.total_doors_comp;
+    const compile_doors = [doors_tobeC, doors_underC, doors_comp];
+
+    return compile_doors;
+  }); // end of queryFeatures
+} // end of doorsL function
+
+function stairsL(compile_doors) {
+  var total_stairs_tobec = {
+    onStatisticField: "CASE WHEN (Type = 8 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_stairs_tobec",
+    statisticType: "sum"
+  };
+
+  var total_stairs_underc = {
+    onStatisticField: "CASE WHEN (Type = 8 and Status = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_stairs_underc",
+    statisticType: "sum"  
+  };
+
+  var total_stairs_comp = {
+    onStatisticField: "CASE WHEN (Type = 8 and Status = 4) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_stairs_comp",
+    statisticType: "sum"  
+  };
+
+  var query = stairsLayer.createQuery();
+  query.outStatistics = [total_stairs_tobec, total_stairs_underc, total_stairs_comp];
+  query.returnGeometry = true;
+
+  return stairsLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const stairs_tobeC = stats.total_stairs_tobec;
+    const stairs_underC = stats.total_stairs_underc;
+    const stairs_comp = stats.total_stairs_comp;
+
+    const comp_tobeC = stairs_tobeC + compile_doors[0];
+    const comp_underC = stairs_tobeC + compile_doors[1];
+    const comp_comp = stairs_tobeC + compile_doors[2];
+
+    const compile_stairs = [comp_tobeC, comp_underC, comp_comp];
+
+    return compile_stairs;
+  }); // end of queryFeatures
+} // end of stairsL function
+
+function windowsL(compile_stairs) {
+  var total_windows_tobec = {
+    onStatisticField: "CASE WHEN (Type = 8 and Status = 1) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_windows_tobec",
+    statisticType: "sum"
+  };
+
+  var total_windows_underc = {
+    onStatisticField: "CASE WHEN (Type = 8 and Status = 2) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_windows_underc",
+    statisticType: "sum"  
+  };
+
+  var total_windows_comp = {
+    onStatisticField: "CASE WHEN (Type = 8 and Status = 4) THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_windows_comp",
+    statisticType: "sum"  
+  };
+
+  var query = windowsLayer.createQuery();
+  query.outStatistics = [total_windows_tobec, total_windows_underc, total_windows_comp];
+  query.returnGeometry = true;
+
+  return windowsLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const windows_tobeC = stats.total_windows_tobec;
+    const windows_underC = stats.total_windows_underc;
+    const windows_comp = stats.total_windows_comp;
+
+    const comp_tobeC = windows_tobeC + compile_stairs[0];
+    const comp_underC = windows_tobeC + compile_stairs[1];
+    const comp_comp = windows_tobeC + compile_stairs[2];
+
+    const compile_windows = [comp_tobeC, comp_underC, comp_comp];
+
+    return compile_windows;
+  }); // end of queryFeatures
+} // end of windowsL function
+
+function chartOthers(compile_windows) {
 
      // Chart //
      var chart = am4core.create("chartOthersDiv", am4charts.XYChart);
@@ -2930,9 +3217,9 @@ function chartOthers() {
     chart.data = [
         {
             category: "Others",
-            value1: others_comp,
-            value2: others_underc,
-            value3: others_tobec,
+            value1: compile_windows[0],
+            value2: compile_windows[1],
+            value3: compile_windows[2],
         }
     ];
 
@@ -3036,42 +3323,16 @@ function chartOthers() {
                     selectedLayer = null;
                 }
                 
-                // Point 1:
+                // doorsLayer:
                 view.when(function() {
-                    view.whenLayerView(structureLayer).then(function (layerView) {
+                    view.whenLayerView(doorsLayer).then(function (layerView) {
                         chartLayerView = layerView;
                         arrLviews.push(layerView);
                         chartElement.style.visibility = "visible";
-                        
-                        //testUtilPt1.definitionExpression = sqlExpression;
-                        structureLayer.queryFeatures().then(function(results) {
-                            const ggg = results.features;
-                            const rowN = ggg.length;
-                            
-                            let objID = [];
-                            for (var i=0; i < rowN; i++) {
-                                var obj = results.features[i].attributes.OBJECTID;
-                                objID.push(obj);
-                            }
-                            
-                            var queryExt = new Query({
-                                objectIds: objID
-                            });
-                            
-                            structureLayer.queryExtent(queryExt).then(function(result) {
-                                if (result.extent) {
-                                    view.goTo(result.extent)
-                                }
-                            });
-                            
-                            view.on("click", function() {
-                                layerView.filter = null;
-                            });
-                        }); // end of query features   
                     }); // end of when layerview
 
-                // Point: 2
-                view.whenLayerView(structureLayer).then(function (layerView) {
+                // stairsLayer
+                view.whenLayerView(stairsLayer).then(function (layerView) {
                     chartLayerView = layerView;
                     arrLviews.push(layerView);
                     chartElement.style.visibility = "visible";
@@ -3080,6 +3341,18 @@ function chartOthers() {
                         layerView.filter = null;
                     });
                 }); // end of when layerview
+
+                // windowsLayer
+                view.whenLayerView(windowsLayer).then(function (layerView) {
+                    chartLayerView = layerView;
+                    arrLviews.push(layerView);
+                    chartElement.style.visibility = "visible";
+                    
+                    view.on("click", function() {
+                        layerView.filter = null;
+                    });
+                }); // end of when layerview
+
             }); // end of view.when
 
             // Query view using compiled arrays
@@ -3094,30 +3367,27 @@ function chartOthers() {
     createSeries("value1", "Complete");
     createSeries("value2", "Under Construction");
     createSeries("value3", "Incomplete");
-
-}); // end of queryFeatures
-
-
-
-
 } // End of Chart
 
+function combineOthers() {
+  doorsL()
+    .then(stairsL)
+    .then(windowsL)
+    .then(chartOthers)
+}
 
 }); // End of am4Core.ready()
 
 
 ///////////////////////////////////////////////
 // LayerList and Add legend to the LayerList
-        // On-off feature layer tab
-        var layerList = new LayerList({
-            view: view,
-            listItemCreatedFunction: function(event) {
-              const item = event.item;
-              if (item.title === "Chainage"){
-                item.visible = false
-              }
-            }
-          });
+// On-off feature layer tab
+var layerList = new LayerList({
+  view: view,
+  listItemCreatedFunction: function(event) {
+    const item = event.item;d
+  }
+});
 /*
           view.ui.add(layerList, {
             position: "bottom-left"
@@ -3126,20 +3396,20 @@ function chartOthers() {
 
 // Search
 var searchWidget = new Search({
-view: view,
-locationEnabled: false,
-includeDefaultSources: false,
-sources: [
-  {
-    layer: buildingLocation,
-    searchFields: ["Name", "LAYER"],
-    displayField: "Name",
-    exactMatch: false,
-    outFields: ["Name"],
-    name: "Building Name",
-    placeholder: "Building Name"
-}
-]
+  view: view,
+  locationEnabled: false,
+  includeDefaultSources: false,
+  sources: [
+    {
+      layer: buildingLocation,
+      searchFields: ["Name", "LAYER"],
+      displayField: "Name",
+      exactMatch: false,
+      outFields: ["Name"],
+      name: "Building Name",
+      placeholder: "Building Name"
+    }
+  ]
 });
 view.ui.add(searchWidget, "top-right");
 //
@@ -3152,10 +3422,6 @@ var legend = new Legend({
   {
       layer: rowLayer,
       title: "PROW"
-    },
-    {
-      layer: chainageLayer,
-      title: "chainage"
     }
   ]
 });
@@ -3173,58 +3439,56 @@ view.ui.add(legendExpand, {
 
 // Layer List
 var layerListExpand = new Expand ({
-            view: view,
-            content: layerList,
-            expandIconClass: "esri-icon-visible",
-            group: "top-right"
-        });
-        view.ui.add(layerListExpand, {
-            position: "top-right"
-        });
+  view: view,
+  content: layerList,
+  expandIconClass: "esri-icon-visible",
+  group: "top-right"
+});
 
-        view.ui.empty("top-left");
+view.ui.add(layerListExpand, {
+  position: "top-right"
+});
 
-        // Compass
-        var compass = new Compass({
-          view: view});
-          // adds the compass to the top left corner of the MapView
-        view.ui.add(compass, "top-right");
+view.ui.empty("top-left");
 
-        // See-through-Ground        
-          view.when(function() {
-          // allow navigation above and below the ground
-          map.ground.navigationConstraint = {
-            type: "none"
-          };
-          // the webscene has no basemap, so set a surfaceColor on the ground
-          map.ground.surfaceColor = "#fff";
-          // to see through the ground, set the ground opacity to 0.4
-          map.ground.opacity = 0.5;
-        });
+// Compass
+var compass = new Compass({view: view});
+  // adds the compass to the top left corner of the MapView
+view.ui.add(compass, "top-right");
+
+// See-through-Ground        
+view.when(function() {
+  // allow navigation above and below the ground
+  map.ground.navigationConstraint = {
+    type: "none"
+  };
+  // the webscene has no basemap, so set a surfaceColor on the ground
+  map.ground.surfaceColor = "#fff";
+  // to see through the ground, set the ground opacity to 0.4
+  map.ground.opacity = 0.5;
+});
           
-        // Full screen logo
-        view.ui.add(
-            new Fullscreen({
-                view: view,
-                element: viewDiv
-            }),
-            "top-right"
-        );
+// Full screen logo
+view.ui.add(
+  new Fullscreen({
+    view: view,
+    element: viewDiv
+  }),
+  "top-right"
+);
         
-        // See through Gound
-        document
-          .getElementById("opacityInput")
-          .addEventListener("change", function(event) {
-            map.ground.opacity = event.target.checked ? 0.1 : 0.6;
-          });
-
-        view.ui.add("menu", "top-right");
-
-      });
+// See through Gound
+document
+.getElementById("opacityInput")
+.addEventListener("change", function(event) {
+  map.ground.opacity = event.target.checked ? 0.1 : 0.6;
+});
+view.ui.add("menu", "top-right");
+});
 
 
-    </script>
-  </head>
+</script>
+</head>
 
   <body class="sassy-theme">
     <div id="viewDiv">
