@@ -510,7 +510,7 @@ async function startAnimation(row_C) {
     
             window.setTimeout(function(){
                 startAnimation(row_C + 1);
-            }, 5000);
+            }, 15000);
     
             // Reset rotate function (otherwise rotate function accumaltes)
             // In this case, camera rotation speed is accelerated.
