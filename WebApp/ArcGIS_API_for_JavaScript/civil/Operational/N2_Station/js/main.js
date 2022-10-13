@@ -445,93 +445,96 @@ combineAll();
 //
 // Set new values for heading and tilt
 async function startAnimation(row_C) {
+    if (!view.interacting) {
 
-var calumpitSt = {x: 120.770421, y: 14.902323};
-var apalitSt = {x: 120.750109, y: 14.943752};
-var sanFernandoSt = {x: 120.685681, y: 15.028143};
-var anglesSt = {x: 120.600344, y: 15.134225};
-var clarkSt = {x: 120.581792, y: 15.173813};
-var ciaSt = {x: 120.556626, y: 15.198791};
-const comp_ps = [calumpitSt, apalitSt, sanFernandoSt, anglesSt, clarkSt, ciaSt];
+        var calumpitSt = {x: 120.770421, y: 14.902323};
+        var apalitSt = {x: 120.750109, y: 14.943752};
+        var sanFernandoSt = {x: 120.685681, y: 15.028143};
+        var anglesSt = {x: 120.600344, y: 15.134225};
+        var clarkSt = {x: 120.581792, y: 15.173813};
+        var ciaSt = {x: 120.556626, y: 15.198791};
+        const comp_ps = [calumpitSt, apalitSt, sanFernandoSt, anglesSt, clarkSt, ciaSt];
+    
+        function layerFilter(value) {
+        stFramingLayer.definitionExpression = "Station = " + value;
+        stFramingLayer.visible = true;
+        //zoomToLayer(stFramingLayer);
+    
+        stColumnLayer.definitionExpression = "Station = " + value;
+        stColumnLayer.visible = true;
+    
+        stFoundationLayer.definitionExpression = "Station = " + value;
+        stFoundationLayer.visible = true;
+        }
+    
+        if (row_C < comp_ps.length) {
+            if (row_C === 0) {
+                const VALUE = 8;
+                layerFilter(VALUE);
+                combineAll();
+    
+            } else if (row_C === 1) {
+                const VALUE = 7;
+                layerFilter(VALUE);
+                combineAll();
+    
+            } else if (row_C === 2) {
+                const VALUE = 6;
+                layerFilter(VALUE);
+                combineAll();
+    
+            } else if (row_C === 3) {
+                const VALUE = 5;
+                layerFilter(VALUE);
+                combineAll();
+    
+            } else if (row_C === 4) {
+                const VALUE = 4;
+                layerFilter(VALUE);
+                combineAll();
+    
+            } else if (row_C === 5) {
+                const VALUE = 3;
+                layerFilter(VALUE);
+                combineAll();
+            }
+    
+            abort = false; //  
+    
+            view.center = comp_ps[row_C];
+            center = view.center;
+            view.goTo({center});
+    
+    
+            await rotate();
+    
+            window.setTimeout(function(){
+                startAnimation(row_C + 1);
+            }, 5000);
+    
+            // Reset rotate function (otherwise rotate function accumaltes)
+            // In this case, camera rotation speed is accelerated.
+            if (row_C > 0) {
+                abort = true;
+            }
+        } // End of row_C < comp_ps.length
+    
+        // Recount
+        if (row_C === comp_ps.length) {
+            row_C = 0;
+            startAnimation(row_C);
+            abort = true; //  
+        }
+    } else {
+        row_C = undefined;
+    } // End of !view.interacting
 
-function layerFilter(value) {
-stFramingLayer.definitionExpression = "Station = " + value;
-stFramingLayer.visible = true;
-//zoomToLayer(stFramingLayer);
-
-stColumnLayer.definitionExpression = "Station = " + value;
-stColumnLayer.visible = true;
-
-stFoundationLayer.definitionExpression = "Station = " + value;
-stFoundationLayer.visible = true;
-}
-
-if (row_C < comp_ps.length) {
-if (row_C === 0) {
-const VALUE = 8;
-layerFilter(VALUE);
-combineAll();
-
-} else if (row_C === 1) {
-const VALUE = 7;
-layerFilter(VALUE);
-combineAll();
-
-} else if (row_C === 2) {
-const VALUE = 6;
-layerFilter(VALUE);
-combineAll();
-
-} else if (row_C === 3) {
-const VALUE = 5;
-layerFilter(VALUE);
-combineAll();
-
-} else if (row_C === 4) {
-const VALUE = 4;
-layerFilter(VALUE);
-combineAll();
-
-} else if (row_C === 5) {
-const VALUE = 3;
-layerFilter(VALUE);
-combineAll();
-}
-
-abort = false; //  
-
-view.center = comp_ps[row_C];
-center = view.center;
-view.goTo({
-center
-});
-
-
-await rotate();
-
-window.setTimeout(function(){
-startAnimation(row_C + 1);
-}, 15000);
-
-// Reset rotate function (otherwise rotate function accumaltes)
-// In this case, camera rotation speed is accelerated.
-if (row_C > 0) {
-abort = true;
-}
-}
-
-// Recount
-if (row_C === comp_ps.length) {
-row_C = 0;
-startAnimation(row_C);
-abort = true; //  
-}
-}
+} // End of startAnimation()
 
 // Initialize animation
 let row_C = 0;
 window.setTimeout(function(){
-startAnimation(row_C);
+    startAnimation(row_C);
 }, 10000);
 
 
