@@ -30,12 +30,13 @@ body,
 }
     </style>
 
-    <link rel="stylesheet" href="https://js.arcgis.com/4.16/esri/themes/light/main.css" />
-    <script src="https://js.arcgis.com/4.16/"></script>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.24/"></script>
     <script>
-      require(["esri/views/SceneView", "esri/Map"], function(
+      require(["esri/views/SceneView", "esri/Map", "esri/layers/SceneLayer"], function(
   SceneView,
-  Map
+  Map,
+  SceneLayer
 ) {
   var scene = new Map({
     basemap: "hybrid",
@@ -47,14 +48,58 @@ body,
     container: "viewDiv",
     camera: {
       position: [
-        8.22216751,
-        46.48873434,
-        13032241.44725,
+        120.581792,
+        15.173813,
+        200,
       ],
       heading: 0.00,
       tilt: 0.16,
     }
   });
+
+  // Viaduct Layer
+var viaductLayer = new SceneLayer({
+  portalItem: {
+    id: "a9c0878766964fa794cc67bbf38b7a09",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  // popupTemplate: viadTemplate,
+  elevationInfo: {
+    mode: "absolute-height" //absolute-height, relative-to-ground
+  },
+  definitionExpression: "CP = 'N-04'",
+  title: "Viaduct sample",
+  outFields: ["*"],
+  // when filter using date, example below. use this format
+  //definitionExpression: "EndDate = date'2020-6-3'"
+  /*
+  popupTemplate: {
+    title: "<h5>{Status1}</h5>",
+    lastEditInfoEnabled: false,
+    returnGeometry: true,
+    content: [
+      {
+        type: "fields",
+        fieldInfos: [
+          {
+            fieldName: "Type",
+            label: "Type of Structure"
+          },
+          {
+            fieldName: "PierNumber",
+            Label: "Pier No."
+          }
+        ]
+      }
+    ]
+  }
+  */      
+});
+viaductLayer.listMode = "hide";
+scene.add(viaductLayer);
+
   
   function getCamera() {
     const p = view.camera.position;
