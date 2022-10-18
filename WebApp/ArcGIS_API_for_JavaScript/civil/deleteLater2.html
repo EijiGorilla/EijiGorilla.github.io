@@ -1280,7 +1280,7 @@ function laFigureIsf([cpN01, cpN02, cpN03, cpN04, cpN05]) {
   }
 
   // create chart
-  var chart = am4core.create("structureChartDiv", am4charts.GaugeChart);
+  var chart = am4core.create("isfChartDiv", am4charts.GaugeChart);
   chart.hiddenState.properties.opacity = 0;
   chart.fontSize = 11;
   chart.innerRadius = am4core.percent(80);
@@ -1452,42 +1452,27 @@ function treeCuttingTotal() {
     statisticType: "count"
   };
 
-  var total_cutearthballed_tree = {
-    onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_cutearthballed_tree",
-    statisticType: "sum"
-  };
-
-
   var query = treeLayer.createQuery();
-  query.outStatistics = [total_cutearthballed_tree, total_number_tree];
+  query.outStatistics = [total_number_tree];
 
   return treeLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
-
-    const totalCut = stats.total_cutearthballed_tree;
     const totalNumber = stats.total_number_tree;
     //const LOT_HANDOVER_PERC = (handedOver/affected)*100;
-    return totalCut;
+    return totalNumber;
   });
 }
 
 
-function treeCutSummary(totalCut) {
+function treeCutSummary(totalNumber) {
   var total_cutearthballed_tree = {
     onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_cutearthballed_tree",
     statisticType: "sum"
   }
 
-  var total_number_tree = {
-    onStatisticField: "CommonName",
-    outStatisticFieldName: "total_number_tree",
-    statisticType: "sum"
-  };
-
   var query = treeLayer.createQuery();
-  query.outStatistics = [total_cutearthballed_tree, total_number_tree];
+  query.outStatistics = [total_cutearthballed_tree];
   query.returnGeometry = true;
   query.groupByFieldsForStatistics = ["CP"];
 
@@ -1504,7 +1489,7 @@ function treeCutSummary(totalCut) {
       const attributes = result.attributes;
       const cpPackage = result.attributes.CP;
       const cutEarthballed = attributes.total_cutearthballed_tree;
-      const TREE_CUT_PERC = (cutEarthballed/totalCut)*100;
+      const TREE_CUT_PERC = (cutEarthballed/totalNumber)*100;
 
       if (cpPackage === 'N-01') {
         cpN01.push(TREE_CUT_PERC);
@@ -1602,7 +1587,7 @@ function treeCuttingFigure([cpN01, cpN02, cpN03, cpN04, cpN05]) {
   }
 
   // create chart
-  var chart = am4core.create("structureChartDiv", am4charts.GaugeChart);
+  var chart = am4core.create("treeCuttingChartDiv", am4charts.GaugeChart);
   chart.hiddenState.properties.opacity = 0;
   chart.fontSize = 11;
   chart.innerRadius = am4core.percent(80);
@@ -1768,45 +1753,29 @@ treeCuttingTotal()
   var total_number_tree = {
     onStatisticField: "CASE WHEN Compensation >= 2 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_number_tree",
-    statisticType: "count"
-  };
-
-  var total_compensated_tree = {
-    onStatisticField: "CASE WHEN Compensation = 3 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_compensated_tree",
     statisticType: "sum"
   };
 
-
   var query = treeLayer.createQuery();
-  query.outStatistics = [total_compensated_tree, total_number_tree];
+  query.outStatistics = [total_number_tree];
 
   return treeLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
-
-    const totalCompen = stats.total_compensated_tree;
     const totalNumber = stats.total_number_tree;
-    //const LOT_HANDOVER_PERC = (handedOver/affected)*100;
-    return totalCompen;
+    return totalNumber;
   });
 }
 
 
-function treeCompenSummary(totalCompen) {
+function treeCompenSummary(totalNumber) {
   var total_compensated_tree = {
     onStatisticField: "CASE WHEN Compensation = 3 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_compensated_tree",
     statisticType: "sum"
   }
 
-  var total_number_tree = {
-    onStatisticField: "CASE WHEN Compensation >= 2 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_number_tree",
-    statisticType: "sum"
-  };
-
   var query = treeLayer.createQuery();
-  query.outStatistics = [total_compensated_tree, total_number_tree];
+  query.outStatistics = [total_compensated_tree];
   query.returnGeometry = true;
   query.groupByFieldsForStatistics = ["CP"];
 
@@ -1823,7 +1792,7 @@ function treeCompenSummary(totalCompen) {
       const attributes = result.attributes;
       const cpPackage = result.attributes.CP;
       const compensated = attributes.total_compensated_tree;
-      const TREE_COMPEN_PERC = (compensated/totalCompen)*100;
+      const TREE_COMPEN_PERC = (compensated/totalNumber)*100;
 
       if (cpPackage === 'N-01') {
         cpN01.push(TREE_COMPEN_PERC);
@@ -1921,7 +1890,7 @@ function treeCompenFigure([cpN01, cpN02, cpN03, cpN04, cpN05]) {
   }
 
   // create chart
-  var chart = am4core.create("structureChartDiv", am4charts.GaugeChart);
+  var chart = am4core.create("treeCompenChartDiv", am4charts.GaugeChart);
   chart.hiddenState.properties.opacity = 0;
   chart.fontSize = 11;
   chart.innerRadius = am4core.percent(80);
@@ -1935,7 +1904,7 @@ function treeCompenFigure([cpN01, cpN02, cpN03, cpN04, cpN05]) {
   const TOP_TITLE_COL = am4core.color("#FFFFFF");
 
   var title = chart.titles.create();
-  title.text = "[bold]TREE CUTTING";
+  title.text = "[bold]TREE COMPENSATION";
   title.fontSize = "2em";
   title.align = "center";
   title.marginBottom = -15;
@@ -1944,7 +1913,7 @@ function treeCompenFigure([cpN01, cpN02, cpN03, cpN04, cpN05]) {
 
   // Add bottom label
   var label = chart.chartContainer.createChild(am4core.Label);
-  label.text = "[bold]CUT/EARTHBALLED";
+  label.text = "[bold]COMPENSATED";
   label.fontSize = "1.5em";
   label.align = "center";
   label.marginTop = 0;
@@ -2083,170 +2052,173 @@ treeCompenTotal()
   .then(treeCompenFigure);
 
 
-// Utility Relocation
-/// 2. Utility Line
-function utilityLineFigure() {
-    var total_number_utilline = {
+// Utility Point + Line Total Number
+function utilityPointTotal() {
+  var total_number_utilPoint = {
     onStatisticField: "LAYER",
-    outStatisticFieldName: "total_number_utilline",
+    outStatisticFieldName: "total_number_utilPoint",
     statisticType: "count"
   };
-  var total_completed_utilline = {
-    onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_completed_utilline",
-    statisticType: "sum"
+
+  var query = utilPointLayer.createQuery();
+  query.outStatistics = [total_number_utilPoint];
+
+  return utilPointLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+    const totalNumberPoint = stats.total_number_utilPoint;
+    return totalNumberPoint;
+  });
+}
+
+function utilityLineTotal(totalNumberPoint) {
+  var total_number_utilLine = {
+    onStatisticField: "LAYER",
+    outStatisticFieldName: "total_number_utilLine",
+    statisticType: "count"
   };
 
   var query = utilLineLayer.createQuery();
-  query.outStatistics = [total_number_utilline, total_completed_utilline];
-  query.returnGeometry = true;
+  query.outStatistics = [total_number_utilLine];
 
-return utilLineLayer.queryFeatures(query).then(function(response) {
+  return utilLineLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
-
-    const totalnumber = stats.total_number_utilline;
-    const totalcomplete = stats.total_completed_utilline;
-    
-    const compileArray = [totalnumber,totalcomplete];
-    
-
-    return compileArray;
+    const totalNumberLine = stats.total_number_utilLine;
+    const grandTotal = totalNumberPoint + totalNumberLine;
+    return grandTotal;
   });
 }
-utilityLineFigure();
 
-/// 1. Utility Point
-function utilityPointFigure(compileArray) {
-  var total_number_utilpoint = {
-    onStatisticField: "LAYER",
-    outStatisticFieldName: "total_number_utilpoint",
-    statisticType: "count"
-  };
-  var total_completed_utilpoint = {
+// Utility Point + Line Total Completed
+function utilityPointCompleted(grandTotal) {
+  var total_completed_utilPoint = {
     onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_completed_utilpoint",
+    outStatisticFieldName: "total_completed_utilPoint",
     statisticType: "sum"
   };
-  
-  
+ 
   var query = utilPointLayer.createQuery();
-  query.outStatistics = [total_number_utilpoint, total_completed_utilpoint];
-  query.returnGeometry = true;
+  query.outStatistics = [total_completed_utilPoint];
+  query.groupByFieldsForStatistics = ["CP"];
 
-  utilPointLayer.queryFeatures(query).then(function(response) {
-    var stats = response.features[0].attributes;
+  var point_cpN01 = [];
+  var point_cpN02 = [];
+  var point_cpN03 = [];
+  var point_cpN04 = [];
+  var point_cpN05 = [];
 
-    const totalnumber = stats.total_number_utilpoint;
-    const totalcomplete = stats.total_completed_utilpoint;
+  return utilPointLayer.queryFeatures(query).then(function(response) {
+    stats = response.features;
 
-    const grandTotal = totalnumber + compileArray[0];
-    const grandComplete = totalcomplete + compileArray[1];
+    stats.forEach((result, index) => {
+      const attributes = result.attributes;
+      const cpPackage = result.attributes.CP;
+      const completed = attributes.total_completed_utilPoint;
 
-    const UTIL_PT_COMPLETED_PERC = (grandComplete/grandTotal)*100;
+      if (cpPackage === 'N-01') {
+        point_cpN01.push(completed);
 
-// create chart
-var chart = am4core.create("utilityPointChartDiv", am4charts.GaugeChart);
-chart.innerRadius = am4core.percent(82);
-chart.responsive.enabled = true;
+      } else if (cpPackage === 'N-02') {
+        point_cpN02.push(completed);
+      
+      } else if (cpPackage === 'N-03') {
+        point_cpN03.push(completed);
 
-/**
- * Normal axis
- */
+      } else if (cpPackage === 'N-04') {
+        point_cpN04.push(completed);
 
-var axis = chart.xAxes.push(new am4charts.ValueAxis());
-axis.min = 0;
-axis.max = 100;
-axis.strictMinMax = true;
-axis.renderer.radius = am4core.percent(80);
-axis.renderer.inside = true;
-axis.renderer.line.strokeOpacity = 1;
-axis.renderer.ticks.template.disabled = false
-axis.renderer.ticks.template.strokeOpacity = 1;
-axis.renderer.ticks.template.length = 10;
-axis.renderer.grid.template.disabled = true;
-axis.renderer.labels.template.radius = 40;
-axis.renderer.labels.template.adapter.add("text", function(text) {
-  return text + "";
-})
-
-/**
- * Axis for ranges
- */
-
-var colorSet = new am4core.ColorSet();
-
-var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
-axis2.min = 0;
-axis2.max = 100;
-axis2.strictMinMax = true;
-axis2.renderer.labels.template.disabled = true;
-axis2.renderer.ticks.template.disabled = true;
-axis2.renderer.grid.template.disabled = true;
-
-var range0 = axis2.axisRanges.create();
-range0.value = 0;
-range0.endValue = UTIL_PT_COMPLETED_PERC;
-range0.axisFill.fillOpacity = 1;
-range0.axisFill.fill = am4core.color("#00C3FF");
-
-var range1 = axis2.axisRanges.create();
-range1.value = UTIL_PT_COMPLETED_PERC;
-range1.endValue = 100;
-range1.axisFill.fillOpacity = 1;
-range1.axisFill.fill = am4core.color("#C5C5C5");
-range1.axisFill.fillOpacity = 0.3;
-
-/**
- * Label
- */
-var label = chart.radarContainer.createChild(am4core.Label);
-label.isMeasured = false;
-label.fontSize = 45;
-label.x = am4core.percent(50);
-label.y = am4core.percent(100);
-label.horizontalCenter = "middle";
-label.verticalCenter = "bottom";
-
-const LABEL_TEXT = UTIL_PT_COMPLETED_PERC.toFixed(0).toString() + "%";
-label.text = LABEL_TEXT;
-label.fill =  am4core.color("#00C3FF");
-
-
-/**
- * Hand
- */
-
-var hand = chart.hands.push(new am4charts.ClockHand());
-hand.axis = axis2;
-hand.innerRadius = NEEDLE_LENGTH;
-hand.startWidth = 10;
-hand.pin.disabled = true;
-hand.value = UTIL_PT_COMPLETED_PERC;
-hand.fill = am4core.color("#000000");
-hand.fillOpacity = 0.5;
-
-
-// Add chart title
-var title = chart.titles.create();
-title.text = "[bold]UTILITY";
-title.fontSize = 20;
-title.align = "center";
-title.marginBottom = -15;
-title.marginTop = 10;
-title.fill = TOP_TITLE_COL;
-
-// Add bottom label
-var label = chart.chartContainer.createChild(am4core.Label);
-label.text = "[bold]COMPLETED";
-label.fontSize = 15;
-label.align = "center";
-label.fill = BOTTOM_LABEL_COL;
-label.marginTop = -10;
-label.marginBottom = 0;
-
+      } else if (cpPackage === 'N-05') {
+        point_cpN05.push(completed);
+      }
+    });
+    return [point_cpN01, point_cpN02, point_cpN03, point_cpN04, point_cpN05, grandTotal];
   });
 }
-utilityLineFigure().then(utilityPointFigure);
+
+
+function utilityLineCompleted([point_cpN01, point_cpN02, point_cpN03, point_cpN04, point_cpN05, grandTotal]) {
+  var total_completed_utilLine = {
+    onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_completed_utilLine",
+    statisticType: "count"
+  };
+
+  var query = utilLineLayer.createQuery();
+  query.outStatistics = [total_completed_utilLine];
+  query.groupByFieldsForStatistics = ["CP"];
+
+  // Numeric
+  const point_n01 = Number(point_cpN01);
+  const point_n02 = Number(point_cpN02);
+  const point_n03 = Number(point_cpN03);
+  const point_n04 = Number(point_cpN04);
+  const point_n05 = Number(point_cpN05);
+  const gTotal = Number(grandTotal);
+  //
+
+  var totalCompleted_cpN01 = [];
+  var totalCompleted_cpN02 = [];
+  var totalCompleted_cpN03 = [];
+  var totalCompleted_cpN04 = [];
+  var totalCompleted_cpN05 = [];
+
+  return utilLineLayer.queryFeatures(query).then(function(response) {
+    stats = response.features;
+
+    stats.forEach((result, index) => {
+      const attributes = result.attributes;
+      const cpPackage = result.attributes.CP;
+      const completed = attributes.total_completed_utilLine;
+  
+      //const LINE_COMPLETED_PERC = (completed/totalCompen)*100;
+
+      if (cpPackage === 'N-01') {
+        const tempComp_n01 = completed + point_n01;
+        totalCompleted_cpN01.push(tempComp_n01);
+
+      } else if (cpPackage === 'N-02') {
+        const tempComp_n02 = completed + point_n02;
+        totalCompleted_cpN02.push(tempComp_n02);
+      
+      } else if (cpPackage === 'N-03') {
+        const tempComp_n03 = completed + point_n03;
+        totalCompleted_cpN03.push(tempComp_n03);
+
+      } else if (cpPackage === 'N-04') {
+        const tempComp_n04 = completed + point_n04;
+        totalCompleted_cpN04.push(tempComp_n04);
+
+      } else if (cpPackage === 'N-05') {
+        const tempComp_n05 = completed + point_n05;
+        totalCompleted_cpN05.push(tempComp_n05);
+      }
+    });
+    const cpN01 = totalCompleted_cpN01 / gTotal;
+    const cpN02 = totalCompleted_cpN02 / gTotal;
+    const cpN03 = totalCompleted_cpN03 / gTotal;
+    const cpN04 = totalCompleted_cpN04 / gTotal;
+    const cpN05 = totalCompleted_cpN05 / gTotal;
+
+    return [cpN01, cpN02, cpN03, cpN04, cpN05];
+  });
+}
+
+// Utility Progress Chart
+function testFunction([cpN01, cpN02, cpN03, cpN04, cpN05]) {
+  
+  headerTitleDiv.innerHTML = cpN01 + "\n" +
+                             cpN02 + "\n" +
+                             cpN03 + "\n" +
+                             cpN04 + "\n" +
+                             cpN05 + "\n";
+
+}
+
+utilityPointTotal()
+  .then(utilityLineTotal)
+  .then(utilityPointCompleted)
+  .then(utilityLineCompleted)
+  .then(testFunction)
+
 
 
 
