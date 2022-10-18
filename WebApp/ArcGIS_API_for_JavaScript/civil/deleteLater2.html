@@ -1,0 +1,1555 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
+  -->
+<title>Progress Summary (N2)</title>
+
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        background-color: rgb(0, 0, 0, 0.5);   
+      }
+
+      #applicationDiv {
+        display: flex;
+        flex-wrap: wrap;
+        height: 89vh;
+        padding: 10px;
+        margin: 0 auto;
+        box-sizing: border-box;
+
+      }
+
+      .contentBox {
+        display: grid;
+        grid-template-columns: 80vw 17.8vw;
+        width: 100%;
+        height: 89vh;
+      }
+
+      .container {
+          display: grid;
+          flex-wrap: wrap;
+        height: 89vh;
+        box-sizing: border-box;
+          border-right: 0;
+        
+      }
+
+      .containerB {
+        font-size: 1.5vw;
+        color: white;
+        padding-top: 40%;
+      }
+
+
+      #headerDiv {
+        margin-bottom: 3px;
+        display: grid;
+        grid-template-columns: 2fr 150px;
+        margin: 0.5%;
+      }
+
+      #headerTitleDiv {
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        color: white;
+        font-weight: bold;
+        font-size: 2.1vw;
+
+      }
+
+      .dateDiv {
+        z-index: 99;
+        position: absolute;
+        padding-bottom: 10;
+        font-size: 1vw;
+        color: rgb(0, 197, 255);
+        right:10;
+        bottom: 10;
+      }
+
+      .landStrucIsfBox,
+      .treeBox,
+      .utilityBox {
+        display: inline-flex;
+        height: 20vh;
+        width: 100%;
+        box-sizing: border-box;
+        border-top: 0;
+        border-bottom: 0;
+        margin: 0;
+        padding: 0;
+      }
+
+      #landChartDiv,
+      #structureChartDiv,
+      #isfChartDiv,
+      #treeCuttingChartDiv,
+      #treeCompenChartDiv,
+      #utilityPointChartDiv,
+      #utilityLineChartDiv {
+          width: 35%;
+          height: 32vh;
+          align-items: center;
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+          margin: 0;
+          padding: 0;
+          }
+
+      a {
+        font-size: 1.3vw;
+        color: white;
+        font-weight: bold;
+      }
+
+a:hover,
+a:focus {
+        background-color: rgba(77, 75, 75, 0);
+        color: orange;
+        font-size: 1.7vw;
+      }
+
+ul {
+    list-style: none;
+    padding-left: 10;
+    line-height: 3rem;
+}​
+
+
+
+      p {
+        color: rgb(0, 197, 255);
+        text-align: left;
+        font-weight: bold;
+        font-size: 14px;
+        width: auto;
+        vertical-align: text-bottom;
+        padding: 0;
+        margin-top: 0;
+      }
+
+
+      h2 {
+        font-weight: 400;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-style: normal;
+        font-size: 23px;
+        color: white;
+        padding:3px;
+        margin: 0px;
+        width: 470px;
+        vertical-align: text-top;
+      }
+
+
+
+      h3 {
+        color: white;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: center;
+        font-weight: bold;
+        font-size: 14px;
+        padding: 10;
+        width: 100%;
+
+      }
+
+      h4 {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: left;
+        font-weight: normal;
+        font-size: 16px;
+        padding-top: 20px;
+        margin: 0;
+        width: 160px;
+        vertical-align: text-bottom;
+      }
+
+      h5 {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: center;
+        font-weight: bold;
+        font-size: 14px;
+        padding: 3;
+        margin: 10;
+      }
+
+      h6 {
+        color: rgb(0, 197, 255);
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        text-align: center;
+        font-weight: normal;
+        font-size: 30px;
+        padding: 0px 0px 0px 0px;
+        }
+
+
+          .sassy-theme .esri-menu,
+      .sassy-theme .esri-popup__main-container,
+      .sassy-theme .esri-popup .esri-popup__pointer-direction,
+      .sassy-theme .esri-popup .esri-popup__button,
+      .sassy-theme .esri-button,
+      .sassy-theme .esri-input,
+      .sassy-theme .esri-legend,
+      .sassy-theme .esri-layer-list,
+      .sassy-theme .esri-widget a {
+        background-color: rgb(0, 0, 0, 0.7);
+        color: #fff;
+      }
+
+      .sassy-theme .esri-legend__layer-caption {
+    display: none;
+  }
+
+    </style>
+
+<link
+rel="stylesheet"
+href="https://js.arcgis.com/4.24/esri/themes/dark/main.css"
+/>
+<!-- Resources -->
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<script src="https://js.arcgis.com/4.24/"></script>
+
+    <script>
+      require([
+        "esri/Basemap",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/views/SceneView",
+        "esri/layers/FeatureLayer",
+        "esri/views/layers/support/FeatureFilter",
+        "esri/layers/SceneLayer",
+        "esri/layers/Layer",
+        "esri/layers/TileLayer",
+        "esri/layers/VectorTileLayer",
+        "esri/layers/support/LabelClass",
+        "esri/symbols/LabelSymbol3D",
+        "esri/WebMap",
+        "esri/WebScene",
+        "esri/portal/PortalItem",
+        "esri/portal/Portal",
+        "esri/widgets/TimeSlider",
+        "esri/widgets/Legend",
+        "esri/widgets/LayerList",
+        "esri/widgets/Fullscreen",
+        "esri/rest/geometryService",
+        "esri/rest/support/Query",
+        "esri/rest/support/StatisticDefinition",
+        "esri/symbols/WebStyleSymbol",
+        "esri/TimeExtent",
+        "esri/widgets/Expand",
+        "esri/widgets/Editor",
+        "esri/renderers/UniqueValueRenderer",
+        "esri/widgets/support/DatePicker",
+        "esri/widgets/FeatureTable",
+        "esri/widgets/Compass",
+        "esri/layers/ElevationLayer",
+        "esri/Ground",
+        "esri/layers/GraphicsLayer",
+        "esri/widgets/Search",
+      ], function(Basemap, Map, MapView, SceneView, 
+                  FeatureLayer, FeatureFilter,
+                  SceneLayer, Layer, TileLayer, VectorTileLayer,
+                  LabelClass, LabelSymbol3D, WebMap,
+                  WebScene, PortalItem, Portal,
+                  TimeSlider, Legend, LayerList, Fullscreen,
+                  geometryService, Query,
+                  StatisticDefinition, WebStyleSymbol,
+                  TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
+                  FeatureTable, Compass, ElevationLayer, Ground,
+                  GraphicsLayer, Search) {
+
+////////////////////////////////////////////////////
+var basemap = new Basemap({
+        baseLayers: [
+          new VectorTileLayer({
+            portalItem: {
+              id: "8a9ef2a144e8423786f6139408ac3424" // 3a62040541b84f528da3ac7b80cf4a63
+            }
+          })
+        ]
+      });
+
+         var map = new Map({
+              basemap: basemap, //"gray-vector", // "streets-night-vector", basemap
+              ground: "world-elevation"
+        }); 
+        //map.ground.surfaceColor = "#FFFF";
+        //map.ground.opacity = 0.5;
+         
+        var view = new MapView({
+            map: map,
+            center: [120.57930, 15.18],
+            zoom: 10,
+            container: "viewDiv",
+            environment: {
+                background: {
+                    type: "color", // autocasts as new ColorBackground()
+                    color: [0, 0, 0, 1]
+                    },
+                    // disable stars
+                    starsEnabled: false,
+                    //disable atmosphere
+                    atmosphereEnabled: false
+                    }
+        });
+
+        //
+        function shiftCamera(deg) {
+          var camera = view.camera.clone();
+          camera.position.longitude += deg;
+          return camera;
+        }
+
+        function catchAbortError(error) {
+          if (error.name != "AbortError") {
+            console.error(error);
+          }
+        }
+
+        // Setup UI
+
+
+
+
+//*******************************//
+// Import Layers                 //
+//*******************************//
+var lotLayer = new FeatureLayer({
+  portalItem: {
+    id: "dca1d785da0f458b8f87638a76918496",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 7,
+        outFields: ["*"],
+        title: "Status of Land Acquisition",
+        labelsVisible: false,
+});
+
+
+// Structure
+var structureLayer = new FeatureLayer({
+  portalItem: {
+    id: "dca1d785da0f458b8f87638a76918496",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 6,
+        title: "Status of Structure",
+        outFields: ["*"]
+});
+
+
+// Relocation Status point layer
+var reloISFLayer = new FeatureLayer({
+  portalItem: {
+    id: "dca1d785da0f458b8f87638a76918496",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 4,
+        outFields: ["*"],
+        title: "Status for Relocation (ISF)"
+});
+//reloISFLayer.listMode = "hide";
+
+
+
+// Tree Cutting
+var treeLayer = new FeatureLayer ({
+    portalItem: {
+    id: "4da5697d684f4babad15aedfe74c5b36",
+    portal: {
+        url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  elevationInfo: {
+            mode: "on-the-ground"
+          },
+  outFields: ["*"],
+  title: "Status of Tree Cutting",
+
+});
+
+
+// Utility Relocation (Point)
+var utilPointLayer = new FeatureLayer({
+  portalItem: {
+    id: "109d4ef09fd946d1bda17396f35deb94",
+    portal: {
+        url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 1,
+  title: "Utility Point",
+   outFields: ["*"],
+   elevationInfo: {
+            mode: "on-the-ground"
+          }
+});
+
+// Utility Relocation (Line)
+var utilLineLayer = new FeatureLayer({
+    portalItem: {
+    id: "109d4ef09fd946d1bda17396f35deb94",
+    portal: {
+        url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 2,
+   title: "Utility Line",
+   elevationInfo: {
+     mode: "relative-to-scene",
+     featureExpressionInfo: {
+       expression: "$feature.height"
+  },
+  unit: "meters"
+     //offset: 0
+   },
+   outFields: ["*"],
+
+ });
+
+
+/////////////////////////////////////////////////////////////////////
+var applicationDiv = document.getElementById("applicationDiv");
+
+var headerDiv = document.getElementById("headerDiv");
+var headerTitleDiv = document.getElementById("headerTitleDiv");
+
+// Land, structure, and ISF
+var landChartDiv = document.getElementById("landChartDiv");
+var structureChartDiv = document.getElementById("structureChartDiv");
+var isfChartDiv = document.getElementById("isfChartDiv");
+
+// Tree cutting and tree compensation
+var treeCuttingChartDiv = document.getElementById("treeCuttingChartDiv");
+var treeCompenChartDiv = document.getElementById("treeCompenChartDiv");
+
+// Utitlity Relocation
+var utilityPointChartDiv = document.getElementById("utilityPointChartDiv");
+var utilityLineChartDiv = document.getElementById("utilityLineChartDiv");
+
+
+// Thousand separators function
+function thousands_separators(num)
+  {
+    var num_parts = num.toString().split(".");
+    num_parts[0] = num_parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return num_parts.join(".");
+  }
+
+////////// Chart Begins //////////////////
+am4core.ready(function() {
+
+// Bottom Title Color
+const BOTTOM_LABEL_COL = am4core.color("#FFA500");
+const TOP_TITLE_COL = am4core.color("#FFFFFF");
+
+// Gauge Needle (hand) length
+const NEEDLE_LENGTH = am4core.percent(70);
+
+
+// Themes begin
+am4core.useTheme(am4themes_animated);
+
+// Calculate Statistcis
+// Land, Structure, and ISF
+
+//////////////////////////////////////////
+
+//////////////////////////////////////////
+
+/// 1. Land
+function lotTotalArea() {
+  var total_affected_area = {
+    onStatisticField: "AffectedArea",
+    outStatisticFieldName: "total_affected_area",
+    statisticType: "sum"
+  }
+
+  var total_handover_area = {
+    onStatisticField: "HandOverArea",
+    outStatisticFieldName: "total_handover_area",
+    statisticType: "sum"
+  };
+
+  var query = lotLayer.createQuery();
+  query.outStatistics = [total_affected_area, total_handover_area];
+
+  return lotLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const totalAffected = stats.total_affected_area;
+    const totalHandedOver = stats.total_handover_area;
+    //const LOT_HANDOVER_PERC = (handedOver/affected)*100;
+    return totalAffected;
+  });
+}
+
+
+function lotSummary(totalAffected) {
+  var total_affected_area = {
+    onStatisticField: "AffectedArea",
+    outStatisticFieldName: "total_affected_area",
+    statisticType: "sum"
+  }
+
+  var total_handover_area = {
+    onStatisticField: "HandOverArea",
+    outStatisticFieldName: "total_handover_area",
+    statisticType: "sum"
+  };
+
+  var query = lotLayer.createQuery();
+  query.outStatistics = [total_affected_area, total_handover_area];
+  query.returnGeometry = true;
+  query.groupByFieldsForStatistics = ["CP"];
+
+  var cpN01 = [];
+  var cpN02 = [];
+  var cpN03 = [];
+  var cpN04 = [];
+  var cpN05 = [];
+
+  return lotLayer.queryFeatures(query).then(function(response) {
+    stats = response.features;
+
+    stats.forEach((result, index) => {
+      const attributes = result.attributes;
+      const cpPackage = result.attributes.CP;
+      const affected = attributes.total_affected_area;
+      const handedOver = attributes.total_handover_area;
+      const LOT_HANDOVER_PERC = (handedOver/totalAffected)*100;
+
+      if (cpPackage === 'N-01') {
+        cpN01.push(LOT_HANDOVER_PERC);
+
+      } else if (cpPackage === 'N-02') {
+        cpN02.push(LOT_HANDOVER_PERC);
+      
+      } else if (cpPackage === 'N-03') {
+        cpN03.push(LOT_HANDOVER_PERC);
+
+      } else if (cpPackage === 'N-04') {
+        cpN04.push(LOT_HANDOVER_PERC);
+
+      } else if (cpPackage === 'N-05') {
+        cpN05.push(LOT_HANDOVER_PERC);
+      }
+      
+      
+    });
+    return [cpN01, cpN02, cpN03, cpN04, cpN05];
+  });
+
+} // End of lotSummary function
+
+function laFigureLot([cpN01, cpN02, cpN03, cpN04, cpN05]) {
+  var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
+
+  var N01 = Number(cpN01);
+  var N02 = Number(cpN01) + Number(cpN02);
+  var N03 = Number(cpN01) + Number(cpN02) + Number(cpN03);
+  var N04 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04);
+  var N05 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
+  
+
+  var chartMin = 0;
+  var chartMax = 100;
+
+  // #ffea8c|#b3ab60|#4b595e|#6693c8|#aadbff
+  // const colors = ["#ffea8c", "#b3ab60", "#4b595e", "#6693c8", "#aadbff"];
+
+  var data = {
+    score: totalScore,
+    gradingData: [
+      {
+        title: "N-01",
+        color: "#ee1f25",
+        lowScore: 0,
+        highScore: N01
+      },
+      {
+        title: "N-02",
+        color: "#f04922",
+        lowScore: N01,
+        highScore: N02
+      },
+      {
+        title: "N-03",
+        color: "#fdae19",
+        lowScore: N02,
+        highScore: N03
+      },
+      {
+        title: "N-04",
+        color: "#f3eb0c",
+        lowScore: N03,
+        highScore: N04
+      },
+      {
+        title: "N-05",
+        color: "#b0d136",
+        lowScore: N04,
+        highScore: N05
+      },
+      {
+        title: "",
+        color: "#C5C5C5",
+        lowScore: N05,
+        highScore: 100
+      }
+    ]
+  };
+
+  /**
+  Grading Lookup
+  */
+  function lookUpGrade(lookupScore, grades) {
+    // Only change code below this line
+    for (var i = 0; i < grades.length; i++) {
+      if (
+        grades[i].lowScore < lookupScore &&
+        grades[i].highScore >= lookupScore
+      ) {
+        return grades[i];
+      }
+    }
+    return null;
+  }
+
+  // create chart
+  var chart = am4core.create("landChartDiv", am4charts.GaugeChart);
+  chart.hiddenState.properties.opacity = 0;
+  chart.fontSize = 11;
+  chart.innerRadius = am4core.percent(80);
+  chart.resizable = true;
+  chart.responsive.enabled = true;
+  /**
+   * Chart Title
+   */
+  // Title Color
+  const BOTTOM_LABEL_COL = am4core.color("#FFA500");
+  const TOP_TITLE_COL = am4core.color("#FFFFFF");
+
+  var title = chart.titles.create();
+  title.text = "[bold]LAND";
+  title.fontSize = "2em";
+  title.align = "center";
+  title.marginBottom = -15;
+  title.marginTop = 0;
+  title.fill = TOP_TITLE_COL;
+
+  // Add bottom label
+  var label = chart.chartContainer.createChild(am4core.Label);
+  label.text = "[bold]HANDED-OVER";
+  label.fontSize = "1.5em";
+  label.align = "center";
+  label.marginTop = 0;
+  label.fill = BOTTOM_LABEL_COL;
+
+  /**
+   * Normal axis
+   */
+
+  var axis = chart.xAxes.push(new am4charts.ValueAxis());
+  axis.min = chartMin;
+  axis.max = chartMax;
+  axis.strictMinMax = true;
+  axis.renderer.radius = am4core.percent(80);
+  axis.renderer.inside = true;
+  axis.renderer.line.strokeOpacity = 0.5; // line opacity inside curve line
+  axis.renderer.ticks.template.disabled = false;
+  axis.renderer.ticks.template.strokeOpacity = 1;
+  //axis.renderer.ticks.template.strokeWidth = 1;
+  axis.renderer.ticks.template.length = 10;
+  axis.renderer.grid.template.disabled = true;
+  axis.renderer.labels.template.radius = am4core.percent(40);
+  axis.renderer.labels.template.fontSize = "1.2em";
+
+  /**
+   * Axis for ranges
+   */
+
+  var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+  axis2.min = chartMin;
+  axis2.max = chartMax;
+  axis2.strictMinMax = true;
+  axis2.renderer.labels.template.disabled = true;
+  axis2.renderer.ticks.template.disabled = true;
+  axis2.renderer.grid.template.disabled = true; // when true inside tick marks will disappear
+  axis2.renderer.grid.template.opacity = 0.5;
+  axis2.renderer.labels.template.bent = true;
+  axis2.renderer.labels.template.fill = am4core.color("#000");
+  axis2.renderer.labels.template.fontWeight = "bold";
+  axis2.renderer.labels.template.fillOpacity = 0.3;
+
+
+
+  /**
+  Ranges
+  */
+
+  for (let grading of data.gradingData) {
+    var range = axis2.axisRanges.create();
+    range.axisFill.fill = am4core.color(grading.color);
+    range.axisFill.fillOpacity = 0.8;
+    range.axisFill.zIndex = -1;
+    range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
+    range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
+    range.grid.strokeOpacity = 0; // changes opacity of inside tick mark
+    range.stroke = am4core.color(grading.color).lighten(-0.1);
+    range.label.inside = true;
+    range.label.text = grading.title.toUpperCase();
+    range.label.inside = true;
+    range.label.location = 0.5;
+    range.label.inside = true;
+    range.label.radius = am4core.percent(10);
+    range.label.paddingBottom = -5; // ~half font size
+    range.label.fontSize = "1em"; // category label (i.e., N-01, N-02, ....)
+  }
+
+  var matchingGrade = lookUpGrade(data.score, data.gradingData);
+
+  /**
+   * Label 1 (total Percent)
+   */
+
+  var label = chart.radarContainer.createChild(am4core.Label);
+  label.isMeasured = false;
+  label.fontSize = "3.8em";
+  label.x = am4core.percent(50);
+  label.y = am4core.percent(100);
+  label.paddingBottom = -5;
+  label.horizontalCenter = "middle";
+  label.verticalCenter = "bottom";
+  //label.dataItem = data;
+  label.text = data.score.toFixed(0).toString() + "%";
+  //label.text = "{score}";
+  //label.fill = am4core.color(matchingGrade.color);
+  label.fill =  am4core.color("#00C3FF");
+
+  /**
+   * Label 2
+   */
+
+  /*
+  var label2 = chart.radarContainer.createChild(am4core.Label);
+  label2.isMeasured = false;
+  label2.fontSize = "2em";
+  label2.horizontalCenter = "middle";
+  label2.verticalCenter = "bottom";
+  label2.text = matchingGrade.title.toUpperCase();
+  //label2.fill = am4core.color(matchingGrade.color);
+  label2.fill =  am4core.color("#00C3FF");
+  */
+  /**
+   * Hand
+   */
+
+  var hand = chart.hands.push(new am4charts.ClockHand());
+  hand.axis = axis2;
+  hand.innerRadius = am4core.percent(55);
+  hand.startWidth = 8;
+  hand.pin.disabled = true;
+  hand.value = data.score;
+  hand.fill = am4core.color("#000000"); // inner color of needle
+  //hand.stroke = am4core.color("#000");
+  hand.fillOpacity = 0.5;
+
+  /*
+  hand.events.on("positionchanged", function(){
+    label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
+    var value2 = axis.positionToValue(hand.currentPosition);
+    var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
+    label2.text = matchingGrade.title.toUpperCase();
+    label2.fill = am4core.color(matchingGrade.color);
+    label2.stroke = am4core.color(matchingGrade.color);  
+    label.fill = am4core.color(matchingGrade.color);
+  })
+  */
+  /*
+  setInterval(function() {
+      var value = chartMin + Math.random() * (chartMax - chartMin);
+      hand.showValue(value, 1000, am4core.ease.cubicOut);
+  }, 2000);
+  */
+
+}
+lotTotalArea()
+  .then(lotSummary)
+  .then(laFigureLot);
+
+/// 2. Structure
+function laFigureStruc() {
+    var total_number_struc = {
+    onStatisticField: "StrucID",
+    outStatisticFieldName: "total_number_struc",
+    statisticType: "count"
+  };
+
+  var total_handover_struc = {
+    onStatisticField: "CASE WHEN HandOver = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_handover_struc",
+    statisticType: "sum"
+  };
+
+  var total_dismantle_struc = {
+    onStatisticField: "CASE WHEN StatusStruc = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_dismantle_struc",
+    statisticType: "sum"
+  };
+
+  var query = structureLayer.createQuery();
+  query.outStatistics = [total_number_struc, total_handover_struc, total_dismantle_struc];
+  query.returnGeometry = true;
+
+  structureLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const totalnumberStruc = stats.total_number_struc;
+    const handoverStruc = stats.total_handover_struc;
+    const dismantleStruc = stats.total_dismantle_struc;
+
+    const STRUC_DISMANTLED_PERC = (dismantleStruc/totalnumberStruc)*100;
+
+// create chart
+var chart = am4core.create("structureChartDiv", am4charts.GaugeChart);
+chart.innerRadius = am4core.percent(82);
+chart.responsive.enabled = true;
+
+/**
+ * Normal axis
+ */
+
+var axis = chart.xAxes.push(new am4charts.ValueAxis());
+axis.min = 0;
+axis.max = 100;
+axis.strictMinMax = true;
+axis.renderer.radius = am4core.percent(80);
+axis.renderer.inside = true;
+axis.renderer.line.strokeOpacity = 1;
+axis.renderer.ticks.template.disabled = false
+axis.renderer.ticks.template.strokeOpacity = 1;
+axis.renderer.ticks.template.length = 10;
+axis.renderer.grid.template.disabled = true;
+axis.renderer.labels.template.radius = 40;
+axis.renderer.labels.template.adapter.add("text", function(text) {
+  return text + "";
+})
+
+/**
+ * Axis for ranges
+ */
+
+var colorSet = new am4core.ColorSet();
+
+var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+axis2.min = 0;
+axis2.max = 100;
+axis2.strictMinMax = true;
+axis2.renderer.labels.template.disabled = true;
+axis2.renderer.ticks.template.disabled = true;
+axis2.renderer.grid.template.disabled = true;
+
+var range0 = axis2.axisRanges.create();
+range0.value = 0;
+range0.endValue = STRUC_DISMANTLED_PERC;
+range0.axisFill.fillOpacity = 1;
+range0.axisFill.fill = am4core.color("#00C3FF");
+
+var range1 = axis2.axisRanges.create();
+range1.value = STRUC_DISMANTLED_PERC;
+range1.endValue = 100;
+range1.axisFill.fillOpacity = 1;
+range1.axisFill.fill = am4core.color("#C5C5C5");
+range1.axisFill.fillOpacity = 0.3;
+
+/**
+ * Label
+ */
+var label = chart.radarContainer.createChild(am4core.Label);
+label.isMeasured = false;
+label.fontSize = 45;
+label.x = am4core.percent(50);
+label.y = am4core.percent(100);
+label.horizontalCenter = "middle";
+label.verticalCenter = "bottom";
+
+const LABEL_TEXT = STRUC_DISMANTLED_PERC.toFixed(0).toString() + "%";
+label.text = LABEL_TEXT;
+label.fill =  am4core.color("#00C3FF");
+
+
+/**
+ * Hand
+ */
+
+var hand = chart.hands.push(new am4charts.ClockHand());
+hand.axis = axis2;
+hand.innerRadius = NEEDLE_LENGTH;
+hand.startWidth = 10;
+hand.pin.disabled = true;
+hand.value = STRUC_DISMANTLED_PERC;
+hand.fill = am4core.color("#000000");
+hand.fillOpacity = 0.5;
+
+
+// Add chart title
+var title = chart.titles.create();
+title.text = "[bold]EXISTING STRUCTURE";
+title.fontSize = 20;
+title.align = "center";
+title.marginBottom = -15;
+title.marginTop = 10;
+title.fill = TOP_TITLE_COL;
+
+// Add bottom label
+var label = chart.chartContainer.createChild(am4core.Label);
+label.text = "[bold]DISMANTLED";
+label.fontSize = 15;
+label.align = "center";
+label.fill = BOTTOM_LABEL_COL;
+label.marginTop = -10;
+label.marginBottom = 0;
+
+
+
+  });
+
+}
+laFigureStruc();
+
+/// 3. ISF
+function IsfFigure() {
+  var total_number_isf = {
+    onStatisticField: "StrucID",
+    outStatisticFieldName: "total_number_isf",
+    statisticType: "count"
+  };
+
+  var total_relocated_isf = {
+    onStatisticField: "CASE WHEN StatusRC = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_relocated_isf",
+    statisticType: "sum"
+  };
+
+  var total_paidd_isf = {
+    onStatisticField: "CASE WHEN StatusRC = 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_paidd_isf",
+    statisticType: "sum"
+  };
+
+  var query = reloISFLayer.createQuery();
+  query.outStatistics = [total_number_isf, total_relocated_isf, total_paidd_isf];
+  query.returnGeometry = true;
+
+  reloISFLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const totalnumberIsf = stats.total_number_isf;
+    const relocatedIsf = stats.total_relocated_isf;
+    const paiddIsf = stats.total_paidd_isf;
+
+    const ISF_RELOCATED_PERC = (relocatedIsf/totalnumberIsf)*100;
+
+// create chart
+var chart = am4core.create("isfChartDiv", am4charts.GaugeChart);
+chart.innerRadius = am4core.percent(82);
+chart.responsive.enabled = true;
+
+/**
+ * Normal axis
+ */
+
+var axis = chart.xAxes.push(new am4charts.ValueAxis());
+axis.min = 0;
+axis.max = 100;
+axis.strictMinMax = true;
+axis.renderer.radius = am4core.percent(80);
+axis.renderer.inside = true;
+axis.renderer.line.strokeOpacity = 1;
+axis.renderer.ticks.template.disabled = false
+axis.renderer.ticks.template.strokeOpacity = 1;
+axis.renderer.ticks.template.length = 10;
+axis.renderer.grid.template.disabled = true;
+axis.renderer.labels.template.radius = 40;
+axis.renderer.labels.template.adapter.add("text", function(text) {
+  return text + "";
+})
+
+/**
+ * Axis for ranges
+ */
+
+var colorSet = new am4core.ColorSet();
+
+var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+axis2.min = 0;
+axis2.max = 100;
+axis2.strictMinMax = true;
+axis2.renderer.labels.template.disabled = true;
+axis2.renderer.ticks.template.disabled = true;
+axis2.renderer.grid.template.disabled = true;
+
+var range0 = axis2.axisRanges.create();
+range0.value = 0;
+range0.endValue = ISF_RELOCATED_PERC;
+range0.axisFill.fillOpacity = 1;
+range0.axisFill.fill = am4core.color("#00C3FF");
+
+var range1 = axis2.axisRanges.create();
+range1.value = ISF_RELOCATED_PERC;
+range1.endValue = 100;
+range1.axisFill.fillOpacity = 1;
+range1.axisFill.fill = am4core.color("#C5C5C5");
+range1.axisFill.fillOpacity = 0.3;
+
+/**
+ * Label
+ */
+var label = chart.radarContainer.createChild(am4core.Label);
+label.isMeasured = false;
+label.fontSize = 45;
+label.x = am4core.percent(50);
+label.y = am4core.percent(100);
+label.horizontalCenter = "middle";
+label.verticalCenter = "bottom";
+
+const LABEL_TEXT = ISF_RELOCATED_PERC.toFixed(0).toString() + "%";
+label.text = LABEL_TEXT;
+label.fill =  am4core.color("#00C3FF");
+
+
+/**
+ * Hand
+ */
+
+var hand = chart.hands.push(new am4charts.ClockHand());
+hand.axis = axis2;
+hand.innerRadius = NEEDLE_LENGTH;
+hand.startWidth = 10;
+hand.pin.disabled = true;
+hand.value = ISF_RELOCATED_PERC;
+hand.fill = am4core.color("#000000");
+hand.fillOpacity = 0.5;
+
+
+// Add chart title
+var title = chart.titles.create();
+title.text = "[bold]INFORMAL SETTLERS";
+title.fontSize = 20;
+title.align = "center";
+title.marginBottom = -15;
+title.marginTop = 10;
+title.fill = TOP_TITLE_COL;
+
+// Add bottom label
+var label = chart.chartContainer.createChild(am4core.Label);
+label.text = "[bold]RELOCATED";
+label.fontSize = 15;
+label.align = "center";
+label.fill = BOTTOM_LABEL_COL;
+label.marginTop = -10;
+label.marginBottom = 0;
+
+
+  });
+}
+IsfFigure();
+
+
+// Tree
+
+/// 1. Tree Cutting
+function treeCuttingFigure() {
+  var total_number_tree = {
+    onStatisticField: "CommonName",
+    outStatisticFieldName: "total_number_tree",
+    statisticType: "count"
+  };
+
+  var total_cutearthballed_tree = {
+    onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_cutearthballed_tree",
+    statisticType: "sum"
+  };
+
+
+  var query = treeLayer.createQuery();
+  query.outStatistics = [total_number_tree, total_cutearthballed_tree];
+  query.returnGeometry = true;
+
+  treeLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const totalnumberTree = stats.total_number_tree;
+    const cutearthballedTree = stats.total_cutearthballed_tree;
+
+    const TREE_CUT_PERC = (cutearthballedTree/totalnumberTree)*100;
+
+// create chart
+var chart = am4core.create("treeCuttingChartDiv", am4charts.GaugeChart);
+chart.innerRadius = am4core.percent(82);
+chart.responsive.enabled = true;
+
+/**
+ * Normal axis
+ */
+
+var axis = chart.xAxes.push(new am4charts.ValueAxis());
+axis.min = 0;
+axis.max = 100;
+axis.strictMinMax = true;
+axis.renderer.radius = am4core.percent(80);
+axis.renderer.inside = true;
+axis.renderer.line.strokeOpacity = 1;
+axis.renderer.ticks.template.disabled = false
+axis.renderer.ticks.template.strokeOpacity = 1;
+axis.renderer.ticks.template.length = 10;
+axis.renderer.grid.template.disabled = true;
+axis.renderer.labels.template.radius = 40;
+axis.renderer.labels.template.adapter.add("text", function(text) {
+  return text + "";
+})
+
+/**
+ * Axis for ranges
+ */
+
+var colorSet = new am4core.ColorSet();
+
+var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+axis2.min = 0;
+axis2.max = 100;
+axis2.strictMinMax = true;
+axis2.renderer.labels.template.disabled = true;
+axis2.renderer.ticks.template.disabled = true;
+axis2.renderer.grid.template.disabled = true;
+
+var range0 = axis2.axisRanges.create();
+range0.value = 0;
+range0.endValue = TREE_CUT_PERC;
+range0.axisFill.fillOpacity = 1;
+range0.axisFill.fill = am4core.color("#00C3FF");
+
+var range1 = axis2.axisRanges.create();
+range1.value = TREE_CUT_PERC;
+range1.endValue = 100;
+range1.axisFill.fillOpacity = 1;
+range1.axisFill.fill = am4core.color("#C5C5C5");
+range1.axisFill.fillOpacity = 0.3;
+
+/**
+ * Label
+ */
+var label = chart.radarContainer.createChild(am4core.Label);
+label.isMeasured = false;
+label.fontSize = 45;
+label.x = am4core.percent(50);
+label.y = am4core.percent(100);
+label.horizontalCenter = "middle";
+label.verticalCenter = "bottom";
+
+const LABEL_TEXT = TREE_CUT_PERC.toFixed(0).toString() + "%";
+label.text = LABEL_TEXT;
+label.fill =  am4core.color("#00C3FF");
+
+
+/**
+ * Hand
+ */
+
+var hand = chart.hands.push(new am4charts.ClockHand());
+hand.axis = axis2;
+hand.innerRadius = NEEDLE_LENGTH;
+hand.startWidth = 10;
+hand.pin.disabled = true;
+hand.value = TREE_CUT_PERC;
+hand.fill = am4core.color("#000000");
+hand.fillOpacity = 0.5;
+
+
+// Add chart title
+var title = chart.titles.create();
+title.text = "[bold]TREE CUTTING";
+title.fontSize = 20;
+title.align = "center";
+title.marginBottom = -15;
+title.marginTop = 10;
+title.fill = TOP_TITLE_COL;
+
+// Add bottom label
+var label = chart.chartContainer.createChild(am4core.Label);
+label.text = "[bold]CUT/EARTHBALLED";
+label.fontSize = 15;
+label.align = "center";
+label.fill = BOTTOM_LABEL_COL;
+label.marginTop = -10;
+label.marginBottom = 0;
+
+  });
+}
+treeCuttingFigure();
+
+/// 2. Tree Compensation
+function treeCompensationFigure() {
+  var total_number_tree = {
+    onStatisticField: "CASE WHEN Compensation >= 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_number_tree",
+    statisticType: "sum"
+  };
+
+  var total_compensated_tree = {
+    onStatisticField: "CASE WHEN Compensation = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_compensated_tree",
+    statisticType: "sum"
+  };
+
+  var query = treeLayer.createQuery();
+  query.outStatistics = [total_number_tree, total_compensated_tree];
+  query.returnGeometry = true;
+
+  treeLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const totalnumberTree = stats.total_number_tree;
+    const compensatedTree = stats.total_compensated_tree;
+
+    const TREE_COMPENSATED_PERC = (compensatedTree/totalnumberTree)*100;
+
+// create chart
+var chart = am4core.create("treeCompenChartDiv", am4charts.GaugeChart);
+chart.innerRadius = am4core.percent(82);
+chart.responsive.enabled = true;
+
+/**
+ * Normal axis
+ */
+
+var axis = chart.xAxes.push(new am4charts.ValueAxis());
+axis.min = 0;
+axis.max = 100;
+axis.strictMinMax = true;
+axis.renderer.radius = am4core.percent(80);
+axis.renderer.inside = true;
+axis.renderer.line.strokeOpacity = 1;
+axis.renderer.ticks.template.disabled = false
+axis.renderer.ticks.template.strokeOpacity = 1;
+axis.renderer.ticks.template.length = 10;
+axis.renderer.grid.template.disabled = true;
+axis.renderer.labels.template.radius = 40;
+axis.renderer.labels.template.adapter.add("text", function(text) {
+  return text + "";
+})
+
+/**
+ * Axis for ranges
+ */
+
+var colorSet = new am4core.ColorSet();
+
+var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+axis2.min = 0;
+axis2.max = 100;
+axis2.strictMinMax = true;
+axis2.renderer.labels.template.disabled = true;
+axis2.renderer.ticks.template.disabled = true;
+axis2.renderer.grid.template.disabled = true;
+
+var range0 = axis2.axisRanges.create();
+range0.value = 0;
+range0.endValue = TREE_COMPENSATED_PERC;
+range0.axisFill.fillOpacity = 1;
+range0.axisFill.fill = am4core.color("#00C3FF");
+
+var range1 = axis2.axisRanges.create();
+range1.value = TREE_COMPENSATED_PERC;
+range1.endValue = 100;
+range1.axisFill.fillOpacity = 1;
+range1.axisFill.fill = am4core.color("#C5C5C5");
+range1.axisFill.fillOpacity = 0.3;
+
+/**
+ * Label
+ */
+var label = chart.radarContainer.createChild(am4core.Label);
+label.isMeasured = false;
+label.fontSize = 45;
+label.x = am4core.percent(50);
+label.y = am4core.percent(100);
+label.horizontalCenter = "middle";
+label.verticalCenter = "bottom";
+
+const LABEL_TEXT = TREE_COMPENSATED_PERC.toFixed(0).toString() + "%";
+label.text = LABEL_TEXT;
+label.fill =  am4core.color("#00C3FF");
+
+
+/**
+ * Hand
+ */
+
+var hand = chart.hands.push(new am4charts.ClockHand());
+hand.axis = axis2;
+hand.innerRadius = NEEDLE_LENGTH;
+hand.startWidth = 10;
+hand.pin.disabled = true;
+hand.value = TREE_COMPENSATED_PERC;
+hand.fill = am4core.color("#000000");
+hand.fillOpacity = 0.5;
+
+
+// Add chart title
+var title = chart.titles.create();
+title.text = "[bold]TREE COMPENSATION";
+title.fontSize = 20;
+title.align = "center";
+title.marginBottom = -15;
+title.marginTop = 10;
+title.fill = TOP_TITLE_COL;
+
+// Add bottom label
+var label = chart.chartContainer.createChild(am4core.Label);
+label.text = "[bold]COMPENSATED";
+label.fontSize = 15;
+label.align = "center";
+label.fill = BOTTOM_LABEL_COL;
+label.marginTop = -10;
+label.marginBottom = 0;
+
+  });
+}
+treeCompensationFigure();
+
+
+// Utility Relocation
+/// 2. Utility Line
+function utilityLineFigure() {
+    var total_number_utilline = {
+    onStatisticField: "LAYER",
+    outStatisticFieldName: "total_number_utilline",
+    statisticType: "count"
+  };
+  var total_completed_utilline = {
+    onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_completed_utilline",
+    statisticType: "sum"
+  };
+
+  var query = utilLineLayer.createQuery();
+  query.outStatistics = [total_number_utilline, total_completed_utilline];
+  query.returnGeometry = true;
+
+return utilLineLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const totalnumber = stats.total_number_utilline;
+    const totalcomplete = stats.total_completed_utilline;
+    
+    const compileArray = [totalnumber,totalcomplete];
+    
+
+    return compileArray;
+  });
+}
+utilityLineFigure();
+
+/// 1. Utility Point
+function utilityPointFigure(compileArray) {
+  var total_number_utilpoint = {
+    onStatisticField: "LAYER",
+    outStatisticFieldName: "total_number_utilpoint",
+    statisticType: "count"
+  };
+  var total_completed_utilpoint = {
+    onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_completed_utilpoint",
+    statisticType: "sum"
+  };
+  
+  
+  var query = utilPointLayer.createQuery();
+  query.outStatistics = [total_number_utilpoint, total_completed_utilpoint];
+  query.returnGeometry = true;
+
+  utilPointLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const totalnumber = stats.total_number_utilpoint;
+    const totalcomplete = stats.total_completed_utilpoint;
+
+    const grandTotal = totalnumber + compileArray[0];
+    const grandComplete = totalcomplete + compileArray[1];
+
+    const UTIL_PT_COMPLETED_PERC = (grandComplete/grandTotal)*100;
+
+// create chart
+var chart = am4core.create("utilityPointChartDiv", am4charts.GaugeChart);
+chart.innerRadius = am4core.percent(82);
+chart.responsive.enabled = true;
+
+/**
+ * Normal axis
+ */
+
+var axis = chart.xAxes.push(new am4charts.ValueAxis());
+axis.min = 0;
+axis.max = 100;
+axis.strictMinMax = true;
+axis.renderer.radius = am4core.percent(80);
+axis.renderer.inside = true;
+axis.renderer.line.strokeOpacity = 1;
+axis.renderer.ticks.template.disabled = false
+axis.renderer.ticks.template.strokeOpacity = 1;
+axis.renderer.ticks.template.length = 10;
+axis.renderer.grid.template.disabled = true;
+axis.renderer.labels.template.radius = 40;
+axis.renderer.labels.template.adapter.add("text", function(text) {
+  return text + "";
+})
+
+/**
+ * Axis for ranges
+ */
+
+var colorSet = new am4core.ColorSet();
+
+var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+axis2.min = 0;
+axis2.max = 100;
+axis2.strictMinMax = true;
+axis2.renderer.labels.template.disabled = true;
+axis2.renderer.ticks.template.disabled = true;
+axis2.renderer.grid.template.disabled = true;
+
+var range0 = axis2.axisRanges.create();
+range0.value = 0;
+range0.endValue = UTIL_PT_COMPLETED_PERC;
+range0.axisFill.fillOpacity = 1;
+range0.axisFill.fill = am4core.color("#00C3FF");
+
+var range1 = axis2.axisRanges.create();
+range1.value = UTIL_PT_COMPLETED_PERC;
+range1.endValue = 100;
+range1.axisFill.fillOpacity = 1;
+range1.axisFill.fill = am4core.color("#C5C5C5");
+range1.axisFill.fillOpacity = 0.3;
+
+/**
+ * Label
+ */
+var label = chart.radarContainer.createChild(am4core.Label);
+label.isMeasured = false;
+label.fontSize = 45;
+label.x = am4core.percent(50);
+label.y = am4core.percent(100);
+label.horizontalCenter = "middle";
+label.verticalCenter = "bottom";
+
+const LABEL_TEXT = UTIL_PT_COMPLETED_PERC.toFixed(0).toString() + "%";
+label.text = LABEL_TEXT;
+label.fill =  am4core.color("#00C3FF");
+
+
+/**
+ * Hand
+ */
+
+var hand = chart.hands.push(new am4charts.ClockHand());
+hand.axis = axis2;
+hand.innerRadius = NEEDLE_LENGTH;
+hand.startWidth = 10;
+hand.pin.disabled = true;
+hand.value = UTIL_PT_COMPLETED_PERC;
+hand.fill = am4core.color("#000000");
+hand.fillOpacity = 0.5;
+
+
+// Add chart title
+var title = chart.titles.create();
+title.text = "[bold]UTILITY";
+title.fontSize = 20;
+title.align = "center";
+title.marginBottom = -15;
+title.marginTop = 10;
+title.fill = TOP_TITLE_COL;
+
+// Add bottom label
+var label = chart.chartContainer.createChild(am4core.Label);
+label.text = "[bold]COMPLETED";
+label.fontSize = 15;
+label.align = "center";
+label.fill = BOTTOM_LABEL_COL;
+label.marginTop = -10;
+label.marginBottom = 0;
+
+  });
+}
+utilityLineFigure().then(utilityPointFigure);
+
+
+
+}); // end am4core.ready()
+
+});
+    </script>
+  </head>
+
+  <body class="sassy-theme">
+    <div id="applicationDiv">
+      <div id="headerDiv">
+        <div id="headerTitleDiv">General Progress of N2 Pre-Construction</div>
+      </div>
+      <div class="contentBox">
+        <div class="container">
+          <div class="landStrucIsfBox">
+            <div id="landChartDiv"></div>
+            <div id="structureChartDiv"></div>
+            <div id="isfChartDiv"></div>
+          </div>
+          <div class="treeBox">
+            <div id="treeCuttingChartDiv"></div>
+            <div id="treeCompenChartDiv"></div>
+          </div>
+          <div class="utilityBox">
+            <div id="utilityPointChartDiv"></div>
+            <div id="utilityLineChartDiv"></div>
+          </div>              
+      </div>
+      <div class="containerB">See detailed status?
+        Click the link below:
+        <div class="panel">
+          <ul id="projectList">
+            <li><a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Land_and_Structure2.html" style="text-decoration: none;" target="_blank">Land/Strucutre/ISF</a></li>
+            <li><a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Tree_Cutting.html" style="text-decoration: none;" target="_blank">Tree Cutting/Compensation</a></li>
+            <li><a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/N2_Utility_Relocation_NEW.html" style="text-decoration: none;" target="_blank">Utility Relocation</a></li> 
+          </ul>
+        </div>
+      </div>
+      </div>
+      <div class="dateDiv">September 30, 2022</div>   
+    </div>
+  </body>
+</html>
