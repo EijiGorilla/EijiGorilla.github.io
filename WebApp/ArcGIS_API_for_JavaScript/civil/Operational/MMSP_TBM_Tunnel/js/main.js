@@ -4,7 +4,7 @@ require([
   "esri/views/MapView",
   "esri/views/SceneView",
   "esri/layers/FeatureLayer",
-  "esri/views/layers/support/FeatureFilter",
+  "esri/layers/support/FeatureFilter",
   "esri/layers/SceneLayer",
   "esri/layers/Layer",
   "esri/layers/TileLayer",
@@ -40,7 +40,8 @@ require([
   "esri/geometry/support/webMercatorUtils",
   "esri/layers/GraphicsLayer",
   "esri/Graphic",
-  "esri/geometry/SpatialReference"
+  "esri/geometry/SpatialReference",
+  "esri/core/reactiveUtils"
 ], function(Basemap, Map, MapView, SceneView, 
             FeatureLayer, FeatureFilter,
             SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -52,7 +53,7 @@ require([
             TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
             FeatureTable, Compass, TimeExtent, ElevationLayer, Ground, Search,
             BasemapToggle, geometryEngine, Polygon,
-            webMercatorUtils, GraphicsLayer, Graphic, SpatialReference) {
+            webMercatorUtils, GraphicsLayer, Graphic, SpatialReference, reactiveUtils) {
 
 let chartLayerView;
 //const features = [];
@@ -274,7 +275,7 @@ minScale: 1000,
           haloSize: 1,
           font: {
             family: "Ubuntu Mono",
-            weight: "regular"
+            weight: "normal"
           },
         }
       ],
@@ -477,7 +478,7 @@ var obstructionRenderer = {
       {
         type: "size",
         field: "Height",
-        valueUnit: "meter" // Converts and extrudes all data values in feet
+        valueUnit: "meters" // Converts and extrudes all data values in feet
       }
     ]
   };
@@ -1326,8 +1327,8 @@ map.add(graphicsLayer);
 //*******************************//
 //      Progress Chart           //
 //*******************************//
-const totalProgressTitleDiv = document.getElementById("totalProgressTitleDiv");
 const totalProgressDiv = document.getElementById("totalProgressDiv");
+const segmentedDateDiv = document.getElementById("segmentedDateDiv");
 
 // Find current position of TBM
 // The current position refers to the spot of minimum segment No.
@@ -2401,6 +2402,9 @@ stops: {
 //disabled: true,
 });
 
+timeContainer.style.display = 'none';
+
+// Expand widget for timeSlider
 var timesliderExpand = new Expand({
 view: view,
 content: timeSlider,
@@ -2408,14 +2412,25 @@ expandIconClass: "esri-icon-time-clock",
 group: "bottom-right"
 });
 view.ui.add(timesliderExpand, {position: "bottom-right"});
-timeContainer.style.display = 'none';
 
+// Segment Plan Date needs to be displayed only when timesliderExpand widget is open; otherwise, hidden
+segmentedDateDiv.style.display = 'none';
+reactiveUtils.when(() => timesliderExpand?.expanded === false, () => segmentedDateDiv.style.display = 'none');
+reactiveUtils.when(() => timesliderExpand?.expanded === true, () => segmentedDateDiv.style.display = 'block');
 
+// Watch update on timeSlider
 timeSlider.watch("timeExtent", function(timeExtent) {
+//segmentedDateDiv.style.display = 'block';
+
 // Reset graphics layer
 graphicsLayer.removeAll();
 
 tbmTunnelLayer.definitionExpression = "startdate <= date'" + timeExtent.end.getFullYear() + "-" + (timeExtent.end.getMonth()+1) + "-" + (timeExtent.end.getDate()) +"'";
+
+const tunnelStart = timeExtent.end.getFullYear() + "-" + (timeExtent.end.getMonth()+1) + "-" + (timeExtent.end.getDate());
+const tunnelStartTitle = "Segmentation Plan Date:";
+segmentedDateDiv.innerHTML = "<pre>" + "<b>" + tunnelStartTitle + "</b>" + "\n" + tunnelStart + "</pre>";
+
 
 var query = tbmTunnelLayer.createQuery();
 //query.where = "startdate <= date'" + timeExtent.end.getFullYear() + "-" + (timeExtent.end.getMonth()+1) + "-" + (timeExtent.end.getDate()) +"'";
@@ -2425,8 +2440,8 @@ var query = tbmTunnelLayer.createQuery();
 tbmTunnelLayer.queryFeatures(query).then(function(response) {
 var stats = response.features;
 stats.forEach((result, index) => {
-const vertex = result.geometry.paths[0];
-const objectId = result.attributes.OBJECTID;
+  const vertex = result.geometry.paths[0];
+  const objectId = result.attributes.OBJECTID;
   
   const long = (vertex[0][0] + vertex[1][0]) / 2;
   const lat = (vertex[0][1] + vertex[1][1]) / 2;
@@ -2442,15 +2457,15 @@ const objectId = result.attributes.OBJECTID;
       z: -0.1
     },
     type: "simple",
-symbol: {
-  type: "picture-marker", // simple-marker
-  url: "https://static.arcgis.com/images/Symbols/Firefly/FireflyC12.png",
-  width: 12,
-  height: 12,
-  //outline: { width: 1, color: [255, 255, 255, 1] },
-  //size: 8,
-  //color: [89, 229, 56, 1]
-}
+    symbol: {
+      type: "picture-marker", // simple-marker
+      url: "https://static.arcgis.com/images/Symbols/Firefly/FireflyC8.png",
+      width: 12,
+      height: 12,
+      //outline: { width: 1, color: [255, 255, 255, 1] },
+      //size: 8,
+      //color: [89, 229, 56, 1]
+    }
     /*
           
           symbol: {
@@ -2492,10 +2507,12 @@ symbol: {
 let timeLayerView;
 view.whenLayerView(tbmTunnelLayer).then(function (layerView) {
 timeLayerView = layerView;
+
 view.on("click", function() {
     timeLayerView.filter = null;
     tbmTunnelLayer.definitionExpression = null;
     graphicsLayer.removeAll();
+    segmentedDateDiv.style.display = 'none';
   });
 });
 
