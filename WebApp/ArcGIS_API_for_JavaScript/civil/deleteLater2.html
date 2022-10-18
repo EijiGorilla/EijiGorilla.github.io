@@ -663,7 +663,7 @@ function laFigureLot([cpN01, cpN02, cpN03, cpN04, cpN05]) {
 
   // Add bottom label
   var label = chart.chartContainer.createChild(am4core.Label);
-  label.text = "[bold]HANDED-OVER";
+  label.text = "[bold]HANDED-OVER AREA";
   label.fontSize = "1.5em";
   label.align = "center";
   label.marginTop = 0;
@@ -802,17 +802,11 @@ lotTotalArea()
   .then(laFigureLot);
 
 /// 2. Structure
-function laFigureStruc() {
-    var total_number_struc = {
+function strucTotalArea() {
+  var total_number_struc = {
     onStatisticField: "StrucID",
     outStatisticFieldName: "total_number_struc",
     statisticType: "count"
-  };
-
-  var total_handover_struc = {
-    onStatisticField: "CASE WHEN HandOver = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_handover_struc",
-    statisticType: "sum"
   };
 
   var total_dismantle_struc = {
@@ -821,269 +815,637 @@ function laFigureStruc() {
     statisticType: "sum"
   };
 
-  var query = structureLayer.createQuery();
-  query.outStatistics = [total_number_struc, total_handover_struc, total_dismantle_struc];
-  query.returnGeometry = true;
 
-  structureLayer.queryFeatures(query).then(function(response) {
+  var query = structureLayer.createQuery();
+  query.outStatistics = [total_dismantle_struc, total_number_struc];
+
+  return structureLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
-    const totalnumberStruc = stats.total_number_struc;
-    const handoverStruc = stats.total_handover_struc;
-    const dismantleStruc = stats.total_dismantle_struc;
-
-    const STRUC_DISMANTLED_PERC = (dismantleStruc/totalnumberStruc)*100;
-
-// create chart
-var chart = am4core.create("structureChartDiv", am4charts.GaugeChart);
-chart.innerRadius = am4core.percent(82);
-chart.responsive.enabled = true;
-
-/**
- * Normal axis
- */
-
-var axis = chart.xAxes.push(new am4charts.ValueAxis());
-axis.min = 0;
-axis.max = 100;
-axis.strictMinMax = true;
-axis.renderer.radius = am4core.percent(80);
-axis.renderer.inside = true;
-axis.renderer.line.strokeOpacity = 1;
-axis.renderer.ticks.template.disabled = false
-axis.renderer.ticks.template.strokeOpacity = 1;
-axis.renderer.ticks.template.length = 10;
-axis.renderer.grid.template.disabled = true;
-axis.renderer.labels.template.radius = 40;
-axis.renderer.labels.template.adapter.add("text", function(text) {
-  return text + "";
-})
-
-/**
- * Axis for ranges
- */
-
-var colorSet = new am4core.ColorSet();
-
-var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
-axis2.min = 0;
-axis2.max = 100;
-axis2.strictMinMax = true;
-axis2.renderer.labels.template.disabled = true;
-axis2.renderer.ticks.template.disabled = true;
-axis2.renderer.grid.template.disabled = true;
-
-var range0 = axis2.axisRanges.create();
-range0.value = 0;
-range0.endValue = STRUC_DISMANTLED_PERC;
-range0.axisFill.fillOpacity = 1;
-range0.axisFill.fill = am4core.color("#00C3FF");
-
-var range1 = axis2.axisRanges.create();
-range1.value = STRUC_DISMANTLED_PERC;
-range1.endValue = 100;
-range1.axisFill.fillOpacity = 1;
-range1.axisFill.fill = am4core.color("#C5C5C5");
-range1.axisFill.fillOpacity = 0.3;
-
-/**
- * Label
- */
-var label = chart.radarContainer.createChild(am4core.Label);
-label.isMeasured = false;
-label.fontSize = 45;
-label.x = am4core.percent(50);
-label.y = am4core.percent(100);
-label.horizontalCenter = "middle";
-label.verticalCenter = "bottom";
-
-const LABEL_TEXT = STRUC_DISMANTLED_PERC.toFixed(0).toString() + "%";
-label.text = LABEL_TEXT;
-label.fill =  am4core.color("#00C3FF");
+    const totalDismantled = stats.total_dismantle_struc;
+    const totalNumber = stats.total_number_struc;
+    //const LOT_HANDOVER_PERC = (handedOver/affected)*100;
+    return totalDismantled;
+  });
+}
 
 
-/**
- * Hand
- */
+function strucSummary(totalDismantled) {
+  var total_dismantle_struc = {
+    onStatisticField: "CASE WHEN StatusStruc = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_dismantle_struc",
+    statisticType: "sum"
+  }
 
-var hand = chart.hands.push(new am4charts.ClockHand());
-hand.axis = axis2;
-hand.innerRadius = NEEDLE_LENGTH;
-hand.startWidth = 10;
-hand.pin.disabled = true;
-hand.value = STRUC_DISMANTLED_PERC;
-hand.fill = am4core.color("#000000");
-hand.fillOpacity = 0.5;
+  var total_number_struc = {
+    onStatisticField: "StrucID",
+    outStatisticFieldName: "total_number_struc",
+    statisticType: "sum"
+  };
 
+  var query = structureLayer.createQuery();
+  query.outStatistics = [total_dismantle_struc, total_number_struc];
+  query.returnGeometry = true;
+  query.groupByFieldsForStatistics = ["CP"];
 
-// Add chart title
-var title = chart.titles.create();
-title.text = "[bold]EXISTING STRUCTURE";
-title.fontSize = 20;
-title.align = "center";
-title.marginBottom = -15;
-title.marginTop = 10;
-title.fill = TOP_TITLE_COL;
+  var cpN01 = [];
+  var cpN02 = [];
+  var cpN03 = [];
+  var cpN04 = [];
+  var cpN05 = [];
 
-// Add bottom label
-var label = chart.chartContainer.createChild(am4core.Label);
-label.text = "[bold]DISMANTLED";
-label.fontSize = 15;
-label.align = "center";
-label.fill = BOTTOM_LABEL_COL;
-label.marginTop = -10;
-label.marginBottom = 0;
+  return structureLayer.queryFeatures(query).then(function(response) {
+    stats = response.features;
 
+    stats.forEach((result, index) => {
+      const attributes = result.attributes;
+      const cpPackage = result.attributes.CP;
+      const dismantled = attributes.total_dismantle_struc;
+      const STRUC_DISMANTLE_PERC = (dismantled/totalDismantled)*100;
 
+      if (cpPackage === 'N-01') {
+        cpN01.push(STRUC_DISMANTLE_PERC);
 
+      } else if (cpPackage === 'N-02') {
+        cpN02.push(STRUC_DISMANTLE_PERC);
+      
+      } else if (cpPackage === 'N-03') {
+        cpN03.push(STRUC_DISMANTLE_PERC);
+
+      } else if (cpPackage === 'N-04') {
+        cpN04.push(STRUC_DISMANTLE_PERC);
+
+      } else if (cpPackage === 'N-05') {
+        cpN05.push(STRUC_DISMANTLE_PERC);
+      }
+    });
+    return [cpN01, cpN02, cpN03, cpN04, cpN05];
   });
 
+} // End of strucSummary function
+
+function laFigureStruc([cpN01, cpN02, cpN03, cpN04, cpN05]) {
+  var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
+
+  var N01 = Number(cpN01);
+  var N02 = Number(cpN01) + Number(cpN02);
+  var N03 = Number(cpN01) + Number(cpN02) + Number(cpN03);
+  var N04 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04);
+  var N05 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
+  
+
+  var chartMin = 0;
+  var chartMax = 100;
+
+  // #ffea8c|#b3ab60|#4b595e|#6693c8|#aadbff
+  // const colors = ["#ffea8c", "#b3ab60", "#4b595e", "#6693c8", "#aadbff"];
+
+  var data = {
+    score: totalScore,
+    gradingData: [
+      {
+        title: "N-01",
+        color: "#ee1f25",
+        lowScore: 0,
+        highScore: N01
+      },
+      {
+        title: "N-02",
+        color: "#f04922",
+        lowScore: N01,
+        highScore: N02
+      },
+      {
+        title: "N-03",
+        color: "#fdae19",
+        lowScore: N02,
+        highScore: N03
+      },
+      {
+        title: "N-04",
+        color: "#f3eb0c",
+        lowScore: N03,
+        highScore: N04
+      },
+      {
+        title: "N-05",
+        color: "#b0d136",
+        lowScore: N04,
+        highScore: N05
+      },
+      {
+        title: "",
+        color: "#C5C5C5",
+        lowScore: N05,
+        highScore: 100
+      }
+    ]
+  };
+
+  /**
+  Grading Lookup
+  */
+  function lookUpGrade(lookupScore, grades) {
+    // Only change code below this line
+    for (var i = 0; i < grades.length; i++) {
+      if (
+        grades[i].lowScore < lookupScore &&
+        grades[i].highScore >= lookupScore
+      ) {
+        return grades[i];
+      }
+    }
+    return null;
+  }
+
+  // create chart
+  var chart = am4core.create("structureChartDiv", am4charts.GaugeChart);
+  chart.hiddenState.properties.opacity = 0;
+  chart.fontSize = 11;
+  chart.innerRadius = am4core.percent(80);
+  chart.resizable = true;
+  chart.responsive.enabled = true;
+  /**
+   * Chart Title
+   */
+  // Title Color
+  const BOTTOM_LABEL_COL = am4core.color("#FFA500");
+  const TOP_TITLE_COL = am4core.color("#FFFFFF");
+
+  var title = chart.titles.create();
+  title.text = "[bold]LAND";
+  title.fontSize = "2em";
+  title.align = "center";
+  title.marginBottom = -15;
+  title.marginTop = 0;
+  title.fill = TOP_TITLE_COL;
+
+  // Add bottom label
+  var label = chart.chartContainer.createChild(am4core.Label);
+  label.text = "[bold]HANDED-OVER AREA";
+  label.fontSize = "1.5em";
+  label.align = "center";
+  label.marginTop = 0;
+  label.fill = BOTTOM_LABEL_COL;
+
+  /**
+   * Normal axis
+   */
+
+  var axis = chart.xAxes.push(new am4charts.ValueAxis());
+  axis.min = chartMin;
+  axis.max = chartMax;
+  axis.strictMinMax = true;
+  axis.renderer.radius = am4core.percent(80);
+  axis.renderer.inside = true;
+  axis.renderer.line.strokeOpacity = 0.5; // line opacity inside curve line
+  axis.renderer.ticks.template.disabled = false;
+  axis.renderer.ticks.template.strokeOpacity = 1;
+  //axis.renderer.ticks.template.strokeWidth = 1;
+  axis.renderer.ticks.template.length = 10;
+  axis.renderer.grid.template.disabled = true;
+  axis.renderer.labels.template.radius = am4core.percent(40);
+  axis.renderer.labels.template.fontSize = "1.2em";
+
+  /**
+   * Axis for ranges
+   */
+
+  var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+  axis2.min = chartMin;
+  axis2.max = chartMax;
+  axis2.strictMinMax = true;
+  axis2.renderer.labels.template.disabled = true;
+  axis2.renderer.ticks.template.disabled = true;
+  axis2.renderer.grid.template.disabled = true; // when true inside tick marks will disappear
+  axis2.renderer.grid.template.opacity = 0.5;
+  axis2.renderer.labels.template.bent = true;
+  axis2.renderer.labels.template.fill = am4core.color("#000");
+  axis2.renderer.labels.template.fontWeight = "bold";
+  axis2.renderer.labels.template.fillOpacity = 0.3;
+
+
+
+  /**
+  Ranges
+  */
+
+  for (let grading of data.gradingData) {
+    var range = axis2.axisRanges.create();
+    range.axisFill.fill = am4core.color(grading.color);
+    range.axisFill.fillOpacity = 0.8;
+    range.axisFill.zIndex = -1;
+    range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
+    range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
+    range.grid.strokeOpacity = 0; // changes opacity of inside tick mark
+    range.stroke = am4core.color(grading.color).lighten(-0.1);
+    range.label.inside = true;
+    range.label.text = grading.title.toUpperCase();
+    range.label.inside = true;
+    range.label.location = 0.5;
+    range.label.inside = true;
+    range.label.radius = am4core.percent(10);
+    range.label.paddingBottom = -5; // ~half font size
+    range.label.fontSize = "1em"; // category label (i.e., N-01, N-02, ....)
+  }
+
+  var matchingGrade = lookUpGrade(data.score, data.gradingData);
+
+  /**
+   * Label 1 (total Percent)
+   */
+
+  var label = chart.radarContainer.createChild(am4core.Label);
+  label.isMeasured = false;
+  label.fontSize = "3.8em";
+  label.x = am4core.percent(50);
+  label.y = am4core.percent(100);
+  label.paddingBottom = -5;
+  label.horizontalCenter = "middle";
+  label.verticalCenter = "bottom";
+  //label.dataItem = data;
+  label.text = data.score.toFixed(0).toString() + "%";
+  //label.text = "{score}";
+  //label.fill = am4core.color(matchingGrade.color);
+  label.fill =  am4core.color("#00C3FF");
+
+  /**
+   * Label 2
+   */
+
+  /*
+  var label2 = chart.radarContainer.createChild(am4core.Label);
+  label2.isMeasured = false;
+  label2.fontSize = "2em";
+  label2.horizontalCenter = "middle";
+  label2.verticalCenter = "bottom";
+  label2.text = matchingGrade.title.toUpperCase();
+  //label2.fill = am4core.color(matchingGrade.color);
+  label2.fill =  am4core.color("#00C3FF");
+  */
+  /**
+   * Hand
+   */
+
+  var hand = chart.hands.push(new am4charts.ClockHand());
+  hand.axis = axis2;
+  hand.innerRadius = am4core.percent(55);
+  hand.startWidth = 8;
+  hand.pin.disabled = true;
+  hand.value = data.score;
+  hand.fill = am4core.color("#000000"); // inner color of needle
+  //hand.stroke = am4core.color("#000");
+  hand.fillOpacity = 0.5;
+
+  /*
+  hand.events.on("positionchanged", function(){
+    label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
+    var value2 = axis.positionToValue(hand.currentPosition);
+    var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
+    label2.text = matchingGrade.title.toUpperCase();
+    label2.fill = am4core.color(matchingGrade.color);
+    label2.stroke = am4core.color(matchingGrade.color);  
+    label.fill = am4core.color(matchingGrade.color);
+  })
+  */
+  /*
+  setInterval(function() {
+      var value = chartMin + Math.random() * (chartMax - chartMin);
+      hand.showValue(value, 1000, am4core.ease.cubicOut);
+  }, 2000);
+  */
+
 }
-laFigureStruc();
+strucTotalArea()
+  .then(strucSummary)
+  .then(laFigureStruc);
+
+
 
 /// 3. ISF
-function IsfFigure() {
+function isfTotalArea() {
   var total_number_isf = {
     onStatisticField: "StrucID",
     outStatisticFieldName: "total_number_isf",
     statisticType: "count"
   };
 
-  var total_relocated_isf = {
+  var total_relocation_isf = {
     onStatisticField: "CASE WHEN StatusRC = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_relocated_isf",
+    outStatisticFieldName: "total_relocation_isf",
     statisticType: "sum"
   };
 
-  var total_paidd_isf = {
-    onStatisticField: "CASE WHEN StatusRC = 2 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_paidd_isf",
+
+  var query = reloISFLayer.createQuery();
+  query.outStatistics = [total_relocation_isf, total_number_isf];
+
+  return reloISFLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    const totalRelocated = stats.total_relocation_isf;
+    const totalNumber = stats.total_number_isf;
+    //const LOT_HANDOVER_PERC = (handedOver/affected)*100;
+    return totalRelocated;
+  });
+}
+
+
+function isfSummary(totalRelocated) {
+  var total_relocation_isf = {
+    onStatisticField: "CASE WHEN StatusRC = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_relocation_isf",
+    statisticType: "sum"
+  }
+
+  var total_number_isf = {
+    onStatisticField: "StrucID",
+    outStatisticFieldName: "total_number_isf",
     statisticType: "sum"
   };
 
   var query = reloISFLayer.createQuery();
-  query.outStatistics = [total_number_isf, total_relocated_isf, total_paidd_isf];
+  query.outStatistics = [total_relocation_isf, total_number_isf];
   query.returnGeometry = true;
+  query.groupByFieldsForStatistics = ["CP"];
 
-  reloISFLayer.queryFeatures(query).then(function(response) {
-    var stats = response.features[0].attributes;
+  var cpN01 = [];
+  var cpN02 = [];
+  var cpN03 = [];
+  var cpN04 = [];
+  var cpN05 = [];
 
-    const totalnumberIsf = stats.total_number_isf;
-    const relocatedIsf = stats.total_relocated_isf;
-    const paiddIsf = stats.total_paidd_isf;
+  return reloISFLayer.queryFeatures(query).then(function(response) {
+    stats = response.features;
 
-    const ISF_RELOCATED_PERC = (relocatedIsf/totalnumberIsf)*100;
+    stats.forEach((result, index) => {
+      const attributes = result.attributes;
+      const cpPackage = result.attributes.CP;
+      const relocated = attributes.total_relocation_isf;
+      const ISF_RELOCATED_PERC = (relocated/totalRelocated)*100;
 
-// create chart
-var chart = am4core.create("isfChartDiv", am4charts.GaugeChart);
-chart.innerRadius = am4core.percent(82);
-chart.responsive.enabled = true;
+      if (cpPackage === 'N-01') {
+        cpN01.push(ISF_RELOCATED_PERC);
 
-/**
- * Normal axis
- */
+      } else if (cpPackage === 'N-02') {
+        cpN02.push(ISF_RELOCATED_PERC);
+      
+      } else if (cpPackage === 'N-03') {
+        cpN03.push(ISF_RELOCATED_PERC);
 
-var axis = chart.xAxes.push(new am4charts.ValueAxis());
-axis.min = 0;
-axis.max = 100;
-axis.strictMinMax = true;
-axis.renderer.radius = am4core.percent(80);
-axis.renderer.inside = true;
-axis.renderer.line.strokeOpacity = 1;
-axis.renderer.ticks.template.disabled = false
-axis.renderer.ticks.template.strokeOpacity = 1;
-axis.renderer.ticks.template.length = 10;
-axis.renderer.grid.template.disabled = true;
-axis.renderer.labels.template.radius = 40;
-axis.renderer.labels.template.adapter.add("text", function(text) {
-  return text + "";
-})
+      } else if (cpPackage === 'N-04') {
+        cpN04.push(ISF_RELOCATED_PERC);
 
-/**
- * Axis for ranges
- */
-
-var colorSet = new am4core.ColorSet();
-
-var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
-axis2.min = 0;
-axis2.max = 100;
-axis2.strictMinMax = true;
-axis2.renderer.labels.template.disabled = true;
-axis2.renderer.ticks.template.disabled = true;
-axis2.renderer.grid.template.disabled = true;
-
-var range0 = axis2.axisRanges.create();
-range0.value = 0;
-range0.endValue = ISF_RELOCATED_PERC;
-range0.axisFill.fillOpacity = 1;
-range0.axisFill.fill = am4core.color("#00C3FF");
-
-var range1 = axis2.axisRanges.create();
-range1.value = ISF_RELOCATED_PERC;
-range1.endValue = 100;
-range1.axisFill.fillOpacity = 1;
-range1.axisFill.fill = am4core.color("#C5C5C5");
-range1.axisFill.fillOpacity = 0.3;
-
-/**
- * Label
- */
-var label = chart.radarContainer.createChild(am4core.Label);
-label.isMeasured = false;
-label.fontSize = 45;
-label.x = am4core.percent(50);
-label.y = am4core.percent(100);
-label.horizontalCenter = "middle";
-label.verticalCenter = "bottom";
-
-const LABEL_TEXT = ISF_RELOCATED_PERC.toFixed(0).toString() + "%";
-label.text = LABEL_TEXT;
-label.fill =  am4core.color("#00C3FF");
-
-
-/**
- * Hand
- */
-
-var hand = chart.hands.push(new am4charts.ClockHand());
-hand.axis = axis2;
-hand.innerRadius = NEEDLE_LENGTH;
-hand.startWidth = 10;
-hand.pin.disabled = true;
-hand.value = ISF_RELOCATED_PERC;
-hand.fill = am4core.color("#000000");
-hand.fillOpacity = 0.5;
-
-
-// Add chart title
-var title = chart.titles.create();
-title.text = "[bold]INFORMAL SETTLERS";
-title.fontSize = 20;
-title.align = "center";
-title.marginBottom = -15;
-title.marginTop = 10;
-title.fill = TOP_TITLE_COL;
-
-// Add bottom label
-var label = chart.chartContainer.createChild(am4core.Label);
-label.text = "[bold]RELOCATED";
-label.fontSize = 15;
-label.align = "center";
-label.fill = BOTTOM_LABEL_COL;
-label.marginTop = -10;
-label.marginBottom = 0;
-
-
+      } else if (cpPackage === 'N-05') {
+        cpN05.push(ISF_RELOCATED_PERC);
+      }
+    });
+    return [cpN01, cpN02, cpN03, cpN04, cpN05];
   });
+
+} // End of isfSummary function
+
+function laFigureIsf([cpN01, cpN02, cpN03, cpN04, cpN05]) {
+  var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
+
+  var N01 = Number(cpN01);
+  var N02 = Number(cpN01) + Number(cpN02);
+  var N03 = Number(cpN01) + Number(cpN02) + Number(cpN03);
+  var N04 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04);
+  var N05 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
+  
+
+  var chartMin = 0;
+  var chartMax = 100;
+
+  // #ffea8c|#b3ab60|#4b595e|#6693c8|#aadbff
+  // const colors = ["#ffea8c", "#b3ab60", "#4b595e", "#6693c8", "#aadbff"];
+
+  var data = {
+    score: totalScore,
+    gradingData: [
+      {
+        title: "N-01",
+        color: "#ee1f25",
+        lowScore: 0,
+        highScore: N01
+      },
+      {
+        title: "N-02",
+        color: "#f04922",
+        lowScore: N01,
+        highScore: N02
+      },
+      {
+        title: "N-03",
+        color: "#fdae19",
+        lowScore: N02,
+        highScore: N03
+      },
+      {
+        title: "N-04",
+        color: "#f3eb0c",
+        lowScore: N03,
+        highScore: N04
+      },
+      {
+        title: "N-05",
+        color: "#b0d136",
+        lowScore: N04,
+        highScore: N05
+      },
+      {
+        title: "",
+        color: "#C5C5C5",
+        lowScore: N05,
+        highScore: 100
+      }
+    ]
+  };
+
+  /**
+  Grading Lookup
+  */
+  function lookUpGrade(lookupScore, grades) {
+    // Only change code below this line
+    for (var i = 0; i < grades.length; i++) {
+      if (
+        grades[i].lowScore < lookupScore &&
+        grades[i].highScore >= lookupScore
+      ) {
+        return grades[i];
+      }
+    }
+    return null;
+  }
+
+  // create chart
+  var chart = am4core.create("structureChartDiv", am4charts.GaugeChart);
+  chart.hiddenState.properties.opacity = 0;
+  chart.fontSize = 11;
+  chart.innerRadius = am4core.percent(80);
+  chart.resizable = true;
+  chart.responsive.enabled = true;
+  /**
+   * Chart Title
+   */
+  // Title Color
+  const BOTTOM_LABEL_COL = am4core.color("#FFA500");
+  const TOP_TITLE_COL = am4core.color("#FFFFFF");
+
+  var title = chart.titles.create();
+  title.text = "[bold]INFORMAL SETTLERS";
+  title.fontSize = "2em";
+  title.align = "center";
+  title.marginBottom = -15;
+  title.marginTop = 0;
+  title.fill = TOP_TITLE_COL;
+
+  // Add bottom label
+  var label = chart.chartContainer.createChild(am4core.Label);
+  label.text = "[bold]RELOCATED";
+  label.fontSize = "1.5em";
+  label.align = "center";
+  label.marginTop = 0;
+  label.fill = BOTTOM_LABEL_COL;
+
+  /**
+   * Normal axis
+   */
+
+  var axis = chart.xAxes.push(new am4charts.ValueAxis());
+  axis.min = chartMin;
+  axis.max = chartMax;
+  axis.strictMinMax = true;
+  axis.renderer.radius = am4core.percent(80);
+  axis.renderer.inside = true;
+  axis.renderer.line.strokeOpacity = 0.5; // line opacity inside curve line
+  axis.renderer.ticks.template.disabled = false;
+  axis.renderer.ticks.template.strokeOpacity = 1;
+  //axis.renderer.ticks.template.strokeWidth = 1;
+  axis.renderer.ticks.template.length = 10;
+  axis.renderer.grid.template.disabled = true;
+  axis.renderer.labels.template.radius = am4core.percent(40);
+  axis.renderer.labels.template.fontSize = "1.2em";
+
+  /**
+   * Axis for ranges
+   */
+
+  var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+  axis2.min = chartMin;
+  axis2.max = chartMax;
+  axis2.strictMinMax = true;
+  axis2.renderer.labels.template.disabled = true;
+  axis2.renderer.ticks.template.disabled = true;
+  axis2.renderer.grid.template.disabled = true; // when true inside tick marks will disappear
+  axis2.renderer.grid.template.opacity = 0.5;
+  axis2.renderer.labels.template.bent = true;
+  axis2.renderer.labels.template.fill = am4core.color("#000");
+  axis2.renderer.labels.template.fontWeight = "bold";
+  axis2.renderer.labels.template.fillOpacity = 0.3;
+
+
+
+  /**
+  Ranges
+  */
+
+  for (let grading of data.gradingData) {
+    var range = axis2.axisRanges.create();
+    range.axisFill.fill = am4core.color(grading.color);
+    range.axisFill.fillOpacity = 0.8;
+    range.axisFill.zIndex = -1;
+    range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
+    range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
+    range.grid.strokeOpacity = 0; // changes opacity of inside tick mark
+    range.stroke = am4core.color(grading.color).lighten(-0.1);
+    range.label.inside = true;
+    range.label.text = grading.title.toUpperCase();
+    range.label.inside = true;
+    range.label.location = 0.5;
+    range.label.inside = true;
+    range.label.radius = am4core.percent(10);
+    range.label.paddingBottom = -5; // ~half font size
+    range.label.fontSize = "1em"; // category label (i.e., N-01, N-02, ....)
+  }
+
+  var matchingGrade = lookUpGrade(data.score, data.gradingData);
+
+  /**
+   * Label 1 (total Percent)
+   */
+
+  var label = chart.radarContainer.createChild(am4core.Label);
+  label.isMeasured = false;
+  label.fontSize = "3.8em";
+  label.x = am4core.percent(50);
+  label.y = am4core.percent(100);
+  label.paddingBottom = -5;
+  label.horizontalCenter = "middle";
+  label.verticalCenter = "bottom";
+  //label.dataItem = data;
+  label.text = data.score.toFixed(0).toString() + "%";
+  //label.text = "{score}";
+  //label.fill = am4core.color(matchingGrade.color);
+  label.fill =  am4core.color("#00C3FF");
+
+  /**
+   * Label 2
+   */
+
+  /*
+  var label2 = chart.radarContainer.createChild(am4core.Label);
+  label2.isMeasured = false;
+  label2.fontSize = "2em";
+  label2.horizontalCenter = "middle";
+  label2.verticalCenter = "bottom";
+  label2.text = matchingGrade.title.toUpperCase();
+  //label2.fill = am4core.color(matchingGrade.color);
+  label2.fill =  am4core.color("#00C3FF");
+  */
+  /**
+   * Hand
+   */
+
+  var hand = chart.hands.push(new am4charts.ClockHand());
+  hand.axis = axis2;
+  hand.innerRadius = am4core.percent(55);
+  hand.startWidth = 8;
+  hand.pin.disabled = true;
+  hand.value = data.score;
+  hand.fill = am4core.color("#000000"); // inner color of needle
+  //hand.stroke = am4core.color("#000");
+  hand.fillOpacity = 0.5;
+
+  /*
+  hand.events.on("positionchanged", function(){
+    label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
+    var value2 = axis.positionToValue(hand.currentPosition);
+    var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
+    label2.text = matchingGrade.title.toUpperCase();
+    label2.fill = am4core.color(matchingGrade.color);
+    label2.stroke = am4core.color(matchingGrade.color);  
+    label.fill = am4core.color(matchingGrade.color);
+  })
+  */
+  /*
+  setInterval(function() {
+      var value = chartMin + Math.random() * (chartMax - chartMin);
+      hand.showValue(value, 1000, am4core.ease.cubicOut);
+  }, 2000);
+  */
+
 }
-IsfFigure();
+isfTotalArea()
+  .then(isfSummary)
+  .then(laFigureIsf);
 
 
 // Tree
 
 /// 1. Tree Cutting
-function treeCuttingFigure() {
+function treeCuttingTotal() {
   var total_number_tree = {
     onStatisticField: "CommonName",
     outStatisticFieldName: "total_number_tree",
@@ -1098,127 +1460,315 @@ function treeCuttingFigure() {
 
 
   var query = treeLayer.createQuery();
-  query.outStatistics = [total_number_tree, total_cutearthballed_tree];
-  query.returnGeometry = true;
+  query.outStatistics = [total_cutearthballed_tree, total_number_tree];
 
-  treeLayer.queryFeatures(query).then(function(response) {
+  return treeLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
-    const totalnumberTree = stats.total_number_tree;
-    const cutearthballedTree = stats.total_cutearthballed_tree;
-
-    const TREE_CUT_PERC = (cutearthballedTree/totalnumberTree)*100;
-
-// create chart
-var chart = am4core.create("treeCuttingChartDiv", am4charts.GaugeChart);
-chart.innerRadius = am4core.percent(82);
-chart.responsive.enabled = true;
-
-/**
- * Normal axis
- */
-
-var axis = chart.xAxes.push(new am4charts.ValueAxis());
-axis.min = 0;
-axis.max = 100;
-axis.strictMinMax = true;
-axis.renderer.radius = am4core.percent(80);
-axis.renderer.inside = true;
-axis.renderer.line.strokeOpacity = 1;
-axis.renderer.ticks.template.disabled = false
-axis.renderer.ticks.template.strokeOpacity = 1;
-axis.renderer.ticks.template.length = 10;
-axis.renderer.grid.template.disabled = true;
-axis.renderer.labels.template.radius = 40;
-axis.renderer.labels.template.adapter.add("text", function(text) {
-  return text + "";
-})
-
-/**
- * Axis for ranges
- */
-
-var colorSet = new am4core.ColorSet();
-
-var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
-axis2.min = 0;
-axis2.max = 100;
-axis2.strictMinMax = true;
-axis2.renderer.labels.template.disabled = true;
-axis2.renderer.ticks.template.disabled = true;
-axis2.renderer.grid.template.disabled = true;
-
-var range0 = axis2.axisRanges.create();
-range0.value = 0;
-range0.endValue = TREE_CUT_PERC;
-range0.axisFill.fillOpacity = 1;
-range0.axisFill.fill = am4core.color("#00C3FF");
-
-var range1 = axis2.axisRanges.create();
-range1.value = TREE_CUT_PERC;
-range1.endValue = 100;
-range1.axisFill.fillOpacity = 1;
-range1.axisFill.fill = am4core.color("#C5C5C5");
-range1.axisFill.fillOpacity = 0.3;
-
-/**
- * Label
- */
-var label = chart.radarContainer.createChild(am4core.Label);
-label.isMeasured = false;
-label.fontSize = 45;
-label.x = am4core.percent(50);
-label.y = am4core.percent(100);
-label.horizontalCenter = "middle";
-label.verticalCenter = "bottom";
-
-const LABEL_TEXT = TREE_CUT_PERC.toFixed(0).toString() + "%";
-label.text = LABEL_TEXT;
-label.fill =  am4core.color("#00C3FF");
-
-
-/**
- * Hand
- */
-
-var hand = chart.hands.push(new am4charts.ClockHand());
-hand.axis = axis2;
-hand.innerRadius = NEEDLE_LENGTH;
-hand.startWidth = 10;
-hand.pin.disabled = true;
-hand.value = TREE_CUT_PERC;
-hand.fill = am4core.color("#000000");
-hand.fillOpacity = 0.5;
-
-
-// Add chart title
-var title = chart.titles.create();
-title.text = "[bold]TREE CUTTING";
-title.fontSize = 20;
-title.align = "center";
-title.marginBottom = -15;
-title.marginTop = 10;
-title.fill = TOP_TITLE_COL;
-
-// Add bottom label
-var label = chart.chartContainer.createChild(am4core.Label);
-label.text = "[bold]CUT/EARTHBALLED";
-label.fontSize = 15;
-label.align = "center";
-label.fill = BOTTOM_LABEL_COL;
-label.marginTop = -10;
-label.marginBottom = 0;
-
+    const totalCut = stats.total_cutearthballed_tree;
+    const totalNumber = stats.total_number_tree;
+    //const LOT_HANDOVER_PERC = (handedOver/affected)*100;
+    return totalCut;
   });
 }
-treeCuttingFigure();
 
-/// 2. Tree Compensation
-function treeCompensationFigure() {
+
+function treeCutSummary(totalCut) {
+  var total_cutearthballed_tree = {
+    onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_cutearthballed_tree",
+    statisticType: "sum"
+  }
+
+  var total_number_tree = {
+    onStatisticField: "CommonName",
+    outStatisticFieldName: "total_number_tree",
+    statisticType: "sum"
+  };
+
+  var query = treeLayer.createQuery();
+  query.outStatistics = [total_cutearthballed_tree, total_number_tree];
+  query.returnGeometry = true;
+  query.groupByFieldsForStatistics = ["CP"];
+
+  var cpN01 = [];
+  var cpN02 = [];
+  var cpN03 = [];
+  var cpN04 = [];
+  var cpN05 = [];
+
+  return treeLayer.queryFeatures(query).then(function(response) {
+    stats = response.features;
+
+    stats.forEach((result, index) => {
+      const attributes = result.attributes;
+      const cpPackage = result.attributes.CP;
+      const cutEarthballed = attributes.total_cutearthballed_tree;
+      const TREE_CUT_PERC = (cutEarthballed/totalCut)*100;
+
+      if (cpPackage === 'N-01') {
+        cpN01.push(TREE_CUT_PERC);
+
+      } else if (cpPackage === 'N-02') {
+        cpN02.push(TREE_CUT_PERC);
+      
+      } else if (cpPackage === 'N-03') {
+        cpN03.push(TREE_CUT_PERC);
+
+      } else if (cpPackage === 'N-04') {
+        cpN04.push(TREE_CUT_PERC);
+
+      } else if (cpPackage === 'N-05') {
+        cpN05.push(TREE_CUT_PERC);
+      }
+    });
+    return [cpN01, cpN02, cpN03, cpN04, cpN05];
+  });
+
+} // End of treeCutSummary function
+
+function treeCuttingFigure([cpN01, cpN02, cpN03, cpN04, cpN05]) {
+  var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
+
+  var N01 = Number(cpN01);
+  var N02 = Number(cpN01) + Number(cpN02);
+  var N03 = Number(cpN01) + Number(cpN02) + Number(cpN03);
+  var N04 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04);
+  var N05 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
+  
+
+  var chartMin = 0;
+  var chartMax = 100;
+
+  // #ffea8c|#b3ab60|#4b595e|#6693c8|#aadbff
+  // const colors = ["#ffea8c", "#b3ab60", "#4b595e", "#6693c8", "#aadbff"];
+
+  var data = {
+    score: totalScore,
+    gradingData: [
+      {
+        title: "N-01",
+        color: "#ee1f25",
+        lowScore: 0,
+        highScore: N01
+      },
+      {
+        title: "N-02",
+        color: "#f04922",
+        lowScore: N01,
+        highScore: N02
+      },
+      {
+        title: "N-03",
+        color: "#fdae19",
+        lowScore: N02,
+        highScore: N03
+      },
+      {
+        title: "N-04",
+        color: "#f3eb0c",
+        lowScore: N03,
+        highScore: N04
+      },
+      {
+        title: "N-05",
+        color: "#b0d136",
+        lowScore: N04,
+        highScore: N05
+      },
+      {
+        title: "",
+        color: "#C5C5C5",
+        lowScore: N05,
+        highScore: 100
+      }
+    ]
+  };
+
+  /**
+  Grading Lookup
+  */
+  function lookUpGrade(lookupScore, grades) {
+    // Only change code below this line
+    for (var i = 0; i < grades.length; i++) {
+      if (
+        grades[i].lowScore < lookupScore &&
+        grades[i].highScore >= lookupScore
+      ) {
+        return grades[i];
+      }
+    }
+    return null;
+  }
+
+  // create chart
+  var chart = am4core.create("structureChartDiv", am4charts.GaugeChart);
+  chart.hiddenState.properties.opacity = 0;
+  chart.fontSize = 11;
+  chart.innerRadius = am4core.percent(80);
+  chart.resizable = true;
+  chart.responsive.enabled = true;
+  /**
+   * Chart Title
+   */
+  // Title Color
+  const BOTTOM_LABEL_COL = am4core.color("#FFA500");
+  const TOP_TITLE_COL = am4core.color("#FFFFFF");
+
+  var title = chart.titles.create();
+  title.text = "[bold]TREE CUTTING";
+  title.fontSize = "2em";
+  title.align = "center";
+  title.marginBottom = -15;
+  title.marginTop = 0;
+  title.fill = TOP_TITLE_COL;
+
+  // Add bottom label
+  var label = chart.chartContainer.createChild(am4core.Label);
+  label.text = "[bold]CUT/EARTHBALLED";
+  label.fontSize = "1.5em";
+  label.align = "center";
+  label.marginTop = 0;
+  label.fill = BOTTOM_LABEL_COL;
+
+  /**
+   * Normal axis
+   */
+
+  var axis = chart.xAxes.push(new am4charts.ValueAxis());
+  axis.min = chartMin;
+  axis.max = chartMax;
+  axis.strictMinMax = true;
+  axis.renderer.radius = am4core.percent(80);
+  axis.renderer.inside = true;
+  axis.renderer.line.strokeOpacity = 0.5; // line opacity inside curve line
+  axis.renderer.ticks.template.disabled = false;
+  axis.renderer.ticks.template.strokeOpacity = 1;
+  //axis.renderer.ticks.template.strokeWidth = 1;
+  axis.renderer.ticks.template.length = 10;
+  axis.renderer.grid.template.disabled = true;
+  axis.renderer.labels.template.radius = am4core.percent(40);
+  axis.renderer.labels.template.fontSize = "1.2em";
+
+  /**
+   * Axis for ranges
+   */
+
+  var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+  axis2.min = chartMin;
+  axis2.max = chartMax;
+  axis2.strictMinMax = true;
+  axis2.renderer.labels.template.disabled = true;
+  axis2.renderer.ticks.template.disabled = true;
+  axis2.renderer.grid.template.disabled = true; // when true inside tick marks will disappear
+  axis2.renderer.grid.template.opacity = 0.5;
+  axis2.renderer.labels.template.bent = true;
+  axis2.renderer.labels.template.fill = am4core.color("#000");
+  axis2.renderer.labels.template.fontWeight = "bold";
+  axis2.renderer.labels.template.fillOpacity = 0.3;
+
+
+
+  /**
+  Ranges
+  */
+
+  for (let grading of data.gradingData) {
+    var range = axis2.axisRanges.create();
+    range.axisFill.fill = am4core.color(grading.color);
+    range.axisFill.fillOpacity = 0.8;
+    range.axisFill.zIndex = -1;
+    range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
+    range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
+    range.grid.strokeOpacity = 0; // changes opacity of inside tick mark
+    range.stroke = am4core.color(grading.color).lighten(-0.1);
+    range.label.inside = true;
+    range.label.text = grading.title.toUpperCase();
+    range.label.inside = true;
+    range.label.location = 0.5;
+    range.label.inside = true;
+    range.label.radius = am4core.percent(10);
+    range.label.paddingBottom = -5; // ~half font size
+    range.label.fontSize = "1em"; // category label (i.e., N-01, N-02, ....)
+  }
+
+  var matchingGrade = lookUpGrade(data.score, data.gradingData);
+
+  /**
+   * Label 1 (total Percent)
+   */
+
+  var label = chart.radarContainer.createChild(am4core.Label);
+  label.isMeasured = false;
+  label.fontSize = "3.8em";
+  label.x = am4core.percent(50);
+  label.y = am4core.percent(100);
+  label.paddingBottom = -5;
+  label.horizontalCenter = "middle";
+  label.verticalCenter = "bottom";
+  //label.dataItem = data;
+  label.text = data.score.toFixed(0).toString() + "%";
+  //label.text = "{score}";
+  //label.fill = am4core.color(matchingGrade.color);
+  label.fill =  am4core.color("#00C3FF");
+
+  /**
+   * Label 2
+   */
+
+  /*
+  var label2 = chart.radarContainer.createChild(am4core.Label);
+  label2.isMeasured = false;
+  label2.fontSize = "2em";
+  label2.horizontalCenter = "middle";
+  label2.verticalCenter = "bottom";
+  label2.text = matchingGrade.title.toUpperCase();
+  //label2.fill = am4core.color(matchingGrade.color);
+  label2.fill =  am4core.color("#00C3FF");
+  */
+  /**
+   * Hand
+   */
+
+  var hand = chart.hands.push(new am4charts.ClockHand());
+  hand.axis = axis2;
+  hand.innerRadius = am4core.percent(55);
+  hand.startWidth = 8;
+  hand.pin.disabled = true;
+  hand.value = data.score;
+  hand.fill = am4core.color("#000000"); // inner color of needle
+  //hand.stroke = am4core.color("#000");
+  hand.fillOpacity = 0.5;
+
+  /*
+  hand.events.on("positionchanged", function(){
+    label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
+    var value2 = axis.positionToValue(hand.currentPosition);
+    var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
+    label2.text = matchingGrade.title.toUpperCase();
+    label2.fill = am4core.color(matchingGrade.color);
+    label2.stroke = am4core.color(matchingGrade.color);  
+    label.fill = am4core.color(matchingGrade.color);
+  })
+  */
+  /*
+  setInterval(function() {
+      var value = chartMin + Math.random() * (chartMax - chartMin);
+      hand.showValue(value, 1000, am4core.ease.cubicOut);
+  }, 2000);
+  */
+
+}
+treeCuttingTotal()
+  .then(treeCutSummary)
+  .then(treeCuttingFigure);
+
+// Tree Compensation
+  function treeCompenTotal() {
   var total_number_tree = {
     onStatisticField: "CASE WHEN Compensation >= 2 THEN 1 ELSE 0 END",
     outStatisticFieldName: "total_number_tree",
-    statisticType: "sum"
+    statisticType: "count"
   };
 
   var total_compensated_tree = {
@@ -1227,121 +1777,310 @@ function treeCompensationFigure() {
     statisticType: "sum"
   };
 
-  var query = treeLayer.createQuery();
-  query.outStatistics = [total_number_tree, total_compensated_tree];
-  query.returnGeometry = true;
 
-  treeLayer.queryFeatures(query).then(function(response) {
+  var query = treeLayer.createQuery();
+  query.outStatistics = [total_compensated_tree, total_number_tree];
+
+  return treeLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
 
-    const totalnumberTree = stats.total_number_tree;
-    const compensatedTree = stats.total_compensated_tree;
-
-    const TREE_COMPENSATED_PERC = (compensatedTree/totalnumberTree)*100;
-
-// create chart
-var chart = am4core.create("treeCompenChartDiv", am4charts.GaugeChart);
-chart.innerRadius = am4core.percent(82);
-chart.responsive.enabled = true;
-
-/**
- * Normal axis
- */
-
-var axis = chart.xAxes.push(new am4charts.ValueAxis());
-axis.min = 0;
-axis.max = 100;
-axis.strictMinMax = true;
-axis.renderer.radius = am4core.percent(80);
-axis.renderer.inside = true;
-axis.renderer.line.strokeOpacity = 1;
-axis.renderer.ticks.template.disabled = false
-axis.renderer.ticks.template.strokeOpacity = 1;
-axis.renderer.ticks.template.length = 10;
-axis.renderer.grid.template.disabled = true;
-axis.renderer.labels.template.radius = 40;
-axis.renderer.labels.template.adapter.add("text", function(text) {
-  return text + "";
-})
-
-/**
- * Axis for ranges
- */
-
-var colorSet = new am4core.ColorSet();
-
-var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
-axis2.min = 0;
-axis2.max = 100;
-axis2.strictMinMax = true;
-axis2.renderer.labels.template.disabled = true;
-axis2.renderer.ticks.template.disabled = true;
-axis2.renderer.grid.template.disabled = true;
-
-var range0 = axis2.axisRanges.create();
-range0.value = 0;
-range0.endValue = TREE_COMPENSATED_PERC;
-range0.axisFill.fillOpacity = 1;
-range0.axisFill.fill = am4core.color("#00C3FF");
-
-var range1 = axis2.axisRanges.create();
-range1.value = TREE_COMPENSATED_PERC;
-range1.endValue = 100;
-range1.axisFill.fillOpacity = 1;
-range1.axisFill.fill = am4core.color("#C5C5C5");
-range1.axisFill.fillOpacity = 0.3;
-
-/**
- * Label
- */
-var label = chart.radarContainer.createChild(am4core.Label);
-label.isMeasured = false;
-label.fontSize = 45;
-label.x = am4core.percent(50);
-label.y = am4core.percent(100);
-label.horizontalCenter = "middle";
-label.verticalCenter = "bottom";
-
-const LABEL_TEXT = TREE_COMPENSATED_PERC.toFixed(0).toString() + "%";
-label.text = LABEL_TEXT;
-label.fill =  am4core.color("#00C3FF");
-
-
-/**
- * Hand
- */
-
-var hand = chart.hands.push(new am4charts.ClockHand());
-hand.axis = axis2;
-hand.innerRadius = NEEDLE_LENGTH;
-hand.startWidth = 10;
-hand.pin.disabled = true;
-hand.value = TREE_COMPENSATED_PERC;
-hand.fill = am4core.color("#000000");
-hand.fillOpacity = 0.5;
-
-
-// Add chart title
-var title = chart.titles.create();
-title.text = "[bold]TREE COMPENSATION";
-title.fontSize = 20;
-title.align = "center";
-title.marginBottom = -15;
-title.marginTop = 10;
-title.fill = TOP_TITLE_COL;
-
-// Add bottom label
-var label = chart.chartContainer.createChild(am4core.Label);
-label.text = "[bold]COMPENSATED";
-label.fontSize = 15;
-label.align = "center";
-label.fill = BOTTOM_LABEL_COL;
-label.marginTop = -10;
-label.marginBottom = 0;
-
+    const totalCompen = stats.total_compensated_tree;
+    const totalNumber = stats.total_number_tree;
+    //const LOT_HANDOVER_PERC = (handedOver/affected)*100;
+    return totalCompen;
   });
 }
-treeCompensationFigure();
+
+
+function treeCompenSummary(totalCompen) {
+  var total_compensated_tree = {
+    onStatisticField: "CASE WHEN Compensation = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_compensated_tree",
+    statisticType: "sum"
+  }
+
+  var total_number_tree = {
+    onStatisticField: "CASE WHEN Compensation >= 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_number_tree",
+    statisticType: "sum"
+  };
+
+  var query = treeLayer.createQuery();
+  query.outStatistics = [total_compensated_tree, total_number_tree];
+  query.returnGeometry = true;
+  query.groupByFieldsForStatistics = ["CP"];
+
+  var cpN01 = [];
+  var cpN02 = [];
+  var cpN03 = [];
+  var cpN04 = [];
+  var cpN05 = [];
+
+  return treeLayer.queryFeatures(query).then(function(response) {
+    stats = response.features;
+
+    stats.forEach((result, index) => {
+      const attributes = result.attributes;
+      const cpPackage = result.attributes.CP;
+      const compensated = attributes.total_compensated_tree;
+      const TREE_COMPEN_PERC = (compensated/totalCompen)*100;
+
+      if (cpPackage === 'N-01') {
+        cpN01.push(TREE_COMPEN_PERC);
+
+      } else if (cpPackage === 'N-02') {
+        cpN02.push(TREE_COMPEN_PERC);
+      
+      } else if (cpPackage === 'N-03') {
+        cpN03.push(TREE_COMPEN_PERC);
+
+      } else if (cpPackage === 'N-04') {
+        cpN04.push(TREE_COMPEN_PERC);
+
+      } else if (cpPackage === 'N-05') {
+        cpN05.push(TREE_COMPEN_PERC);
+      }
+    });
+    return [cpN01, cpN02, cpN03, cpN04, cpN05];
+  });
+
+} // End of treeCompenSummary function
+
+function treeCompenFigure([cpN01, cpN02, cpN03, cpN04, cpN05]) {
+  var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
+
+  var N01 = Number(cpN01);
+  var N02 = Number(cpN01) + Number(cpN02);
+  var N03 = Number(cpN01) + Number(cpN02) + Number(cpN03);
+  var N04 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04);
+  var N05 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
+  
+
+  var chartMin = 0;
+  var chartMax = 100;
+
+  // #ffea8c|#b3ab60|#4b595e|#6693c8|#aadbff
+  // const colors = ["#ffea8c", "#b3ab60", "#4b595e", "#6693c8", "#aadbff"];
+
+  var data = {
+    score: totalScore,
+    gradingData: [
+      {
+        title: "N-01",
+        color: "#ee1f25",
+        lowScore: 0,
+        highScore: N01
+      },
+      {
+        title: "N-02",
+        color: "#f04922",
+        lowScore: N01,
+        highScore: N02
+      },
+      {
+        title: "N-03",
+        color: "#fdae19",
+        lowScore: N02,
+        highScore: N03
+      },
+      {
+        title: "N-04",
+        color: "#f3eb0c",
+        lowScore: N03,
+        highScore: N04
+      },
+      {
+        title: "N-05",
+        color: "#b0d136",
+        lowScore: N04,
+        highScore: N05
+      },
+      {
+        title: "",
+        color: "#C5C5C5",
+        lowScore: N05,
+        highScore: 100
+      }
+    ]
+  };
+
+  /**
+  Grading Lookup
+  */
+  function lookUpGrade(lookupScore, grades) {
+    // Only change code below this line
+    for (var i = 0; i < grades.length; i++) {
+      if (
+        grades[i].lowScore < lookupScore &&
+        grades[i].highScore >= lookupScore
+      ) {
+        return grades[i];
+      }
+    }
+    return null;
+  }
+
+  // create chart
+  var chart = am4core.create("structureChartDiv", am4charts.GaugeChart);
+  chart.hiddenState.properties.opacity = 0;
+  chart.fontSize = 11;
+  chart.innerRadius = am4core.percent(80);
+  chart.resizable = true;
+  chart.responsive.enabled = true;
+  /**
+   * Chart Title
+   */
+  // Title Color
+  const BOTTOM_LABEL_COL = am4core.color("#FFA500");
+  const TOP_TITLE_COL = am4core.color("#FFFFFF");
+
+  var title = chart.titles.create();
+  title.text = "[bold]TREE CUTTING";
+  title.fontSize = "2em";
+  title.align = "center";
+  title.marginBottom = -15;
+  title.marginTop = 0;
+  title.fill = TOP_TITLE_COL;
+
+  // Add bottom label
+  var label = chart.chartContainer.createChild(am4core.Label);
+  label.text = "[bold]CUT/EARTHBALLED";
+  label.fontSize = "1.5em";
+  label.align = "center";
+  label.marginTop = 0;
+  label.fill = BOTTOM_LABEL_COL;
+
+  /**
+   * Normal axis
+   */
+
+  var axis = chart.xAxes.push(new am4charts.ValueAxis());
+  axis.min = chartMin;
+  axis.max = chartMax;
+  axis.strictMinMax = true;
+  axis.renderer.radius = am4core.percent(80);
+  axis.renderer.inside = true;
+  axis.renderer.line.strokeOpacity = 0.5; // line opacity inside curve line
+  axis.renderer.ticks.template.disabled = false;
+  axis.renderer.ticks.template.strokeOpacity = 1;
+  //axis.renderer.ticks.template.strokeWidth = 1;
+  axis.renderer.ticks.template.length = 10;
+  axis.renderer.grid.template.disabled = true;
+  axis.renderer.labels.template.radius = am4core.percent(40);
+  axis.renderer.labels.template.fontSize = "1.2em";
+
+  /**
+   * Axis for ranges
+   */
+
+  var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+  axis2.min = chartMin;
+  axis2.max = chartMax;
+  axis2.strictMinMax = true;
+  axis2.renderer.labels.template.disabled = true;
+  axis2.renderer.ticks.template.disabled = true;
+  axis2.renderer.grid.template.disabled = true; // when true inside tick marks will disappear
+  axis2.renderer.grid.template.opacity = 0.5;
+  axis2.renderer.labels.template.bent = true;
+  axis2.renderer.labels.template.fill = am4core.color("#000");
+  axis2.renderer.labels.template.fontWeight = "bold";
+  axis2.renderer.labels.template.fillOpacity = 0.3;
+
+
+
+  /**
+  Ranges
+  */
+
+  for (let grading of data.gradingData) {
+    var range = axis2.axisRanges.create();
+    range.axisFill.fill = am4core.color(grading.color);
+    range.axisFill.fillOpacity = 0.8;
+    range.axisFill.zIndex = -1;
+    range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
+    range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
+    range.grid.strokeOpacity = 0; // changes opacity of inside tick mark
+    range.stroke = am4core.color(grading.color).lighten(-0.1);
+    range.label.inside = true;
+    range.label.text = grading.title.toUpperCase();
+    range.label.inside = true;
+    range.label.location = 0.5;
+    range.label.inside = true;
+    range.label.radius = am4core.percent(10);
+    range.label.paddingBottom = -5; // ~half font size
+    range.label.fontSize = "1em"; // category label (i.e., N-01, N-02, ....)
+  }
+
+  var matchingGrade = lookUpGrade(data.score, data.gradingData);
+
+  /**
+   * Label 1 (total Percent)
+   */
+
+  var label = chart.radarContainer.createChild(am4core.Label);
+  label.isMeasured = false;
+  label.fontSize = "3.8em";
+  label.x = am4core.percent(50);
+  label.y = am4core.percent(100);
+  label.paddingBottom = -5;
+  label.horizontalCenter = "middle";
+  label.verticalCenter = "bottom";
+  //label.dataItem = data;
+  label.text = data.score.toFixed(0).toString() + "%";
+  //label.text = "{score}";
+  //label.fill = am4core.color(matchingGrade.color);
+  label.fill =  am4core.color("#00C3FF");
+
+  /**
+   * Label 2
+   */
+
+  /*
+  var label2 = chart.radarContainer.createChild(am4core.Label);
+  label2.isMeasured = false;
+  label2.fontSize = "2em";
+  label2.horizontalCenter = "middle";
+  label2.verticalCenter = "bottom";
+  label2.text = matchingGrade.title.toUpperCase();
+  //label2.fill = am4core.color(matchingGrade.color);
+  label2.fill =  am4core.color("#00C3FF");
+  */
+  /**
+   * Hand
+   */
+
+  var hand = chart.hands.push(new am4charts.ClockHand());
+  hand.axis = axis2;
+  hand.innerRadius = am4core.percent(55);
+  hand.startWidth = 8;
+  hand.pin.disabled = true;
+  hand.value = data.score;
+  hand.fill = am4core.color("#000000"); // inner color of needle
+  //hand.stroke = am4core.color("#000");
+  hand.fillOpacity = 0.5;
+
+  /*
+  hand.events.on("positionchanged", function(){
+    label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
+    var value2 = axis.positionToValue(hand.currentPosition);
+    var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
+    label2.text = matchingGrade.title.toUpperCase();
+    label2.fill = am4core.color(matchingGrade.color);
+    label2.stroke = am4core.color(matchingGrade.color);  
+    label.fill = am4core.color(matchingGrade.color);
+  })
+  */
+  /*
+  setInterval(function() {
+      var value = chartMin + Math.random() * (chartMax - chartMin);
+      hand.showValue(value, 1000, am4core.ease.cubicOut);
+  }, 2000);
+  */
+
+}
+treeCompenTotal()
+  .then(treeCompenSummary)
+  .then(treeCompenFigure);
 
 
 // Utility Relocation
