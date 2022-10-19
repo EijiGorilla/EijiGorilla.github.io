@@ -1327,7 +1327,7 @@ map.add(graphicsLayer);
 //*******************************//
 //      Progress Chart           //
 //*******************************//
-const totalProgressDiv = document.getElementById("totalProgressDiv");
+//const totalProgressDiv = document.getElementById("totalProgressDiv");
 const segmentedDateDiv = document.getElementById("segmentedDateDiv");
 
 // Find current position of TBM
@@ -1508,19 +1508,19 @@ defaultRender();
 // Add Section and tunnel type to drop-down lists
 /// 1. Section
 function sectionTypeValues() {
-var sectionArray = [];
-var query = tbmTunnelLayer.createQuery();
-query.outField = ["Section"];
-query.where = "Section IS NOT NULL";
-query.returnGeometry = true;
-return tbmTunnelLayer.queryFeatures(query).then(function(response) {
-var stats = response.features;
-stats.forEach((result, index) => {
-var attributes = result.attributes;
-const SectionValues = attributes.Section;
-sectionArray.push(SectionValues);
-});
-return sectionArray;
+  var sectionArray = [];
+  var query = tbmTunnelLayer.createQuery();
+  query.outField = ["Section"];
+  query.where = "Section IS NOT NULL";
+  query.returnGeometry = true;
+  return tbmTunnelLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features;
+    stats.forEach((result, index) => {
+    var attributes = result.attributes;
+    const SectionValues = attributes.Section;
+    sectionArray.push(SectionValues);
+  });
+  return sectionArray;
 });
 }
 
