@@ -530,10 +530,9 @@ const tilt_pts = [72.29, 81.91, 78.58, 72.66, 72.48, 73.59];
 
 let abort = false;
 async function startAnimation(slideNo) {
+  play.style.display = "none";
+  pause.style.display = "block";
     if (!view.interactingj && !abort) {
-
-        play.style.display = "none";
-        pause.style.display = "block";
 
         if (slideNo < comp_pts.length) {
             if (slideNo === 0) {
@@ -566,16 +565,20 @@ pause.onclick = function() {
     abort = true;
 };
 
-function initialization() {
+async function initialization() {
+  abort = false;
+
   document.getElementById("N-04").checked = true;
   viaductLayer.definitionExpression = "CP = 'N-04'";
   PierNoLayer.definitionExpression = "CP = 'N-04'";
-  //chartAllViaduct();
-  //perCpProgress();
-  
+
+  addStop();
+  await startAnimation(0);
+  /*
     window.setTimeout(function() {
         startAnimation(0);
     }, 1)
+    */
 }
 
 
