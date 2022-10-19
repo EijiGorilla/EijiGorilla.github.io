@@ -4,7 +4,7 @@ require([
     "esri/views/MapView",
     "esri/views/SceneView",
     "esri/layers/FeatureLayer",
-    "esri/views/layers/support/FeatureFilter",
+    "esri/layers/support/FeatureFilter",
     "esri/layers/SceneLayer",
     "esri/layers/Layer",
     "esri/layers/TileLayer",
@@ -1177,7 +1177,7 @@ async function initialization() {
               // Layer
               if (selectedC === "Incomplete") {
                   selectedStatus = 1;
-              } else if (selecteC === "Delay"){
+              } else if (selectedC === "Delay"){
                   selectedStatus = 3;
               } else if (selectedC === "Complete") {
                   selectedStatus = 4;
