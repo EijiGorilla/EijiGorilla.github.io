@@ -1428,7 +1428,6 @@ natmLayer.definitionExpression = null;
 //stationStructure.definitionExpression = "Section = 'PO'";
 tbmChart();
 natmChart();
-totalProgessAllTunnel();
 }
 defaultRender();
 
@@ -1577,7 +1576,6 @@ sectionOnlyExpression(sectionType);
 tbmChart();
 natmChart();
 SurveyChart();
-totalProgessAllTunnel();
 
 filterTbm();
 filterNatm();
@@ -1601,8 +1599,6 @@ zoomToLayer(natmLayer);
 tbmChart();
 natmChart();
 SurveyChart();
-totalProgessAllTunnel();
-
 
 filterTbm();
 filterNatm();
