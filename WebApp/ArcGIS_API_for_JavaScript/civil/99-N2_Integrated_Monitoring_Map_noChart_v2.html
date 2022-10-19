@@ -2157,7 +2157,7 @@ var compensationLayer = new FeatureLayer ({
     }
   },
   outFields: ["*"],
-  title: "Status oi Tree Compensation",
+  title: "Status of Tree Compensation",
   renderer: treeCompensationRenderer,
   popupTemplate: {
     title: "<h5>Compensation Status: {Compensation}</h5>",
@@ -2728,13 +2728,6 @@ var handoverdateSelect = document.getElementById("handoverdateSelect");
 //// Drop Down list for CP and Priority
 // Query all features from the lot layer to add all CPs to a drop-down list
 
-if (document.getElementById("Tree Cutting").checked = true) {
-    treeCuttingLayer.visible = true;
-    compensationLayer.visible = false;
-
-}
-
-
 view.when(function() {
     return lotLayer.when(function() {
         var query = lotLayer.createQuery();
@@ -2976,35 +2969,35 @@ cpSelect.addEventListener("change", function() {
     filterLotMunicipality();
 
     view.whenLayerView(lotLayer).then(function (layerView) {
-  lotLayer.queryFeatures().then(function(results) {
-const ggg = results.features;
-    const rowN = ggg.length;
+      lotLayer.queryFeatures().then(function(results) {
+      const ggg = results.features;
+        const rowN = ggg.length;
 
-    let objID = [];
-    for (var i=0; i < rowN; i++) {
-        var obj = results.features[i].attributes.OBJECTID;
-        objID.push(obj);
-    }
+      let objID = [];
+      for (var i=0; i < rowN; i++) {
+          var obj = results.features[i].attributes.OBJECTID;
+          objID.push(obj);
+      }
 
-    var queryExt = new Query({
-        objectIds: objID
-    });
+      var queryExt = new Query({
+          objectIds: objID
+      });
 
-    lotLayer.queryExtent(queryExt).then(function(result) {
-        if (result.extent) {
-            view.goTo(result.extent)
-        }
-    });
+      lotLayer.queryExtent(queryExt).then(function(result) {
+          if (result.extent) {
+              view.goTo(result.extent)
+          }
+      });
 
-    if (highlightSelect) {
+      if (highlightSelect) {
+          highlightSelect.remove();
+      }
+      highlightSelect = layerView.highlight(objID);
+
+      view.on("click", function() {
+        layerView.filter = null;
         highlightSelect.remove();
-    }
-    highlightSelect = layerView.highlight(objID);
-
-    view.on("click", function() {
-    layerView.filter = null;
-    highlightSelect.remove();
-    });
+      });
 }); // End of queryFeatures
 layerView.filter = {
 where: "CP = '" + type + "'"
@@ -3088,9 +3081,6 @@ const ggg = results.features;
   }
 });
 
-// Event-listener for structure-ISF chart switch button
-const structureChartChangeButton= document.getElementById("dataTypeInput");
-const treeChartChangeButton = document.getElementById("treeCompensationDiv");
 
 // Tree Chart switch button
 /*
@@ -3114,21 +3104,6 @@ function filterByType(e) {
 }
 */
 
-structureChartChangeButton.addEventListener("change", filterByType);
-function filterByType(e) {
-  const selectedType = e.target.id;
-  if(selectedType == "Tree Cutting") {
-    treeCuttingLayer.visible = true;
-    compensationLayer.visible = false;
-   
-
-  } else if (selectedType == "Tree Compensation") {
-    treeCuttingLayer.visible = false;
-    compensationLayer.visible = true;
-
-  }
-
-}
 
 
 
@@ -3280,7 +3255,7 @@ view.when(function () {
             view: view,
             listItemCreatedFunction: function(event) {
               const item = event.item;
-              if (item.title === "Chainage" || item.title === "Viaduct" || item.title === "Pier No"){
+              if (item.title === "Chainage" || item.title === "Viaduct" || item.title === "Pier No" || item.title === "Status of Tree Compensation"){
                 item.visible = false
               }
             }
@@ -3495,10 +3470,6 @@ view.ui.add("menu", "bottom-right");
     <div id="viewDiv">
         <div id="headerTitleDiv">N2 Pre-Construction</div>
         <div class="dateDiv">As of July 4, 2022</div>
-          <div id="dataTypeInput" class="chartButtonClass">
-            <input type="radio" id="Tree Cutting" name="dataTypeInput" checked/>Tree Cutting
-            <input type="radio" id="Tree Compensation" name="dataTypeInput">Tree Compensation
-          </div>
           <div class="esri-widget" id="dropdownDiv">
             <label for="sel-options">CP:</label>
             <select id="cpSelect" class="esri-widget"></select>
