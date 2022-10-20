@@ -24,7 +24,7 @@ require([
     const smartMapSource = ["https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Land_Structure2/index.html", // Land Acquisition
                             "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Tree_Cutting/index.html", // Tree Cutting
                             "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/N2_Utility_Relocation/index.html", // Utility Relocation
-                            "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/N2_Viaduct/index.html", // Viaduct
+                            "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/N2_Viaduct/index2.html", // Viaduct
                             "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/N2_Station_Structure/index.html", // Station Structure
                             "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/N2_Depot_Building/index.html", // Depot Building
                             "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Environment_Monitoring/index.html"] // Environment Monitoring]
