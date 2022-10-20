@@ -20,10 +20,8 @@ require([
   "esri/widgets/LayerList",
   "esri/widgets/Fullscreen",
   "esri/tasks/GeometryService",
-  "esri/tasks/support/Query",
-  "esri/tasks/QueryTask",
-  "esri/renderers/smartMapping/statistics/summaryStatistics",
-  "esri/tasks/support/StatisticDefinition",
+  "esri/rest/support/Query",
+  "esri/rest/support/StatisticDefinition",
   "esri/symbols/WebStyleSymbol",
   "esri/TimeExtent",
   "esri/widgets/Expand",
@@ -34,7 +32,6 @@ require([
   "esri/widgets/Compass",
   "esri/layers/ElevationLayer",
   "esri/Ground",
-  "esri/tasks/support/RelationshipQuery",
   "esri/layers/GraphicsLayer",
   "esri/widgets/Search",
 ], function(Basemap, Map, MapView, SceneView, 
@@ -43,10 +40,10 @@ require([
             LabelClass, LabelSymbol3D, WebMap,
             WebScene, PortalItem, Portal,
             TimeSlider, Legend, LayerList, Fullscreen,
-            GeometryService, Query, QueryTask, summaryStatistics,
+            GeometryService, Query,
             StatisticDefinition, WebStyleSymbol,
             TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
-            FeatureTable, Compass, ElevationLayer, Ground, RelationshipQuery,
+            FeatureTable, Compass, ElevationLayer, Ground,
             GraphicsLayer, Search) {
 
 ////////////////////////////////////////////////////
