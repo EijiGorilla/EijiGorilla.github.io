@@ -24,13 +24,13 @@ require([
     const underConstruction = "Under Construction";
 
    
-    const smartMapSource = ["https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/SC_Land_and_Structure2/index.html", // Land Acquisition
-                            "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/SC1_Land_and_Structure/index.html", // Land Acquisition for SC2
+    const smartMapSource = ["https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/SC_Land_Structure2/index.html", // Land Acquisition
+                            "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/SC1_Land_Structure/index.html", // Land Acquisition for SC2
                             "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/SC_Tree_Cutting/index.html", // Tree Cutting
                             "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/SC_Utility_Relocation/index.html", // Utility Relocation
                             "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/SC_Viaduct/index.html", // Viaduct
                             "Under Construction", // Station Structure
-                            "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/SC_Depot_Building/index.html", // Depot Building
+                            "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/SC_Depot_Building/index.html", // Depot Building
                             "Under Construction"] // Environment Monitoring]
 
     // Default: Land Acquisition
