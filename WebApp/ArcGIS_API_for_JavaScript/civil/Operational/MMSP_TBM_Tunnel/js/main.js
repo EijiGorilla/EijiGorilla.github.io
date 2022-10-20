@@ -124,6 +124,7 @@ const dem = new ElevationLayer({
   view.ui.add(toggle, "top-right");
 
 // OpenStreetMap 3D Buildings
+/*
 let osmSymbol = {
 type: "mesh-3d",
 symbolLayers: [
@@ -153,7 +154,7 @@ osm3D.renderer = {
 type: "simple",
 symbol: osmSymbol
 }
-
+*/
   //
   function shiftCamera(deg) {
     var camera = view.camera.clone();
@@ -1117,7 +1118,7 @@ var stationStructure = new SceneLayer({ //structureLayer
       // when filter using date, example below. use this format
       //definitionExpression: "EndDate = date'2020-6-3'"
   });
-  stationStructure.listMode = "hide";
+  //stationStructure.listMode = "hide";
   map.add(stationStructure, 1);
 
   function renderStructureLayer() {
@@ -1507,71 +1508,73 @@ tunnelSelect.add(option);
 
 
 function sectionOnlyExpression(sectionValue) {
-if (sectionValue === 'None') {
-tbmTunnelLayer.definitionExpression = null;
-natmLayer.definitionExpression = null;
-} else {
-tbmTunnelLayer.definitionExpression = "Section = '" + sectionValue + "'";
-natmLayer.definitionExpression = "Section = '" + sectionValue + "'";
-}
+  if (sectionValue === 'None') {
+    tbmTunnelLayer.definitionExpression = null;
+    natmLayer.definitionExpression = null;
+  } else {
+    tbmTunnelLayer.definitionExpression = "Section = '" + sectionValue + "'";
+    natmLayer.definitionExpression = "Section = '" + sectionValue + "'";
+  }
 }
 
 function sectionTunnelTypeExpression(sectionValue, tunnelValue) {
-if (sectionValue === 'None' && tunnelValue === 'None') {
-tbmTunnelLayer.definitionExpression = null;
-natmLayer.definitionExpression = null;
+  if (sectionValue === 'None' && tunnelValue === 'None') {
+    tbmTunnelLayer.definitionExpression = null;
+    natmLayer.definitionExpression = null;
 
-} else if (sectionValue !== 'None' && tunnelValue === 'None') {
-tbmTunnelLayer.definitionExpression = "Section = '" + sectionValue + "'";
-natmLayer.definitionExpression = "Section = '" + sectionValue + "'";
+  } else if (sectionValue !== 'None' && tunnelValue === 'None') {
+    tbmTunnelLayer.definitionExpression = "Section = '" + sectionValue + "'";
+    natmLayer.definitionExpression = "Section = '" + sectionValue + "'";
 
-} else if (sectionValue === 'None' && tunnelValue === 'TBM') {
-tbmTunnelLayer.definitionExpression = null;
-natmLayer.visible = false;
+  } else if (sectionValue === 'None' && tunnelValue === 'TBM') {
+    tbmTunnelLayer.definitionExpression = null;
+    natmLayer.visible = false;
 
-} else if (sectionValue === 'None' && tunnelValue === 'NATM') {
-tbmTunnelLayer.visible = false;
-natmLayer.visible = true;
-natmLayer.definitionExpression = null;
+  } else if (sectionValue === 'None' && tunnelValue === 'NATM') {
+    tbmTunnelLayer.visible = false;
+    natmLayer.visible = true;
+    natmLayer.definitionExpression = null;
 
-} else if (sectionValue === 'PO' && tunnelValue === 'TBM') {
-tbmTunnelLayer.definitionExpression = "Section = '" + sectionValue + "'";
-natmLayer.visible = false;
+  } else if (sectionValue === 'PO' && tunnelValue === 'TBM') {
+    tbmTunnelLayer.definitionExpression = "Section = '" + sectionValue + "'";
+    natmLayer.visible = false;
 
-} else if (sectionValue === 'Remaining' && tunnelValue === 'NATM') {
-tbmTunnelLayer.visible = false;
-natmLayer.visible = true;
-natmLayer.definitionExpression = null;
+  } else if (sectionValue === 'Remaining' && tunnelValue === 'NATM') {
+    tbmTunnelLayer.visible = false;
+    natmLayer.visible = true;
+    natmLayer.definitionExpression = null;
 
-} else if (sectionValue === 'Remaining' && tunnelValue === 'TBM') {
-tbmTunnelLayer.visible = "Section = '" + sectionValue + "'";
-natmLayer.visible = false;
+  } else if (sectionValue === 'Remaining' && tunnelValue === 'TBM') {
+    tbmTunnelLayer.visible = "Section = '" + sectionValue + "'";
+    natmLayer.visible = false;
+  }
 }
-
-}
-
-
 
 function filterTbm() {
-var query2 = tbmTunnelLayer.createQuery();
-query2.where = tbmTunnelLayer.definitionExpression; // use filtered municipality. is this correct?
-
+  var query2 = tbmTunnelLayer.createQuery();
+  query2.where = tbmTunnelLayer.definitionExpression; // use filtered municipality. is this correct?
 }
 
 function filterNatm() {
-var query2 = natmLayer.createQuery();
-query2.where = natmLayer.definitionExpression; // use filtered municipality. is this correct?
-
+  var query2 = natmLayer.createQuery();
+  query2.where = natmLayer.definitionExpression; // use filtered municipality. is this correct?
 }
 
 // Dropdown List
+// When section is changed, tunnel type is reset to 'None'
+const changeSelected = (e) => {
+  const $select = document.querySelector('#tunnelSelect');
+  $select.value = 'None'
+  };
+
 /// 1. Section dropdown list ('PO', 'Remaining')
-sectionSelect.addEventListener("change", function() {
+sectionSelect.addEventListener("change", function(event) {
 var sectionType = event.target.value;
 //headerTitleDiv.innerHTML = sectionType;
 
 filterForTunnelType(sectionType);
 sectionOnlyExpression(sectionType);
+changeSelected();
 
 tbmChart();
 natmChart();
@@ -1584,7 +1587,7 @@ filterNatm();
 
 
 /// 2. Tunnel Type dropdown list ('TBM', 'NATM')
-tunnelSelect.addEventListener("change", function() {
+tunnelSelect.addEventListener("change", function(event) {
 var tunnelType = event.target.value;
 var sectionType = sectionSelect.value;
 
@@ -2348,7 +2351,11 @@ timeSlider.watch("timeExtent", function(timeExtent) {
 // Reset graphics layer
 graphicsLayer.removeAll();
 
-tbmTunnelLayer.definitionExpression = "startdate <= date'" + timeExtent.end.getFullYear() + "-" + (timeExtent.end.getMonth()+1) + "-" + (timeExtent.end.getDate()) +"'";
+const dateFilterExpression = "startdate <= date'" + timeExtent.end.getFullYear() + "-" + (timeExtent.end.getMonth()+1) + "-" + (timeExtent.end.getDate()) +"'";
+
+// Run based on selected Section values
+const selectValue = sectionSelect.value;
+tbmTunnelLayer.definitionExpression = selectValue === "PO" ? "Section = 'PO'" + " AND " + dateFilterExpression : "Section = 'Remaining'" + " AND " + dateFilterExpression;
 
 const tunnelStart = timeExtent.end.getFullYear() + "-" + (timeExtent.end.getMonth()+1) + "-" + (timeExtent.end.getDate());
 const tunnelStartTitle = "Segmentation Plan Date:";
@@ -2433,14 +2440,15 @@ timeLayerView = layerView;
 
 view.on("click", function() {
     timeLayerView.filter = null;
-    tbmTunnelLayer.definitionExpression = null;
+
+    // filter tbm layer using currently selected section type: PO or Remaining
+    const sectionValue = sectionSelect.value;
+    tbmTunnelLayer.definitionExpression = sectionValue === "PO" ? "Section = 'PO'" : "Section = 'Remaining'";
     graphicsLayer.removeAll();
     segmentedDateDiv.style.display = 'none';
   });
 });
 
-
-//
 
 //*****************************//
 //      LayerList             //
@@ -2559,6 +2567,6 @@ document
 //map.ground.opacity = event.target.checked ? 0.1 : 0.9;
 map.ground.opacity = event.target.checked ? 0.1 : 0.6;
 });
-view.ui.add("menu", "bottom-right");
+view.ui.add("menu", "top-right");
 
 });
