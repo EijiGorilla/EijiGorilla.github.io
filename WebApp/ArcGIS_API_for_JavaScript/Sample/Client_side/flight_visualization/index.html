@@ -301,6 +301,92 @@
 
         // check 29:36
 
+        // Update the Total of planes
+        function updateTotal(total) {
+            document.getElementById("num-plane-in-the-air-total") = total;
+        }
+
+        // document.getElementById("updated").style.visibility..
+
+        // Create the features graphic with the geometry
+        function createGraphics(flightinfos, state, objectId){
+            return new Graphic({
+                geometry: new Point({
+                    x: flightinfos[5] ? flightinfos[5] : 0,
+                    y: flightinfos[6] ? flightinfos[6] : 0,
+                    z: exaggeratedHeight * (flightinfos[7] ? flightinfos[7] : 0),
+                    spatialReference: SpatialReference.WGS84,
+                }),
+                attributes: {
+                    objectID: objectId,
+                    state: state,
+                    icao24: flightinfos[0],
+                    callsign: flightinfos[1],
+                    origin_country: flightinfos[2] ? flightinfos[2] : "",
+                    last_contact: flightinfos[4],
+                    baro_altitude: flightinfos[7] ? flightinfos[7] : 0,
+                    on_ground: flightinfos[8] ? flightinfos[8] : "", // ?
+                    velocity: flightinfos[9] ? flightinfos[9] : 0,
+                    true_track: flightinfos[10] ? flightinfos[10] : 0,
+                    vertical_rate: flightinfos[11] ? flightinfos[11] : 0,
+                    geo_altitude: flightinfos[13] ? flightinfos[13] : 0,
+                    squawk: flightinfos[14] ? flightinfos[14] : "",
+                    position_source: flightinfos[16] ? flightinfos[16] : 0,
+                },
+            });
+        }
+
+        // Get the fight position from the open sky network
+        function getFlightPosition() { // 29:39
+            const url = "";
+            extent.ymin +
+            "&lomin=" +
+            extent.xmin +
+            "&lamax=" +
+            extent.ymax + 
+            "&lomax=" +
+            extent.xmax;
+            esriRequest(url, {
+                responseType: "json",
+            }).then(function(response) {
+                // Thre requested data
+                const flightsinfos = response.data.state;
+                featureLayer.queryFeatures().then(function(currentfeatures) {
+                    updateTotal(currentfeatures.features.length);
+                    let addfeatures = [];
+                    let updateFeatures = [];
+                    let deleteFeatures = [];
+                    let matchedObjectIdFeatures = [];
+                    for (let flightinfos of flightsinfos) {
+                        // only show flight that are in the air
+                        if (!flightinfos[0]) {
+                            let matched = false;
+                            let matchedObjectId = null;
+                            for (let currentfeature of currentfeatures.features) {
+                                if (flightinfos[0] === currentfeature.attributes) { // Unknown after attributes
+                                    matchedObjectId = currentfeature.attributes; // ?? 
+                                    matchedObjectIdFeatures.push(matchedObjectId); // ??
+                                    matched = true;
+                                    break;
+                                }
+                            }
+                            if (!matched) {
+                                addfeatures.push(createGraphics(flightinfos)) //?
+                            } else {
+                                updateFeatures.push(createGraphics(flightinfos, "update", matched)) //??
+                            };
+                        }
+                    }
+                })
+            })
+
+
+        }
+
+
+
+
+
 
 
 
