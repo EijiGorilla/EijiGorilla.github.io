@@ -4,7 +4,7 @@ require([
   "esri/views/MapView",
   "esri/views/SceneView",
   "esri/layers/FeatureLayer",
-  "esri/views/layers/support/FeatureFilter",
+  "esri/layers/support/FeatureFilter",
   "esri/layers/SceneLayer",
   "esri/layers/Layer",
   "esri/layers/TileLayer",
@@ -294,6 +294,14 @@ type: "web-style",
 name: name,
 styleName: "EsriRealisticStreetSceneStyle"
 };
+}
+
+function utilPtSymbolSignal(name) {
+  return {
+    type: "web-style",
+    name: name,
+    styleName: "EsriRealisticSignsandSignalsStyle"
+  };
 }
 
 function utilPtSymbolIcons(name) {
@@ -635,7 +643,7 @@ var utilTypePtRenderer = {
       },
       {
         value: "Traffic Light",
-        symbol: utilPtSymbolStreet("Traffic_Light_4")
+        symbol: utilPtSymbolSignal("Traffic_Light_4")
       },
       {
           value: "Road Safety Signs",
@@ -1854,7 +1862,7 @@ var query2 = testLine.createQuery();
 
 // CP: undefined, Company: undefined
 if (stationValue === undefined && companyValue === undefined) {
-query.where = "1=1";
+query2.where = "1=1";
 
 // CP: None, Company: !None
 } else if (stationValue === 'None' && companyValue !== 'None') {
@@ -7329,15 +7337,6 @@ locationEnabled: false,
 allPlaceholder: "Chainage or Utility ID",
 includeDefaultSources: false,
 sources: [
-{
-layer: chainageLayer,
-searchFields: ["KM_MAIN"],
-displayField: "KM_MAIN",
-exactMatch: false,
-outFields: ["KM_MAIN"],
-name: "Main KM",
-placeholder: "example: 80+400"
-},
 {
 layer: testUtilPt,
 searchFields: ["Id"],
