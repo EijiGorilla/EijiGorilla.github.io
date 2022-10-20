@@ -7,7 +7,9 @@
 <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/css/main.css">
 <!--script src="https://js.arcgis.com/4.4/"></script-->
 <!--script src="js/three.js"></script-->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.144.0/three.js"></script>
+<script src="https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/train/js/three.js"></script>
+<script src="https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/train/js/three.js"></script>
+
 <script src="https://js.arcgis.com/4.24/"></script>
 <!--script src="./OBJLoader.js"></script-->
 
@@ -197,6 +199,30 @@ var view = new SceneView({
       }.bind(this), undefined, function(error) {
         console.error("Error loading ISS mesh. ", error);
       });*/
+
+
+      // load ISS mesh
+      var issMeshUrl = "https://EijiGorilla.github.io/Symbols/3D_Web_Style/Streetlight2.obj";
+      var loader = new THREE.OBJLoader();
+      loader.load(issMeshUrl, function(object3d) {
+        console.log("ISS mesh loaded.");
+        this.iss = object3d;
+
+        // apply ISS material to all nodes in the geometry
+        this.iss.traverse( function ( child ) {
+          if ( child instanceof THREE.Mesh ) {
+            child.material = this.issMaterial;
+          }
+        }.bind(this));
+
+        // set the specified scale for the model
+        this.iss.scale.set(this.issScale,this.issScale,this.issScale);
+
+        // add the model
+        this.scene.add(this.iss);
+      }.bind(this), undefined, function(error) {
+        console.error("Error loading ISS mesh. ", error);
+      });
 
       // create cube to mark the ISS position (instead of loading an OBJ)
       const geometry = new THREE.SphereBufferGeometry(120*1000, 16, 16);
