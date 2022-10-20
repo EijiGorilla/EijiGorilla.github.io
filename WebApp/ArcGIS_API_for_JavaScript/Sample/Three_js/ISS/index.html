@@ -5,11 +5,9 @@
 <title>Use three.js from an external renderer - 4.4</title>
 
 <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/css/main.css">
-<!--script src="https://js.arcgis.com/4.4/"></script-->
-<!--script src="js/three.js"></script-->
-<script src="https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/train/js/three.js"></script>
-<script src="https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/train/js/three.js"></script>
 
+<script src="https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/train/js/three.js"></script>
+<script src="https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/train/js/OBJLoader.js"></script>
 <script src="https://js.arcgis.com/4.24/"></script>
 <!--script src="./OBJLoader.js"></script-->
 
@@ -104,7 +102,7 @@ var view = new SceneView({
 
  // Disable lighting based on the current camera position.
   // We want to display the lighting according to the current time of day.
-  view.environment.lighting.cameraTrackingEnabled = false;
+  //view.environment.lighting.cameraTrackingEnabled = false;
 
   // Create our custom external renderer
   //////////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +116,7 @@ var view = new SceneView({
     sun: null,          // three.js sun light source
 
     iss: null,                                                          // ISS model
-    issScale: 40000,                                                    // scale for the iss model
+    issScale: 10000,                                                    // scale for the iss model
     issMaterial: new THREE.MeshLambertMaterial({ color: 0x2194ce, transparent: true, opacity: 0.5 }),    // material for the ISS model
 
     cameraPositionInitialized: false, // we focus the view on the ISS once we receive our first data point
@@ -178,37 +176,13 @@ var view = new SceneView({
       
       
       // load ISS mesh
-      /*var issMeshUrl = "data/solar_cells.obj";
-      var loader = new THREE.OBJLoader(THREE.DefaultLoadingManager);
-      loader.load(issMeshUrl, function(object3d) {
-        console.log("ISS mesh loaded.");
-        this.iss = object3d;
-
-        // apply ISS material to all nodes in the geometry
-        this.iss.traverse( function ( child ) {
-          if ( child instanceof THREE.Mesh ) {
-            child.material = this.issMaterial;
-          }
-        }.bind(this));
-
-        // set the specified scale for the model
-        this.iss.scale.set(this.issScale,this.issScale,this.issScale);
-
-        // add the model
-        this.scene.add(this.iss);
-      }.bind(this), undefined, function(error) {
-        console.error("Error loading ISS mesh. ", error);
-      });*/
-
-
-      // load ISS mesh
-      var issMeshUrl = "https://EijiGorilla.github.io/Symbols/3D_Web_Style/Streetlight2.obj";
+      var issMeshUrl = "https://EijiGorilla.github.io/Symbols/3D_Web_Style/monkey.obj";
       var loader = new THREE.OBJLoader();
       loader.load(issMeshUrl, function(object3d) {
         console.log("ISS mesh loaded.");
         this.iss = object3d;
 
-        // apply ISS material to all nodes in the geometry
+                // apply ISS material to all nodes in the geometry
         this.iss.traverse( function ( child ) {
           if ( child instanceof THREE.Mesh ) {
             child.material = this.issMaterial;
@@ -224,25 +198,18 @@ var view = new SceneView({
         console.error("Error loading ISS mesh. ", error);
       });
 
-      // create cube to mark the ISS position (instead of loading an OBJ)
-      const geometry = new THREE.SphereBufferGeometry(120*1000, 16, 16);
-      this.iss = new THREE.Mesh(geometry, this.issMaterial);
-      this.scene.add(this.iss);
-
+      // start querying the ISS position
+      this.queryISSPosition();
+      
       // create the horizon model
       var mat = new THREE.MeshBasicMaterial({ color: 0x2194ce });
       mat.transparent = true;
       mat.opacity = 0.5;
       this.region = new THREE.Mesh(
-        new THREE.TorusBufferGeometry(1000*1000, 10*1000, 16, 64),
+        new THREE.TorusGeometry(1000*1000, 10*1000, 16, 64),
         mat
       );
       this.scene.add(this.region);
-
-
-      // start querying the ISS position
-      this.queryISSPosition();
-
       // cleanup after ourselfs
       context.resetWebGLState();
     },
@@ -289,7 +256,7 @@ var view = new SceneView({
 
       // update lighting
       /////////////////////////////////////////////////////////////////////////////////////////////////////
-      view.environment.lighting.date = Date.now();
+      //view.environment.lighting.date = Date.now();
 
       var l = context.sunLight;
       this.sun.position.set(
@@ -303,8 +270,8 @@ var view = new SceneView({
       this.ambient.intensity = l.ambient.intensity;
       this.ambient.color = new THREE.Color(l.ambient.color[0], l.ambient.color[1], l.ambient.color[2]);
 
-      this.iss.rotation.x += 0.01;
-      this.iss.rotation.y += 0.01;
+      //this.iss.rotation.x += 0.01;
+      //this.iss.rotation.y += 0.01;
 
       // draw the scene
       /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -416,6 +383,7 @@ var view = new SceneView({
           var markerObject = new THREE.Mesh(this.markerGeometry, this.markerMaterial);
           markerObject.position.set(renderPos[0], renderPos[1], renderPos[2]);
           this.scene.add(markerObject);
+          
         }
       }.bind(this))
       //.always(function() { // change "always" to "then"
