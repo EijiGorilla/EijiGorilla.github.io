@@ -30,7 +30,7 @@ require([
                             "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/SC_Utility_Relocation/index.html", // Utility Relocation
                             "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/SC_Viaduct/index.html", // Viaduct
                             "Under Construction", // Station Structure
-                            "Under Construction", // Depot Building
+                            "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/SC_Depot_Building/index.html", // Depot Building
                             "Under Construction"] // Environment Monitoring]
 
     // Default: Land Acquisition
