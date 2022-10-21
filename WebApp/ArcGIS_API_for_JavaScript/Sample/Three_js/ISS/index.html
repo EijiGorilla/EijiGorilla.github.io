@@ -8,6 +8,7 @@
 
 <script src="https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/train/js/three.js"></script>
 <script src="https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/train/js/OBJLoader.js"></script>
+<script src="https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/train/js/GLTFLoader.js"></script>
 <script src="https://js.arcgis.com/4.24/"></script>
 <!--script src="./OBJLoader.js"></script-->
 
@@ -118,7 +119,7 @@ var view = new SceneView({
     ambient: null,      // three.js ambient light source
     sun: null,          // three.js sun light source
     iss: null,          // ISS model
-    issScale: 100000,   // scale for the iss model
+    issScale: 1000,   // scale for the iss model
     up: null,
     issMaterial: new THREE.MeshLambertMaterial({ color: 0x2194ce, transparent: true, opacity: 0.5 }),    // material for the ISS model
 
@@ -178,18 +179,16 @@ var view = new SceneView({
       this.markerMaterial = new THREE.MeshBasicMaterial({ color: 0xe03110, transparent: true, opacity: 0.5});
       
       // load ISS mesh
-      var issMeshUrl = "https://EijiGorilla.github.io/Symbols/3D_Web_Style/monkey.obj";
-      var loader = new THREE.OBJLoader();
-      loader.load(issMeshUrl, function(object3d) {
-        console.log("ISS mesh loaded.");
-        this.iss = object3d;
+      var issMeshUrl = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/ISS_stationary.glb";
+      var loaderGLTF = new THREE.GLTFLoader();
+      let example = new THREE.Object3D();
 
-        // apply ISS material to all nodes in the geometry
-        this.iss.traverse( function ( child ) {
-          if ( child instanceof THREE.Mesh ) {
-            child.material = this.issMaterial;
-          }
-        }.bind(this));
+      loaderGLTF.load(issMeshUrl, function(gltf) {
+        console.log("ISS mesh loaded.");
+
+        example = gltf.scene;
+        this.iss = example;
+
         // set the specified scale for the model
         this.iss.scale.set(this.issScale,this.issScale,this.issScale);
 
@@ -252,8 +251,8 @@ var view = new SceneView({
         //this.iss.position.set(6097331.56719063, 2630569.6767060673, -1358599.3252258722);
 
       // rotation
-      this.iss.rotation.x += 0.01;
-      this.iss.rotation.y += 0.01;
+      this.iss.rotation.x += 0.001;
+      this.iss.rotation.y += 0.001;
         // for the region, we position a torus slightly under ground
         // the torus also needs to be rotated to lie flat on the ground
         posEst = [posEst[0], posEst[1], 1000];
