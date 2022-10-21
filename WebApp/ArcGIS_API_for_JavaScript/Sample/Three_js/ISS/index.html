@@ -29,6 +29,7 @@
 <!-- Our application -->
 <script>
 require([
+"esri/core/Accessor",
   "esri/Map",
   "esri/views/SceneView",
   "esri/views/3d/externalRenderers",
@@ -37,6 +38,7 @@ require([
   "dojo/domReady!"
 ],
 function(
+  Accessor,
   Map,
   SceneView,
   externalRenderers,
@@ -112,11 +114,12 @@ var view = new SceneView({
     camera: null,       // three.js camera
     scene: null,        // three.js scene
 
+    light: null,
     ambient: null,      // three.js ambient light source
     sun: null,          // three.js sun light source
-
-    iss: null,                                                          // ISS model
-    issScale: 10000,                                                    // scale for the iss model
+    iss: null,          // ISS model
+    issScale: 100000,   // scale for the iss model
+    up: null,
     issMaterial: new THREE.MeshLambertMaterial({ color: 0x2194ce, transparent: true, opacity: 0.5 }),    // material for the ISS model
 
     cameraPositionInitialized: false, // we focus the view on the ISS once we receive our first data point
@@ -137,6 +140,7 @@ var view = new SceneView({
         premultipliedAlpha: false
       });
       this.renderer.setPixelRatio(window.devicePixelRatio);
+      this.renderer.setSize(context.camera.fullWidth, context.camera.fullHeight);
       this.renderer.setViewport(0, 0, view.width, view.height);
 
       // prevent three.js from clearing the buffers provided by the ArcGIS JS API.
@@ -170,10 +174,8 @@ var view = new SceneView({
       this.scene.add(this.sun);
 
       // setup markers
-      this.markerGeometry = new THREE.SphereBufferGeometry(12*1000, 16, 16);
+      this.markerGeometry = new THREE.SphereGeometry(12*1000, 16, 16);
       this.markerMaterial = new THREE.MeshBasicMaterial({ color: 0xe03110, transparent: true, opacity: 0.5});
-      
-      
       
       // load ISS mesh
       var issMeshUrl = "https://EijiGorilla.github.io/Symbols/3D_Web_Style/monkey.obj";
@@ -182,13 +184,12 @@ var view = new SceneView({
         console.log("ISS mesh loaded.");
         this.iss = object3d;
 
-                // apply ISS material to all nodes in the geometry
+        // apply ISS material to all nodes in the geometry
         this.iss.traverse( function ( child ) {
           if ( child instanceof THREE.Mesh ) {
             child.material = this.issMaterial;
           }
         }.bind(this));
-
         // set the specified scale for the model
         this.iss.scale.set(this.issScale,this.issScale,this.issScale);
 
@@ -197,6 +198,17 @@ var view = new SceneView({
       }.bind(this), undefined, function(error) {
         console.error("Error loading ISS mesh. ", error);
       });
+
+      //
+      /*
+      // create cube to mark the ISS position (instead of loading an OBJ)
+      const geometry = new THREE.SphereBufferGeometry(120*1000, 16, 16);
+      this.iss = new THREE.Mesh(geometry, this.issMaterial);
+      this.scene.add(this.iss);
+*/
+      this.light = new THREE.DirectionalLight(0xffffff, 1);
+      this.light.position.set(0, 1, 0);
+      this.scene.add(this.light);
 
       // start querying the ISS position
       this.queryISSPosition();
@@ -234,11 +246,17 @@ var view = new SceneView({
 
         var renderPos = [0, 0, 0];
         externalRenderers.toRenderCoordinates(view, posEst, 0, SpatialReference.WGS84, renderPos, 0, 1);
-        this.iss.position.set(renderPos[0], renderPos[1], renderPos[2]);
+        // console.log(renderPos): it looks like it is not converting to positions properly
+        // the renderPos returns 'Nan'. WHY?
+        // If you want the object to be fixed at the position, please define like below;
+        //this.iss.position.set(6097331.56719063, 2630569.6767060673, -1358599.3252258722);
 
+      // rotation
+      this.iss.rotation.x += 0.01;
+      this.iss.rotation.y += 0.01;
         // for the region, we position a torus slightly under ground
         // the torus also needs to be rotated to lie flat on the ground
-        posEst = [posEst[0], posEst[1], -1*1000];
+        posEst = [posEst[0], posEst[1], 1000];
 
         var transform = new THREE.Matrix4();
         transform.fromArray(externalRenderers.renderCoordinateTransformAt(view, posEst, SpatialReference.WGS84, new Array(16)));
@@ -269,9 +287,6 @@ var view = new SceneView({
 
       this.ambient.intensity = l.ambient.intensity;
       this.ambient.color = new THREE.Color(l.ambient.color[0], l.ambient.color[1], l.ambient.color[2]);
-
-      //this.iss.rotation.x += 0.01;
-      //this.iss.rotation.y += 0.01;
 
       // draw the scene
       /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -383,6 +398,10 @@ var view = new SceneView({
           var markerObject = new THREE.Mesh(this.markerGeometry, this.markerMaterial);
           markerObject.position.set(renderPos[0], renderPos[1], renderPos[2]);
           this.scene.add(markerObject);
+
+          // This dynamically follows the position of iss
+         
+          this.iss.position.set(renderPos[0], renderPos[1], renderPos[2])
           
         }
       }.bind(this))
