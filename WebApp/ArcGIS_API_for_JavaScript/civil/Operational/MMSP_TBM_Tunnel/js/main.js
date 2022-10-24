@@ -41,7 +41,9 @@ require([
   "esri/layers/GraphicsLayer",
   "esri/Graphic",
   "esri/geometry/SpatialReference",
-  "esri/core/reactiveUtils"
+  "esri/core/reactiveUtils",
+  "esri/widgets/ElevationProfile",
+  "esri/widgets/ElevationProfile/ElevationProfileLineQuery"
 ], function(Basemap, Map, MapView, SceneView, 
             FeatureLayer, FeatureFilter,
             SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -53,7 +55,8 @@ require([
             TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
             FeatureTable, Compass, TimeExtent, ElevationLayer, Ground, Search,
             BasemapToggle, geometryEngine, Polygon,
-            webMercatorUtils, GraphicsLayer, Graphic, SpatialReference, reactiveUtils) {
+            webMercatorUtils, GraphicsLayer, Graphic, SpatialReference, reactiveUtils,
+            ElevationProfile, ElevationProfileLineQuery) {
 
 let chartLayerView;
 //const features = [];
@@ -2569,4 +2572,29 @@ map.ground.opacity = event.target.checked ? 0.1 : 0.6;
 });
 view.ui.add("menu", "top-right");
 
+// Elevation Profile
+/*
+        // create the elevation profile widget
+        const elevationProfile = new ElevationProfile({
+          view: view,
+          // configure widget with desired profile lines
+          profiles: [
+            {
+              type: "ground" // first profile line samples the ground elevation
+            },
+            {
+              type: "view" // second profile samples the view and shows building profiles
+            }
+          ],
+          // hide the select button
+          // this button can be displayed when there are polylines in the
+          // scene to select and display the elevation profile for
+          visibleElements: {
+            selectButton: true
+          }
+        });
+
+        // add the widget to the view
+        view.ui.add(elevationProfile, "top-right");
+  */      
 });
