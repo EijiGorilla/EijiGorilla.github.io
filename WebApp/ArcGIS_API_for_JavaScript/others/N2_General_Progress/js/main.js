@@ -474,7 +474,7 @@ axis2.renderer.grid.template.opacity = 0.5;
 axis2.renderer.labels.template.bent = true;
 axis2.renderer.labels.template.fill = am4core.color("#000");
 axis2.renderer.labels.template.fontWeight = "bold";
-axis2.renderer.labels.template.fillOpacity = 0.3;
+axis2.renderer.labels.template.fillOpacity = 0.7;
 
 
 
@@ -580,42 +580,28 @@ outStatisticFieldName: "total_number_struc",
 statisticType: "count"
 };
 
-var total_dismantle_struc = {
-onStatisticField: "CASE WHEN StatusStruc = 1 THEN 1 ELSE 0 END",
-outStatisticFieldName: "total_dismantle_struc",
-statisticType: "sum"
-};
-
-
 var query = structureLayer.createQuery();
-query.outStatistics = [total_dismantle_struc, total_number_struc];
+query.outStatistics = [total_number_struc];
 
 return structureLayer.queryFeatures(query).then(function(response) {
 var stats = response.features[0].attributes;
 
-const totalDismantled = stats.total_dismantle_struc;
-const totalNumber = stats.total_number_struc;
+const totalNumberStruc = stats.total_number_struc;
 //const LOT_HANDOVER_PERC = (handedOver/affected)*100;
-return totalDismantled;
+return totalNumberStruc;
 });
 }
 
 
-function strucSummary(totalDismantled) {
+function strucSummary(totalNumberStruc) {
 var total_dismantle_struc = {
 onStatisticField: "CASE WHEN StatusStruc = 1 THEN 1 ELSE 0 END",
 outStatisticFieldName: "total_dismantle_struc",
 statisticType: "sum"
 }
 
-var total_number_struc = {
-onStatisticField: "StrucID",
-outStatisticFieldName: "total_number_struc",
-statisticType: "count"
-};
-
 var query = structureLayer.createQuery();
-query.outStatistics = [total_dismantle_struc, total_number_struc];
+query.outStatistics = [total_dismantle_struc];
 query.returnGeometry = true;
 query.groupByFieldsForStatistics = ["CP"];
 
@@ -632,7 +618,7 @@ stats.forEach((result, index) => {
 const attributes = result.attributes;
 const cpPackage = result.attributes.CP;
 const dismantled = attributes.total_dismantle_struc;
-const STRUC_DISMANTLE_PERC = (dismantled/totalDismantled)*100;
+const STRUC_DISMANTLE_PERC = (dismantled/totalNumberStruc)*100;
 
 if (cpPackage === 'N-01') {
   cpN01.push(STRUC_DISMANTLE_PERC);
@@ -744,7 +730,7 @@ const BOTTOM_LABEL_COL = am4core.color("#FFA500");
 const TOP_TITLE_COL = am4core.color("#FFFFFF");
 
 var title = chart.titles.create();
-title.text = "[bold]LAND";
+title.text = "[bold]EXISTING STRUCTURE";
 title.fontSize = "2em";
 title.align = "center";
 title.marginBottom = -15;
@@ -753,7 +739,7 @@ title.fill = TOP_TITLE_COL;
 
 // Add bottom label
 var label = chart.chartContainer.createChild(am4core.Label);
-label.text = "[bold]HANDED-OVER AREA";
+label.text = "[bold]DISMANTLED";
 label.fontSize = "1.5em";
 label.align = "center";
 label.marginTop = 0;
@@ -793,7 +779,7 @@ axis2.renderer.grid.template.opacity = 0.5;
 axis2.renderer.labels.template.bent = true;
 axis2.renderer.labels.template.fill = am4core.color("#000");
 axis2.renderer.labels.template.fontWeight = "bold";
-axis2.renderer.labels.template.fillOpacity = 0.3;
+axis2.renderer.labels.template.fillOpacity = 0; // 0.3 // category labels: N-01, N-02,....
 
 
 
@@ -901,42 +887,28 @@ outStatisticFieldName: "total_number_isf",
 statisticType: "count"
 };
 
-var total_relocation_isf = {
-onStatisticField: "CASE WHEN StatusRC = 1 THEN 1 ELSE 0 END",
-outStatisticFieldName: "total_relocation_isf",
-statisticType: "sum"
-};
-
-
 var query = reloISFLayer.createQuery();
-query.outStatistics = [total_relocation_isf, total_number_isf];
+query.outStatistics = [total_number_isf];
 
 return reloISFLayer.queryFeatures(query).then(function(response) {
 var stats = response.features[0].attributes;
 
-const totalRelocated = stats.total_relocation_isf;
-const totalNumber = stats.total_number_isf;
+const totalNumberISF = stats.total_number_isf;
 //const LOT_HANDOVER_PERC = (handedOver/affected)*100;
-return totalRelocated;
+return totalNumberISF;
 });
 }
 
 
-function isfSummary(totalRelocated) {
+function isfSummary(totalNumberISF) {
 var total_relocation_isf = {
 onStatisticField: "CASE WHEN StatusRC = 1 THEN 1 ELSE 0 END",
 outStatisticFieldName: "total_relocation_isf",
 statisticType: "sum"
 }
 
-var total_number_isf = {
-onStatisticField: "StrucID",
-outStatisticFieldName: "total_number_isf",
-statisticType: "count"
-};
-
 var query = reloISFLayer.createQuery();
-query.outStatistics = [total_relocation_isf, total_number_isf];
+query.outStatistics = [total_relocation_isf];
 query.returnGeometry = true;
 query.groupByFieldsForStatistics = ["CP"];
 
@@ -953,7 +925,7 @@ stats.forEach((result, index) => {
 const attributes = result.attributes;
 const cpPackage = result.attributes.CP;
 const relocated = attributes.total_relocation_isf;
-const ISF_RELOCATED_PERC = (relocated/totalRelocated)*100;
+const ISF_RELOCATED_PERC = (relocated/totalNumberISF)*100;
 
 if (cpPackage === 'N-01') {
   cpN01.push(ISF_RELOCATED_PERC);
@@ -1114,7 +1086,7 @@ axis2.renderer.grid.template.opacity = 0.5;
 axis2.renderer.labels.template.bent = true;
 axis2.renderer.labels.template.fill = am4core.color("#000");
 axis2.renderer.labels.template.fontWeight = "bold";
-axis2.renderer.labels.template.fillOpacity = 0.3;
+axis2.renderer.labels.template.fillOpacity = 0;
 
 
 
@@ -1421,7 +1393,7 @@ axis2.renderer.grid.template.opacity = 0.5;
 axis2.renderer.labels.template.bent = true;
 axis2.renderer.labels.template.fill = am4core.color("#000");
 axis2.renderer.labels.template.fontWeight = "bold";
-axis2.renderer.labels.template.fillOpacity = 0.3;
+axis2.renderer.labels.template.fillOpacity = 0;
 
 
 
@@ -1724,7 +1696,7 @@ axis2.renderer.grid.template.opacity = 0.5;
 axis2.renderer.labels.template.bent = true;
 axis2.renderer.labels.template.fill = am4core.color("#000");
 axis2.renderer.labels.template.fontWeight = "bold";
-axis2.renderer.labels.template.fillOpacity = 0.3;
+axis2.renderer.labels.template.fillOpacity = 0;
 
 
 
@@ -2115,7 +2087,7 @@ axis2.renderer.grid.template.opacity = 0.5;
 axis2.renderer.labels.template.bent = true;
 axis2.renderer.labels.template.fill = am4core.color("#000");
 axis2.renderer.labels.template.fontWeight = "bold";
-axis2.renderer.labels.template.fillOpacity = 0.3;
+axis2.renderer.labels.template.fillOpacity = 0;
 
 
 
