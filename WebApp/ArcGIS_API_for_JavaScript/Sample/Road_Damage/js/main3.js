@@ -1353,12 +1353,12 @@ var map = new Map({
     }
     var majorRoadLayer = new FeatureLayer({
     portalItem: {
-                  id:"ab0e0cd5e38d471ba24c5177a4f7279a"
+                  id:"b33b37efbb0e41598d86b572db2f059c"
               },
               title: "Major Road",
               outFields: ["*"],
               popupEnabled: false,
-              layerId: 1,
+              layerId: 2,
               elevationInfo: {
                 mode: "on-the-ground"
               },
@@ -1383,10 +1383,10 @@ var map = new Map({
     
     var expressRoad = new FeatureLayer({
       portalItem: {
-          id: "ab0e0cd5e38d471ba24c5177a4f7279a"
+          id: "b33b37efbb0e41598d86b572db2f059c"
       },
       title: "Expressway",
-      layerId: 2,
+      layerId: 3,
       elevationInfo: {
                 mode: "on-the-ground"
               },
@@ -1460,10 +1460,10 @@ var map = new Map({
     }
     var municipalBoundary = new FeatureLayer({
       portalItem: {
-          id: "ab0e0cd5e38d471ba24c5177a4f7279a"
+          id: "b33b37efbb0e41598d86b572db2f059c"
       },
       title: "Municipal Boundary",
-      layerId: 3,
+      layerId: 4,
       renderer: municipalBoundaryRenderer,
       outFields: ["*"],
       labelingInfo: [municialLabelClass],
@@ -1645,7 +1645,7 @@ var map = new Map({
     
     var damagePoints = new FeatureLayer({
       portalItem: {
-          id: "ab0e0cd5e38d471ba24c5177a4f7279a"
+          id: "b33b37efbb0e41598d86b572db2f059c"
       },
       title: "Damage Ratings of Road",
       layerId: 0,

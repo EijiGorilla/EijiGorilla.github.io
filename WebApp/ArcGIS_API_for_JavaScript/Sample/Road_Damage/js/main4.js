@@ -1354,12 +1354,12 @@ var map = new Map({
     }
     var majorRoadLayer = new FeatureLayer({
     portalItem: {
-                  id:"ab0e0cd5e38d471ba24c5177a4f7279a"
+                  id:"b33b37efbb0e41598d86b572db2f059c"
               },
               title: "Major Road",
               outFields: ["*"],
               popupEnabled: false,
-              layerId: 1,
+              layerId: 2,
               elevationInfo: {
                 mode: "on-the-ground"
               },
@@ -1384,10 +1384,10 @@ var map = new Map({
     
     var expressRoad = new FeatureLayer({
       portalItem: {
-          id: "ab0e0cd5e38d471ba24c5177a4f7279a"
+          id: "b33b37efbb0e41598d86b572db2f059c"
       },
       title: "Expressway",
-      layerId: 2,
+      layerId: 3,
       elevationInfo: {
                 mode: "on-the-ground"
               },
@@ -1445,42 +1445,41 @@ var map = new Map({
     
         //NO__OF_BGYS_
     let municipalBoundaryRenderer = {
-    type: "simple",
-    symbol: {
-        type: "simple-fill",
-        color: [0, 0, 0, 0], //[0, 197, 255, 0.05]
-        style: "solid",
-        /*
-        outline: {
-          color: "#f0f4f7",
-          width: 1.5,
-          style: "short-dot"
-        }
-        */
+      type: "simple",
+      symbol: {
+          type: "simple-fill",
+          color: [0, 0, 0, 0], //[0, 197, 255, 0.05]
+          style: "solid",
+          /*
+          outline: {
+            color: "#f0f4f7",
+            width: 1.5,
+            style: "short-dot"
+          }
+          */
       }
     }
     var municipalBoundary = new FeatureLayer({
       portalItem: {
-          id: "ab0e0cd5e38d471ba24c5177a4f7279a"
+          id: "b33b37efbb0e41598d86b572db2f059c"
       },
-      title: "Municipal Boundary",
-      layerId: 3,
-      renderer: municipalBoundaryRenderer,
-      outFields: ["*"],
-      labelingInfo: [municialLabelClass],
-      popupEnabled: false,
-      returnGeometry: true
+        title: "Municipal Boundary",
+        layerId: 4,
+        renderer: municipalBoundaryRenderer,
+        outFields: ["*"],
+        labelingInfo: [municialLabelClass],
+        popupEnabled: false,
+        returnGeometry: true
     });
     map.add(municipalBoundary,0);
     
     
     // Damage points
     var verticalOffset = {
-    screenLength: 100,
-    maxWorldLength: 700,
-    minWorldLength: 100
+      screenLength: 100,
+      maxWorldLength: 700,
+      minWorldLength: 100
     };
-    
     
     
     function getUniqueValueSymbol(name, sizeS, damage) {
@@ -1646,7 +1645,7 @@ var map = new Map({
     
     var damagePoints = new FeatureLayer({
       portalItem: {
-          id: "ab0e0cd5e38d471ba24c5177a4f7279a"
+          id: "b33b37efbb0e41598d86b572db2f059c"
       },
       title: "Damage Ratings of Road",
       layerId: 0,
