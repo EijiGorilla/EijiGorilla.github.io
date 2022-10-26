@@ -847,11 +847,11 @@ let ConstructionBoundaryFill = {
 
 // Construction Boundary
 var constBoundary = new FeatureLayer({
-portalItem: {
-id: "b0cf28b499a54de7b085725bca08deee",
-portal: {
-url: "https://gis.railway-sector.com/portal"
-}
+  portalItem: {
+    id: "b0cf28b499a54de7b085725bca08deee",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
 },
 layerId: 4,
 outFields: ["*"],
@@ -1019,6 +1019,7 @@ var tbmTunnelLayer = new FeatureLayer({
     mode: "absolute-height",//"on-the-ground", relative-to-ground, absolute-height
     offset: -2
   },
+  hasZ: true,
   layerId: 2,
   labelingInfo: [tbmSpotLabel2],
    title: "TBM Segment",
@@ -1315,16 +1316,13 @@ defaultSymbol: defaultTBMAlign
 
 // Add graphics Layer
 var graphicsLayer = new GraphicsLayer({
-elevationInfo: {
-mode: "relative-to-ground",
-featureExpressionInfo: {
-  expression: "Geometry($feature).z * -0.5"
-},
-unit: "meters"
-},
-screenSizePerspectiveEnabled: true,
-outFields: ["*"],
-title: "TBM Spot"
+  elevationInfo: {
+    mode: "relative-to-ground"
+  },
+  hasZ: true,
+  screenSizePerspectiveEnabled: true,
+  outFields: ["*"],
+  title: "TBM Spot"
 });
 
 map.add(graphicsLayer);
@@ -1343,7 +1341,7 @@ query.where = "tbmSpot = 1"; // to be constructed
 query.groupByFieldsForStatistics = ["line"];
 
 tbmTunnelLayer.queryFeatures(query).then(function(response) {
-stats = response.features;   
+const stats = response.features;   
 
 stats.forEach((result, index) => {
   const attributes = result.attributes;
@@ -1362,7 +1360,7 @@ stats.forEach((result, index) => {
               type: "point",
               x: long,
               y: lat,
-              z: -0.1
+              z: 15
           },
           symbol: {
           type: "point-3d",
@@ -2335,10 +2333,10 @@ timeContainer.style.display = 'none';
 
 // Expand widget for timeSlider
 var timesliderExpand = new Expand({
-view: view,
-content: timeSlider,
-expandIconClass: "esri-icon-time-clock",
-group: "bottom-right"
+  view: view,
+  content: timeSlider,
+  expandIconClass: "esri-icon-time-clock",
+  group: "bottom-right"
 });
 view.ui.add(timesliderExpand, {position: "bottom-right"});
 
@@ -2387,7 +2385,7 @@ stats.forEach((result, index) => {
       type: "point",
       x: long,
       y: lat,
-      z: -0.1
+      z: 15
     },
     type: "simple",
     symbol: {

@@ -269,13 +269,33 @@ let osmSymbol = {
 
         _heatmapCalc = new KernelCalculator();
 
-        //
+        // Time Slider
+        const start = new Date(1992, 11, 30);
+        const end = new Date(2015, 11, 30);
+
+        const panelSlider = document.getElementById("panelSlider");
+
         const timeSlider = new TimeSlider({
-            container: "timeSlider",
-            view: view,
-            timeVisible: true,
-            loop: true
-        });
+            container: "timeContainer",
+            mode: "cumulative-from-start",
+            layout: "compact",
+            fullTimeExtent: {
+              start: start,
+              end: end
+            },
+            values: [start],
+            stops: {
+              interval: {
+                  value: 1,
+                  unit: "days"
+              },
+              timeExtent: { start, end }
+            },
+            //disabled: true,
+            });
+
+            //timeSlider.watch("timeExtent", function())
+        
 
         new HorizontalSlider({
             value: 0,
