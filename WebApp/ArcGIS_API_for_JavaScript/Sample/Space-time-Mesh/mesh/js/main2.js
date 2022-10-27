@@ -14,6 +14,8 @@ require({
     "esri/core/Accessor",
     "esri/layers/SceneLayer",
     "esri/widgets/TimeSlider",
+    "esri/layers/GraphicsLayer",
+    "esri/Graphic",
     "dijit/ColorPalette",
     "dijit/form/HorizontalSlider",
     "app/kernel",
@@ -30,6 +32,8 @@ require({
              Accessor,
              SceneLayer,
              TimeSlider,
+             GraphicsLayer,
+             Graphic,
              ColorPalette,
              HorizontalSlider,
              KernelCalculator,
@@ -275,6 +279,7 @@ let osmSymbol = {
 
         const panelSlider = document.getElementById("panelSlider");
 
+        var timeContainer = document.getElementById("timeContainer");
         const timeSlider = new TimeSlider({
             container: "timeContainer",
             mode: "cumulative-from-start",
@@ -287,16 +292,21 @@ let osmSymbol = {
             stops: {
               interval: {
                   value: 1,
-                  unit: "days"
+                  unit: "years"
               },
               timeExtent: { start, end }
             },
             //disabled: true,
             });
-
-            //timeSlider.watch("timeExtent", function())
+            timeContainer.style.display = 'block';
+            timeSlider.watch("timeExtent", function(timeExtent) {
+                const INDEX = timeExtent.end.getFullYear() - start.getFullYear(); // subtract from initial year to get index values
+                horizontalSlider_changeHandler(INDEX);
+            });
+            //view.ui.add(timeContainer, "bottom-right");
         
 
+        /*
         new HorizontalSlider({
             value: 0,
             minimum: 0,
@@ -308,6 +318,7 @@ let osmSymbol = {
             style: "width:90%;",
             onChange: horizontalSlider_changeHandler
         }, "panelSlider").startup();
+        */
 
         var icon = document.getElementById('icon');
         var switchMesh = document.getElementById('switchMesh');
@@ -353,7 +364,7 @@ let osmSymbol = {
         const sRGB = normalizeRGB(Color.fromHex(_origColor).toRgb());
         const eRGB = normalizeRGB(Color.fromHex(_destColor).toRgb());
         const data = appData[_dtIndex];
-        panelDate.innerHTML = data.datetime;
+        //panelDate.innerHTML = data.datetime;
         const zArr = _heatmapCalc.calculateKernel(data.points, _size, _radius);
         const vertices = appMesh.vertices.slice(0);
         var z = 2;
@@ -374,7 +385,11 @@ let osmSymbol = {
         return [r, g, b];
     }
 
+    const headerTitleDiv = document.getElementById("headerTitleDiv");
+
+
     function horizontalSlider_changeHandler(index) {
+        headerTitleDiv.innerHTML = index;
         _dtIndex = index;
         updateViz();
     }
