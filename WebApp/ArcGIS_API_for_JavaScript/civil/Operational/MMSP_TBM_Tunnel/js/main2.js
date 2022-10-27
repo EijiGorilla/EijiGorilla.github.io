@@ -303,7 +303,7 @@ require([
       timeDelta: null,
       markerMaterial: null,    // material for the markers left by the ISS
       markerGeometry: null,    // geometry for the markers left by the ISS
-      //issMaterial: new THREE.MeshLambertMaterial({ color: 0x2194ce, transparent: true, opacity: 0.1 }), 
+      issMaterial: new THREE.MeshLambertMaterial({ color: 0x2194ce, transparent: true, opacity: 0.5 }), 
 
         cameraPositionInitialized: false, // we focus the view on the ISS once we receive our first data point
         positionHistory: [],
@@ -372,6 +372,15 @@ require([
                
                 example = gltf.scene;
                 this.iss = example;
+
+                // apply ISS material to all nodes in the geometry
+                /*
+                this.iss.traverse( function ( child ) {
+                    if ( child instanceof THREE.Mesh ) {
+                        child.material = this.issMaterial;
+                    }
+                }.bind(this));
+                */
 
                 // set the specified scale for the model
                 this.iss.scale.set(this.issScale, this.issScale, this.issScale);
