@@ -45,7 +45,6 @@ require([
     "esri/rest/route",
     "esri/rest/support/RouteParameters",
     "esri/rest/support/FeatureSet",
-    "esri/layers/GraphicsLayer",
     "esri/core/Accessor",
     "esri/symbols/SimpleMarkerSymbol",
     "esri/symbols/SimpleLineSymbol",
@@ -61,7 +60,7 @@ require([
               DatePicker, FeatureTable, Compass, TimeExtent, Search, BasemapToggle,
               Weather, Daylight, Polyline, GraphicsLayer, Graphic, Point,
               externalRenderers, SpatialReference, route, RouteParameters, FeatureSet,
-              GraphicsLayer, Accessor, SimpleMarkerSymbol, SimpleLineSymbol, geometryEngine) {
+              Accessor, SimpleMarkerSymbol, SimpleLineSymbol, geometryEngine) {
   
 // Route Layer for animatioin
       // The stops and route result will be stored in this layer
