@@ -16,6 +16,7 @@ require({
     "esri/widgets/TimeSlider",
     "esri/layers/GraphicsLayer",
     "esri/Graphic",
+    "esri/widgets/Fullscreen",
     "dijit/ColorPalette",
     "dijit/form/HorizontalSlider",
     "app/kernel",
@@ -34,6 +35,7 @@ require({
              TimeSlider,
              GraphicsLayer,
              Graphic,
+             Fullscreen,
              ColorPalette,
              HorizontalSlider,
              KernelCalculator,
@@ -256,6 +258,16 @@ let osmSymbol = {
     symbol: osmSymbol
   }
   
+    // Full screen widget
+    view.ui.add(
+        new Fullscreen({
+          view: view,
+          element: panelView
+          //element: viewDiv // if you change element to viewDiv, only viewDiv panel is fully expanded
+          // this is good for demonstration, as this removes header and chart panels.
+        }),
+        "top-left"
+      );
 
     var _dtIndex = 0;
     var _mode = "mesh";

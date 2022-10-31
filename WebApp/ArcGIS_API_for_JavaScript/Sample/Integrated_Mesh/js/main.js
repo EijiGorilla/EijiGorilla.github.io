@@ -18,7 +18,12 @@ require([
   "esri/core/Accessor",
   "esri/symbols/SimpleMarkerSymbol",
   "esri/symbols/SimpleLineSymbol",
-  "esri/geometry/geometryEngine"
+  "esri/geometry/geometryEngine",
+  "esri/Basemap",
+  "esri/layers/VectorTileLayer",
+  "esri/Map",
+  "esri/layers/FeatureLayer",
+  "esri/widgets/Fullscreen",
 ], (
   WebScene,
   SceneView,
@@ -39,7 +44,12 @@ require([
   Accessor,
   SimpleMarkerSymbol,
   SimpleLineSymbol,
-  geometryEngine
+  geometryEngine,
+  Basemap,
+  VectorTileLayer,
+  Map,
+  FeatureLayer,
+  Fullscreen
 
 ) => {
     const spatialReference = SpatialReference.WebMercator;
@@ -76,11 +86,13 @@ require([
    * Load webscene with other layers
    * (lakes, points of interest, roads)
    *************************************/
-  const webscene = new WebScene({
-    portalItem: {
-      id: "95d51825f62b4b738a3a12d5e518dea3"
-    }
-  });
+    // Basemap
+    
+    // Add Map
+    var map = new Map({
+      basemap: "satellite", // "streets-night-vector"
+      ground: "world-elevation" // ground: "no"
+    }); 
 
   /*************************************
    * Create IntegratedMeshLayer layer
@@ -93,29 +105,75 @@ require([
      title: "Integrated Mesh Frankfurt"
   });
 
-  webscene.add(layer);
+  map.add(layer);
 
   const view = new SceneView({
     container: "viewDiv",
-    viewingMode: "local",
-    map: webscene,
-    qualityProfile: "high"
+    viewingMode: "global",
+    map: map,
+    qualityProfile: "high",
+    camera: {
+      position: {
+        x: 8.6943272,
+        y: 50.0977821,
+        z: 1000
+      },
+      tilt: 65
+    },
+    environment: {
+      weather: {
+        type: "cloudy",
+        cloudCover: 0.3
+      },
+      lighting: {
+        waterReflectionEnabled: true,
+        ambientOcclusionEnabled: true
+      }
+    }
   });
 
+  const floodLayer = new FeatureLayer({
+    portalItem: {
+      id: "ce5ce7edbc2d4fd9a8973c319e86c130"
+    },
+    title: "Flood Area (100 year)",
+    elevationInfo: {
+      mode: "absolute-height",
+      offset: 3,
+    },
+    renderer: {
+      type: "simple",
+      symbol: {
+          type: "polygon-3d",
+          symbolLayers: [
+              {
+                  type: "water",
+                  waveDirection: 260,
+                  color: "#005B66", //#005B66, #25427c
+                  waveStrength: "moderate",
+                  waterbodySize: "medium"
+              }
+          ]
+      }
+  }
+  });
+  map.add(floodLayer, 0);
+
   const layerList = new LayerList({
-    view: view
+    view: view,
+    
   });
   view.ui.add(layerList, "top-right");
 
-  const legend = new Legend({
-    view,
-    style: {
-      type: "card",
-      layout: "side-by-side"
-    }
-  });
-  view.ui.add(legend, "bottom-right");
+  view.ui.empty("top-left");
 
+// Full Screen Widget
+view.ui.add(
+  new Fullscreen({
+    view: view,
+  }),
+  "bottom-right"
+  );
   ////// Train Animation using externalRenderers
   
       // Adds a graphic when the user clicks the map. If 2 or more points exist, route is solved.
@@ -311,7 +369,7 @@ require([
             this.scene.add(this.light);
           
           // rotation 
-              this.up = new THREE.Vector3(0, 0, 1); // used with lookAt: look at the next point at x-axis
+              this.up = new THREE.Vector3(1, 0, 1); // used with lookAt: look at the next point at x-axis
               this.axis = new THREE.Vector3();
               this.n  = new THREE.Vector3( ); // normal,
               this.b  = new THREE.Vector3( ); // binormal
