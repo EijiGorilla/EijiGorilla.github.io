@@ -141,6 +141,7 @@ require([
       mode: "absolute-height",
       offset: 3,
     },
+    layerId: 6,
     renderer: {
       type: "simple",
       symbol: {
@@ -158,6 +159,15 @@ require([
   }
   });
   map.add(floodLayer, 0);
+
+  const buildingFlood = new FeatureLayer({
+    portalItem: {
+      id: "ce5ce7edbc2d4fd9a8973c319e86c130"
+    },
+    layerId: 11,
+    title: "Buildings Flooded",
+  });
+  map.add(buildingFlood);
 
   const layerList = new LayerList({
     view: view,
