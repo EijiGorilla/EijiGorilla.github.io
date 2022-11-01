@@ -1039,7 +1039,7 @@ var stationLayer = new SceneLayer({
 
 var testUtilPt = new FeatureLayer({
   portalItem: {
-    id: "037e66f5c40b4161922f6600e4a6d41b"
+    id: "c3529469d47240b3bba0d91516d78cfd"
   },
   layerId: 4,
   title: "Relocation Plan (Point)",
@@ -1107,7 +1107,7 @@ map.add(testUtilPt, 3);
 
 var testUtilPt1 = new FeatureLayer({
     portalItem: {
-    id: "037e66f5c40b4161922f6600e4a6d41b"
+    id: "c3529469d47240b3bba0d91516d78cfd"
   },
   layerId: 4,
   title: "Utility 3D Render Test",
@@ -1173,7 +1173,7 @@ map.add(testUtilPt1);
 // Utility Line
  var testLine = new FeatureLayer({
     portalItem: {
-    id: "037e66f5c40b4161922f6600e4a6d41b"
+    id: "c3529469d47240b3bba0d91516d78cfd"
   },
   layerId: 3,
    title: "Relocation Plan (Line)",
@@ -1327,7 +1327,7 @@ map.add(testUtilPt1);
 /*Line for Symbols */
 var testLine1 = new FeatureLayer({
     portalItem: {
-    id: "037e66f5c40b4161922f6600e4a6d41b"
+    id: "c3529469d47240b3bba0d91516d78cfd"
   },
   layerId: 3,
    title: "testLine",

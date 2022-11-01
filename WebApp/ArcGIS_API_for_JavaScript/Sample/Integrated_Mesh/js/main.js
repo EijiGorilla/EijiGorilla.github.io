@@ -165,7 +165,7 @@ require([
       id: "ce5ce7edbc2d4fd9a8973c319e86c130"
     },
     layerId: 11,
-    title: "Buildings Flooded",
+    title: "Buildings Flooded Height",
   });
   map.add(buildingFlood);
 
