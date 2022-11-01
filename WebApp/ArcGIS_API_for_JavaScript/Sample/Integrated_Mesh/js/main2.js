@@ -179,10 +179,16 @@ require([
   
     const layerList = new LayerList({
       view: view,
+      listItemCreatedFunction: function(event) {
+        const item = event.item;
+        if (item.title === "Flood Area (100 year)" || item.title === "Buildings Flooded Height"){
+          item.visible = false
+        }
+      }
       
     });
-    view.ui.add(layerList, "top-right");
-  
+    //view.ui.add(layerList, "top-right");
+
     view.ui.empty("top-left");
   
   // Full Screen Widget
@@ -192,6 +198,47 @@ require([
     }),
     "bottom-right"
     );
+
+
+// When floodLayer is visible, change weather
+view.when(() => {
+  const buttonFlooding = document.getElementById("flooding");
+  const buttonNoFlooding = document.getElementById("noFlooding");
+  
+  buttonFlooding.addEventListener("click", (event) => {
+    view.environment.weather = {
+      type: "rainy", // autocasts as new RainyWeather({ cloudCover: 0.7, precipitation: 0.3 })
+      cloudCover: 0.7,
+      precipitation: 0.3
+    };
+  
+    // Turn on the water layer showing the flooding
+    floodLayer.visible = true;
+    buildingFlood.visible = true;
+  
+    // Styling of the buttons
+    buttonNoFlooding.appearance = "outline";
+    buttonFlooding.appearance = "solid";
+  });
+  
+  buttonNoFlooding.addEventListener("click", (event) => {
+    view.environment.weather = {
+      type: "cloudy", // autocasts as new RainyWeather({ cloudCover: 0.7, precipitation: 0.3 })
+      cloudCover: 0.3
+    };
+  
+    // Turn on the water layer showing the flooding
+    floodLayer.visible = false;
+    buildingFlood.visible = false;
+  
+    // Styling of the buttons
+    buttonNoFlooding.appearance = "solid";
+    buttonFlooding.appearance = "outline";
+  });
+  
+});
+
+
     ////// Train Animation using externalRenderers
     
         // Adds a graphic when the user clicks the map. If 2 or more points exist, route is solved.
