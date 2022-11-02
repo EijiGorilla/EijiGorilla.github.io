@@ -24,6 +24,7 @@ require([
     "esri/Map",
     "esri/layers/FeatureLayer",
     "esri/widgets/Fullscreen",
+    "esri/widgets/Expand",
   ], (
     WebScene,
     SceneView,
@@ -49,7 +50,8 @@ require([
     VectorTileLayer,
     Map,
     FeatureLayer,
-    Fullscreen
+    Fullscreen,
+    Expand
   
   ) => {
       const spatialReference = SpatialReference.WebMercator;
@@ -199,6 +201,32 @@ require([
     "bottom-right"
     );
 
+// Legend
+// Legend
+var legend = new Legend({
+  view: view,
+  container: document.getElementById("legendDiv"),
+  layerInfos: [
+    {
+      layer: floodLayer,
+      title: "Flood (100 year event)"
+    },
+    {
+      layer: buildingFlood,
+      title: "Flooded Height of Buildings"
+    }
+  ]
+});
+
+var legendExpand = new Expand({
+    view: view,
+    content: legend,
+    expandIconClass: "esri-icon-legend",
+    group: "bottom-right"
+});
+view.ui.add(legendExpand, {
+    position: "top-right"
+});
 
 // When floodLayer is visible, change weather
 view.when(() => {
