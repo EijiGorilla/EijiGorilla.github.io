@@ -963,6 +963,7 @@ creator: function(event) {
 const lotNo = event.graphic.attributes.LotID;
 const handOverDate = event.graphic.attributes.HandOverDate1;
 const handOverArea = event.graphic.attributes.percentHandedOver;
+const CP = event.graphic.attributes.CP;
 const statusLot = event.graphic.attributes.StatusLA;
 const landUse = event.graphic.attributes.LandUse;
 const municipal = event.graphic.attributes.Municipality;
@@ -993,6 +994,7 @@ var landUseTemp = landUseArray[landUse - 1];
 
 return `<ul><li>Hand-Over Date:   <b>${finalDate}</b></li><br>
          <li>Handed-Over Area: <b>${handOverArea} %</b></li><br>
+         <li>CP:               <b>${CP}</b></li><br>
          <li>Status:           <b>${statusLotTemp}</b></li><br>
          <li>Land Use:         <b>${landUseTemp}</b></li><br>
          <li>Municipality:     <b>${municipal}</b></li><br>
