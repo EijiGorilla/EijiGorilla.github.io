@@ -1152,13 +1152,31 @@ value5: secantp_2022[8],
 value6: columnHead_2022[8]
 },
 {
-date: new Date(2022, 8),
-value1: dwall_2022[9],
-value2: column_2022[9],
-value3: slab_2022[9],
-value4: kingpost_2022[9],
-value5: secantp_2022[9],
-value6: columnHead_2022[9]
+  date: new Date(2022, 8),
+  value1: dwall_2022[9],
+  value2: column_2022[9],
+  value3: slab_2022[9],
+  value4: kingpost_2022[9],
+  value5: secantp_2022[9],
+  value6: columnHead_2022[9]
+},
+{
+  date: new Date(2022, 9),
+  value1: dwall_2022[10],
+  value2: column_2022[10],
+  value3: slab_2022[10],
+  value4: kingpost_2022[10],
+  value5: secantp_2022[10],
+  value6: columnHead_2022[10]
+},
+{
+  date: new Date(2022, 10),
+  value1: dwall_2022[11],
+  value2: column_2022[11],
+  value3: slab_2022[11],
+  value4: kingpost_2022[11],
+  value5: secantp_2022[11],
+  value6: columnHead_2022[11]
 }
 ];
 

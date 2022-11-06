@@ -2435,6 +2435,22 @@ async function initialization() {
     value3: pier_2022[9],
     value4: pierH_2022[9],
     value5: precast_2022[9]
+  },
+  {
+    date: new Date(2022, 9),
+    value1: pile_2022[10],
+    value2: pileC_2022[10],
+    value3: pier_2022[10],
+    value4: pierH_2022[10],
+    value5: precast_2022[10]
+  },
+  {
+    date: new Date(2022, 10),
+    value1: pile_2022[11],
+    value2: pileC_2022[11],
+    value3: pier_2022[11],
+    value4: pierH_2022[11],
+    value5: precast_2022[11]
   }
   ];
   
