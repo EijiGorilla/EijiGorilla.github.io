@@ -4,7 +4,7 @@ require([
   "esri/views/MapView",
   "esri/views/SceneView",
   "esri/layers/FeatureLayer",
-  "esri/layers/support/FeatureFilter",
+  "esri/views/layers/support/FeatureFilter",
   "esri/layers/SceneLayer",
   "esri/layers/Layer",
   "esri/layers/TileLayer",
@@ -489,7 +489,7 @@ zoomToLayer(structureLayer);
 view.when(function() {
 view.on("click", function(event) {
 view.hitTest(event).then(function(response) {
-const feature = response.results[0].graphics.attributes.Name;
+const feature = response.results[0].graphic.attributes.Name;
   structureLayer.definitionExpression = "Name = '" + feature + "'";
   zoomToLayer(structureLayer);
   perBuildingProgress();
@@ -2544,8 +2544,8 @@ chart.data = [
       series.dataItems.template.locations.categoryY = 0.5;
       
       // Bar chart line color and width
-      series.columns.template.stroke = am4core.color("#ffffff"); //#00B0F0
-      series.columns.template.strokeWidth = 0.5;
+      series.others.template.stroke = am4core.color("#FFFFFF"); //#00B0F0
+      series.others.template.strokeWidth = 0.5;
       series.name = name;
       
       var labelBullet = series.bullets.push(new am4charts.LabelBullet());
@@ -2577,12 +2577,12 @@ chart.data = [
       labelBullet.locationX = 0.5;
       labelBullet.interactionsEnabled = false;
       
-      series.columns.template.width = am4core.percent(60);
-      series.columns.template.tooltipText = "[font-size:15px]{name}: {valueX.value.formatNumber('#.')} ({valueX.totalPercent.formatNumber('#.')}%)"
+      series.others.template.width = am4core.percent(60);
+      series.others.template.tooltipText = "[font-size:15px]{name}: {valueX.value.formatNumber('#.')} ({valueX.totalPercent.formatNumber('#.')}%)"
       
       // Click chart and filter, update maps
       const chartElement = document.getElementById("chartPanel");
-      series.columns.template.events.on("hit", filterByChart, this);
+      series.others.template.events.on("hit", filterByChart, this);
 
       function filterByChart(ev) {
           const selectedC = ev.target.dataItem.component.name;
@@ -2788,4 +2788,4 @@ var layerListExpand = new Expand ({
 
   view.ui.add("menu", "top-right");
 
-})
+});
