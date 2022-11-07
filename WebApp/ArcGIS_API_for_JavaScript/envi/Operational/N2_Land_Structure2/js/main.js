@@ -36,7 +36,8 @@ require([
   "esri/widgets/BasemapToggle",
   "esri/popup/support/FieldInfoFormat",
   "esri/PopupTemplate",
-  "esri/popup/content/CustomContent"
+  "esri/popup/content/CustomContent",
+  "esri/core/Collection"
 ], function(Basemap, Map, MapView, SceneView, 
             FeatureLayer, FeatureFilter,
             SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -48,7 +49,7 @@ require([
             TimeExtent, Expand, Editor, UniqueValueRenderer,
             FeatureTable, Compass, ElevationLayer, Ground,
             GraphicsLayer, Search, BasemapToggle, FieldInfoFormat,
-            PopupTemplate, CustomContent) {
+            PopupTemplate, CustomContent, Collection) {
 
 let chartLayerView;
 var highlightSelect;
@@ -724,24 +725,6 @@ outline: {
 //*******************************//
 // Import Layers                 //
 //*******************************//
-// Station point feature
-var stationLayer = new FeatureLayer({
-portalItem: {
-id: "590680d19f2e48fdbd8bcddce3aaedb5",
-portal: {
-url: "https://gis.railway-sector.com/portal"
-}
-},
-layerId: 2,
-title: "Station",
-outFields: ["*"],
-popuEnabled: false,
-definitionExpression: "Station <> 'NCC'",
-labelingInfo: [labelStation]
-  });
-  stationLayer.listMode = "hide";
-  map.add(stationLayer,4);
-
 // Pier head and column
 var pierHeadColumnLayerLayer = new FeatureLayer ({
 portalItem: {
@@ -887,7 +870,7 @@ outFields: ["*"],
 popupEnabled: false
 });
 stationBoxLayer.listMode = "hide";
-map.add(stationBoxLayer);
+map.add(stationBoxLayer, 2);
 
 // ROW //
 var rowLayer = new FeatureLayer ({
@@ -1310,7 +1293,23 @@ renderer: isfRenderer,
 //reloISFLayer.listMode = "hide";
 map.add(reloISFLayer);
 
-
+// Station point feature
+var stationLayer = new FeatureLayer({
+  portalItem: {
+    id: "590680d19f2e48fdbd8bcddce3aaedb5",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  layerId: 2,
+  title: "Station",
+  outFields: ["*"],
+  popuEnabled: false,
+  definitionExpression: "Station <> 'NCC'",
+  labelingInfo: [labelStation]
+});
+stationLayer.listMode = "hide";
+map.add(stationLayer);
 
 // Define UI
 var applicationDiv = document.getElementById("applicationDiv");
@@ -3883,7 +3882,7 @@ placeholder: "example: P-288"
 
 var legend = new Legend({
 view: view,
-container: legendDiv,
+container: "legendDiv",
 layerInfos: [
 {
 layer: pierHeadColumnLayerLayer,
