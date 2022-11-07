@@ -702,21 +702,6 @@ outline: {
 //*******************************//
 // Import Layers                 //
 //*******************************//
-// Station point feature
-var stationLayer = new FeatureLayer({
-portalItem: {
-id: "a573668d166949599752d155519ead31",
-
-},
-layerId: 2,
-title: "Station",
-outFields: ["*"],
-popuEnabled: false,
-labelingInfo: [labelStation]
-  });
-  stationLayer.listMode = "hide";
-  map.add(stationLayer,4);
-
 // Pier head and column
 var pierHeadColumnLayerLayer = new FeatureLayer ({
 portalItem: {
@@ -1246,7 +1231,21 @@ renderer: isfRenderer,
 //reloISFLayer.listMode = "hide";
 map.add(reloISFLayer);
 
-
+// Station point feature
+var stationLayer = new FeatureLayer({
+  portalItem: {
+  id: "a573668d166949599752d155519ead31",
+  
+  },
+  layerId: 2,
+  title: "Station",
+  outFields: ["*"],
+  popuEnabled: false,
+  labelingInfo: [labelStation]
+    });
+    stationLayer.listMode = "hide";
+    map.add(stationLayer);
+  
 
 // Define UI
 var applicationDiv = document.getElementById("applicationDiv");
