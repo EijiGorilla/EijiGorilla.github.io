@@ -471,6 +471,8 @@ if (error.name != "AbortError") {
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
+const selectedBuildingDiv = document.getElementById("selectedBuildingDiv");
+
 // Default selection = 'None'
 structureLayer.definitionExpression = "Name = 'LRS'";
 perBuildingProgress();
@@ -483,6 +485,7 @@ chartWalls();
 chartColumns();
 chartOthers();
 zoomToLayer(structureLayer);
+selectedBuildingDiv.innerHTML = "LRS";
 
 
 // click the label and display selected bulidng
@@ -491,6 +494,8 @@ view.on("click", function(event) {
 view.hitTest(event).then(function(response) {
 const feature = response.results[0].graphic.attributes.Name;
   structureLayer.definitionExpression = "Name = '" + feature + "'";
+  selectedBuildingDiv.innerHTML = feature;
+
   zoomToLayer(structureLayer);
   perBuildingProgress();
   chartStFoundation();
