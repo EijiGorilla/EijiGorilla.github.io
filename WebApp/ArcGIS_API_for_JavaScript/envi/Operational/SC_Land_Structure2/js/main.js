@@ -702,23 +702,6 @@ outline: {
 //*******************************//
 // Import Layers                 //
 //*******************************//
-// Station point feature
-var stationLayer = new FeatureLayer({
-portalItem: {
-id: "d3926383cf3548569372216edb808996",
-portal: {
-url: "https://gis.railway-sector.com/portal"
-}
-},
-layerId: 2,
-title: "Station",
-outFields: ["*"],
-popuEnabled: false,
-labelingInfo: [labelStation]
-  });
-  stationLayer.listMode = "hide";
-  map.add(stationLayer,4);
-
 // Pier head and column
 var pierHeadColumnLayerLayer = new FeatureLayer ({
 portalItem: {
@@ -1283,7 +1266,23 @@ renderer: isfRenderer,
 //reloISFLayer.listMode = "hide";
 map.add(reloISFLayer);
 
-
+// Station point feature
+var stationLayer = new FeatureLayer({
+  portalItem: {
+  id: "d3926383cf3548569372216edb808996",
+  portal: {
+  url: "https://gis.railway-sector.com/portal"
+  }
+  },
+  layerId: 2,
+  title: "Station",
+  outFields: ["*"],
+  popuEnabled: false,
+  labelingInfo: [labelStation]
+    });
+    stationLayer.listMode = "hide";
+    map.add(stationLayer);
+  
 
 // Define UI
 var applicationDiv = document.getElementById("applicationDiv");
