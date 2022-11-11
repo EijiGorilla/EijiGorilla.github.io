@@ -506,7 +506,8 @@ function filterByTest(event) {
     viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
     PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
     zoomToLayer(viaductLayer);
-    updateChart();
+    chartAllViaduct();
+    //updateChart();
     perCpProgress();
 
 }
