@@ -244,6 +244,198 @@ const NEEDLE_LENGTH = am4core.percent(70);
 // Themes begin
 am4core.useTheme(am4themes_animated);
 
+// Legend
+// 
+function legendCP() {
+  var total_n01_lot = {
+  onStatisticField: "CASE WHEN CP = 'N-01' THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_n01_lot",
+  statisticType: "sum"
+  };
+  
+  var total_n02_lot = {
+  onStatisticField: "CASE WHEN CP = 'N-02' THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_n02_lot",
+  statisticType: "sum"
+  };
+  
+  var total_n03_lot = {
+  onStatisticField: "CASE WHEN CP = 'N-03' THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_n03_lot",
+  statisticType: "sum"
+  };
+  
+  var total_n04_lot = {
+  onStatisticField: "CASE WHEN CP = 'N-04' THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_n04_lot",
+  statisticType: "sum"
+  };
+  
+  var total_n05_lot = {
+  onStatisticField: "CASE WHEN CP = 'N-05' THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_n05_lot",
+  statisticType: "sum"
+  };
+  
+  
+  var query = lotLayer.createQuery();
+  query.outStatistics = [total_n01_lot,
+                         total_n02_lot, 
+                         total_n03_lot, 
+                         total_n04_lot,
+                         total_n05_lot];
+  query.returnGeometry = true;
+  
+  return lotLayer.queryFeatures(query).then(function(response) {
+  var stats = response.features[0].attributes;
+  
+  const n01 = stats.total_n01_lot;
+  const n02 = stats.total_n02_lot;
+  const n03 = stats.total_n03_lot;
+  const n04 = stats.total_n04_lot;
+  const n05 = stats.total_n05_lot;
+  
+  var chart = am4core.create("legendChartDiv", am4charts.PieChart);
+  
+  
+  // Add data
+  chart.data = [
+  {
+    "CP": "N-01",
+    "status": n01,
+    "color": am4core.color("#ee1f25")
+  },
+  {
+    "CP": "N-02",
+    "status": n02,
+    "color": am4core.color("#70AD47")
+  },
+  {
+    "CP": "N-03",
+    "status": n03,
+    "color": am4core.color("#0070FF")   
+  },
+  {
+    "CP": "N-04",
+    "status": n04,
+    "color": am4core.color("#FFFF00") 
+  },
+  {
+    "CP": "N-05",
+    "status": n05,
+    "color": am4core.color("#BF40BF")
+  }
+  ];
+  
+  // Set inner radius
+  chart.innerRadius = am4core.percent(0);
+  chart.radius = am4core.percent(0);
+  // Add and configure Series
+  
+  function createSlices(field, status){
+  var pieSeries = chart.series.push(new am4charts.PieSeries());
+  pieSeries.dataFields.value = field;
+  pieSeries.dataFields.category = status;
+  pieSeries.disabled = true;
+  pieSeries.slices.template.propertyFields.fill = "color";
+  pieSeries.slices.template.stroke = am4core.color("#fff");
+  pieSeries.slices.template.strokeWidth = 0;
+  pieSeries.slices.template.strokeOpacity = 1;
+  
+  pieSeries.slices.template
+  // change the cursor on hover to make it apparent the object can be interacted with
+  .cursorOverStyle = [
+  {
+  "property": "cursor",
+  "value": "pointer"
+  }
+  ];
+  
+  
+  // Add a legend
+  const LegendFontSizze = 20;
+  chart.legend = new am4charts.Legend();
+  
+  chart.legend.valueLabels.template.align = "right"
+  chart.legend.valueLabels.template.textAlign = "end";  
+
+  
+  //chart.legend.position = "bottom";
+  chart.legend.labels.template.fontSize = LegendFontSizze;
+  chart.legend.labels.template.fill = "#ffffff";
+  chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+  chart.legend.valueLabels.template.fontSize = LegendFontSizze; 
+  //pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
+  //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+  
+  // Responsive code for chart
+  chart.responsive.enabled = true;
+  chart.responsive.useDefault = false
+  
+  chart.responsive.rules.push({
+  relevant: function(target) {
+  if (target.pixelWidth <= 400) {
+    return true;
+  }
+  return false;
+  },
+  state: function(target, stateId) {
+  if (target instanceof am4charts.PieSeries) {
+    var state = target.states.create(stateId);
+        
+    var labelState = target.labels.template.states.create(stateId);
+    labelState.properties.disabled = true;
+        
+    var tickState = target.ticks.template.states.create(stateId);
+    tickState.properties.disabled = true;
+    return state;
+  }
+  if (target instanceof am4charts.Legend) {
+    var state = target.states.create(stateId);
+    state.properties.paddingTop = 0;
+    state.properties.paddingRight = 0;
+    state.properties.paddingBottom = 0;
+    state.properties.paddingLeft = 0;
+    state.properties.marginLeft = 0;
+    return state;
+  }
+  return null;
+  }
+  });
+  // Responsive code for chart
+  
+  // Chart Title
+  //var title = chart.titles.create();
+  //title.text = "Land"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+  //title.fontSize = 20;
+  //title.fontWeight = "bold";
+  //title.fill = "#ffffff";
+  //title.marginTop = 5;
+  
+  var marker = chart.legend.markers.template.children.getIndex(0);
+  var markerTemplate = chart.legend.markers.template;
+  //marker.cornerRadius(12, 12, 12, 12); round legend marker
+  marker.strokeWidth = 1;
+  marker.strokeOpacity = 1;
+  marker.stroke = am4core.color("#ccc");
+  
+  // Change size of legend marker
+  markerTemplate.width = 18;
+  markerTemplate.height = 18;
+  // This creates initial animation
+  //pieSeries.hiddenState.properties.opacity = 1;
+  //pieSeries.hiddenState.properties.endAngle = -90;
+  //pieSeries.hiddenState.properties.startAngle = -90;
+
+  
+  } // End of createSlices function
+  
+  createSlices("status", "CP");
+  
+  }); // End of queryFeatures
+  } // End of updateChartLot()
+  legendCP();
+  
 // Calculate Statistcis
 // Land, Structure, and ISF
 
@@ -345,7 +537,6 @@ var N03 = Number(cpN01) + Number(cpN02) + Number(cpN03);
 var N04 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04);
 var N05 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
-
 var chartMin = 0;
 var chartMax = 100;
 
@@ -356,32 +547,32 @@ var data = {
 score: totalScore,
 gradingData: [
 {
-  title: "N-01",
+  title: Math.round(N01).toFixed(1), //"N-01",
   color: "#ee1f25",
   lowScore: 0,
   highScore: N01
 },
 {
-  title: "N-02",
-  color: "#f04922",
+  title: Math.round(N02 - N01).toFixed(0),
+  color: "#70AD47",
   lowScore: N01,
   highScore: N02
 },
 {
-  title: "N-03",
-  color: "#fdae19",
+  title: Math.round(N03 - N02).toFixed(0),
+  color: "#0070FF",
   lowScore: N02,
   highScore: N03
 },
 {
-  title: "N-04",
-  color: "#f3eb0c",
+  title: Math.round(N04 - N03).toFixed(0),
+  color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
-  title: "N-05",
-  color: "#b0d136",
+  title: Math.round(N05 - N04).toFixed(0),
+  color: "#BF40BF",
   lowScore: N04,
   highScore: N05
 },
@@ -457,7 +648,7 @@ axis.renderer.ticks.template.strokeOpacity = 1;
 axis.renderer.ticks.template.length = 10;
 axis.renderer.grid.template.disabled = true;
 axis.renderer.labels.template.radius = am4core.percent(40);
-axis.renderer.labels.template.fontSize = "1.2em";
+axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em
 
 /**
 * Axis for ranges
@@ -498,7 +689,7 @@ range.label.location = 0.5;
 range.label.inside = true;
 range.label.radius = am4core.percent(10);
 range.label.paddingBottom = -5; // ~half font size
-range.label.fontSize = "1em"; // category label (i.e., N-01, N-02, ....)
+range.label.fontSize = "1.5em"; // category label (i.e., N-01, N-02, ....)
 }
 
 var matchingGrade = lookUpGrade(data.score, data.gradingData);
@@ -668,25 +859,25 @@ gradingData: [
 },
 {
   title: "N-02",
-  color: "#f04922",
+  color: "#70AD47",
   lowScore: N01,
   highScore: N02
 },
 {
   title: "N-03",
-  color: "#fdae19",
+  color: "#0070FF",
   lowScore: N02,
   highScore: N03
 },
 {
   title: "N-04",
-  color: "#f3eb0c",
+  color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
   title: "N-05",
-  color: "#b0d136",
+  color: "#BF40BF",
   lowScore: N04,
   highScore: N05
 },
@@ -803,7 +994,7 @@ range.label.location = 0.5;
 range.label.inside = true;
 range.label.radius = am4core.percent(10);
 range.label.paddingBottom = -5; // ~half font size
-range.label.fontSize = "1em"; // category label (i.e., N-01, N-02, ....)
+range.label.fontSize = "1.5em"; // category label (i.e., N-01, N-02, ....)
 }
 
 var matchingGrade = lookUpGrade(data.score, data.gradingData);
@@ -975,25 +1166,25 @@ gradingData: [
 },
 {
   title: "N-02",
-  color: "#f04922",
+  color: "#70AD47",
   lowScore: N01,
   highScore: N02
 },
 {
   title: "N-03",
-  color: "#fdae19",
+  color: "#0070FF",
   lowScore: N02,
   highScore: N03
 },
 {
   title: "N-04",
-  color: "#f3eb0c",
+  color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
   title: "N-05",
-  color: "#b0d136",
+  color: "#BF40BF",
   lowScore: N04,
   highScore: N05
 },
@@ -1110,7 +1301,7 @@ range.label.location = 0.5;
 range.label.inside = true;
 range.label.radius = am4core.percent(10);
 range.label.paddingBottom = -5; // ~half font size
-range.label.fontSize = "1em"; // category label (i.e., N-01, N-02, ....)
+range.label.fontSize = "1.5em"; // category label (i.e., N-01, N-02, ....)
 }
 
 var matchingGrade = lookUpGrade(data.score, data.gradingData);
@@ -1282,25 +1473,25 @@ gradingData: [
 },
 {
   title: "N-02",
-  color: "#f04922",
+  color: "#70AD47",
   lowScore: N01,
   highScore: N02
 },
 {
   title: "N-03",
-  color: "#fdae19",
+  color: "#0070FF",
   lowScore: N02,
   highScore: N03
 },
 {
   title: "N-04",
-  color: "#f3eb0c",
+  color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
   title: "N-05",
-  color: "#b0d136",
+  color: "#BF40BF",
   lowScore: N04,
   highScore: N05
 },
@@ -1417,7 +1608,7 @@ range.label.location = 0.5;
 range.label.inside = true;
 range.label.radius = am4core.percent(10);
 range.label.paddingBottom = -5; // ~half font size
-range.label.fontSize = "1em"; // category label (i.e., N-01, N-02, ....)
+range.label.fontSize = "1.5em"; // category label (i.e., N-01, N-02, ....)
 }
 
 var matchingGrade = lookUpGrade(data.score, data.gradingData);
@@ -1585,25 +1776,25 @@ gradingData: [
 },
 {
   title: "N-02",
-  color: "#f04922",
+  color: "#70AD47",
   lowScore: N01,
   highScore: N02
 },
 {
   title: "N-03",
-  color: "#fdae19",
+  color: "#0070FF",
   lowScore: N02,
   highScore: N03
 },
 {
   title: "N-04",
-  color: "#f3eb0c",
+  color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
   title: "N-05",
-  color: "#b0d136",
+  color: "#BF40BF",
   lowScore: N04,
   highScore: N05
 },
@@ -1720,7 +1911,7 @@ range.label.location = 0.5;
 range.label.inside = true;
 range.label.radius = am4core.percent(10);
 range.label.paddingBottom = -5; // ~half font size
-range.label.fontSize = "1em"; // category label (i.e., N-01, N-02, ....)
+range.label.fontSize = "1.5em"; // category label (i.e., N-01, N-02, ....)
 }
 
 var matchingGrade = lookUpGrade(data.score, data.gradingData);
@@ -1976,25 +2167,25 @@ gradingData: [
 },
 {
   title: "N-02",
-  color: "#f04922",
+  color: "#70AD47",
   lowScore: N01,
   highScore: N02
 },
 {
   title: "N-03",
-  color: "#fdae19",
+  color: "#0070FF",
   lowScore: N02,
   highScore: N03
 },
 {
   title: "N-04",
-  color: "#f3eb0c",
+  color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
   title: "N-05",
-  color: "#b0d136",
+  color: "#BF40BF",
   lowScore: N04,
   highScore: N05
 },
@@ -2111,7 +2302,7 @@ range.label.location = 0.5;
 range.label.inside = true;
 range.label.radius = am4core.percent(10);
 range.label.paddingBottom = -5; // ~half font size
-range.label.fontSize = "1em"; // category label (i.e., N-01, N-02, ....)
+range.label.fontSize = "1.5em"; // category label (i.e., N-01, N-02, ....)
 }
 
 var matchingGrade = lookUpGrade(data.score, data.gradingData);
