@@ -4,7 +4,7 @@ require([
   "esri/views/MapView",
   "esri/views/SceneView",
   "esri/layers/FeatureLayer",
-  "esri/views/layers/support/FeatureFilter",
+  "esri/layers/support/FeatureFilter",
   "esri/layers/SceneLayer",
   "esri/layers/Layer",
   "esri/layers/TileLayer",
@@ -424,7 +424,7 @@ outline: {
 // Construction boundary Renderer -----------------------
 let ConstructionBoundaryFill = {
 type: "unique-value",
-valueExpression: "When($feature.MappingBoundary == 1, 'Boundary',$feature.Comp_Agency)",
+valueExpression: "When($feature.MappingBoundary == 1, 'Boundary',$feature.MappingBoundary)",
 uniqueValueInfos: [
 {
 value: "Boundary",
@@ -2712,6 +2712,7 @@ element: applicationDiv
 );
 
 // Locate widget
+/*
 let locateWidget = new Locate({
 view: view,   // Attaches the Locate button to the view
 graphic: new Graphic({
@@ -2721,7 +2722,7 @@ symbol: { type: "simple-marker" }  // overwrites the default symbol used for the
 });
 
 view.ui.add(locateWidget, "top-left");
-
+*/
 
 /*
 // Print widget
