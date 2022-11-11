@@ -547,31 +547,31 @@ var data = {
 score: totalScore,
 gradingData: [
 {
-  title: Math.round(N01).toFixed(1), //"N-01",
+  title: N01.toFixed(0), //"N-01",
   color: "#ee1f25",
   lowScore: 0,
   highScore: N01
 },
 {
-  title: Math.round(N02 - N01).toFixed(0),
+  title: (N02 - N01).toFixed(0),
   color: "#70AD47",
   lowScore: N01,
   highScore: N02
 },
 {
-  title: Math.round(N03 - N02).toFixed(0),
+  title: (N03 - N02).toFixed(0),
   color: "#0070FF",
   lowScore: N02,
   highScore: N03
 },
 {
-  title: Math.round(N04 - N03).toFixed(0),
+  title: (N04 - N03).toFixed(0),
   color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
-  title: Math.round(N05 - N04).toFixed(0),
+  title: (N05 - N04).toFixed(0),
   color: "#BF40BF",
   lowScore: N04,
   highScore: N05
@@ -852,31 +852,31 @@ var data = {
 score: totalScore,
 gradingData: [
 {
-  title: "N-01",
+  title: N01.toFixed(0),
   color: "#ee1f25",
   lowScore: 0,
   highScore: N01
 },
 {
-  title: "N-02",
+  title: (N02 - N01).toFixed(0),
   color: "#70AD47",
   lowScore: N01,
   highScore: N02
 },
 {
-  title: "N-03",
+  title: (N03 - N02).toFixed(0),
   color: "#0070FF",
   lowScore: N02,
   highScore: N03
 },
 {
-  title: "N-04",
+  title: (N04 - N03).toFixed(0),
   color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
-  title: "N-05",
+  title: (N05 - N04).toFixed(0),
   color: "#BF40BF",
   lowScore: N04,
   highScore: N05
@@ -970,7 +970,7 @@ axis2.renderer.grid.template.opacity = 0.5;
 axis2.renderer.labels.template.bent = true;
 axis2.renderer.labels.template.fill = am4core.color("#000");
 axis2.renderer.labels.template.fontWeight = "bold";
-axis2.renderer.labels.template.fillOpacity = 0; // 0.3 // category labels: N-01, N-02,....
+axis2.renderer.labels.template.fillOpacity = 0.7; // 0.3 // category labels: N-01, N-02,....
 
 
 
@@ -1159,31 +1159,31 @@ var data = {
 score: totalScore,
 gradingData: [
 {
-  title: "N-01",
+  title: N01.toFixed(0),
   color: "#ee1f25",
   lowScore: 0,
   highScore: N01
 },
 {
-  title: "N-02",
+  title: (N02 - N01).toFixed(0),
   color: "#70AD47",
   lowScore: N01,
   highScore: N02
 },
 {
-  title: "N-03",
+  title: (N03 - N02).toFixed(0),
   color: "#0070FF",
   lowScore: N02,
   highScore: N03
 },
 {
-  title: "N-04",
+  title: (N04 - N03).toFixed(0),
   color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
-  title: "N-05",
+  title: (N05 - N04).toFixed(0),
   color: "#BF40BF",
   lowScore: N04,
   highScore: N05
@@ -1277,7 +1277,7 @@ axis2.renderer.grid.template.opacity = 0.5;
 axis2.renderer.labels.template.bent = true;
 axis2.renderer.labels.template.fill = am4core.color("#000");
 axis2.renderer.labels.template.fontWeight = "bold";
-axis2.renderer.labels.template.fillOpacity = 0;
+axis2.renderer.labels.template.fillOpacity = 0.7;
 
 
 
@@ -1466,31 +1466,31 @@ var data = {
 score: totalScore,
 gradingData: [
 {
-  title: "N-01",
+  title: N01.toFixed(0),
   color: "#ee1f25",
   lowScore: 0,
   highScore: N01
 },
 {
-  title: "N-02",
+  title: (N02 - N01).toFixed(0),
   color: "#70AD47",
   lowScore: N01,
   highScore: N02
 },
 {
-  title: "N-03",
+  title: (N03 - N02).toFixed(0),
   color: "#0070FF",
   lowScore: N02,
   highScore: N03
 },
 {
-  title: "N-04",
+  title: (N04 - N03).toFixed(0),
   color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
-  title: "N-05",
+  title: (N05 - N04).toFixed(0),
   color: "#BF40BF",
   lowScore: N04,
   highScore: N05
@@ -1584,7 +1584,7 @@ axis2.renderer.grid.template.opacity = 0.5;
 axis2.renderer.labels.template.bent = true;
 axis2.renderer.labels.template.fill = am4core.color("#000");
 axis2.renderer.labels.template.fontWeight = "bold";
-axis2.renderer.labels.template.fillOpacity = 0;
+axis2.renderer.labels.template.fillOpacity = 0.7;
 
 
 
@@ -1769,31 +1769,31 @@ var data = {
 score: totalScore,
 gradingData: [
 {
-  title: "N-01",
+  title: N01.toFixed(0),
   color: "#ee1f25",
   lowScore: 0,
   highScore: N01
 },
 {
-  title: "N-02",
+  title: (N02 - N01).toFixed(0),
   color: "#70AD47",
   lowScore: N01,
   highScore: N02
 },
 {
-  title: "N-03",
+  title: (N03 - N02).toFixed(0),
   color: "#0070FF",
   lowScore: N02,
   highScore: N03
 },
 {
-  title: "N-04",
+  title: (N04 - N03).toFixed(0),
   color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
-  title: "N-05",
+  title: (N05 - N04).toFixed(0),
   color: "#BF40BF",
   lowScore: N04,
   highScore: N05
@@ -1887,7 +1887,7 @@ axis2.renderer.grid.template.opacity = 0.5;
 axis2.renderer.labels.template.bent = true;
 axis2.renderer.labels.template.fill = am4core.color("#000");
 axis2.renderer.labels.template.fontWeight = "bold";
-axis2.renderer.labels.template.fillOpacity = 0;
+axis2.renderer.labels.template.fillOpacity = 0.7;
 
 
 
@@ -2160,31 +2160,31 @@ var data = {
 score: totalScore,
 gradingData: [
 {
-  title: "N-01",
+  title: N01.toFixed(0),
   color: "#ee1f25",
   lowScore: 0,
   highScore: N01
 },
 {
-  title: "N-02",
+  title: (N02 - N01).toFixed(0),
   color: "#70AD47",
   lowScore: N01,
   highScore: N02
 },
 {
-  title: "N-03",
+  title: (N03 - N02).toFixed(0),
   color: "#0070FF",
   lowScore: N02,
   highScore: N03
 },
 {
-  title: "N-04",
+  title: (N04 - N03).toFixed(0),
   color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
-  title: "N-05",
+  title: (N05 - N04).toFixed(0),
   color: "#BF40BF",
   lowScore: N04,
   highScore: N05
@@ -2278,7 +2278,7 @@ axis2.renderer.grid.template.opacity = 0.5;
 axis2.renderer.labels.template.bent = true;
 axis2.renderer.labels.template.fill = am4core.color("#000");
 axis2.renderer.labels.template.fontWeight = "bold";
-axis2.renderer.labels.template.fillOpacity = 0;
+axis2.renderer.labels.template.fillOpacity = 0.7;
 
 
 
