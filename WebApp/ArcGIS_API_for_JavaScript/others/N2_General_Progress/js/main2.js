@@ -1750,7 +1750,11 @@ return [cpN01, cpN02, cpN03, cpN04, cpN05];
 } // End of treeCompenSummary function
 
 function treeCompenFigure([cpN01, cpN02, cpN03, cpN04, cpN05]) {
-var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
+var totalScore = Number(cpN01).toFixed(0) +
+                 Number(cpN02).toFixed(0) + 
+                 Number(cpN03).toFixed(0) + 
+                 Number(cpN04).toFixed(0) + 
+                 Number(cpN05).toFixed(0);
 
 var N01 = Number(cpN01);
 var N02 = Number(cpN01) + Number(cpN02);
