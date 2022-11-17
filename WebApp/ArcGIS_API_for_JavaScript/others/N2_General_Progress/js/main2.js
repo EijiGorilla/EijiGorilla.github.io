@@ -364,7 +364,7 @@ function legendCP() {
   chart.legend.labels.template.fontSize = LegendFontSizze;
   chart.legend.labels.template.fill = "#ffffff";
   chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
-  chart.legend.valueLabels.template.fontSize = LegendFontSizze; 
+
   //pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
   //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
   
