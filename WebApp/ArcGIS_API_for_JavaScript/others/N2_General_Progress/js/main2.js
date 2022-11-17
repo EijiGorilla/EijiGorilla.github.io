@@ -1696,6 +1696,7 @@ query.outStatistics = [total_number_tree];
 return treeLayer.queryFeatures(query).then(function(response) {
 var stats = response.features[0].attributes;
 const totalNumber = stats.total_number_tree;
+
 return totalNumber;
 });
 }
@@ -1750,11 +1751,8 @@ return [cpN01, cpN02, cpN03, cpN04, cpN05];
 } // End of treeCompenSummary function
 
 function treeCompenFigure([cpN01, cpN02, cpN03, cpN04, cpN05]) {
-var totalScore = Number(cpN01).toFixed(0) +
-                 Number(cpN02).toFixed(0) + 
-                 Number(cpN03).toFixed(0) + 
-                 Number(cpN04).toFixed(0) + 
-                 Number(cpN05).toFixed(0);
+var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + 
+                 Number(cpN04) + Number(cpN05);
 
 var N01 = Number(cpN01);
 var N02 = Number(cpN01) + Number(cpN02);
@@ -1933,7 +1931,7 @@ label.paddingBottom = -5;
 label.horizontalCenter = "middle";
 label.verticalCenter = "bottom";
 //label.dataItem = data;
-label.text = data.score.toFixed(0).toString() + "%";
+label.text = data.score.toFixed(0).toString() + "%"; //data.score.toFixed(0).toString() + "%"
 //label.text = "{score}";
 //label.fill = am4core.color(matchingGrade.color);
 label.fill =  am4core.color("#00C3FF");
