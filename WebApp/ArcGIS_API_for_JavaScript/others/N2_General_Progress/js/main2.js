@@ -528,6 +528,8 @@ return [cpN01, cpN02, cpN03, cpN04, cpN05];
 
 } // End of lotSummary function
 
+var axis1TickColor = "#C5C5C5";
+
 function laFigureLot([cpN01, cpN02, cpN03, cpN04, cpN05]) {
 var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
@@ -646,10 +648,11 @@ axis.renderer.ticks.template.disabled = false;
 axis.renderer.ticks.template.strokeOpacity = 1;
 //axis.renderer.ticks.template.strokeWidth = 1;
 axis.renderer.ticks.template.length = 10;
-axis.renderer.grid.template.disabled = true;
+axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
+//axis.renderer.grid.template.disabled = true;
 axis.renderer.labels.template.radius = am4core.percent(40);
 axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em inner radius axis percent labels (0 to 100%)
-axis.renderer.labels.template.fill = am4core.color("#C5C5C5");
+axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
 
 /**
 * Axis for ranges
@@ -953,9 +956,11 @@ axis.renderer.ticks.template.disabled = false;
 axis.renderer.ticks.template.strokeOpacity = 1;
 //axis.renderer.ticks.template.strokeWidth = 1;
 axis.renderer.ticks.template.length = 10;
-axis.renderer.grid.template.disabled = true;
+axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
+//axis.renderer.grid.template.disabled = true;
 axis.renderer.labels.template.radius = am4core.percent(40);
-axis.renderer.labels.template.fontSize = "1.2em";
+axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em inner radius axis percent labels (0 to 100%)
+axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
 
 /**
 * Axis for ranges
@@ -983,7 +988,7 @@ Ranges
 for (let grading of data.gradingData) {
 var range = axis2.axisRanges.create();
 range.axisFill.fill = am4core.color(grading.color);
-range.axisFill.fillOpacity = 0.8;
+range.axisFill.fillOpacity = 1;
 range.axisFill.zIndex = -1;
 range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
 range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
@@ -1260,9 +1265,11 @@ axis.renderer.ticks.template.disabled = false;
 axis.renderer.ticks.template.strokeOpacity = 1;
 //axis.renderer.ticks.template.strokeWidth = 1;
 axis.renderer.ticks.template.length = 10;
-axis.renderer.grid.template.disabled = true;
+axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
+//axis.renderer.grid.template.disabled = true;
 axis.renderer.labels.template.radius = am4core.percent(40);
-axis.renderer.labels.template.fontSize = "1.2em";
+axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em inner radius axis percent labels (0 to 100%)
+axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
 
 /**
 * Axis for ranges
@@ -1290,7 +1297,7 @@ Ranges
 for (let grading of data.gradingData) {
 var range = axis2.axisRanges.create();
 range.axisFill.fill = am4core.color(grading.color);
-range.axisFill.fillOpacity = 0.8;
+range.axisFill.fillOpacity = 1;
 range.axisFill.zIndex = -1;
 range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
 range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
@@ -1567,9 +1574,11 @@ axis.renderer.ticks.template.disabled = false;
 axis.renderer.ticks.template.strokeOpacity = 1;
 //axis.renderer.ticks.template.strokeWidth = 1;
 axis.renderer.ticks.template.length = 10;
-axis.renderer.grid.template.disabled = true;
+axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
+//axis.renderer.grid.template.disabled = true;
 axis.renderer.labels.template.radius = am4core.percent(40);
-axis.renderer.labels.template.fontSize = "1.2em";
+axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em inner radius axis percent labels (0 to 100%)
+axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
 
 /**
 * Axis for ranges
@@ -1597,7 +1606,7 @@ Ranges
 for (let grading of data.gradingData) {
 var range = axis2.axisRanges.create();
 range.axisFill.fill = am4core.color(grading.color);
-range.axisFill.fillOpacity = 0.8;
+range.axisFill.fillOpacity = 1;
 range.axisFill.zIndex = -1;
 range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
 range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
@@ -1872,9 +1881,11 @@ axis.renderer.ticks.template.disabled = false;
 axis.renderer.ticks.template.strokeOpacity = 1;
 //axis.renderer.ticks.template.strokeWidth = 1;
 axis.renderer.ticks.template.length = 10;
-axis.renderer.grid.template.disabled = true;
+axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
+//axis.renderer.grid.template.disabled = true;
 axis.renderer.labels.template.radius = am4core.percent(40);
-axis.renderer.labels.template.fontSize = "1.2em";
+axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em inner radius axis percent labels (0 to 100%)
+axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
 
 /**
 * Axis for ranges
@@ -1902,7 +1913,7 @@ Ranges
 for (let grading of data.gradingData) {
 var range = axis2.axisRanges.create();
 range.axisFill.fill = am4core.color(grading.color);
-range.axisFill.fillOpacity = 0.8;
+range.axisFill.fillOpacity = 1;
 range.axisFill.zIndex = -1;
 range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
 range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
@@ -2263,9 +2274,11 @@ axis.renderer.ticks.template.disabled = false;
 axis.renderer.ticks.template.strokeOpacity = 1;
 //axis.renderer.ticks.template.strokeWidth = 1;
 axis.renderer.ticks.template.length = 10;
-axis.renderer.grid.template.disabled = true;
+axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
+//axis.renderer.grid.template.disabled = true;
 axis.renderer.labels.template.radius = am4core.percent(40);
-axis.renderer.labels.template.fontSize = "1.2em";
+axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em inner radius axis percent labels (0 to 100%)
+axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
 
 /**
 * Axis for ranges
@@ -2293,7 +2306,7 @@ Ranges
 for (let grading of data.gradingData) {
 var range = axis2.axisRanges.create();
 range.axisFill.fill = am4core.color(grading.color);
-range.axisFill.fillOpacity = 0.8;
+range.axisFill.fillOpacity = 1;
 range.axisFill.zIndex = -1;
 range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
 range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
