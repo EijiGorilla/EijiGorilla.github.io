@@ -648,7 +648,8 @@ axis.renderer.ticks.template.strokeOpacity = 1;
 axis.renderer.ticks.template.length = 10;
 axis.renderer.grid.template.disabled = true;
 axis.renderer.labels.template.radius = am4core.percent(40);
-axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em
+axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em inner radius axis percent labels (0 to 100%)
+axis.renderer.labels.template.fill = am4core.color("#C5C5C5");
 
 /**
 * Axis for ranges
@@ -676,7 +677,7 @@ Ranges
 for (let grading of data.gradingData) {
 var range = axis2.axisRanges.create();
 range.axisFill.fill = am4core.color(grading.color);
-range.axisFill.fillOpacity = 0.8;
+range.axisFill.fillOpacity = 1; // default 0.8 fill-color of 
 range.axisFill.zIndex = -1;
 range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
 range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
@@ -690,6 +691,7 @@ range.label.inside = true;
 range.label.radius = am4core.percent(10);
 range.label.paddingBottom = -5; // ~half font size
 range.label.fontSize = "1.5em"; // category label (i.e., N-01, N-02, ....)
+
 }
 
 var matchingGrade = lookUpGrade(data.score, data.gradingData);
