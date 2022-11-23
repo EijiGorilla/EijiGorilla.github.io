@@ -1,0 +1,206 @@
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/ImageryLayer",
+        "esri/layers/support/DimensionalDefinition",
+        "esri/layers/support/MosaicRule",
+        "esri/widgets/Slider",
+        "esri/core/reactiveUtils"
+      ], function (
+        Map,
+        MapView,
+        ImageryLayer,
+        DimensionalDefinition,
+        MosaicRule,
+        Slider,
+        reactiveUtils
+      ) {
+        // The URL to an image layer representing sea temperature
+        const url =
+          "https://sampleserver6.arcgisonline.com/arcgis/rest/services/ScientificData/SeaTemperature/ImageServer";
+
+        const map = new Map({
+          basemap: "dark-gray-vector"
+        });
+
+        const view = new MapView({
+          container: "viewDiv",
+          map: map,
+          zoom: 2,
+          center: [-32, 28],
+          popup: {
+            actions: []
+          }
+        });
+
+        const tempDiv = document.getElementById("tempDiv");
+        /**********************************************************************************************
+         * Variable water_temp describes the water temperature, it has both depth and time dimensions.
+         * This snippet sets water_temp to a specific depth and a specific time by defining the
+         * multidimensionalDefinition property of a MosaicRule object.
+         **********************************************************************************************/
+        const dimInfo = []; // Define dimensional definition as array
+
+        // Multidimensional information of image service can be viewed at this
+        // Service/multiDimensionalInfo
+        // DEPTH: show only temperatures at sea surface
+        dimInfo.push(
+          new DimensionalDefinition({
+            dimensionName: "StdZ", // Water depth
+            values: [0], // Sea surface or 0ft
+            isSlice: true
+          })
+        );
+
+        // TIME: only show temperatures for the week of April 7, 2014
+        dimInfo.push(
+          new DimensionalDefinition({
+            dimensionName: "StdTime", // time temp was recorded
+            values: [1396828800000], // Week of April 7, 2014
+            isSlice: true
+          })
+        );
+
+        const mr = new MosaicRule({
+          multidimensionalDefinition: dimInfo
+        });
+
+        const layer = new ImageryLayer({
+          url: url,
+          pixelFilter: maskPixels,
+          mosaicRule: mr,
+          // The popup will display the temperature at the clicked location
+          popupTemplate: {
+            title: "Sea Surface Temperature",
+            content: "{Raster.ServicePixelValue}° Celsius"
+          }
+        });
+
+        // Add sea temperature layer to the map
+        map.add(layer);
+
+        // Slider to mask imagery layer based on its pixel values
+        const pixelSlider = new Slider({
+          container: "pixelSlider",
+          min: -3,
+          max: 37,
+          steps: 1,
+          values: [-3, 37],
+          visibleElements: {
+            labels: true,
+            rangeLabels: true
+          }
+        });
+        view.ui.add("infoDiv", "bottom-left");
+        pixelSlider.on(["thumb-drag", "thumb-change", "segment-drag"], updatePixelFilter);
+
+        let currentMin, currentMax;
+
+        // This function is called when user is moves the slider thumb to
+        // the pixel values of imagery layer based on temperature
+        // if pixel value lies between slider min and max
+        function updatePixelFilter() {
+          distance = pixelSlider.values[0];
+          currentMin = Math.floor(pixelSlider.values[0]);
+          currentMax = Math.floor(pixelSlider.values[1]);
+          document.getElementById("pixelVal").innerHTML =
+            `Currently displaying locations with sea temperatures from ${currentMin} °C to ${currentMax} °C`;
+          layer.redraw();
+        }
+
+        // /**********************************************************
+        // * The PixelFilter function. This function is used to color the
+        // * pixels. By default, each pixel has one band containing
+        // * a temperature value. We will replace the single band with
+        // * three bands - red, green, and blue to give color to the layer.
+        // *********************************************************/
+
+        function maskPixels(pixelData) {
+        // If there isn't pixelData, a pixelBlock, nor pixels, exit the function
+          if (pixelData == null || pixelData.pixelBlock == null) {
+            return;
+          }
+          if (currentMin == null || currentMax == null) {
+            // layer is loaded get the min and max temp values from the layer
+            updatePixelFilter();
+          }
+
+          // The pixelBlock stores the values of all pixels visible in the view
+          const pixelBlock = pixelData.pixelBlock;
+         
+          // The pixels visible in the view
+          const pixels = pixelBlock.pixels;
+          
+          // The mask is an array that determines which pixels are visible to the client
+          // returns binary: 0 or 1
+          let mask = pixelBlock.mask;
+
+          // The number of pixels in the pixelBlock
+          const numPixels = pixelBlock.width * pixelBlock.height;
+
+          // Get the min and max values of the data in the current view
+          const minVal = pixelData.pixelBlock.statistics[0].minValue;
+          const maxVal = pixelData.pixelBlock.statistics[0].maxValue;
+
+          // Calculate the factor by which to determine the red and blue
+          // values in the colorized version of the layer
+          const factor = 255.0 / (maxVal - minVal);
+          if (pixels == null) {
+            return;
+          }
+
+          // Get the pixels containing temperature values in the only band of the data
+          const tempBand = pixels[0];
+          const p1 = pixels[0];
+          // Create empty arrays for each of the RGB bands to set on the pixelBlock
+          const rBand = new Uint8Array(p1.length);
+          const gBand = new Uint8Array(p1.length);
+          const bBand = new Uint8Array(p1.length);
+
+          if (mask == null) {
+            mask = new Uint8Array(p1.length); //mask = new Uint8Array(p1.length);
+            mask.fill(1);
+            pixelBlock.mask = mask;
+          }
+
+          // Loop through all the pixels in the view
+          for (let i = 0; i < numPixels; i++) {
+            // skip noData pixels
+            if (mask[i] ===0) {
+              continue;
+            }
+            const tempValue = tempBand[i];
+            const red = (tempValue - minVal) * factor;
+            mask[i] =
+              p1[i] >= Math.floor(currentMin) && p1[i] <= Math.floor(currentMax)
+                ? 1
+                : 0;
+
+            //apply color based on temperature value of each pixel
+            if (mask[i]) {
+              // p[i] = Math.floor((p1[i] - minVal) * factor);
+              rBand[i] = red;
+              gBand[i] = 0;
+              bBand[i] = 255 - red;
+            }
+          }
+
+          // Set the new pixel values on the pixelBlock
+          pixelData.pixelBlock.pixels = [rBand, gBand, bBand]; //assign rgb values to each pixel
+          pixelData.pixelBlock.statistics = null;
+          pixelData.pixelBlock.pixelType = "u8";
+        }
+
+
+        // Display popup when the layer view loads
+        view.whenLayerView(layer).then(function (layerView) {
+          reactiveUtils.whenOnce(() => !layerView.updating).then(() => {
+            view.popup.open({
+              title: "Sea Surface Temperature",
+              content:
+                "Click anywhere in the oceans to view the sea temperature at that location.",
+              location: view.center
+            });
+          });
+        });
+      });
