@@ -181,7 +181,7 @@ portal: {
   url: "https://gis.railway-sector.com/portal"
 }
 },
-layerId: 1,
+layerId: 4,
 title: "Utility Point",
 outFields: ["*"],
 elevationInfo: {
@@ -197,7 +197,7 @@ portal: {
   url: "https://gis.railway-sector.com/portal"
 }
 },
-layerId: 2,
+layerId: 5,
 title: "Utility Line",
 elevationInfo: {
 mode: "relative-to-scene",
