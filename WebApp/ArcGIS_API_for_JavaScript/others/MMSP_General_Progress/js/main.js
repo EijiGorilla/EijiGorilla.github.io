@@ -788,9 +788,9 @@ treeCuttingFigure();
 /// 2. Tree Compensation
 function treeCompensationFigure() {
 var total_number_tree = {
-onStatisticField: "ID",
+onStatisticField: "CASE WHEN Tree_Compe <= 7 THEN 1 ELSE 0 END",
 outStatisticFieldName: "total_number_tree",
-statisticType: "count"
+statisticType: "sum"
 };
 
 var total_compensated_tree = {
