@@ -394,7 +394,7 @@ laFigureLot();
 /// 2. Structure
 function laFigureStruc() {
 var total_number_struc = {
-onStatisticField: "Id_1",
+onStatisticField: "Id",
 outStatisticFieldName: "total_number_struc",
 statisticType: "count"
 };
