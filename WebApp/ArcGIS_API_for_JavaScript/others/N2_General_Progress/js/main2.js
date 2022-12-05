@@ -303,17 +303,17 @@ function legendCP() {
   {
     "CP": "N-01",
     "status": n01,
-    "color": am4core.color("#ee1f25")
+    "color": am4core.color("#ffa500")
   },
   {
     "CP": "N-02",
     "status": n02,
-    "color": am4core.color("#70AD47")
+    "color": am4core.color("#00ff00")
   },
   {
     "CP": "N-03",
     "status": n03,
-    "color": am4core.color("#0070FF")   
+    "color": am4core.color("#00c5ff")   
   },
   {
     "CP": "N-04",
@@ -550,19 +550,19 @@ score: totalScore,
 gradingData: [
 {
   title: N01.toFixed(0), //"N-01",
-  color: "#ee1f25",
+  color: "#ffa500",
   lowScore: 0,
   highScore: N01
 },
 {
   title: (N02 - N01).toFixed(0),
-  color: "#70AD47",
+  color: "#00ff00",
   lowScore: N01,
   highScore: N02
 },
 {
   title: (N03 - N02).toFixed(0),
-  color: "#0070FF",
+  color: "#00c5ff",
   lowScore: N02,
   highScore: N03
 },
@@ -858,19 +858,19 @@ score: totalScore,
 gradingData: [
 {
   title: N01.toFixed(0),
-  color: "#ee1f25",
+  color: "#ffa500",
   lowScore: 0,
   highScore: N01
 },
 {
   title: (N02 - N01).toFixed(0),
-  color: "#70AD47",
+  color: "#00ff00",
   lowScore: N01,
   highScore: N02
 },
 {
   title: (N03 - N02).toFixed(0),
-  color: "#0070FF",
+  color: "#00c5ff",
   lowScore: N02,
   highScore: N03
 },
@@ -1167,19 +1167,19 @@ score: totalScore,
 gradingData: [
 {
   title: N01.toFixed(0),
-  color: "#ee1f25",
+  color: "#ffa500",
   lowScore: 0,
   highScore: N01
 },
 {
   title: (N02 - N01).toFixed(0),
-  color: "#70AD47",
+  color: "#00ff00",
   lowScore: N01,
   highScore: N02
 },
 {
   title: (N03 - N02).toFixed(0),
-  color: "#0070FF",
+  color: "#00c5ff",
   lowScore: N02,
   highScore: N03
 },
@@ -1476,19 +1476,19 @@ score: totalScore,
 gradingData: [
 {
   title: N01.toFixed(0),
-  color: "#ee1f25",
+  color: "#ffa500",
   lowScore: 0,
   highScore: N01
 },
 {
   title: (N02 - N01).toFixed(0),
-  color: "#70AD47",
+  color: "#00ff00",
   lowScore: N01,
   highScore: N02
 },
 {
   title: (N03 - N02).toFixed(0),
-  color: "#0070FF",
+  color: "#00c5ff",
   lowScore: N02,
   highScore: N03
 },
@@ -1783,19 +1783,19 @@ score: totalScore,
 gradingData: [
 {
   title: N01.toFixed(0),
-  color: "#ee1f25",
+  color: "#ffa500",
   lowScore: 0,
   highScore: N01
 },
 {
   title: (N02 - N01).toFixed(0),
-  color: "#70AD47",
+  color: "#00ff00",
   lowScore: N01,
   highScore: N02
 },
 {
   title: (N03 - N02).toFixed(0),
-  color: "#0070FF",
+  color: "#00c5ff",
   lowScore: N02,
   highScore: N03
 },
@@ -2176,19 +2176,19 @@ score: totalScore,
 gradingData: [
 {
   title: N01.toFixed(0),
-  color: "#ee1f25",
+  color: "#ffa500",
   lowScore: 0,
   highScore: N01
 },
 {
   title: (N02 - N01).toFixed(0),
-  color: "#70AD47",
+  color: "#00ff00",
   lowScore: N01,
   highScore: N02
 },
 {
   title: (N03 - N02).toFixed(0),
-  color: "#0070FF",
+  color: "#00c5ff",
   lowScore: N02,
   highScore: N03
 },
