@@ -221,6 +221,10 @@ var treeCompenChartDiv = document.getElementById("treeCompenChartDiv");
 var utilityPointChartDiv = document.getElementById("utilityPointChartDiv");
 var utilityLineChartDiv = document.getElementById("utilityLineChartDiv");
 
+var informationDiv = document.getElementById("informationDiv");
+
+informationDiv.innerHTML =  "<br>" + "<b>" + "Note:" + "</b>" + "<br>" + "<br>" + "* Values in the middle of gauges represent total progress of all CPs." + "<br>" + 
+                          "* Values in the sliced chart of gauges represent percent progress by each CP.";
 
 // Thousand separators function
 function thousands_separators(num)
@@ -301,27 +305,27 @@ function legendCP() {
   // Add data
   chart.data = [
   {
-    "CP": "N-01",
+    "CP": "N-01 (%)",
     "status": n01,
     "color": am4core.color("#ffa500")
   },
   {
-    "CP": "N-02",
+    "CP": "N-02 (%)",
     "status": n02,
     "color": am4core.color("#00ff00")
   },
   {
-    "CP": "N-03",
+    "CP": "N-03 (%)",
     "status": n03,
     "color": am4core.color("#00c5ff")   
   },
   {
-    "CP": "N-04",
+    "CP": "N-04 (%)",
     "status": n04,
     "color": am4core.color("#FFFF00") 
   },
   {
-    "CP": "N-05",
+    "CP": "N-05 (%)",
     "status": n05,
     "color": am4core.color("#BF40BF")
   }
@@ -490,10 +494,19 @@ query.returnGeometry = true;
 query.groupByFieldsForStatistics = ["CP"];
 
 var cpN01 = [];
+var cpN01_a = [];
+
 var cpN02 = [];
+var cpN02_a = [];
+
 var cpN03 = [];
+var cpN03_a = [];
+
 var cpN04 = [];
+var cpN04_a = [];
+
 var cpN05 = [];
+var cpN05_a = [];
 
 return lotLayer.queryFeatures(query).then(function(response) {
 stats = response.features;
@@ -504,33 +517,39 @@ const cpPackage = result.attributes.CP;
 const affected = attributes.total_affected_area;
 const handedOver = attributes.total_handover_area;
 const LOT_HANDOVER_PERC = (handedOver/totalAffected)*100;
+const lot_handedover = (handedOver/affected)*100;
 
 if (cpPackage === 'N-01') {
   cpN01.push(LOT_HANDOVER_PERC);
+  cpN01_a.push(lot_handedover);
 
 } else if (cpPackage === 'N-02') {
   cpN02.push(LOT_HANDOVER_PERC);
+  cpN02_a.push(lot_handedover);
 
 } else if (cpPackage === 'N-03') {
   cpN03.push(LOT_HANDOVER_PERC);
+  cpN03_a.push(lot_handedover);
 
 } else if (cpPackage === 'N-04') {
   cpN04.push(LOT_HANDOVER_PERC);
+  cpN04_a.push(lot_handedover);
 
 } else if (cpPackage === 'N-05') {
   cpN05.push(LOT_HANDOVER_PERC);
+  cpN05_a.push(lot_handedover);
 }
 
 
 });
-return [cpN01, cpN02, cpN03, cpN04, cpN05];
+return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a];
 });
 
 } // End of lotSummary function
 
 var axis1TickColor = "#C5C5C5";
 
-function laFigureLot([cpN01, cpN02, cpN03, cpN04, cpN05]) {
+function laFigureLot([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a]) {
 var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
 var N01 = Number(cpN01);
@@ -538,6 +557,12 @@ var N02 = Number(cpN01) + Number(cpN02);
 var N03 = Number(cpN01) + Number(cpN02) + Number(cpN03);
 var N04 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04);
 var N05 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
+
+var n01 = Number(cpN01_a);
+var n02 = Number(cpN02_a);
+var n03 = Number(cpN03_a);
+var n04 = Number(cpN04_a);
+var n05 = Number(cpN05_a);
 
 var chartMin = 0;
 var chartMax = 100;
@@ -549,31 +574,31 @@ var data = {
 score: totalScore,
 gradingData: [
 {
-  title: N01.toFixed(0), //"N-01",
+  title: n01.toFixed(0),
   color: "#ffa500",
   lowScore: 0,
   highScore: N01
 },
 {
-  title: (N02 - N01).toFixed(0),
+  title: n02.toFixed(0),
   color: "#00ff00",
   lowScore: N01,
   highScore: N02
 },
 {
-  title: (N03 - N02).toFixed(0),
+  title: n03.toFixed(0),
   color: "#00c5ff",
   lowScore: N02,
   highScore: N03
 },
 {
-  title: (N04 - N03).toFixed(0),
+  title: n04.toFixed(0),
   color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
-  title: (N05 - N04).toFixed(0),
+  title: n05.toFixed(0),
   color: "#BF40BF",
   lowScore: N04,
   highScore: N05
@@ -790,22 +815,37 @@ return totalNumberStruc;
 
 
 function strucSummary(totalNumberStruc) {
+  var total_number_struc = {
+    onStatisticField: "StrucID",
+    outStatisticFieldName: "total_number_struc",
+    statisticType: "count"
+  }
+
 var total_dismantle_struc = {
-onStatisticField: "CASE WHEN StatusStruc = 1 THEN 1 ELSE 0 END",
-outStatisticFieldName: "total_dismantle_struc",
-statisticType: "sum"
+  onStatisticField: "CASE WHEN StatusStruc = 1 THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_dismantle_struc",
+  statisticType: "sum"
 }
 
 var query = structureLayer.createQuery();
-query.outStatistics = [total_dismantle_struc];
+query.outStatistics = [total_number_struc, total_dismantle_struc];
 query.returnGeometry = true;
 query.groupByFieldsForStatistics = ["CP"];
 
 var cpN01 = [];
+var cpN01_a = [];
+
 var cpN02 = [];
+var cpN02_a = [];
+
 var cpN03 = [];
+var cpN03_a = [];
+
 var cpN04 = [];
+var cpN04_a = [];
+
 var cpN05 = [];
+var cpN05_a = [];
 
 return structureLayer.queryFeatures(query).then(function(response) {
 stats = response.features;
@@ -814,30 +854,38 @@ stats.forEach((result, index) => {
 const attributes = result.attributes;
 const cpPackage = result.attributes.CP;
 const dismantled = attributes.total_dismantle_struc;
+const totalN = attributes.total_number_struc;
+
 const STRUC_DISMANTLE_PERC = (dismantled/totalNumberStruc)*100;
+const dismantled_struc = (dismantled/totalN)*100;
 
 if (cpPackage === 'N-01') {
   cpN01.push(STRUC_DISMANTLE_PERC);
+  cpN01_a.push(dismantled_struc);
 
 } else if (cpPackage === 'N-02') {
   cpN02.push(STRUC_DISMANTLE_PERC);
+  cpN02_a.push(dismantled_struc);
 
 } else if (cpPackage === 'N-03') {
   cpN03.push(STRUC_DISMANTLE_PERC);
+  cpN03_a.push(dismantled_struc);
 
 } else if (cpPackage === 'N-04') {
   cpN04.push(STRUC_DISMANTLE_PERC);
+  cpN04_a.push(dismantled_struc);
 
 } else if (cpPackage === 'N-05') {
   cpN05.push(STRUC_DISMANTLE_PERC);
+  cpN05_a.push(dismantled_struc);
 }
 });
-return [cpN01, cpN02, cpN03, cpN04, cpN05];
+return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a];
 });
 
 } // End of strucSummary function
 
-function laFigureStruc([cpN01, cpN02, cpN03, cpN04, cpN05]) {
+function laFigureStruc([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a]) {
 var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
 var N01 = Number(cpN01);
@@ -846,6 +894,11 @@ var N03 = Number(cpN01) + Number(cpN02) + Number(cpN03);
 var N04 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04);
 var N05 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
+var n01 = Number(cpN01_a).toFixed(0);
+var n02 = Number(cpN02_a).toFixed(0);
+var n03 = Number(cpN03_a).toFixed(0);
+var n04 = Number(cpN04_a).toFixed(0);
+var n05 = Number(cpN05_a).toFixed(0);
 
 var chartMin = 0;
 var chartMax = 100;
@@ -857,31 +910,31 @@ var data = {
 score: totalScore,
 gradingData: [
 {
-  title: N01.toFixed(0),
+  title: n01,
   color: "#ffa500",
   lowScore: 0,
   highScore: N01
 },
 {
-  title: (N02 - N01).toFixed(0),
+  title: n02,
   color: "#00ff00",
   lowScore: N01,
   highScore: N02
 },
 {
-  title: (N03 - N02).toFixed(0),
+  title: n03,
   color: "#00c5ff",
   lowScore: N02,
   highScore: N03
 },
 {
-  title: (N04 - N03).toFixed(0),
+  title: n04,
   color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
-  title: (N05 - N04).toFixed(0),
+  title: n05,
   color: "#BF40BF",
   lowScore: N04,
   highScore: N05
@@ -1099,22 +1152,37 @@ return totalNumberISF;
 
 
 function isfSummary(totalNumberISF) {
+  var total_number_isf = {
+    onStatisticField: "StrucID",
+    outStatisticFieldName: "total_number_isf",
+    statisticType: "count"
+  }
+
 var total_relocation_isf = {
-onStatisticField: "CASE WHEN StatusRC = 1 THEN 1 ELSE 0 END",
-outStatisticFieldName: "total_relocation_isf",
-statisticType: "sum"
+  onStatisticField: "CASE WHEN StatusRC = 1 THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_relocation_isf",
+  statisticType: "sum"
 }
 
 var query = reloISFLayer.createQuery();
-query.outStatistics = [total_relocation_isf];
+query.outStatistics = [total_number_isf, total_relocation_isf];
 query.returnGeometry = true;
 query.groupByFieldsForStatistics = ["CP"];
 
 var cpN01 = [];
+var cpN01_a = [];
+
 var cpN02 = [];
+var cpN02_a = [];
+
 var cpN03 = [];
+var cpN03_a = [];
+
 var cpN04 = [];
+var cpN04_a = [];
+
 var cpN05 = [];
+var cpN05_a = [];
 
 return reloISFLayer.queryFeatures(query).then(function(response) {
 stats = response.features;
@@ -1123,30 +1191,38 @@ stats.forEach((result, index) => {
 const attributes = result.attributes;
 const cpPackage = result.attributes.CP;
 const relocated = attributes.total_relocation_isf;
+const totalISF = attributes.total_number_isf;
 const ISF_RELOCATED_PERC = (relocated/totalNumberISF)*100;
+const isf_relocated = (relocated/totalISF)*100;
+
 
 if (cpPackage === 'N-01') {
   cpN01.push(ISF_RELOCATED_PERC);
+  cpN01_a.push(isf_relocated);
 
 } else if (cpPackage === 'N-02') {
   cpN02.push(ISF_RELOCATED_PERC);
+  cpN02_a.push(isf_relocated);
 
 } else if (cpPackage === 'N-03') {
   cpN03.push(ISF_RELOCATED_PERC);
+  cpN03_a.push(isf_relocated);
 
 } else if (cpPackage === 'N-04') {
   cpN04.push(ISF_RELOCATED_PERC);
+  cpN04_a.push(isf_relocated);
 
 } else if (cpPackage === 'N-05') {
   cpN05.push(ISF_RELOCATED_PERC);
+  cpN05_a.push(isf_relocated);
 }
 });
-return [cpN01, cpN02, cpN03, cpN04, cpN05];
+return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a];
 });
 
 } // End of isfSummary function
 
-function laFigureIsf([cpN01, cpN02, cpN03, cpN04, cpN05]) {
+function laFigureIsf([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a]) {
 var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
 var N01 = Number(cpN01);
@@ -1155,6 +1231,11 @@ var N03 = Number(cpN01) + Number(cpN02) + Number(cpN03);
 var N04 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04);
 var N05 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
+var n01 = Number(cpN01_a);
+var n02 = Number(cpN02_a);
+var n03 = Number(cpN03_a);
+var n04 = Number(cpN04_a);
+var n05 = Number(cpN05_a);
 
 var chartMin = 0;
 var chartMax = 100;
@@ -1166,31 +1247,31 @@ var data = {
 score: totalScore,
 gradingData: [
 {
-  title: N01.toFixed(0),
+  title: n01.toFixed(0),
   color: "#ffa500",
   lowScore: 0,
   highScore: N01
 },
 {
-  title: (N02 - N01).toFixed(0),
+  title: n02.toFixed(0),
   color: "#00ff00",
   lowScore: N01,
   highScore: N02
 },
 {
-  title: (N03 - N02).toFixed(0),
+  title: n03.toFixed(0),
   color: "#00c5ff",
   lowScore: N02,
   highScore: N03
 },
 {
-  title: (N04 - N03).toFixed(0),
+  title: n04.toFixed(0),
   color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
-  title: (N05 - N04).toFixed(0),
+  title: n05.toFixed(0),
   color: "#BF40BF",
   lowScore: N04,
   highScore: N05
@@ -1408,6 +1489,12 @@ return totalNumber;
 
 
 function treeCutSummary(totalNumber) {
+  var total_number_tree = {
+    onStatisticField: "CommonName",
+    outStatisticFieldName: "total_number_tree",
+    statisticType: "count"
+    };
+
 var total_cutearthballed_tree = {
 onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
 outStatisticFieldName: "total_cutearthballed_tree",
@@ -1415,15 +1502,24 @@ statisticType: "sum"
 }
 
 var query = treeLayer.createQuery();
-query.outStatistics = [total_cutearthballed_tree];
+query.outStatistics = [total_number_tree, total_cutearthballed_tree];
 query.returnGeometry = true;
 query.groupByFieldsForStatistics = ["CP"];
 
 var cpN01 = [];
+var cpN01_a = [];
+
 var cpN02 = [];
+var cpN02_a = [];
+
 var cpN03 = [];
+var cpN03_a = [];
+
 var cpN04 = [];
+var cpN04_a = [];
+
 var cpN05 = [];
+var cpN05_a = [];
 
 return treeLayer.queryFeatures(query).then(function(response) {
 stats = response.features;
@@ -1432,30 +1528,37 @@ stats.forEach((result, index) => {
 const attributes = result.attributes;
 const cpPackage = result.attributes.CP;
 const cutEarthballed = attributes.total_cutearthballed_tree;
+const totalCutEarth = attributes.total_number_tree;
 const TREE_CUT_PERC = (cutEarthballed/totalNumber)*100;
+const tree_cutEarth = (cutEarthballed/totalCutEarth)*100;
 
 if (cpPackage === 'N-01') {
   cpN01.push(TREE_CUT_PERC);
+  cpN01_a.push(tree_cutEarth);
 
 } else if (cpPackage === 'N-02') {
   cpN02.push(TREE_CUT_PERC);
+  cpN02_a.push(tree_cutEarth);
 
 } else if (cpPackage === 'N-03') {
   cpN03.push(TREE_CUT_PERC);
+  cpN03_a.push(tree_cutEarth);
 
 } else if (cpPackage === 'N-04') {
   cpN04.push(TREE_CUT_PERC);
+  cpN04_a.push(tree_cutEarth);
 
 } else if (cpPackage === 'N-05') {
   cpN05.push(TREE_CUT_PERC);
+  cpN05_a.push(tree_cutEarth);
 }
 });
-return [cpN01, cpN02, cpN03, cpN04, cpN05];
+return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a];
 });
 
 } // End of treeCutSummary function
 
-function treeCuttingFigure([cpN01, cpN02, cpN03, cpN04, cpN05]) {
+function treeCuttingFigure([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a]) {
 var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
 var N01 = Number(cpN01);
@@ -1464,6 +1567,11 @@ var N03 = Number(cpN01) + Number(cpN02) + Number(cpN03);
 var N04 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04);
 var N05 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
+var n01 = Number(cpN01_a);
+var n02 = Number(cpN02_a);
+var n03 = Number(cpN03_a);
+var n04 = Number(cpN04_a);
+var n05 = Number(cpN05_a);
 
 var chartMin = 0;
 var chartMax = 100;
@@ -1475,31 +1583,31 @@ var data = {
 score: totalScore,
 gradingData: [
 {
-  title: N01.toFixed(0),
+  title: n01.toFixed(0),
   color: "#ffa500",
   lowScore: 0,
   highScore: N01
 },
 {
-  title: (N02 - N01).toFixed(0),
+  title: n02.toFixed(0),
   color: "#00ff00",
   lowScore: N01,
   highScore: N02
 },
 {
-  title: (N03 - N02).toFixed(0),
+  title: n03.toFixed(0),
   color: "#00c5ff",
   lowScore: N02,
   highScore: N03
 },
 {
-  title: (N04 - N03).toFixed(0),
+  title: n04.toFixed(0),
   color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
-  title: (N05 - N04).toFixed(0),
+  title: n05.toFixed(0),
   color: "#BF40BF",
   lowScore: N04,
   highScore: N05
@@ -1714,6 +1822,12 @@ return totalNumber;
 
 
 function treeCompenSummary(totalNumber) {
+  var total_number_tree = {
+    onStatisticField: "CASE WHEN Compensation >= 2 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_number_tree",
+    statisticType: "sum"
+    };
+
 var total_compensated_tree = {
 onStatisticField: "CASE WHEN Compensation = 3 THEN 1 ELSE 0 END",
 outStatisticFieldName: "total_compensated_tree",
@@ -1721,15 +1835,24 @@ statisticType: "sum"
 }
 
 var query = treeLayer.createQuery();
-query.outStatistics = [total_compensated_tree];
+query.outStatistics = [total_number_tree, total_compensated_tree];
 query.returnGeometry = true;
 query.groupByFieldsForStatistics = ["CP"];
 
 var cpN01 = [];
+var cpN01_a = [];
+
 var cpN02 = [];
+var cpN02_a = [];
+
 var cpN03 = [];
+var cpN03_a = [];
+
 var cpN04 = [];
+var cpN04_a = [];
+
 var cpN05 = [];
+var cpN05_a = [];
 
 return treeLayer.queryFeatures(query).then(function(response) {
 stats = response.features;
@@ -1738,30 +1861,37 @@ stats.forEach((result, index) => {
 const attributes = result.attributes;
 const cpPackage = result.attributes.CP;
 const compensated = attributes.total_compensated_tree;
+const totalCompen = attributes.total_number_tree;
 const TREE_COMPEN_PERC = (compensated/totalNumber)*100;
+const tree_compen = (compensated/totalCompen)*100;
 
 if (cpPackage === 'N-01') {
   cpN01.push(TREE_COMPEN_PERC);
+  cpN01_a.push(tree_compen);
 
 } else if (cpPackage === 'N-02') {
   cpN02.push(TREE_COMPEN_PERC);
+  cpN02_a.push(tree_compen);
 
 } else if (cpPackage === 'N-03') {
   cpN03.push(TREE_COMPEN_PERC);
+  cpN03_a.push(tree_compen);
 
 } else if (cpPackage === 'N-04') {
   cpN04.push(TREE_COMPEN_PERC);
+  cpN04_a.push(0); // no applicable: all trees in N-04 are Non-Compensable (i.e., not subject to this)
 
 } else if (cpPackage === 'N-05') {
   cpN05.push(TREE_COMPEN_PERC);
+  cpN05_a.push(tree_compen);
 }
 });
-return [cpN01, cpN02, cpN03, cpN04, cpN05];
+return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a];
 });
 
 } // End of treeCompenSummary function
 
-function treeCompenFigure([cpN01, cpN02, cpN03, cpN04, cpN05]) {
+function treeCompenFigure([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a]) {
 var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + 
                  Number(cpN04) + Number(cpN05);
 
@@ -1771,6 +1901,11 @@ var N03 = Number(cpN01) + Number(cpN02) + Number(cpN03);
 var N04 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04);
 var N05 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
+var n01 = Number(cpN01_a);
+var n02 = Number(cpN02_a);
+var n03 = Number(cpN03_a);
+var n04 = Number(cpN04_a);
+var n05 = Number(cpN05_a);
 
 var chartMin = 0;
 var chartMax = 100;
@@ -1782,31 +1917,31 @@ var data = {
 score: totalScore,
 gradingData: [
 {
-  title: N01.toFixed(0),
+  title: n01.toFixed(0),
   color: "#ffa500",
   lowScore: 0,
   highScore: N01
 },
 {
-  title: (N02 - N01).toFixed(0),
+  title: n02.toFixed(0),
   color: "#00ff00",
   lowScore: N01,
   highScore: N02
 },
 {
-  title: (N03 - N02).toFixed(0),
+  title: n03.toFixed(0),
   color: "#00c5ff",
   lowScore: N02,
   highScore: N03
 },
 {
-  title: (N04 - N03).toFixed(0),
+  title: n04.toFixed(0),
   color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
-  title: (N05 - N04).toFixed(0),
+  title: n05.toFixed(0),
   color: "#BF40BF",
   lowScore: N04,
   highScore: N05
@@ -2039,6 +2174,12 @@ return grandTotal;
 
 // Utility Point + Line Total Completed
 function utilityPointCompleted(grandTotal) {
+  var total_number_utilPoint = {
+    onStatisticField: "LAYER",
+    outStatisticFieldName: "total_number_utilPoint",
+    statisticType: "count"
+    };
+
 var total_completed_utilPoint = {
 onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
 outStatisticFieldName: "total_completed_utilPoint",
@@ -2046,14 +2187,23 @@ statisticType: "sum"
 };
 
 var query = utilPointLayer.createQuery();
-query.outStatistics = [total_completed_utilPoint];
+query.outStatistics = [total_number_utilPoint, total_completed_utilPoint];
 query.groupByFieldsForStatistics = ["CP"];
 
 var point_cpN01 = [];
+var point_cpN01_a = [];
+
 var point_cpN02 = [];
+var point_cpN02_a = [];
+
 var point_cpN03 = [];
+var point_cpN03_a = [];
+
 var point_cpN04 = [];
+var point_cpN04_a = [];
+
 var point_cpN05 = [];
+var point_cpN05_a = [];
 
 return utilPointLayer.queryFeatures(query).then(function(response) {
 stats = response.features;
@@ -2062,37 +2212,49 @@ stats.forEach((result, index) => {
 const attributes = result.attributes;
 const cpPackage = result.attributes.CP;
 const completed = attributes.total_completed_utilPoint;
+const totalUtilPoint = attributes.total_number_utilPoint;
 
 if (cpPackage === 'N-01') {
   point_cpN01.push(completed);
+  point_cpN01_a.push(totalUtilPoint);
 
 } else if (cpPackage === 'N-02') {
   point_cpN02.push(completed);
+  point_cpN02_a.push(totalUtilPoint);
 
 } else if (cpPackage === 'N-03') {
   point_cpN03.push(completed);
+  point_cpN03_a.push(totalUtilPoint);
 
 } else if (cpPackage === 'N-04') {
   point_cpN04.push(completed);
+  point_cpN04_a.push(totalUtilPoint);
 
 } else if (cpPackage === 'N-05') {
   point_cpN05.push(completed);
+  point_cpN05_a.push(totalUtilPoint);
 }
 });
-return [point_cpN01, point_cpN02, point_cpN03, point_cpN04, point_cpN05, grandTotal];
+return [point_cpN01, point_cpN02, point_cpN03, point_cpN04, point_cpN05, point_cpN01_a, point_cpN02_a, point_cpN03_a, point_cpN04_a, point_cpN05_a, grandTotal];
 });
 }
 
 
-function utilityLineCompleted([point_cpN01, point_cpN02, point_cpN03, point_cpN04, point_cpN05, grandTotal]) {
-var total_completed_utilLine = {
-onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
-outStatisticFieldName: "total_completed_utilLine",
-statisticType: "sum"
+function utilityLineCompleted([point_cpN01, point_cpN02, point_cpN03, point_cpN04, point_cpN05, point_cpN01_a, point_cpN02_a, point_cpN03_a, point_cpN04_a, point_cpN05_a, grandTotal]) {
+  var total_number_utilLine = {
+    onStatisticField: "LAYER",
+    outStatisticFieldName: "total_number_utilLine",
+    statisticType: "count"
+    };
+
+  var total_completed_utilLine = {
+  onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_completed_utilLine",
+  statisticType: "sum"
 };
 
 var query = utilLineLayer.createQuery();
-query.outStatistics = [total_completed_utilLine];
+query.outStatistics = [total_number_utilLine, total_completed_utilLine];
 query.groupByFieldsForStatistics = ["CP"];
 
 // Numeric
@@ -2110,6 +2272,12 @@ var totalCompleted_cpN03 = [];
 var totalCompleted_cpN04 = [];
 var totalCompleted_cpN05 = [];
 
+var totalUtil_cpN01 = [];
+var totalUtil_cpN02 = [];
+var totalUtil_cpN03 = [];
+var totalUtil_cpN04 = [];
+var totalUtil_cpN05 = [];
+
 return utilLineLayer.queryFeatures(query).then(function(response) {
 stats = response.features;
 
@@ -2117,6 +2285,8 @@ stats.forEach((result, index) => {
 const attributes = result.attributes;
 const cpPackage = result.attributes.CP;
 const completed = attributes.total_completed_utilLine;
+const totalUtilLine = attributes.total_number_utilLine;
+
 const completedLine = Number(completed);
 
 //const LINE_COMPLETED_PERC = (completed/totalCompen)*100;
@@ -2125,21 +2295,37 @@ if (cpPackage === 'N-01') {
   const tempComp_n01 = completedLine + point_n01;
   totalCompleted_cpN01.push(tempComp_n01);
 
+  const totalCount_n01 = totalUtilLine + Number(point_cpN01_a);
+  //headerTitleDiv.innerHTML = totalUtilLine + "; " + point_cpN01_a + " = " + totalCount_n01;
+  totalUtil_cpN01.push(totalCount_n01);
+
 } else if (cpPackage === 'N-02') {
   const tempComp_n02 = completedLine + point_n02;
   totalCompleted_cpN02.push(tempComp_n02);
+
+  const totalCount_n02 = totalUtilLine +  Number(point_cpN02_a);
+  totalUtil_cpN02.push(totalCount_n02);
 
 } else if (cpPackage === 'N-03') {
   const tempComp_n03 = completedLine + point_n03;
   totalCompleted_cpN03.push(tempComp_n03);
 
+  const totalCount_n03 = totalUtilLine +  Number(point_cpN03_a);
+  totalUtil_cpN03.push(totalCount_n03);
+
 } else if (cpPackage === 'N-04') {
   const tempComp_n04 = completedLine + point_n04;
   totalCompleted_cpN04.push(tempComp_n04);
 
+  const totalCount_n04 = totalUtilLine +  Number(point_cpN04_a);
+  totalUtil_cpN04.push(totalCount_n04);
+
 } else if (cpPackage === 'N-05') {
   const tempComp_n05 = completedLine + point_n05;
   totalCompleted_cpN05.push(tempComp_n05);
+
+  const totalCount_n05 = totalUtilLine +  Number(point_cpN05_a);
+  totalUtil_cpN05.push(totalCount_n05);
 }
 });
 const cpN01 = (totalCompleted_cpN01/gTotal)*100;
@@ -2148,13 +2334,20 @@ const cpN03 = (totalCompleted_cpN03/gTotal)*100;
 const cpN04 = (totalCompleted_cpN04/gTotal)*100;
 const cpN05 = (totalCompleted_cpN05/gTotal)*100;
 
+const cpN01_a = (totalCompleted_cpN01/totalUtil_cpN01)*100;
+const cpN02_a = (totalCompleted_cpN02/totalUtil_cpN02)*100;
+const cpN03_a = (totalCompleted_cpN03/totalUtil_cpN03)*100;
+const cpN04_a = (totalCompleted_cpN04/totalUtil_cpN04)*100;
+const cpN05_a = (totalCompleted_cpN05/totalUtil_cpN05)*100;
 
-return [cpN01, cpN02, cpN03, cpN04, cpN05];
+
+
+return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a];
 });
 }
 
 // Utility Progress Chart
-function utilityChart([cpN01, cpN02, cpN03, cpN04, cpN05]) {
+function utilityChart([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a]) {
 var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
 var N01 = Number(cpN01);
@@ -2163,7 +2356,11 @@ var N03 = Number(cpN01) + Number(cpN02) + Number(cpN03);
 var N04 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04);
 var N05 = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
-
+var n01 = Number(cpN01_a);
+var n02 = Number(cpN02_a);
+var n03 = Number(cpN03_a);
+var n04 = Number(cpN04_a);
+var n05 = Number(cpN05_a);
 
 var chartMin = 0;
 var chartMax = 100;
@@ -2175,31 +2372,31 @@ var data = {
 score: totalScore,
 gradingData: [
 {
-  title: N01.toFixed(0),
+  title: n01.toFixed(0),
   color: "#ffa500",
   lowScore: 0,
   highScore: N01
 },
 {
-  title: (N02 - N01).toFixed(0),
+  title: n02.toFixed(0),
   color: "#00ff00",
   lowScore: N01,
   highScore: N02
 },
 {
-  title: (N03 - N02).toFixed(0),
+  title: n03.toFixed(0),
   color: "#00c5ff",
   lowScore: N02,
   highScore: N03
 },
 {
-  title: (N04 - N03).toFixed(0),
+  title: n04.toFixed(0),
   color: "#FFFF00",
   lowScore: N03,
   highScore: N04
 },
 {
-  title: (N05 - N04).toFixed(0),
+  title: n05.toFixed(0),
   color: "#BF40BF",
   lowScore: N04,
   highScore: N05
