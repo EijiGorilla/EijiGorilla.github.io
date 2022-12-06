@@ -498,17 +498,13 @@ return {
 }
 }
 
-var priorityDates = ["December 2022",
-                "February 2023",
-                "April 2023",
-                "July 2023"];
+var priorityDates = ["December 2022", "April 2023", "July 2023"];
                 
 let lotPriorityRenderer = {
 type: "unique-value",
 //field: "HandOverDate1", // For 3D, including this works, but for 2D we need to remove this 
 defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
 valueExpression: "When($feature.HandOverDate1 == 'December 2022', '1', \
-                   $feature.HandOverDate1 == 'February 2023', '2', \
                    $feature.HandOverDate1 == 'April 2023', '3', \
                    $feature.HandOverDate1 == 'July 2023', '4', $feature.HandOverDate1)",
 uniqueValueInfos: [
@@ -527,7 +523,7 @@ outline: {
 },
 {
 // All features with value of "North" will be blue
-value: "2",
+value: "3",
 label: priorityDates[1],
 symbol: {
 type: "simple-fill",  // autocasts as new SimpleFillSymbol()
@@ -539,7 +535,7 @@ outline: {
 }
 },
 {
-value: "3",
+value: "4",
 label: priorityDates[2],
 symbol: {
 type: "simple-fill",  // autocasts as new SimpleFillSymbol()
@@ -547,18 +543,6 @@ color: [0,0,0,0],
 outline: {
     width: 4,
     color: colorPriority()[3]
-  }
-}
-},
-{
-value: "4",
-label: priorityDates[3],
-symbol: {
-type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-color: [0,0,0,0],
-outline: {
-    width: 4,
-    color: colorPriority()[4]
   }
 }
 },
