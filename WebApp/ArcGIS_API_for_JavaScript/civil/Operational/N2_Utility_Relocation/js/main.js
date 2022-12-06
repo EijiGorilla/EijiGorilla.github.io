@@ -1612,7 +1612,7 @@ companySelect.add(option);
 }
 utilPointQuery()
 .then(utilLineQuery)
-.then(getUniqueValues)
+.then(getUniqueValues2) // original: .then(getUniqueValues)
 .then(addToSelectQuery2)
 .then(totalProgressAll);
 } // end of filterUtilPointLineCP

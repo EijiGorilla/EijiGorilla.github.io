@@ -2058,6 +2058,7 @@ document
 
 view.ui.add("menu", "bottom-right");
 
+////
 
 ///////////////////////////////////////////////////////
 var layerList = new LayerList({
