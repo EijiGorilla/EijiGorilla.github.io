@@ -279,17 +279,17 @@ map.add(rowLayer,2);
 
 // Depot Building Layer
 const buildingLayer = new BuildingSceneLayer({
-portalItem: {
-id: "71cd6e6eecb445a2999e0bd97a675c46",
-portal: {
-url: "https://gis.railway-sector.com/portal"
-}
-},
-outFields: ["*"],
-elevationInfo: {
-mode: "relative-to-ground"
-},
-title: "SC Depot Building"
+  portalItem: {
+    id: "2bcbc0e0d05a4b87a1e87af9344a3fae",
+    portal: {
+      url: "https://gis.railway-sector.com/portal"
+    }
+  },
+  outFields: ["*"],
+  elevationInfo: {
+    mode: "relative-to-ground"
+  },
+  title: "SC Depot Building"
 });
 map.add(buildingLayer);
 
@@ -391,29 +391,29 @@ case "FullModel":
 
 // Total progress //
 function totalProgressStFoundation() {
-// structural Foundation
-var total_complete = {
-onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
-outStatisticFieldName: "total_complete",
-statisticType: "sum"
-};
+  // structural Foundation
+  var total_complete = {
+    onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_complete",
+    statisticType: "sum"
+  };
 
-var total_obs = {
-onStatisticField: "Status",
-outStatisticFieldName: "total_obs",
-statisticType: "count"
-};
+  var total_obs = {
+    onStatisticField: "Status",
+    outStatisticFieldName: "total_obs",
+    statisticType: "count"
+  };
 
 var query = stFoundationLayer.createQuery();
 query.outStatistics = [total_complete, total_obs];
 query.returnGeometry = true;
 return stFoundationLayer.queryFeatures(query).then(function(response) {
-var stats = response.features[0].attributes;
+  var stats = response.features[0].attributes;
 
-const total_comp = stats.total_complete;
-const total_obs = stats.total_obs;
-const compile_stFoundation = [total_comp, total_obs];
-return compile_stFoundation;
+  const total_comp = stats.total_complete;
+  const total_obs = stats.total_obs;
+  const compile_stFoundation = [total_comp, total_obs];
+  return compile_stFoundation;
 });
 }
 
