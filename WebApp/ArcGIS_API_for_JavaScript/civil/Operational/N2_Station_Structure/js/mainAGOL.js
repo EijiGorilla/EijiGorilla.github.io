@@ -373,6 +373,7 @@ function totalProgressStFoundation() {
   const total_comp = stats.total_complete;
   const total_obs = stats.total_obs;
   const compile_stFoundation = [total_comp, total_obs];
+
   return compile_stFoundation;
   });
   }
