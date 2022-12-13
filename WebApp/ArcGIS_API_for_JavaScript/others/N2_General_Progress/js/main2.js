@@ -223,8 +223,7 @@ var utilityLineChartDiv = document.getElementById("utilityLineChartDiv");
 
 var informationDiv = document.getElementById("informationDiv");
 
-informationDiv.innerHTML =  "<br>" + "<b>" + "Note:" + "</b>" + "<br>" + "<br>" + "* Values in the middle of gauges represent total progress of all CPs." + "<br>" + 
-                          "* Values in the sliced chart of gauges represent percent progress by each CP.";
+informationDiv.innerHTML =  "<br>" + "<b>" + "Note:" + "</b>" + "<br>" + "<br>" + "* Values in the sliced chart of gauges represent percent progress of each CP.";
 
 // Thousand separators function
 function thousands_separators(num)
