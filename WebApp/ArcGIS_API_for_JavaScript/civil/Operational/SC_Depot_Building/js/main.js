@@ -747,6 +747,8 @@ buildingLayer.when(() => {
 const defaultStation = "OCC";
 
 const defaultDepot = "Name = '" + defaultStation + "'";
+selectedBuildingDiv.innerHTML = defaultStation;
+
 columnsLayer.definitionExpression = defaultDepot;
 doorsLayer.definitionExpression = defaultDepot;
 floorsLayer.definitionExpression = defaultDepot;
@@ -779,13 +781,14 @@ chartRoofs();
 chartFloors();
 chartWalls();
 chartColumns();
-selectedBuildingDiv.innerHTML = defaultStation;
+
 zoomToLayer(stFramingLayer);
 
 combineOthers();
 
 
 // click the label and display selected bulidng
+
 view.when(function() {
   view.on("click", function(event) {
     view.hitTest(event).then(function(response) {
@@ -802,6 +805,8 @@ view.when(function() {
       stFramingLayer.definitionExpression = updatedName;
       stColumnLayer.definitionExpression = updatedName;
       stFoundationLayer.definitionExpression = updatedName;
+
+      selectedBuildingDiv.innerHTML = feature;
 
       zoomToLayer(stFramingLayer);
       totalProgressDepot()

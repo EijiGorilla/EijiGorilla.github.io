@@ -71,6 +71,36 @@ const renderer = new RasterStretchRenderer({
 
 
     // loss year
+    const layerLoss = new ImageryLayer({
+      url: "https://gis.railway-sector.com/server/rest/services/sample_raster/ImageServer",
+      //pixelFilter: colorize,
+      bandIds: "layer.2",
+      format: "jpgpng" // server exports in either jpg or png format
+    });
+
+    let remapRF = new RasterFunction();
+      remapRF.functionName = "Remap";
+      remapRF.functionArguments = {
+        InputRanges: [0,0,1,19],
+        OutputValues: [1,2],
+        Raster: "$$"
+    };
+    remapRF.outputPixelType = "u8";
+
+    let colorRF = new RasterFunction();
+    colorRF.functionName = "Colormap";
+    colorRF.functionArguments = {
+      Colormap: [
+        [1, 0, 0, 0],
+        [2, 255, 0, 0]
+      ],
+      Raster: remapRF
+    };
+
+    //layerLoss.renderingRule = colorRF;
+
+
+
 const rendererLoss = {
   type: "unique-value",
   field: "pixelValues",
@@ -92,13 +122,7 @@ const rendererLoss = {
   ]
 }
      
-    const layerLoss = new ImageryLayer({
-      url: "https://gis.railway-sector.com/server/rest/services/sample_raster/ImageServer",
-      //pixelFilter: colorize,
-      bandIds: "layer.2",
-      renderer: rendererLoss,
-      format: "lerc" // server exports in either jpg or png format
-    });
+
     
   // Use pixelFilter to colorize pixels
   function colorize(pixelData) {
