@@ -8,11 +8,40 @@ require([
   "esri/renderers/RasterStretchRenderer",
   "esri/renderers/UniqueValueRenderer",
   "esri/rest/support/MultipartColorRamp",
-  "esri/widgets/Legend"
+  "esri/widgets/Legend",
+  "esri/rest/support/ImageHistogramParameters"
 ], (Map, MapView, ImageryLayer, ImageryTileLayer,
     RasterFunction, RasterInfo, RasterStretchRenderer, UniqueValueRenderer,
     MultipartColorRamp,
-    Legend) => {
+    Legend, ImageHistogramParameters) => {
+
+      const layer = new ImageryLayer({
+        url: "https://gis.railway-sector.com/server/rest/services/sample_raster/ImageServer",
+        //pixelFilter: colorize,
+        bandIds: "layer.1",
+        //renderer: renderer,
+        format: "lerc" // server exports in either jpg or png format
+      });
+
+      const layerLoss = new ImageryLayer({
+        url: "https://gis.railway-sector.com/server/rest/services/sample_raster/ImageServer",
+        bandIds: 1,
+        //pixelFilter: filter,
+        //renderingRule: colorRF,
+        //format: "lerc" // server exports in either jpg or png format
+      });
+
+      const view = new MapView({
+        container: "viewDiv",
+        map: new Map({
+          basemap: "satellite",
+          layers: [layer, layerLoss]
+        }),
+        center: [12.8867418, 48.6382704],
+        zoom: 10
+      });
+
+
   /********************
    * Create image layer
    ********************/
@@ -60,112 +89,103 @@ const renderer = new RasterStretchRenderer({
     //stddev: bandStat.stddev
   }]
 });
+layer.renderer = renderer;
 
-    const layer = new ImageryLayer({
-      url: "https://gis.railway-sector.com/server/rest/services/sample_raster/ImageServer",
-      //pixelFilter: colorize,
-      bandIds: "layer.1",
-      renderer: renderer,
-      format: "lerc" // server exports in either jpg or png format
-    });
-
-
-    // loss year
-    const layerLoss = new ImageryLayer({
-      url: "https://gis.railway-sector.com/server/rest/services/sample_raster/ImageServer",
-      //pixelFilter: colorize,
-      bandIds: "layer.2",
-      format: "jpgpng" // server exports in either jpg or png format
-    });
-
+// loss year
     let remapRF = new RasterFunction();
-      remapRF.functionName = "Remap";
-      remapRF.functionArguments = {
-        InputRanges: [0,0,1,19],
-        OutputValues: [1,2],
-        Raster: "$$"
-    };
-    remapRF.outputPixelType = "u8";
+    remapRF.functionName = "Remap";
+    remapRF.functionArguments = {
+      InputRanges: [1,19],
+      OutputValues: [1],
+      Raster: "$$"
+  };
+  remapRF.outputPixelType = "u8";
 
-    let colorRF = new RasterFunction();
-    colorRF.functionName = "Colormap";
-    colorRF.functionArguments = {
-      Colormap: [
-        [1, 0, 0, 0],
-        [2, 255, 0, 0]
-      ],
-      Raster: remapRF
-    };
-
-    //layerLoss.renderingRule = colorRF;
+  let colorRF = new RasterFunction();
+  colorRF.functionName = "Colormap";
+  colorRF.functionArguments = {
+    Colormap: [
+      [1, 255, 0, 0]
+    ],
+    Raster: remapRF
+  };
+  layerLoss.renderingRule = colorRF;
 
 
 
-const rendererLoss = {
-  type: "unique-value",
-  field: "pixelValues",
-  uniqueValueInfos: [
-    {
-      value: 0,
-      symbol: {
-        type: "simple-fill",
-        color: [0, 0, 0, 0]
-      }
-    },
-    {
-      value: 1,
-      symbol: {
-        type: "simple-fill",
-        color: [255, 0, 0]
-      }
+   
+    let pixelSize = {
+      x:view.resolution,
+      y:view.resolution,
+      spatialReference: view.spatialReference
     }
-  ]
-}
-     
 
+    let params = new ImageHistogramParameters({
+      pixelSize: pixelSize
+    });
+
+
+    // request for histograms and statistics for the specified parameters
+    layerLoss.computeStatisticsHistograms(params).then(function(results){
+      // results are returned and process it as needed.
+      const histogram = results.histograms[0];
+      const stats = results.statistics[0];
+      console.log("histograms and stats", results);
+    })
+   
+
+    function filter(pixelData) {
+      var serviceInfo = layer.serviceRasterInfo;
+      var stats = serviceInfo.statistics[1]; // 0: layer.1, 1: layer.2
+      let numPixels1 = serviceInfo.width * serviceInfo.height;
+      let pixelSizeX = serviceInfo.pixelSize.x;
+      let pixelSizeY = serviceInfo.pixelSize.y;
+      let pixelSize = pixelSizeX * pixelSizeY;
+
+      // Get list of all pixel values (range: 0 - 19)
+
+      console.log(serviceInfo);
+      
+
+
+      // The pixelBlock stores the values of all pixels visible in the view
+      let pixelBlock = pixelData.pixelBlock;
+
+      // Get the min and max values of the data in the current view
+      let minValue = pixelBlock.statistics[0].minValue;
+      let maxValue = pixelBlock.statistics[0].maxValue;
     
-  // Use pixelFilter to colorize pixels
-  function colorize(pixelData) {
-    // The pixelBlock stores the values of all pixels visible in the view
-    let pixelBlock = pixelData.pixelBlock;
-  
-    // Get the min and max values of the data in the current view
-    let minValue = pixelBlock.statistics[0].minValue;
-    let maxValue = pixelBlock.statistics[0].maxValue;
+      // The mask is an array that determines which pixels are visible to the client
+      let mask = pixelBlock.mask;
+    
+      // The pixels visible in the view
+      let pixels = pixelBlock.pixels;
+    
+      // The number of pixels in the pixelBlock
+      let numPixels = pixelBlock.width * pixelBlock.height;
+      let band1 = pixels[0];
 
-    // Service Raster
-    let serviceRaster = layer.serviceRasterInfo;
-
-    let bandProperties = serviceRaster.keyProperties;
-    let pixelSizeX = serviceRaster.pixelSize.x;
-    let pixelSizeY = serviceRaster.pixelSize.y;
-    let pixelType = serviceRaster.pixelType; // current type is 'f32'
-
-    //
-  }
-
-  
-//
+      console.log(pixelBlock.statistics);
 
 
+      let tempValue = [];
+      for (i = 0; i < numPixels; i++) {
+        let temp = band1[i];
+        if (temp > 0) {
+          tempValue.push(temp)
+        }
+      }
 
+     // console.log(tempValue);
 
+    }
 
  /**************************
    * Add image layer to map
    *************************/
 
-  const map = new Map({
-    basemap: "satellite",
-    layers: [layerLoss, layer]
-  });
 
-  const view = new MapView({
-    container: "viewDiv",
-    map: map,
-    center: [12.8867418, 48.6382704],
-    zoom: 10
-  });
+ 
 
   var legend = new Legend({
     view: view,
@@ -177,7 +197,7 @@ const rendererLoss = {
       },
       {
         layer: layerLoss,
-        title: "Forest Loss"
+        title: "Forest Loss (2001 - 2019)"
       }
     ]
   });
