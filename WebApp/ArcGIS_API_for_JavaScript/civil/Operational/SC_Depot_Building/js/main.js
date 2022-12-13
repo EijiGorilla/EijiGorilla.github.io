@@ -78,8 +78,8 @@ const worldElevation = new ElevationLayer({
       camera: {
           position: {
               x: 121.1622434,
-              y: 14.2258077,
-              z: 500
+              y: 14.2228077,
+              z: 2000
               },
               tilt: 10
               },
@@ -782,7 +782,8 @@ chartFloors();
 chartWalls();
 chartColumns();
 
-zoomToLayer(stFramingLayer);
+zoomToLayer(stColumnLayer); // note if a building selected does not have this zoom layer, 
+// it will jump to Africa.
 
 combineOthers();
 
@@ -808,7 +809,7 @@ view.when(function() {
 
       selectedBuildingDiv.innerHTML = feature;
 
-      zoomToLayer(stFramingLayer);
+      zoomToLayer(stColumnLayer);
       totalProgressDepot()
       chartStFoundation();
       chartStColumn();
