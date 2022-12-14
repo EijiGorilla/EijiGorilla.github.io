@@ -1177,6 +1177,15 @@ value6: columnHead_2022[8]
   value4: kingpost_2022[11],
   value5: secantp_2022[11],
   value6: columnHead_2022[11]
+},
+{
+  date: new Date(2022, 11),
+  value1: dwall_2022[12],
+  value2: column_2022[12],
+  value3: slab_2022[12],
+  value4: kingpost_2022[12],
+  value5: secantp_2022[12],
+  value6: columnHead_2022[12]
 }
 ];
 

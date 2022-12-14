@@ -23,11 +23,21 @@ require([
         format: "lerc" // server exports in either jpg or png format
       });
 
+      let remapRF = new RasterFunction();
+      remapRF.functionName = "Remap";
+      remapRF.functionArguments = {
+        InputRanges: [1,19], // [1,19]
+        OutputValues: [1], // [1]
+        Raster: "$$"
+    };
+    remapRF.outputPixelType = "u8";
+  
+
       const layerLoss = new ImageryLayer({
         url: "https://gis.railway-sector.com/server/rest/services/sample_raster/ImageServer",
         bandIds: 1,
+        RenderingRule: remapRF,
         //pixelFilter: filter,
-        //renderingRule: colorRF,
         //format: "lerc" // server exports in either jpg or png format
       });
 
@@ -45,28 +55,6 @@ require([
   /********************
    * Create image layer
    ********************/
-  // 
-/*
-  const stretchFunction = new RasterFunction({
-    functionName: "Stretch",
-      functionArguments: {
-        StretchType: 5, // (0 = None, 3 = StandardDeviation, 4 = Histogram Equalization, 5 = MinMax, 6 = PercentClip, 9 = Sigmoid)
-        Min: 0,
-        Max: 255,
-        Raster: "$1" // $$(default) refers to the entire image service, $2 refers to the second image of the image service
-      },
-      outputPixelType: "u8"
-    });
-    
-    const colorFunction = new RasterFunction({
-      functionName: "Colormap",
-      functionArguments: {
-        ColorrampName: "Temperature", // other examples: "Slope", "Surface", "Blue Bright"....
-        Raster: stretchFunction // chaining multiple rasterfunctions
-      }
-    });
-    //layer.renderingRule = colorFunction;
-*/
 // Define colorRamp
 const colorRamp = MultipartColorRamp.fromJSON({
   type: "multipart",
@@ -77,7 +65,6 @@ const colorRamp = MultipartColorRamp.fromJSON({
     }
   ]
 });
-
 
 const renderer = new RasterStretchRenderer({
   colorRamp: colorRamp,
@@ -92,14 +79,7 @@ const renderer = new RasterStretchRenderer({
 layer.renderer = renderer;
 
 // loss year
-    let remapRF = new RasterFunction();
-    remapRF.functionName = "Remap";
-    remapRF.functionArguments = {
-      InputRanges: [1,19],
-      OutputValues: [1],
-      Raster: "$$"
-  };
-  remapRF.outputPixelType = "u8";
+
 
   let colorRF = new RasterFunction();
   colorRF.functionName = "Colormap";
@@ -109,76 +89,26 @@ layer.renderer = renderer;
     ],
     Raster: remapRF
   };
-  layerLoss.renderingRule = colorRF;
+  //layerLoss.renderingRule = remapRF;
 
-
-
-   
-    let pixelSize = {
-      x:view.resolution,
-      y:view.resolution,
-      spatialReference: view.spatialReference
-    }
-
-    let params = new ImageHistogramParameters({
-      pixelSize: pixelSize
-    });
-
-
-    // request for histograms and statistics for the specified parameters
-    layerLoss.computeStatisticsHistograms(params).then(function(results){
-      // results are returned and process it as needed.
-      const histogram = results.histograms[0];
-      const stats = results.statistics[0];
-      console.log("histograms and stats", results);
-    })
-   
 
     function filter(pixelData) {
-      var serviceInfo = layer.serviceRasterInfo;
+      var serviceInfo = layerLoss.serviceRasterInfo;
       var stats = serviceInfo.statistics[1]; // 0: layer.1, 1: layer.2
       let numPixels1 = serviceInfo.width * serviceInfo.height;
       let pixelSizeX = serviceInfo.pixelSize.x;
       let pixelSizeY = serviceInfo.pixelSize.y;
       let pixelSize = pixelSizeX * pixelSizeY;
 
-      // Get list of all pixel values (range: 0 - 19)
-
-      console.log(serviceInfo);
-      
-
-
-      // The pixelBlock stores the values of all pixels visible in the view
       let pixelBlock = pixelData.pixelBlock;
+      console.log(pixelBlock);
 
-      // Get the min and max values of the data in the current view
-      let minValue = pixelBlock.statistics[0].minValue;
-      let maxValue = pixelBlock.statistics[0].maxValue;
-    
-      // The mask is an array that determines which pixels are visible to the client
-      let mask = pixelBlock.mask;
-    
-      // The pixels visible in the view
-      let pixels = pixelBlock.pixels;
-    
-      // The number of pixels in the pixelBlock
-      let numPixels = pixelBlock.width * pixelBlock.height;
-      let band1 = pixels[0];
-
-      console.log(pixelBlock.statistics);
-
-
-      let tempValue = [];
-      for (i = 0; i < numPixels; i++) {
-        let temp = band1[i];
-        if (temp > 0) {
-          tempValue.push(temp)
-        }
-      }
-
-     // console.log(tempValue);
-
+      
     }
+
+    ///
+
+
 
  /**************************
    * Add image layer to map
