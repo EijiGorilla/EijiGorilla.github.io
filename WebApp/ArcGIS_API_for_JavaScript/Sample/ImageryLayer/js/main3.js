@@ -16,11 +16,12 @@ require([
   "esri/widgets/Slider",
   "esri/core/reactiveUtils",
   "esri/widgets/Expand",
+  "esri/widgets/Fullscreen",
 ], (Map, MapView, ImageryLayer, ImageryTileLayer,
     RasterFunction, RasterInfo, RasterStretchRenderer, UniqueValueRenderer,
     MultipartColorRamp,
     Legend, ImageHistogramParameters, Query, FeatureLayer, MapImageLayer,
-    Slider, reactiveUtils, Expand) => {
+    Slider, reactiveUtils, Expand, Fullscreen) => {
 
       const map = new Map({
         basemap: "satellite",
@@ -345,6 +346,16 @@ view.ui.add(progressExpand, {
   position: "top-left"
 });
 
+  // Full screen widget
+  view.ui.add(
+    new Fullscreen({
+      view: view,
+      element: viewDiv
+      //element: viewDiv // if you change element to viewDiv, only viewDiv panel is fully expanded
+      // this is good for demonstration, as this removes header and chart panels.
+    }),
+    "top-right"
+  );
  /**************************
    * Add image layer to map
    *************************/
