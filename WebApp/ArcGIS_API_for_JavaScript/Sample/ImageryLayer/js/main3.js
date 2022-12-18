@@ -17,12 +17,14 @@ require([
   "esri/core/reactiveUtils",
   "esri/widgets/Expand",
   "esri/widgets/Fullscreen",
+  "esri/views/layers/ImageryLayerView",
 ], (Map, MapView, ImageryLayer, ImageryTileLayer,
     RasterFunction, RasterInfo, RasterStretchRenderer, UniqueValueRenderer,
     MultipartColorRamp,
     Legend, ImageHistogramParameters, Query, FeatureLayer, MapImageLayer,
-    Slider, reactiveUtils, Expand, Fullscreen) => {
+    Slider, reactiveUtils, Expand, Fullscreen, ImageryLayerView) => {
 
+// Add Map and MapView
       const map = new Map({
         basemap: "satellite",
         //layers: [layer, layerLoss]
@@ -35,7 +37,7 @@ require([
         zoom: 10
       });
 
-
+// Add tree cover in 2000
       const layer = new ImageryLayer({
         url: "https://gis.railway-sector.com/server/rest/services/sample_raster/ImageServer",
         //pixelFilter: colorize,
@@ -64,6 +66,7 @@ require([
       Raster: remapRF2
     };
 
+    // Add forest loss cover between 2001 and 2019
       const layerLoss = new ImageryLayer({
         url: "https://gis.railway-sector.com/server/rest/services/sample_raster2/ImageServer",
         //bandIds: 1,
@@ -75,7 +78,7 @@ require([
       map.add(layerLoss);
       layerLoss.renderingRule = colorRF2;
 
-        // Slider to mask imagery layer based on its pixel values
+      // Slider to mask imagery layer based on its pixel values
         const pixelSlider = new Slider({
           container: "pixelSlider",
           min: 1,
@@ -87,13 +90,19 @@ require([
             rangeLabels: true
           }
         });
-        view.ui.add("infoDiv", "bottom-left");
+        //view.ui.add("infoDiv", "bottom-left");
         pixelSlider.on(["thumb-drag", "thumb-change", "segment-drag"], updateYearFilter);      
 
         var forestLossYearLabel = document.getElementById("forestLossYearLabel");
+  
         function updateYearFilter() {
           yearValue = pixelSlider.values[0];
 
+          // Add year labels aligned with slider 
+          /// Year label appears only when slide is opened.
+          reactiveUtils.when(() => sliderExpand?.expanded === false, () => forestLossYearLabel.style.display = 'none');
+          reactiveUtils.when(() => sliderExpand?.expanded === true, () => forestLossYearLabel.style.display = 'block');
+  
           const YEAR_LABEL = 2000 + yearValue;
           forestLossYearLabel.innerHTML = "2001" + " - " + YEAR_LABEL;
   
@@ -117,9 +126,6 @@ require([
           };
           layerLoss.renderingRule = colorRF;
         }
-
-
-
 
   /********************
    * Create image layer
@@ -330,13 +336,49 @@ var yearlyLoss = [];
 
       // Cursor
       chart.cursor = new am4charts.XYCursor();
+      series.columns.template.events.on("hit", filterByChart, this);
+      function filterByChart(ev) {
+        const selectValue = ev.target.dataItem.categoryX;
+        const filterValue = Number(selectValue - 2000).toFixed(0);
 
+        document.getElementById("forestLossYearLabel").innerHTML = selectValue;
+
+        // Renderng Rule for layerLoss
+          let remapRF3 = new RasterFunction();
+            remapRF3.functionName = "Remap";
+            remapRF3.functionArguments = {
+              InputRanges: [filterValue, filterValue], // [1,19]
+              OutputValues: [1], // [1]
+              Raster: "$$"
+          };
+          remapRF3.outputPixelType = "u8";
+        
+          let colorRF3 = new RasterFunction();
+          colorRF3.functionName = "Colormap";
+          colorRF3.functionArguments = {
+            Colormap: [
+              [1, 255, 0, 0]
+            ],
+            Raster: remapRF3
+          };
+          layerLoss.renderingRule = colorRF3;
+
+          // Reset
+          view.on("click", function() {
+            remapRF3.functionArguments.InputRanges = [1, 19];
+            layerLoss.renderingRule = colorRF3;
+            document.getElementById("forestLossYearLabel").innerHTML = YEAR[0] + " - " + YEAR[YEAR.length - 1];
+
+            
+            });
+
+      }
 
   }); // end of am4core
   }
   view.ui.empty("top-left");
 
-// Monthly Progress Chart 
+// Forest Loss Bar Chart 
 const progressExpand = new Expand({
   view: view,
   content: document.getElementById("forestLossChartDiv"),
@@ -344,6 +386,16 @@ const progressExpand = new Expand({
 });
 view.ui.add(progressExpand, {
   position: "top-left"
+});
+
+// Slider
+const sliderExpand = new Expand({
+  view: view,
+  content: document.getElementById("infoDiv"),
+  expandIconClass: "esri-icon-sliders-horizontal"
+})
+view.ui.add(sliderExpand, {
+  position: "bottom-left"
 });
 
   // Full screen widget
@@ -354,7 +406,7 @@ view.ui.add(progressExpand, {
       //element: viewDiv // if you change element to viewDiv, only viewDiv panel is fully expanded
       // this is good for demonstration, as this removes header and chart panels.
     }),
-    "top-right"
+    "top-left"
   );
  /**************************
    * Add image layer to map
@@ -366,11 +418,11 @@ view.ui.add(progressExpand, {
     layerInfos: [
       {
         layer: layer,
-        title: "Tree Cover in 2000"
+        title: "Tree Cover in 2000 (%)"
       },
       {
         layer: layerLoss,
-        title: "Forest Loss (2001 - 2019)"
+        title: "Forest Loss"
       }
     ]
   });
