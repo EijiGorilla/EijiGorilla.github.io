@@ -18,11 +18,12 @@ require([
   "esri/widgets/Expand",
   "esri/widgets/Fullscreen",
   "esri/views/layers/ImageryLayerView",
+  "esri/widgets/LayerList",
 ], (Map, MapView, ImageryLayer, ImageryTileLayer,
     RasterFunction, RasterInfo, RasterStretchRenderer, UniqueValueRenderer,
     MultipartColorRamp,
     Legend, ImageHistogramParameters, Query, FeatureLayer, MapImageLayer,
-    Slider, reactiveUtils, Expand, Fullscreen, ImageryLayerView) => {
+    Slider, reactiveUtils, Expand, Fullscreen, ImageryLayerView, LayerList) => {
 
 // Add Map and MapView
       const map = new Map({
@@ -37,13 +38,24 @@ require([
         zoom: 10
       });
 
+      // Sentinel 10m Land Use/Lad Cover Time Series
+      const sentinelImage = new ImageryLayer({
+        url: "https://ic.imagery1.arcgis.com/arcgis/rest/services/Sentinel2_10m_LandCover/ImageServer",
+        title: "Land Cover (2021, Sentinel-2)",
+        definitionExpression: "Year = 2021",
+      });
+      map.add(sentinelImage);
+      sentinelImage.opacity = 0.5;
+
+
 // Add tree cover in 2000
       const layer = new ImageryLayer({
         url: "https://gis.railway-sector.com/server/rest/services/sample_raster/ImageServer",
         //pixelFilter: colorize,
         bandIds: "layer.1",
         //renderer: renderer,
-        format: "lerc" // server exports in either jpg or png format
+        format: "lerc", // server exports in either jpg or png format,
+        title: "Tree Cover (2000, GFC)"
       });
       map.add(layer);
 
@@ -73,7 +85,7 @@ require([
         //RenderingRule: colorRF,
         pixelFilter: filter,
         //format: "lerc" // server exports in either jpg or png format,
-        title: ""
+        title: "Tree Loss (GFC)"
       });
       map.add(layerLoss);
       layerLoss.renderingRule = colorRF2;
@@ -408,6 +420,27 @@ view.ui.add(sliderExpand, {
     }),
     "top-left"
   );
+
+  // Layer List
+  var layerList = new LayerList({
+    view: view,
+    listItemCreatedFunction: function(event) {
+      const item = event.item;
+      if (item.title === "Land Use Cover (2021)"){
+        item.visible = false
+      }
+    }
+  });
+
+  var layerListExpand = new Expand ({
+    view: view,
+    content: layerList,
+    expandIconClass: "esri-icon-visible",
+    });
+    
+    view.ui.add(layerListExpand, {
+      position: "top-left"
+    });
  /**************************
    * Add image layer to map
    *************************/
@@ -423,6 +456,10 @@ view.ui.add(sliderExpand, {
       {
         layer: layerLoss,
         title: "Forest Loss"
+      },
+      {
+        layer: sentinelImage,
+        title: "Sentinel-2 Image"
       }
     ]
   });
