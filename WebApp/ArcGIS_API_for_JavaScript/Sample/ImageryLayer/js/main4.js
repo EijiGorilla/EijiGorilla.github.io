@@ -101,6 +101,7 @@ view.whenLayerView(sentinelImage).then(layerLoaded);
 // Create a slider to change the radius
 const pixelSlider = new Slider({
   container: "pixelSlider",
+  layout: "vertical-reversed",
   min: 1,
   max: 20,
   steps: 1,
@@ -110,16 +111,16 @@ const pixelSlider = new Slider({
     rangeLabels: true
   }
 });
-//view.ui.add("infoDiv", "bottom-left");
+
+view.ui.add("infoDiv", "bottom-right");
 pixelSlider.on(["thumb-drag", "thumb-change", "segment-drag"], updateRadius);      
 
-let newRadius;
 function updateRadius() {
   radiusValue = pixelSlider.values[0];
-  newRadius.push(raidusValue);
-  return newRadius;
+  return radiusValue;
   
 }
+
 // 
 const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
   am4core.ready(function() {
@@ -151,10 +152,10 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
 
         // calculate how many pixels represent five km (i.e. use 5-m radius for calculation in the chart)
  
+        const newRaidus = updateRadius() * 1000; // 1km = 1000m
+        console.log("New radius is " + newRaidus);
         
-        const bufferDim = Math.ceil(5000 / pixelSizeX);
-        console.log(bufferDim);
-        console.log(newRaidus);
+        const bufferDim = Math.ceil(newRaidus / pixelSizeX);
 
         // figure out 2 mile extent around the pointer location
         const xmin = (reqX - bufferDim < 0) ? 0 : reqX - bufferDim;
@@ -440,6 +441,14 @@ reactiveUtils.when(() => sentinelImage.visible === true, () => document.getEleme
     view.ui.add(layerListExpand, {
       position: "top-right"
     });
+
+  // Full screen
+  // Full screen logo
+var fullscreen = new Fullscreen({
+  view: view
+  });
+  view.ui.add(fullscreen, "top-right");
+  
  /**************************
    * Add image layer to map
    *************************/

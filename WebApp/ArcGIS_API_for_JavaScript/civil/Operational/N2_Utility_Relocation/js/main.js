@@ -4994,7 +4994,7 @@ position: "top-right"
 });
 
 // Full screen logo
-fullscreen = new Fullscreen({
+var fullscreen = new Fullscreen({
 view: view
 });
 view.ui.add(fullscreen, "top-right");
