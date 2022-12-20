@@ -1969,39 +1969,6 @@ markerTemplate.height = 18;
 
 // Responsive code for chart
 chart.responsive.enabled = true;
-chart.responsive.useDefault = false
-
-chart.responsive.rules.push({
-relevant: function(target) {
-if (target.pixelWidth <= 400) {
-return true;
-}
-return false;
-},
-state: function(target, stateId) {
-if (target instanceof am4charts.PieSeries) {
-var state = target.states.create(stateId);
-
-var labelState = target.labels.template.states.create(stateId);
-labelState.properties.disabled = true;
-var tickState = target.ticks.template.states.create(stateId);
-tickState.properties.disabled = true;
-return state;
-}
-
-if (target instanceof am4charts.Legend) {
-var state = target.states.create(stateId);
-state.properties.paddingTop = 0;
-state.properties.paddingRight = 0;
-state.properties.paddingBottom = 0;
-state.properties.paddingLeft = 0;
-state.properties.marginLeft = 0;
-return state;
-}
-return null;
-}
-});
-// Responsive code for chart
 
 
 // Click chart and filter, update maps

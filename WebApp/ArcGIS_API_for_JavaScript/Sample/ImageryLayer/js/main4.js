@@ -1,6 +1,7 @@
 require([
   "esri/Map",
   "esri/views/MapView",
+  "esri/views/SceneView",
   "esri/layers/ImageryLayer",
   "esri/layers/ImageryTileLayer",
   "esri/layers/support/RasterFunction",
@@ -23,12 +24,15 @@ require([
   "esri/geometry/Circle",
   "esri/core/promiseUtils",
   "esri/layers/support/TileInfo",
-], (Map, MapView, ImageryLayer, ImageryTileLayer,
+], (Map, MapView,SceneView, ImageryLayer, ImageryTileLayer,
     RasterFunction, RasterInfo, RasterStretchRenderer, UniqueValueRenderer,
     MultipartColorRamp,
     Legend, ImageHistogramParameters, Query, FeatureLayer, MapImageLayer,
     Slider, reactiveUtils, Expand, Fullscreen, ImageryLayerView, LayerList,
     Graphic, Circle, promiseUtils, TileInfo) => {
+
+const headerTitleDiv = document.getElementById("headerTitleDiv");
+headerTitleDiv.innerHTML = "Land Use (2021)";
 
 // Add Map and MapView
       const map = new Map({
@@ -43,7 +47,7 @@ require([
         zoom: 10
       });
 
-      // "Sentinel-2 10m Land Use/Lad Cover Time Series"
+      // "Sentinel-2 10m Land Use/Land Cover Time Series"
 
       var sentinelImage = new ImageryLayer({
         url: "https://ic.imagery1.arcgis.com/arcgis/rest/services/Sentinel2_10m_LandCover/ImageServer",
@@ -94,19 +98,42 @@ view.whenLayerView(sentinelImage).then(layerLoaded);
         })
       }
 
+// Create a slider to change the radius
+const pixelSlider = new Slider({
+  container: "pixelSlider",
+  min: 1,
+  max: 20,
+  steps: 1,
+  values: [1, 20],
+  visibleElements: {
+    labels: true,
+    rangeLabels: true
+  }
+});
+//view.ui.add("infoDiv", "bottom-left");
+pixelSlider.on(["thumb-drag", "thumb-change", "segment-drag"], updateRadius);      
+
+let newRadius;
+function updateRadius() {
+  radiusValue = pixelSlider.values[0];
+  newRadius.push(raidusValue);
+  return newRadius;
+  
+}
+// 
 const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
   am4core.ready(function() {
     am4core.useTheme(am4themes_animated);
   
     const currentExtent = pixelData.extent;
-  const pixelBlock = pixelData.pixelBlock;
-  const height = pixelBlock.height;
-  const width = pixelBlock.width;
+    const pixelBlock = pixelData.pixelBlock;
+    const height = pixelBlock.height;
+    const width = pixelBlock.width;
 
-  const point = view.toMap({
-    x: event.x,
-    y: event.y
-  });
+    const point = view.toMap({
+      x: event.x,
+      y: event.y
+    });
 
         // pointer x, y in pixels
         const reqX = Math.ceil(event.x);
@@ -114,9 +141,20 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
 
         // calculate how many meters are represented by 1 pixel.
         const pixelSizeX = Math.abs(currentExtent.xmax - currentExtent.xmin) / width;
+         // 1 pixel = 152m (i.e., 1m = 1/152 pixels)
 
         // calculate how many pixels represent one mile
-        const bufferDim = Math.ceil(1609 / pixelSizeX);
+        //const bufferDim = Math.ceil(1609 / pixelSizeX);
+
+        // calculate how many pixels represent one km
+        // const bufferDim = Math.ceil(1000 / pixelSizeX);
+
+        // calculate how many pixels represent five km (i.e. use 5-m radius for calculation in the chart)
+ 
+        
+        const bufferDim = Math.ceil(5000 / pixelSizeX);
+        console.log(bufferDim);
+        console.log(newRaidus);
 
         // figure out 2 mile extent around the pointer location
         const xmin = (reqX - bufferDim < 0) ? 0 : reqX - bufferDim;
@@ -163,31 +201,68 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
         // 1. Water, 2. Trees, 4. Flooded Vegetation, 5. Crops, 7. Built Area, 8. Bare Ground, 9. Snow/Ice, 10. Clouds, 11. Rangeland
         const pixelArea = 100; // 10m x 10m
         const hectare = 10000; // 10000m2
-        const trees = pixelValCount[2] * pixelArea / hectare;
-        const crops = pixelValCount[5] * pixelArea / hectare;
-        const builtArea = pixelValCount[7] * pixelArea / hectare;
 
-        console.log("Trees: " + trees + ", Crops: " + crops + ", Built Area: " + builtArea);
+        const water = pixelValCount[1] === undefined ? 0 : pixelValCount[1] * pixelArea / hectare;
+        const trees = pixelValCount[2] === undefined ? 0 : pixelValCount[2] * pixelArea / hectare;
+        const floodVeg = pixelValCount[4] === undefined ? 0 : pixelValCount[4] * pixelArea / hectare;
+        const crops = pixelValCount[5] === undefined ? 0 : pixelValCount[5] * pixelArea / hectare;
+        const builtArea = pixelValCount[7] === undefined ? 0 : pixelValCount[7] * pixelArea / hectare;
+        const bareG = pixelValCount[8] === undefined ? 0 : pixelValCount[8] * pixelArea / hectare;
+        const snowIce = pixelValCount[9] === undefined ? 0 : pixelValCount[9] * pixelArea / hectare;
+        const clouds = pixelValCount[10] === undefined ? 0 : pixelValCount[10] * pixelArea / hectare;
+        const rangeLand = pixelValCount[11] === undefined ? 0 : pixelValCount[11] * pixelArea / hectare;
+
+        console.log("Water: " + water + ", Trees: " + trees + ", Crops: " + crops + ", Built Area: " + builtArea);
 
         // Chart
         var chart = am4core.create("chartdiv", am4charts.PieChart);
         // Add data
         chart.data = [
           {
-          "class": "Trees",
-          "value": trees,
-          "color": am4core.color("#358221")
+            "class": "Water",
+            "value": water,
+            "color": am4core.color("#1A5BAB")
+          },          
+          {
+            "class": "Trees",
+            "value": trees,
+            "color": am4core.color("#358221")
           },
           {
-          "class": "Crops",
-          "value": crops,
-          "color": am4core.color("#FFDB5C")
+            "class": "Flooded Vegetation",
+            "value": floodVeg,
+            "color": am4core.color("#87D19E")
+            },          
+          {
+            "class": "Crops",
+            "value": crops,
+            "color": am4core.color("#FFDB5C")
           },
           {
-          "class": "Built Area",
-          "value": builtArea,
-          "color": am4core.color("#ED022A")
-          }
+            "class": "Built Area",
+            "value": builtArea,
+            "color": am4core.color("#ED022A")
+          },
+          {
+            "class": "Bare Ground",
+            "value": bareG,
+            "color": am4core.color("#EDE9E4")
+          },
+          {
+            "class": "Snow/Ice",
+            "value": snowIce,
+            "color": am4core.color("#F2FAFF")
+          },
+          {
+            "class": "Clouds",
+            "value": clouds,
+            "color": am4core.color("#C8C8C8")
+          },
+          {
+            "class": "Rangeland",
+            "value": rangeLand,
+            "color": am4core.color("#EFCFA8")
+          },
         ];
 
         // Set inner radius
@@ -223,9 +298,9 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
           pieSeries.ticks.template.fill = "#ffff00";
 
           // Add a legend
-          const LEGEND_FONT_SIZE = 15;
+          const LEGEND_FONT_SIZE = 13;
           chart.legend = new am4charts.Legend();
-          chart.legend.valueLabels.template.align = "right"
+          chart.legend.valueLabels.template.align = "left"
           chart.legend.valueLabels.template.textAlign = "end";
 
           //chart.legend.position = "bottom";
@@ -235,6 +310,54 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
           chart.legend.valueLabels.template.fontSize = LEGEND_FONT_SIZE; 
           pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
           //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+ 
+          /// Define marker symbols properties
+          var marker = chart.legend.markers.template.children.getIndex(0);
+          var markerTemplate = chart.legend.markers.template;
+          marker.cornerRadius(12, 12, 12, 12);
+          marker.strokeWidth = 1;
+          marker.strokeOpacity = 1;
+          marker.stroke = am4core.color("#ccc");
+          markerTemplate.width = 18;
+          markerTemplate.height = 18;
+
+          // Responsive code for chart
+          chart.responsive.enabled = true;
+          chart.responsive.useDefault = false
+
+          chart.responsive.rules.push({
+          relevant: function(target) {
+          if (target.pixelWidth <= 300) {
+          return true;
+          }
+          return false;
+          },
+          state: function(target, stateId) {
+          if (target instanceof am4charts.PieSeries) {
+          var state = target.states.create(stateId);
+
+          var labelState = target.labels.template.states.create(stateId);
+          labelState.properties.disabled = true;
+          var tickState = target.ticks.template.states.create(stateId);
+          tickState.properties.disabled = true;
+          return state;
+          }
+
+          if (target instanceof am4charts.Legend) {
+          var state = target.states.create(stateId);
+          state.properties.paddingTop = 0;
+          state.properties.paddingRight = 0;
+          state.properties.paddingBottom = 0;
+          state.properties.paddingLeft = 0;
+          state.properties.marginLeft = 0;
+          return state;
+          }
+          return null;
+          }
+          });
+          // Responsive code for chart
+
+
 
         } // End of createSlices function
         createSlices("value", "class");
@@ -248,6 +371,26 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
 
       }); // end of am4core
 });
+
+  // Instruction Expand
+  const instructionsExpand = new Expand({
+    expandIconClass: "esri-icon-question",
+    expandTooltip: "How to use this sample",
+    view: view,
+    expanded: true,
+    content: `
+    <div style='width:200px; padding:10px; background-color:black; color:white'><b>Drag</b> the pointer over the data or <b>click</b> to view the land cover types within 5 km of the pointer location. <br><br><b>Click</b> the button below to toggle between view panning and the chart.</div>
+    `
+  });
+  view.ui.add(instructionsExpand, "top-right");
+
+  // Close the 'help' popup when view is focused
+      view.watch("focused", (isFocused) => {
+        if (isFocused) {
+          instructionsExpand.expanded = false;
+        }
+      });
+
 
 // Turn on/off Chart widget
 let chartEnabled = true;
@@ -300,7 +443,7 @@ reactiveUtils.when(() => sentinelImage.visible === true, () => document.getEleme
  /**************************
    * Add image layer to map
    *************************/
-
+/*
   var legend = new Legend({
     view: view,
     container: document.getElementById("legendDiv"),
@@ -314,5 +457,5 @@ reactiveUtils.when(() => sentinelImage.visible === true, () => document.getEleme
 view.ui.add(legend, {
   position: "bottom-right"
 });
-  
+  */
 });
