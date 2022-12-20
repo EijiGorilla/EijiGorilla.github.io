@@ -271,7 +271,7 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
 
         // Chart Title
         let title = chart.titles.create();
-        title.text = "Land Use Area (ha)";
+        title.text = "Land Cover Types (ha)";
         title.fontSize = 20;
         title.fontWeight = "bold";
         title.fill = am4core.color("#ffffff");
@@ -328,7 +328,7 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
 
           chart.responsive.rules.push({
           relevant: function(target) {
-          if (target.pixelWidth <= 300) {
+          if (target.pixelWidth <= 600) {
           return true;
           }
           return false;
@@ -357,7 +357,6 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
           }
           });
           // Responsive code for chart
-
 
 
         } // End of createSlices function
