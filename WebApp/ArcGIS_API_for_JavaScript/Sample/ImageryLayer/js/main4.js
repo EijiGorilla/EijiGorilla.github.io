@@ -32,7 +32,7 @@ require([
 
 // Add Map and MapView
       const map = new Map({
-        basemap: "satellite",
+        basemap: "hybrid",
         //layers: [layer, layerLoss]
       })
 
@@ -161,9 +161,11 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
 
         // Class
         // 1. Water, 2. Trees, 4. Flooded Vegetation, 5. Crops, 7. Built Area, 8. Bare Ground, 9. Snow/Ice, 10. Clouds, 11. Rangeland
-        const trees = pixelValCount[2];
-        const crops = pixelValCount[5];
-        const builtArea = pixelValCount[7];
+        const pixelArea = 100; // 10m x 10m
+        const hectare = 10000; // 10000m2
+        const trees = pixelValCount[2] * pixelArea / hectare;
+        const crops = pixelValCount[5] * pixelArea / hectare;
+        const builtArea = pixelValCount[7] * pixelArea / hectare;
 
         console.log("Trees: " + trees + ", Crops: " + crops + ", Built Area: " + builtArea);
 
@@ -193,7 +195,7 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
 
         // Chart Title
         let title = chart.titles.create();
-        title.text = "Land Use Area";
+        title.text = "Land Use Area (ha)";
         title.fontSize = 20;
         title.fontWeight = "bold";
         title.fill = am4core.color("#ffffff");
