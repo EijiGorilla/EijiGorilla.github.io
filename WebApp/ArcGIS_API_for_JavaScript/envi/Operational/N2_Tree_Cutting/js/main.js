@@ -2042,7 +2042,7 @@ createSlices("status", "Status");
 }); // End of queryFeatures
 } // End of updateChartConservation function
 
-
+am4core.options.autoDispose = true;
 }); // End of am4core.ready
 
 //*****************************//

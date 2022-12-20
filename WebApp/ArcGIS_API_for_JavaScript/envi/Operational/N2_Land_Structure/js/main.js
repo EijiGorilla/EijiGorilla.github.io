@@ -2104,7 +2104,7 @@ value: nego
 
 } // End of updateMoaChartStructure
 updateMoaChartStructure();
-
+am4core.options.autoDispose = true;
 }); // End of am4core.ready
 
 

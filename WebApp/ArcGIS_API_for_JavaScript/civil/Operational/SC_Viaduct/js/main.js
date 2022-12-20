@@ -4,7 +4,7 @@ require([
   "esri/views/MapView",
   "esri/views/SceneView",
   "esri/layers/FeatureLayer",
-  "esri/views/layers/support/FeatureFilter",
+  "esri/layers/support/FeatureFilter",
   "esri/layers/SceneLayer",
   "esri/layers/Layer",
   "esri/layers/TileLayer",
@@ -2277,7 +2277,7 @@ view.when(function() {
 // Progress Bar Charts //
 // Pile
 
-
+am4core.options.autoDispose = true;
 }); // end am4core.ready()
 
 // Editor: enable when necessary

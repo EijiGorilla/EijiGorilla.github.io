@@ -1545,7 +1545,7 @@ createSlices("status", "Tree_Compe");
 }); // End of queryFeatures
 } // End of updateChartTreeComp
 
-
+am4core.options.autoDispose = true;
 }); // End of am4core.ready
 
 //*****************************//

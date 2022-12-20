@@ -2691,7 +2691,7 @@ function doorsL() {
 });
 
 
-
+am4core.options.autoDispose = true;
 }); // End of am4Core.ready()
 
 

@@ -2793,7 +2793,7 @@ color: am4core.color("#FFFFFF00")
 } // End of updatePriorityChartLot
 updatePriorityChartLot();
 
-
+am4core.options.autoDispose = true;
 }); // End of am4core.ready
 
 

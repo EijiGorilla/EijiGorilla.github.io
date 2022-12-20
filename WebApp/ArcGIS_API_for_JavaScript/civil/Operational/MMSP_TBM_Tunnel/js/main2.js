@@ -1812,11 +1812,12 @@ const options = {
   
   // Default
   function defaultRender(){
-  tbmTunnelLayer.definitionExpression = null;
-  natmLayer.definitionExpression = null;
-  //stationStructure.definitionExpression = "Section = 'PO'";
-  tbmChart();
-  natmChart();
+    tbmTunnelLayer.definitionExpression = "Section = 'PO'";
+    tbmTunnelLayer.visible = true;
+    natmLayer.definitionExpression = null;
+    //stationStructure.definitionExpression = "Section = 'PO'";
+    tbmChart();
+    natmChart();
   }
   defaultRender();
   
@@ -1906,24 +1907,12 @@ const options = {
   }
   
   function sectionTunnelTypeExpression(sectionValue, tunnelValue) {
-    if (sectionValue === 'None' && tunnelValue === 'None') {
-      tbmTunnelLayer.definitionExpression = null;
-      natmLayer.definitionExpression = null;
   
-    } else if (sectionValue !== 'None' && tunnelValue === 'None') {
+    if (sectionValue === 'PO' && tunnelValue === 'TBM') {
       tbmTunnelLayer.definitionExpression = "Section = '" + sectionValue + "'";
-      natmLayer.definitionExpression = "Section = '" + sectionValue + "'";
-  
-    } else if (sectionValue === 'None' && tunnelValue === 'TBM') {
-      tbmTunnelLayer.definitionExpression = null;
       natmLayer.visible = false;
-  
-    } else if (sectionValue === 'None' && tunnelValue === 'NATM') {
-      tbmTunnelLayer.visible = false;
-      natmLayer.visible = true;
-      natmLayer.definitionExpression = null;
-  
-    } else if (sectionValue === 'PO' && tunnelValue === 'TBM') {
+
+    } else if (sectionValue === 'PO' && tunnelValue === 'None') {
       tbmTunnelLayer.definitionExpression = "Section = '" + sectionValue + "'";
       natmLayer.visible = false;
   
@@ -1933,8 +1922,14 @@ const options = {
       natmLayer.definitionExpression = null;
   
     } else if (sectionValue === 'Remaining' && tunnelValue === 'TBM') {
-      tbmTunnelLayer.visible = "Section = '" + sectionValue + "'";
+      tbmTunnelLayer.definitionExpression = "Section = '" + sectionValue + "'";
+      tbmTunnelLayer.visible = true;
       natmLayer.visible = false;
+
+    } else if (sectionValue === 'Remaining' && tunnelValue === 'None') {
+      tbmTunnelLayer.definitionExpression = "Section = '" + sectionValue + "'";
+      tbmTunnelLayer.visible = true;
+      natmLayer.visible = true;
     }
   }
   
@@ -2685,7 +2680,7 @@ const options = {
   SurveyChart();
   
   
-  
+  am4core.options.autoDispose = true;
   }); // end am4core.ready()
   
   //////////////////////////////////////////////////////
@@ -2730,12 +2725,13 @@ const options = {
   // Segment Plan Date needs to be displayed only when timesliderExpand widget is open; otherwise, hidden
   segmentedDateDiv.style.display = 'none';
   reactiveUtils.when(() => timesliderExpand?.expanded === false, () => segmentedDateDiv.style.display = 'none');
+  reactiveUtils.when(() => timesliderExpand?.expanded === false, () => tbmTunnelLayer.definitionExpression = "Section = 'PO'");
+  reactiveUtils.when(() => timesliderExpand?.expanded === false, () => graphicsLayer.removeAll());
   reactiveUtils.when(() => timesliderExpand?.expanded === true, () => segmentedDateDiv.style.display = 'block');
   
   // Watch update on timeSlider
   timeSlider.watch("timeExtent", function(timeExtent) {
-  //segmentedDateDiv.style.display = 'block';
-  
+    
   // Reset graphics layer
   graphicsLayer.removeAll();
   
@@ -2756,76 +2752,76 @@ const options = {
   //query.outFields = ["OBJECTID"];
   
   tbmTunnelLayer.queryFeatures(query).then(function(response) {
-  var stats = response.features;
-  stats.forEach((result, index) => {
-    const vertex = result.geometry.paths[0];
-    const objectId = result.attributes.OBJECTID;
+    var stats = response.features;
+    stats.forEach((result, index) => {
+      const vertex = result.geometry.paths[0];
+      const objectId = result.attributes.OBJECTID;
+      
+      const long = (vertex[0][0] + vertex[1][0]) / 2;
+      const lat = (vertex[0][1] + vertex[1][1]) / 2;
+      // longitude: vertex[0][0]
+      // latitude: vertex[0][1]
     
-    const long = (vertex[0][0] + vertex[1][0]) / 2;
-    const lat = (vertex[0][1] + vertex[1][1]) / 2;
-    // longitude: vertex[0][0]
-    // latitude: vertex[0][1]
-  
-    var graphic = new Graphic({
-      geometry: {
-        spatialReference: spatialReference,
-        type: "point",
-        x: long,
-        y: lat,
-        z: 15
-      },
-      type: "simple",
-      symbol: {
-        type: "picture-marker", // simple-marker
-        url: "https://static.arcgis.com/images/Symbols/Firefly/FireflyC8.png",
-        width: 12,
-        height: 12,
-        //outline: { width: 1, color: [255, 255, 255, 1] },
-        //size: 8,
-        //color: [89, 229, 56, 1]
-      }
-      /*
-            
-            symbol: {
-            type: "point-3d",
-            symbolLayers: [
-                {
-                    type: "icon",
-                    resource: {
-                      href: "https://EijiGorilla.github.io/Symbols/TBM_LOGO2.png"
-                    },
-                    size: 30
-                    //resource: {primitive: "circle"},
-                    //material: {color: "green"}
-                }
-            ],
-            verticalOffset: {
-                screenLength: 100,
-                maxWorldLength: 500,
-                minWorldLength: 40
-            },
-            callout: {
-                type: "line",
-                size: 1.5,
-                color: "#E83618",
-                border: {
-                    color: "#E83618"
-                }
-            },
-            maxScale: 1000,
-            minScale: 25000000
+      var graphic = new Graphic({
+        geometry: {
+          spatialReference: spatialReference,
+          type: "point",
+          x: long,
+          y: lat,
+          z: 15
+        },
+        type: "simple",
+        symbol: {
+          type: "picture-marker", // simple-marker
+          url: "https://static.arcgis.com/images/Symbols/Firefly/FireflyC8.png",
+          width: 12,
+          height: 12,
+          //outline: { width: 1, color: [255, 255, 255, 1] },
+          //size: 8,
+          //color: [89, 229, 56, 1]
         }
-        */
+        /*
+              
+              symbol: {
+              type: "point-3d",
+              symbolLayers: [
+                  {
+                      type: "icon",
+                      resource: {
+                        href: "https://EijiGorilla.github.io/Symbols/TBM_LOGO2.png"
+                      },
+                      size: 30
+                      //resource: {primitive: "circle"},
+                      //material: {color: "green"}
+                  }
+              ],
+              verticalOffset: {
+                  screenLength: 100,
+                  maxWorldLength: 500,
+                  minWorldLength: 40
+              },
+              callout: {
+                  type: "line",
+                  size: 1.5,
+                  color: "#E83618",
+                  border: {
+                      color: "#E83618"
+                  }
+              },
+              maxScale: 1000,
+              minScale: 25000000
+          }
+          */
+      });
+      graphicsLayer.add(graphic);
     });
-    graphicsLayer.add(graphic);
-  });
-  });
+    });
   });
   
   let timeLayerView;
   view.whenLayerView(tbmTunnelLayer).then(function (layerView) {
   timeLayerView = layerView;
-  
+
   view.on("click", function() {
       timeLayerView.filter = null;
   

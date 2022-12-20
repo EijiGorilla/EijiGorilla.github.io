@@ -1214,7 +1214,7 @@ createSlices("status", "StatusRC");
 
 });  // End of queryFeature                 
 } // End of updateChartISF()
-
+am4core.options.autoDispose = true;
 
 }); // End of am4core.ready
 

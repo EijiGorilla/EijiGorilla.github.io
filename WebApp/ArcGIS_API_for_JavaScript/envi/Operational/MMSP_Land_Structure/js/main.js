@@ -154,7 +154,7 @@ family: "Gill Sans",
 size: 8
 }
 },
-labelPlacement: "above-center",
+labelPlacement: "always-horizontal",
 labelExpressionInfo: {
 expression: "$feature.CN"
 }
@@ -2528,7 +2528,7 @@ chart.data = [
 } // End of updateS_MOAChartStructure
 
 updateMoaChartStructure();
-
+am4core.options.autoDispose = true;
 }); // End of am4core.ready
 
 // -------------------------  END OF CHART -------------------------------//

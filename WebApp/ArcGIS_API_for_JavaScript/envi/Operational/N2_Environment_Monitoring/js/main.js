@@ -2218,7 +2218,7 @@ monitorPt.queryFeatures(query).then(function(response) {
 }
 totalExceedingCount();
 
-
+am4core.options.autoDispose = true;
 }); // End of am4core.ready
 
 

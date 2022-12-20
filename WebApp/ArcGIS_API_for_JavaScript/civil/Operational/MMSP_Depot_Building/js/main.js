@@ -4,7 +4,7 @@ require([
   "esri/views/MapView",
   "esri/views/SceneView",
   "esri/layers/FeatureLayer",
-  "esri/views/layers/support/FeatureFilter",
+  "esri/layers/support/FeatureFilter",
   "esri/layers/SceneLayer",
   "esri/layers/Layer",
   "esri/layers/TileLayer",
@@ -1890,7 +1890,7 @@ createSeries("value4", "Delayed");
 }
 
 updateChart();
-
+am4core.options.autoDispose = true;
 }); // End of am4Core.ready()
 
 

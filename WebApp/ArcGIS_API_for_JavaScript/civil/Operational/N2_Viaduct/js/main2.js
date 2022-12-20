@@ -2561,7 +2561,7 @@ async function initialization() {
   // Progress Bar Charts //
   // Pile
   
-  
+  am4core.options.autoDispose = true;
   }); // end am4core.ready()
   
   // Editor: enable when necessary
