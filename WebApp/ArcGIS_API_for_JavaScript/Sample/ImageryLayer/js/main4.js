@@ -68,7 +68,7 @@ const landUseChangeViewFilter = document.getElementById("landUseChangeViewFilter
         format: "lerc"
       });
       map.add(landUseChangeImage);
-      landUseChangeImage.opacity = 0.7;
+      landUseChangeImage.opacity = 0.5;
 
 // Refer to this link: https://developers.arcgis.com/javascript/latest/sample-code/layers-imagery-clientside/
 
@@ -99,6 +99,10 @@ landUseViewFilter.addEventListener("change", (event) => {
         getLandCoverPixelInfo(event);
       }
     });
+
+    view.ui.remove(legend, {
+      position: "bottom-left"
+    });
     
   } 
 });
@@ -120,6 +124,10 @@ landUseChangeViewFilter.addEventListener("change", (event) => {
     enableChartButton.classList.remove("esri-icon-pie-chart");
     enableChartButton.classList.add("esri-icon-pan");
     graphic.geometry = null;
+
+    view.ui.add(legend, {
+      position: "bottom-left"
+    });
 
   }
 });
@@ -524,7 +532,7 @@ var fullscreen = new Fullscreen({
  /**************************
    * Add image layer to map
    *************************/
-/*
+
   var legend = new Legend({
     view: view,
     container: document.getElementById("legendDiv"),
@@ -535,8 +543,6 @@ var fullscreen = new Fullscreen({
       }
     ]
   });
-view.ui.add(legend, {
-  position: "top-left"
-});
-  */
+
+  
 });
