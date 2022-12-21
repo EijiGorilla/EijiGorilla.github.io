@@ -33,6 +33,8 @@ require([
 
 const headerTitleDiv = document.getElementById("headerTitleDiv");
 headerTitleDiv.innerHTML = "Land Use (2021)";
+const landUseViewFilter = document.getElementById("landUseViewFilter");
+const landUseChangeViewFilter = document.getElementById("landUseChangeViewFilter");
 
 // Add Map and MapView
       const map = new Map({
@@ -49,18 +51,49 @@ headerTitleDiv.innerHTML = "Land Use (2021)";
 
       // "Sentinel-2 10m Land Use/Land Cover Time Series"
 
-      var sentinelImage = new ImageryLayer({
+      var landUseImage = new ImageryLayer({
         url: "https://ic.imagery1.arcgis.com/arcgis/rest/services/Sentinel2_10m_LandCover/ImageServer",
-        //
         title: "Land Cover (2021, Sentinel-2)",
         definitionExpression: "Year = 2021",
         //pixelFilter: testfilter,
         format: "lerc"
       });
-      map.add(sentinelImage);
-      sentinelImage.opacity = 0.5;
+      map.add(landUseImage);
+      landUseImage.opacity = 0.5;
+
+      // Sentinel-2 for land cover change
+      var landUseChangeImage = new ImageryLayer({
+        url: "https://env1.arcgis.com/arcgis/rest/services/Sentinel_2_10m_Land_Cover_Change/ImageServer",
+        title: "Land Cover Change (2018-2021)",
+        format: "lerc"
+      });
+      map.add(landUseChangeImage);
+      //landCoverChange.opacity = 0.5;
 
 // Refer to this link: https://developers.arcgis.com/javascript/latest/sample-code/layers-imagery-clientside/
+
+// Default Display
+function defaultDisplay() {
+  landUseImage.visible = true;
+  landUseChangeImage.visible = false;
+}
+defaultDisplay();
+
+let landUseViewFilterSelected = true;
+landUseViewFilter.addEventListener("change", (event) => {
+  landUseViewFilterSelected = !!event.target.checked;
+  
+});
+
+let landUseChangeViewFilterSelected = true;
+landUseChangeViewFilter.addEventListener("change", (event) => {
+  landUseChangeViewFilterSelected = !!event.target.checked;
+  console.log("Land Use Change 2018-2021 is Checked");
+});
+
+
+
+//////////////////////////////////
 const graphic = new Graphic({
   geometry: null,
   symbol: {
@@ -75,28 +108,32 @@ const graphic = new Graphic({
 });
 view.graphics.add(graphic);
 
-view.whenLayerView(sentinelImage).then(layerLoaded);
-      function layerLoaded(layerView) {
-        layerView.watch("updating", (value) => {
-          if (!value) {
-            pixelData = layerView.pixelData;
-            //var numP = pixelData.pixelBlock.pixels[0];
-            //const currentExtent = pixelData.extent;
-            //const xmin = currentExtent.xmin;
+// Land Use Image (2021)
 
-            // Get all pixels
-            //const pixelBlock = pixelData.pixelBlock;
-            //const pixels = pixelBlock.pixels[0];
-          }
-        });
+  view.whenLayerView(landUseImage).then(layerLoaded);
+  function layerLoaded(layerView) {
+    layerView.watch("updating", (value) => {
+      if (!value) {
+        pixelData = layerView.pixelData;
+        //var numP = pixelData.pixelBlock.pixels[0];
+        //const currentExtent = pixelData.extent;
+        //const xmin = currentExtent.xmin;
 
-        removeChartEvents = view.on(["drag", "click"], (event) => {
-          if (pixelData){
-            event.stopPropagation();
-            getLandCoverPixelInfo(event);
-          }
-        })
+        // Get all pixels
+        //const pixelBlock = pixelData.pixelBlock;
+        //const pixels = pixelBlock.pixels[0];
       }
+    });
+
+    removeChartEvents = view.on(["drag", "click"], (event) => {
+      if (pixelData){
+        event.stopPropagation();
+        getLandCoverPixelInfo(event);
+      }
+    })
+  }
+
+
 
 // Create a slider to change the radius
 const pixelSlider = new Slider({
@@ -131,10 +168,13 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
     const height = pixelBlock.height;
     const width = pixelBlock.width;
 
+    // Conver screen point to map points
     const point = view.toMap({
       x: event.x,
       y: event.y
     });
+
+    
 
         // pointer x, y in pixels
         const reqX = Math.ceil(event.x);
@@ -152,14 +192,15 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
 
         // calculate how many pixels represent five km (i.e. use 5-m radius for calculation in the chart)
  
-        const newRaidus = updateRadius() * 1000; // 1km = 1000m
-        console.log("New radius is " + newRaidus);
+        const newRaidus = updateRadius() * 1000; // 5km = 5000m
+        //console.log("New radius is " + newRaidus);
         
-        const bufferDim = Math.ceil(newRaidus / pixelSizeX);
+        const bufferDim = Math.ceil(newRaidus / pixelSizeX); // 5km covers or represents 33 pixels.
 
         // figure out 2 mile extent around the pointer location
         const xmin = (reqX - bufferDim < 0) ? 0 : reqX - bufferDim;
         const ymin = (reqY - bufferDim < 0) ? 0 : reqY - bufferDim;
+
         const startPixel = ymin * width + xmin;
         const bufferlength = bufferDim * 2;
         const pixels = pixelBlock.pixels[0];
@@ -195,7 +236,6 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
           center: point,
           radius: bufferDim * pixelSizeX
         });
-
         graphic.geometry = circle;
 
         // Class
@@ -213,7 +253,7 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
         const clouds = pixelValCount[10] === undefined ? 0 : pixelValCount[10] * pixelArea / hectare;
         const rangeLand = pixelValCount[11] === undefined ? 0 : pixelValCount[11] * pixelArea / hectare;
 
-        console.log("Water: " + water + ", Trees: " + trees + ", Crops: " + crops + ", Built Area: " + builtArea);
+        //console.log("Water: " + water + ", Trees: " + trees + ", Crops: " + crops + ", Built Area: " + builtArea);
 
         // Chart
         var chart = am4core.create("chartdiv", am4charts.PieChart);
@@ -379,7 +419,7 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
     view: view,
     expanded: true,
     content: `
-    <div style='width:200px; padding:10px; background-color:black; color:white'><b>Drag</b> the pointer over the data or <b>click</b> to view the land cover types within 5 km of the pointer location. <br><br><b>Click</b> the button below to toggle between view panning and the chart.</div>
+    <div style='width:200px; padding:10px; background-color:black; color:white'><b>Drag</b> the pointer over the data or <b>click</b> to view the land cover types within xx km of the pointer location. <br><br><b>Click</b> the button below to toggle between view panning and the chart.</div>
     `
   });
   view.ui.add(instructionsExpand, "top-right");
@@ -418,8 +458,8 @@ enableChartButton.addEventListener("click", () =>{
 });
 
 // Turn on/off chartdiv when sentinel image layer is hidden or on
-reactiveUtils.when(() => sentinelImage.visible === false, () => document.getElementById("chartdiv").style.display = 'none');
-reactiveUtils.when(() => sentinelImage.visible === true, () => document.getElementById("chartdiv").style.display = 'block');
+reactiveUtils.when(() => landUseImage.visible === false, () => document.getElementById("chartdiv").style.display = 'none');
+reactiveUtils.when(() => landUseImage.visible === true, () => document.getElementById("chartdiv").style.display = 'block');
 
   view.ui.empty("top-left");
 
@@ -428,6 +468,9 @@ reactiveUtils.when(() => sentinelImage.visible === true, () => document.getEleme
     view: view,
     listItemCreatedFunction: function(event) {
       const item = event.item;
+      if (item.title === "Land Cover Change (2018-2021)") {
+        item.visible = false
+      }
     }
   });
 
@@ -457,7 +500,7 @@ var fullscreen = new Fullscreen({
     container: document.getElementById("legendDiv"),
     layerInfos: [
       {
-        layer: sentinelImage,
+        layer: landUseImage,
         title: "Sentinel-2 Image"
       }
     ]
