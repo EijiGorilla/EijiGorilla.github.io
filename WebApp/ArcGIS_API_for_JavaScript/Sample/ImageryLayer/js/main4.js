@@ -68,7 +68,7 @@ const landUseChangeViewFilter = document.getElementById("landUseChangeViewFilter
         format: "lerc"
       });
       map.add(landUseChangeImage);
-      //landCoverChange.opacity = 0.5;
+      landUseChangeImage.opacity = 0.7;
 
 // Refer to this link: https://developers.arcgis.com/javascript/latest/sample-code/layers-imagery-clientside/
 
@@ -82,18 +82,48 @@ defaultDisplay();
 let landUseViewFilterSelected = true;
 landUseViewFilter.addEventListener("change", (event) => {
   landUseViewFilterSelected = !!event.target.checked;
-  
+  if (landUseViewFilterSelected === false) {
+    landUseImage.visible = false;
+
+  } else {
+    landUseChangeViewFilter.checked = false;
+    landUseImage.visible = true;
+    landUseChangeImage.visible = false;
+    headerTitleDiv.innerHTML = "Land Use (2021)";
+
+    enableChartButton.classList.add("esri-icon-pie-chart");
+    enableChartButton.classList.remove("esri-icon-pan");
+    removeChartEvents = view.on(["drag", "click"], (event) => {
+      if (pixelData){
+        event.stopPropagation();
+        getLandCoverPixelInfo(event);
+      }
+    });
+    
+  } 
 });
 
 let landUseChangeViewFilterSelected = true;
 landUseChangeViewFilter.addEventListener("change", (event) => {
   landUseChangeViewFilterSelected = !!event.target.checked;
-  console.log("Land Use Change 2018-2021 is Checked");
+  if (landUseChangeViewFilterSelected === false) {
+    landUseChangeImage.visible = false;
+
+  } else {
+    landUseViewFilter.checked = false;
+    landUseChangeImage.visible = true;
+    landUseImage.visible = false;
+    headerTitleDiv.innerHTML = "Land Use Change (2018-2021)";
+
+    removeChartEvents.remove();
+    removeChartEvents = null;
+    enableChartButton.classList.remove("esri-icon-pie-chart");
+    enableChartButton.classList.add("esri-icon-pan");
+    graphic.geometry = null;
+
+  }
 });
 
-
-
-//////////////////////////////////
 const graphic = new Graphic({
   geometry: null,
   symbol: {
@@ -107,6 +137,28 @@ const graphic = new Graphic({
   }
 });
 view.graphics.add(graphic);
+
+// Create a slider to change the radius
+const pixelSlider = new Slider({
+  container: "pixelSlider",
+  layout: "vertical-reversed",
+  min: 1,
+  max: 20,
+  steps: 1,
+  values: [1, 20],
+  visibleElements: {
+    labels: true,
+    rangeLabels: true
+  }
+});
+
+view.ui.add("infoDiv", "bottom-right");
+pixelSlider.on(["thumb-drag", "thumb-change", "segment-drag"], updateRadius);      
+
+function updateRadius() {
+  radiusValue = pixelSlider.values[0];
+  return radiusValue;
+}
 
 // Land Use Image (2021)
 
@@ -132,31 +184,6 @@ view.graphics.add(graphic);
       }
     })
   }
-
-
-
-// Create a slider to change the radius
-const pixelSlider = new Slider({
-  container: "pixelSlider",
-  layout: "vertical-reversed",
-  min: 1,
-  max: 20,
-  steps: 1,
-  values: [1, 20],
-  visibleElements: {
-    labels: true,
-    rangeLabels: true
-  }
-});
-
-view.ui.add("infoDiv", "bottom-right");
-pixelSlider.on(["thumb-drag", "thumb-change", "segment-drag"], updateRadius);      
-
-function updateRadius() {
-  radiusValue = pixelSlider.values[0];
-  return radiusValue;
-  
-}
 
 // 
 const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
@@ -412,6 +439,8 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
       }); // end of am4core
 });
 
+
+
   // Instruction Expand
   const instructionsExpand = new Expand({
     expandIconClass: "esri-icon-question",
@@ -464,6 +493,7 @@ reactiveUtils.when(() => landUseImage.visible === true, () => document.getElemen
   view.ui.empty("top-left");
 
   // Layer List
+  /*
   var layerList = new LayerList({
     view: view,
     listItemCreatedFunction: function(event) {
@@ -483,7 +513,7 @@ reactiveUtils.when(() => landUseImage.visible === true, () => document.getElemen
     view.ui.add(layerListExpand, {
       position: "top-right"
     });
-
+*/
   // Full screen
   // Full screen logo
 var fullscreen = new Fullscreen({
@@ -500,13 +530,13 @@ var fullscreen = new Fullscreen({
     container: document.getElementById("legendDiv"),
     layerInfos: [
       {
-        layer: landUseImage,
-        title: "Sentinel-2 Image"
+        layer: landUseChangeImage,
+        title: "Land Use Change"
       }
     ]
   });
 view.ui.add(legend, {
-  position: "bottom-right"
+  position: "top-left"
 });
   */
 });
