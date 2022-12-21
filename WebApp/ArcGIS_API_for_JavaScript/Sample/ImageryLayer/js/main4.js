@@ -68,7 +68,7 @@ const landUseChangeViewFilter = document.getElementById("landUseChangeViewFilter
         format: "lerc"
       });
       map.add(landUseChangeImage);
-      landUseChangeImage.opacity = 0.5;
+      landUseChangeImage.opacity = 0.9;
 
 // Refer to this link: https://developers.arcgis.com/javascript/latest/sample-code/layers-imagery-clientside/
 
