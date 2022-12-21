@@ -56,9 +56,6 @@ require([
     "esri/Color",
     "esri/geometry/geometryEngine",
     "esri/core/urlUtils",
-    "dojo/on",
-    "dojo/query",
-    "dojo/domReady!"
   ], function(Basemap, Map, MapView, SceneView, 
               FeatureLayer, FeatureFilter,
               SceneLayer, Layer, TileLayer, VectorTileLayer,
