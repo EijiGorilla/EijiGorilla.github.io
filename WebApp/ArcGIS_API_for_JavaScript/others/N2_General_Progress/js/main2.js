@@ -642,6 +642,8 @@ const BOTTOM_LABEL_COL = am4core.color("#FFA500");
 const TOP_TITLE_COL = am4core.color("#FFFFFF");
 
 var title = chart.titles.create();
+//'<a href="https://google.com"}">More info</a>'
+
 title.text = "[bold]LAND";
 title.fontSize = "2em";
 title.align = "center";
