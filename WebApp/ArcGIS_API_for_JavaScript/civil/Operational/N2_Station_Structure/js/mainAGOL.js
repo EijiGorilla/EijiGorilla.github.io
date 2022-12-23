@@ -4,7 +4,7 @@ require([
   "esri/views/MapView",
   "esri/views/SceneView",
   "esri/layers/FeatureLayer",
-  "esri/views/layers/support/FeatureFilter",
+  "esri/layers/support/FeatureFilter",
   "esri/layers/SceneLayer",
   "esri/layers/Layer",
   "esri/layers/TileLayer",
@@ -373,7 +373,6 @@ function totalProgressStFoundation() {
   const total_comp = stats.total_complete;
   const total_obs = stats.total_obs;
   const compile_stFoundation = [total_comp, total_obs];
-
   return compile_stFoundation;
   });
   }
@@ -2024,6 +2023,7 @@ function combineCharts() {
   chartWalls();
   chartColumns();
 }
+am4core.options.autoDispose = true;
 }); // End of am4core.ready
 
 
@@ -2052,6 +2052,7 @@ document
 
 view.ui.add("menu", "bottom-right");
 
+////
 
 ///////////////////////////////////////////////////////
 var layerList = new LayerList({
