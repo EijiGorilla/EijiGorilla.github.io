@@ -84,8 +84,9 @@ function defaultDisplay() {
 }
 defaultDisplay();
 
-
-// 1. Sketch Polygon-----------------------------------------
+//-----------------------------------------------------------//
+// 1. Sketch Polygon & Chart---------------------------------//
+//-----------------------------------------------------------//
 // Sketch polygon
 const sketchLayer = new GraphicsLayer();
 view.map.add(sketchLayer);
@@ -117,33 +118,33 @@ sketchViewModel.on(["create"], (event) => {
   // update the filter every time the user finishes drawing the filtergeometry
     // chart
 
+    const PIXEL_SIZE = landUseImage.serviceRasterInfo;
+    const pixelSizeX = PIXEL_SIZE.pixelSize.x;
+    const pixelSizeY = PIXEL_SIZE.pixelSize.y;
+
   if (event.state == "complete") {
     sketchGeometry = event.graphic.geometry;
 
-    const param = {
+    // You must provide pixelSize; otherwise, 'computeStaticsHistograms' does not work
+    let pixelSize = {
+      x: pixelSizeX,
+      y: pixelSizeY,
+      spatialReference: {
+        wkid: view.spatialReference.wkid
+      }
+    }
+
+    // Get parameters using sketched geometry
+    let params = new ImageHistogramParameters({
       geometry: sketchGeometry,
-      returnFirstValueOnly: false,
-      // resolution - unit of the view's spatial reference
-    };
+      pixelSize: pixelSize
+    })
 
-    landUseImage.getSamples(param).then((results) => {
-      //console.log(results.samples[0].pixelValue[0]);
-      const pixels = results.samples;
-      
-      let sketchPixelValues = [];
-      for (let i = 0; i < pixels.length; i++) {
-        let pixelValue;
-        pixelValue = pixels[i].pixelValue[0];
-        sketchPixelValues.push(pixelValue);
-      }
+    landUseImage.computeStatisticsHistograms(params).then((response) => {
+      const pixelValCount = response.histograms[0].counts;
+      landUseChart(pixelValCount)
+    });
 
-      pixelValCount = {};
-      for (let i = 0; i < sketchPixelValues.length; i++) {
-        pixelValCount[sketchPixelValues[i]] = 1 + (pixelValCount[sketchPixelValues[i]] || 0);
-      }
-      landUseChart(pixelValCount);
-
-        }); // getSamples(param)  
   } // if (event.state == "complete")
 }); // sketchViewModel.on
 
@@ -154,6 +155,7 @@ function landUseChart(pixelValCount) {
           // 1. Water, 2. Trees, 4. Flooded Vegetation, 5. Crops, 7. Built Area, 8. Bare Ground, 9. Snow/Ice, 10. Clouds, 11. Rangeland
           const pixelArea = 100; // 10m x 10m
           const hectare = 10000; // 10000m2
+          ;
   
           const water = pixelValCount[1] === undefined ? 0 : pixelValCount[1] * pixelArea / hectare;
           const trees = pixelValCount[2] === undefined ? 0 : pixelValCount[2] * pixelArea / hectare;
@@ -324,7 +326,9 @@ function landUseChart(pixelValCount) {
 }
 
 
-// 2. Sketch Circle-----------------------------------------
+//-----------------------------------------------------------//
+// 2. Sketch Circle & Chart----------------------------------//
+//-----------------------------------------------------------//
 const graphic = new Graphic({
   geometry: null,
   symbol: {
@@ -651,6 +655,39 @@ sketchViewModel.on(["update"], (event) => {
   }
 });
 
+// Select and change color
+var selectedGeometry = document.getElementsByClassName("geometry-button");
+
+for(var i = 0; i < selectedGeometry.length; i ++) {
+  selectedGeometry[i].addEventListener("click", filterByGeometry);
+}
+
+function filterByGeometry(event) {
+  //console.log(event.target.id); // 'circle-geometry-button', 'polygon-geometry-button'
+  
+  // change background color when a different button is selected;
+  var current = document.getElementsByClassName("active");
+  current[0].className = current[0].className.replace(" active","");
+  this.className += " active";
+
+  if (event.target.id === 'polygon-geometry-button') {
+    const geometryType = event.target.value;
+    clearFilter();
+    sketchViewModel.create(geometryType);
+  
+    // Remove circle sketch
+    pixelSlider.visible = false;
+    graphic.geometry = null;
+    
+  } else {
+    const geometryType = event.target.value;
+    clearFilter();
+    pixelSlider.visible = true;
+  }
+}
+
+/*
+
 // draw geometry buttons - use the selected geometry to sktech
 document.getElementById("polygon-geometry-button").onclick = geometryButtonsClickHandler;
 function geometryButtonsClickHandler(event) {
@@ -661,7 +698,8 @@ function geometryButtonsClickHandler(event) {
   // Remove circle sketch
   pixelSlider.visible = false;
   graphic.geometry = null;
-  graphic.removeAll();
+  //graphic.removeAll();
+
 }
 
 // Draw circle
@@ -672,7 +710,7 @@ function geometryButtonsCircleClickHandler(event) {
   pixelSlider.visible = true;
 
 }
-
+*/
 // remove the filter
 document.getElementById("clearFilter").addEventListener("click", clearFilter);
 
@@ -683,7 +721,7 @@ function clearFilter() {
 }
 
 
-
+// Control chart and view widget
 let landUseViewFilterSelected = true;
 landUseViewFilter.addEventListener("change", (event) => {
   landUseViewFilterSelected = !!event.target.checked;
@@ -696,11 +734,25 @@ landUseViewFilter.addEventListener("change", (event) => {
     landUseChangeImage.visible = false;
     headerTitleDiv.innerHTML = "Land Use (2021)";
 
+    enableChartButton.classList.add("esri-icon-pie-chart");
+    enableChartButton.classList.remove("esri-icon-pan");
+    removeChartEvents = view.on(["drag", "click"], (event) => {
+      if (pixelData){
+        event.stopPropagation();
+        getLandCoverPixelInfo(event);
+      }
+    });
+
+    view.ui.remove(legend, {
+      position: "bottom-left"
+    });
+
   } 
 });
 
 let landUseChangeViewFilterSelected = true;
 landUseChangeViewFilter.addEventListener("change", (event) => {
+
   landUseChangeViewFilterSelected = !!event.target.checked;
   if (landUseChangeViewFilterSelected === false) {
     landUseChangeImage.visible = false;
@@ -710,6 +762,16 @@ landUseChangeViewFilter.addEventListener("change", (event) => {
     landUseChangeImage.visible = true;
     landUseImage.visible = false;
     headerTitleDiv.innerHTML = "Land Use Change (2018-2021)";
+
+    removeChartEvents.remove();
+    removeChartEvents = null;
+    enableChartButton.classList.remove("esri-icon-pie-chart");
+    enableChartButton.classList.add("esri-icon-pan");
+    graphic.geometry = null;
+
+    view.ui.add(legend, {
+      position: "bottom-left"
+    });
 
   }
 });
@@ -799,7 +861,7 @@ var fullscreen = new Fullscreen({
  /**************************
    * Add image layer to map
    *************************/
-/*
+
   var legend = new Legend({
     view: view,
     container: document.getElementById("legendDiv"),
@@ -810,6 +872,6 @@ var fullscreen = new Fullscreen({
       }
     ]
   });
-*/
+
   
 });
