@@ -28,13 +28,14 @@ require([
   "esri/layers/GraphicsLayer",
   "esri/geometry/geometryEngine",
   "esri/geometry/Polyline",
+  "esri/widgets/Search",
 ], (Map, MapView,SceneView, ImageryLayer, ImageryTileLayer,
     RasterFunction, RasterInfo, RasterStretchRenderer, UniqueValueRenderer,
     MultipartColorRamp,
     Legend, ImageHistogramParameters, Query, FeatureLayer, MapImageLayer,
     Slider, reactiveUtils, Expand, Fullscreen, ImageryLayerView, LayerList,
     Graphic, Circle, promiseUtils, TileInfo, SketchViewModel,
-    GraphicsLayer, geometryEngine, Polyline) => {
+    GraphicsLayer, geometryEngine, Polyline, Search) => {
 
 const headerTitleDiv = document.getElementById("headerTitleDiv");
 headerTitleDiv.innerHTML = "Land Use (2021)";
@@ -83,6 +84,46 @@ function defaultDisplay() {
   landUseChangeImage.visible = false;
 }
 defaultDisplay();
+
+//--------------------------------------------------------------//
+// Filter-by-Geometry Buttons-----------------------------------//
+// Change color of selected button, clear filter, and activate--//
+// Circle or polygon geometry-----------------------------------//
+
+var selectedGeometry = document.getElementsByClassName("geometry-button");
+
+for(var i = 0; i < selectedGeometry.length; i ++) {
+  selectedGeometry[i].addEventListener("click", filterByGeometry);
+}
+
+function filterByGeometry(event) {
+  //console.log(event.target.id); // 'circle-geometry-button', 'polygon-geometry-button'
+  
+  // change background color when a different button is selected;
+  var current = document.getElementsByClassName("active");
+  current[0].className = current[0].className.replace(" active","");
+  this.className += " active";
+
+  // Polgyon
+  if (event.target.id === 'polygon-geometry-button') {
+    const geometryType = event.target.value;
+    clearFilter();
+    sketchViewModel.create(geometryType);
+  
+    // Remove circle sketch
+    pixelSlider.visible = false;
+    graphic.geometry = null;
+
+    // Sketch Polygon and Chart
+    
+    
+  } else {
+    const geometryType = event.target.value;
+    clearFilter();
+    pixelSlider.visible = true;
+  }
+}
+
 
 //-----------------------------------------------------------//
 // 1. Sketch Polygon & Chart---------------------------------//
@@ -325,9 +366,17 @@ function landUseChart(pixelValCount) {
         }); // end of am4core
 }
 
+sketchViewModel.on(["update"], (event) => {
+  const eventInfo = event.toolEventInfo;
+  // update the filter every time the user moves the filtergeometry
+  if (event.toolEventInfo && event.toolEventInfo.type.includes("stop")) {
+      sketchGeometry = event.graphics[0].geometry;
+  }
+});
+
 
 //-----------------------------------------------------------//
-// 2. Sketch Circle & Chart----------------------------------//
+// 2. Draw Circle & Chart----------------------------------//
 //-----------------------------------------------------------//
 const graphic = new Graphic({
   geometry: null,
@@ -386,7 +435,22 @@ function updateRadius() {
       if (pixelData){
         event.stopPropagation();
         getLandCoverPixelInfo(event);
+
+        
+        const currentPoly = document.querySelector('.active').id;
+        //console.log(currentPoly);
+        /* this does not work
+        if (currentPoly === 'polygon-geometry-button') {
+          console.log(currentPoly);
+          document.querySelector('.active').classList.remove('active');
+          document.querySelector('#circle-geometry-button').classList.add('.active');
+        }
+        */
+        
       }
+
+
+      
     })
   }
 
@@ -647,48 +711,8 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
 
 
 /////////////////////////////////////////////////////////////////////////
-sketchViewModel.on(["update"], (event) => {
-  const eventInfo = event.toolEventInfo;
-  // update the filter every time the user moves the filtergeometry
-  if (event.toolEventInfo && event.toolEventInfo.type.includes("stop")) {
-      sketchGeometry = event.graphics[0].geometry;
-  }
-});
 
-//--------------------------------------------------------------//
-// Filter-by-Geometry Buttons-----------------------------------//
-// Change color of selected button, clear filter, and activate--//
-// Circle or polygon geometry-----------------------------------//
 
-var selectedGeometry = document.getElementsByClassName("geometry-button");
-
-for(var i = 0; i < selectedGeometry.length; i ++) {
-  selectedGeometry[i].addEventListener("click", filterByGeometry);
-}
-
-function filterByGeometry(event) {
-  //console.log(event.target.id); // 'circle-geometry-button', 'polygon-geometry-button'
-  
-  // change background color when a different button is selected;
-  var current = document.getElementsByClassName("active");
-  current[0].className = current[0].className.replace(" active","");
-  this.className += " active";
-
-  if (event.target.id === 'polygon-geometry-button') {
-    const geometryType = event.target.value;
-    clearFilter();
-    sketchViewModel.create(geometryType);
-  
-    // Remove circle sketch
-    pixelSlider.visible = false;
-    graphic.geometry = null;
-    
-  } else {
-    const geometryType = event.target.value;
-    clearFilter();
-    pixelSlider.visible = true;
-  }
-}
 
 /*
 
@@ -719,14 +743,14 @@ function geometryButtonsCircleClickHandler(event) {
 document.getElementById("clearFilter").addEventListener("click", clearFilter);
 function clearFilter() {
   sketchGeometry = null;
+  graphic.geometry = null;
   sketchLayer.removeAll();
 }
 
 //---------------------------------------------------------//
-// Control widgets (chart and view extent) when------------//
-// you turn off pie chart and move view extent-------------//
+// Toggle on and off image layers extent)------------------//
+// --------------------------------------------------------//
 
-// Control chart and view widget
 let landUseViewFilterSelected = true;
 landUseViewFilter.addEventListener("change", (event) => {
   landUseViewFilterSelected = !!event.target.checked;
@@ -800,7 +824,9 @@ landUseChangeViewFilter.addEventListener("change", (event) => {
         }
       });
 
-
+//---------------------------------------------------------//
+// Control widgets (chart and view extent) when------------//
+// --------------------------------------------------------//
 // Turn on/off Chart widget
 let chartEnabled = true;
 let removeChartEvents;
@@ -841,6 +867,17 @@ var fullscreen = new Fullscreen({
   view: view
   });
   view.ui.add(fullscreen, "top-right");
+
+  // Search widget
+  const searchWidget = new Search({
+    view: view
+  });
+  // Adds the search widget below other elements in
+  // the top left corner of the view
+  view.ui.add(searchWidget, {
+    position: "top-right",
+    index: 0
+  });
   
 // Legend
   var legend = new Legend({
