@@ -68,10 +68,20 @@ const landUseChangeViewFilter = document.getElementById("landUseChangeViewFilter
       landUseImage.opacity = 0.5;
 
       // Sentinel-2 for land cover change
+      const serviceRFT = new RasterFunction({
+        functionName: "Land Cover Change 2018-2021", // check with the source link below
+        variableName: "Raster"
+      });
+
       var landUseChangeImage = new ImageryLayer({
         url: "https://env1.arcgis.com/arcgis/rest/services/Sentinel_2_10m_Land_Cover_Change/ImageServer",
         title: "Land Cover Change (2018-2021)",
-        format: "lerc"
+        format: "lerc",
+        renderingRule: serviceRFT,
+        popupTemplate: {
+          title: "Land Use Change Type",
+          content: "<b>{Raster.ClassName}</b> ({Raster.Value})"
+        }
       });
       map.add(landUseChangeImage);
       landUseChangeImage.opacity = 0.9;
@@ -123,7 +133,6 @@ function filterByGeometry(event) {
     pixelSlider.visible = true;
   }
 }
-
 
 //-----------------------------------------------------------//
 // 1. Sketch Polygon & Chart---------------------------------//
@@ -262,7 +271,8 @@ function landUseChart(pixelValCount) {
           ];
   
           // Set inner radius
-          chart.innerRadius = am4core.percent(30);
+          chart.innerRadius = am4core.percent(20);
+          chart.radius = am4core.percent(50); // size of pie chart
   
           // Chart Title
           let title = chart.titles.create();
@@ -271,6 +281,7 @@ function landUseChart(pixelValCount) {
           title.fontWeight = "bold";
           title.fill = am4core.color("#ffffff");
           title.marginTop = 7;
+          title.marginBottom = -15;
   
           function createSlices(field, status) {
             var pieSeries = chart.series.push(new am4charts.PieSeries());
@@ -288,6 +299,9 @@ function landUseChart(pixelValCount) {
             pieSeries.labels.template.padding(0,0,0,0);
             pieSeries.labels.template.fontSize = 9;
             pieSeries.labels.template.fill = "#ffffff";
+
+            pieSeries.marginTop = 10;
+            pieSeries.marginBottom = 5;
   
             // Ticks (a straight line)
             //pieSeries.ticks.template.disabled = true;
@@ -306,6 +320,8 @@ function landUseChart(pixelValCount) {
             chart.legend.valueLabels.template.fontSize = LEGEND_FONT_SIZE; 
             pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
             //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+            chart.legend.itemContainers.template.paddingTop = 4;
+            chart.legend.itemContainers.template.paddingBottom = 4;
    
             /// Define marker symbols properties
             var marker = chart.legend.markers.template.children.getIndex(0);
@@ -603,7 +619,8 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
         ];
 
         // Set inner radius
-        chart.innerRadius = am4core.percent(30);
+        chart.innerRadius = am4core.percent(20);
+        chart.radius = am4core.percent(50); // size of pie chart
 
         // Chart Title
         let title = chart.titles.create();
@@ -612,6 +629,7 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
         title.fontWeight = "bold";
         title.fill = am4core.color("#ffffff");
         title.marginTop = 7;
+        title.marginBottom = -15;
 
         function createSlices(field, status) {
           var pieSeries = chart.series.push(new am4charts.PieSeries());
@@ -630,12 +648,16 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
           pieSeries.labels.template.fontSize = 9;
           pieSeries.labels.template.fill = "#ffffff";
 
+ 
           // Ticks (a straight line)
           //pieSeries.ticks.template.disabled = true;
           pieSeries.ticks.template.fill = "#ffff00";
 
+          pieSeries.marginTop = 10;
+          pieSeries.marginBottom = 5;
+
           // Add a legend
-          const LEGEND_FONT_SIZE = 13;
+          const LEGEND_FONT_SIZE = 14;
           chart.legend = new am4charts.Legend();
           chart.legend.valueLabels.template.align = "left"
           chart.legend.valueLabels.template.textAlign = "end";
@@ -647,7 +669,10 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
           chart.legend.valueLabels.template.fontSize = LEGEND_FONT_SIZE; 
           pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
           //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
- 
+          // Space between legend items;
+          chart.legend.itemContainers.template.paddingTop = 4;
+          chart.legend.itemContainers.template.paddingBottom = 4;
+
           /// Define marker symbols properties
           var marker = chart.legend.markers.template.children.getIndex(0);
           var markerTemplate = chart.legend.markers.template;
