@@ -655,7 +655,11 @@ sketchViewModel.on(["update"], (event) => {
   }
 });
 
-// Select and change color
+//--------------------------------------------------------------//
+// Filter-by-Geometry Buttons-----------------------------------//
+// Change color of selected button, clear filter, and activate--//
+// Circle or polygon geometry-----------------------------------//
+
 var selectedGeometry = document.getElementsByClassName("geometry-button");
 
 for(var i = 0; i < selectedGeometry.length; i ++) {
@@ -713,13 +717,14 @@ function geometryButtonsCircleClickHandler(event) {
 */
 // remove the filter
 document.getElementById("clearFilter").addEventListener("click", clearFilter);
-
 function clearFilter() {
   sketchGeometry = null;
   sketchLayer.removeAll();
-
 }
 
+//---------------------------------------------------------//
+// Control widgets (chart and view extent) when------------//
+// you turn off pie chart and move view extent-------------//
 
 // Control chart and view widget
 let landUseViewFilterSelected = true;
@@ -825,43 +830,19 @@ enableChartButton.addEventListener("click", () =>{
 reactiveUtils.when(() => landUseImage.visible === false, () => document.getElementById("chartdiv").style.display = 'none');
 reactiveUtils.when(() => landUseImage.visible === true, () => document.getElementById("chartdiv").style.display = 'block');
 
+//-------------------------------------------------------//
+// Other widet-------------------------------------------//
 
-
+// Empty all the widgets at top left
   view.ui.empty("top-left");
 
-  // Layer List
-  /*
-  var layerList = new LayerList({
-    view: view,
-    listItemCreatedFunction: function(event) {
-      const item = event.item;
-      if (item.title === "Land Cover Change (2018-2021)") {
-        item.visible = false
-      }
-    }
-  });
-
-  var layerListExpand = new Expand ({
-    view: view,
-    content: layerList,
-    expandIconClass: "esri-icon-visible",
-    });
-    
-    view.ui.add(layerListExpand, {
-      position: "top-right"
-    });
-*/
   // Full screen
-  // Full screen logo
 var fullscreen = new Fullscreen({
   view: view
   });
   view.ui.add(fullscreen, "top-right");
   
- /**************************
-   * Add image layer to map
-   *************************/
-
+// Legend
   var legend = new Legend({
     view: view,
     container: document.getElementById("legendDiv"),
