@@ -51,8 +51,8 @@ const landUseChangeViewFilter = document.getElementById("landUseChangeViewFilter
       const view = new MapView({
         container: "viewDiv",
         map: map,
-        center: [12.8867418, 48.6382704],
-        zoom: 10
+        center: [120.955, 16.2190],
+        zoom: 8
       });
 
       // "Sentinel-2 10m Land Use/Land Cover Time Series"
