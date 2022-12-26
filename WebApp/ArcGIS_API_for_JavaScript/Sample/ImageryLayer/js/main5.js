@@ -131,6 +131,7 @@ function filterByGeometry(event) {
     const geometryType = event.target.value;
     clearFilter();
     pixelSlider.visible = true;
+    sketchLayer.gemetry = null;
   }
 }
 
@@ -207,15 +208,15 @@ function landUseChart(pixelValCount) {
           const hectare = 10000; // 10000m2
           ;
   
-          const water = pixelValCount[1] === undefined ? 0 : pixelValCount[1] * pixelArea / hectare;
-          const trees = pixelValCount[2] === undefined ? 0 : pixelValCount[2] * pixelArea / hectare;
-          const floodVeg = pixelValCount[4] === undefined ? 0 : pixelValCount[4] * pixelArea / hectare;
-          const crops = pixelValCount[5] === undefined ? 0 : pixelValCount[5] * pixelArea / hectare;
-          const builtArea = pixelValCount[7] === undefined ? 0 : pixelValCount[7] * pixelArea / hectare;
-          const bareG = pixelValCount[8] === undefined ? 0 : pixelValCount[8] * pixelArea / hectare;
-          const snowIce = pixelValCount[9] === undefined ? 0 : pixelValCount[9] * pixelArea / hectare;
-          const clouds = pixelValCount[10] === undefined ? 0 : pixelValCount[10] * pixelArea / hectare;
-          const rangeLand = pixelValCount[11] === undefined ? 0 : pixelValCount[11] * pixelArea / hectare;
+          const water = pixelValCount[1] === undefined || pixelValCount[1] === null ? 0 : pixelValCount[1] * pixelArea / hectare;
+          const trees = pixelValCount[2] === undefined || pixelValCount[2] === null  ? 0 : pixelValCount[2] * pixelArea / hectare;
+          const floodVeg = pixelValCount[4] === undefined || pixelValCount[4] === null  ? 0 : pixelValCount[4] * pixelArea / hectare;
+          const crops = pixelValCount[5] === undefined || pixelValCount[5] === null  ? 0 : pixelValCount[5] * pixelArea / hectare;
+          const builtArea = pixelValCount[7] === undefined || pixelValCount[7] === null  ? 0 : pixelValCount[7] * pixelArea / hectare;
+          const bareG = pixelValCount[8] === undefined || pixelValCount[8] === null  ? 0 : pixelValCount[8] * pixelArea / hectare;
+          const snowIce = pixelValCount[9] === undefined || pixelValCount[9] === null  ? 0 : pixelValCount[9] * pixelArea / hectare;
+          const clouds = pixelValCount[10] === undefined || pixelValCount[10] === null  ? 0 : pixelValCount[10] * pixelArea / hectare;
+          const rangeLand = pixelValCount[11] === undefined || pixelValCount[11] === null  ? 0 : pixelValCount[11] * pixelArea / hectare;
   
           //console.log("Water: " + water + ", Trees: " + trees + ", Crops: " + crops + ", Built Area: " + builtArea);
   
