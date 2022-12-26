@@ -831,6 +831,7 @@ landUseChangeViewFilter.addEventListener("change", (event) => {
 });
 
   // Instruction Expand
+  /*
   const instructionsExpand = new Expand({
     expandIconClass: "esri-icon-question",
     expandTooltip: "How to use this sample",
@@ -848,6 +849,24 @@ landUseChangeViewFilter.addEventListener("change", (event) => {
           instructionsExpand.expanded = false;
         }
       });
+*/
+        // Display popup when the layer view loads
+        view.whenLayerView(landUseImage).then(function (layerView) {
+          reactiveUtils.whenOnce(() => !layerView.updating).then(() => {
+            view.popup.open({
+              title: "Instructionn",
+              content: `
+              <div id="instructionDiv"; style='width:100%; padding:10px; background-color:black; color:white'>
+              1. <b>Drag</b> the pointer over the data or <b>click</b> to view the land cover types within a circle of user-defined radius (km) of the pointer location.<br><br>
+              2. <b>Click</b> the polygon icon to filter the data in a polygon. Sketch the polygon and <b>double-click</b> when enclosing the polygon.<br><br>
+              3. A chart shows percent land cover and area in ha inside the defined circle or polygon.<br><br>
+              4. <b>Click</b> the button below to toggle between view panning and the chart.<br><br>
+              5. <b>NOTE: </b>The chart only works on Land Use (2021).</div>
+              `,
+              location: view.center
+            });
+          });
+        });
 
 //---------------------------------------------------------//
 // Control widgets (chart and view extent) when------------//
