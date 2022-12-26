@@ -2768,6 +2768,26 @@ element: viewDiv
 }),
 "top-right"
 );
+
+  // Instruction widget
+  const instructionsExpand = new Expand({
+    expandIconClass: "esri-icon-question",
+    expandTooltip: "How to use this web app",
+    view: view,
+    expanded: true,
+    content: `
+    <div style='width:200px; padding:10px; background-color:black; color:white'>
+    <b>Click</b> the callout depot names to zoom and update the progress chart.</div>
+    `
+  });
+  view.ui.add(instructionsExpand, "top-right");
+
+  // Close the 'help' popup when view is focused
+      view.watch("focused", (isFocused) => {
+        if (isFocused) {
+          instructionsExpand.expanded = false;
+        }
+      });
   
 // See through Gound
 document
