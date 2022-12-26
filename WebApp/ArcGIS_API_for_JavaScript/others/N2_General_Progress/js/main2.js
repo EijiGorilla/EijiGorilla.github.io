@@ -243,7 +243,6 @@ const TOP_TITLE_COL = am4core.color("#FFFFFF");
 // Gauge Needle (hand) length
 const NEEDLE_LENGTH = am4core.percent(70);
 
-
 // Themes begin
 am4core.useTheme(am4themes_animated);
 
@@ -644,16 +643,21 @@ const TOP_TITLE_COL = am4core.color("#FFFFFF");
 var title = chart.titles.create();
 //'<a href="https://google.com"}">More info</a>'
 
-title.text = "[bold]LAND";
+//title.text = "[bold]LAND";
+title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Land_Structure2/index.html" target="_blank">LAND</a>';
 title.fontSize = "2em";
 title.align = "center";
 title.marginBottom = -15;
 title.marginTop = 0;
 title.fill = TOP_TITLE_COL;
 
+//var sourceLabel = chart.createChild(am4core.Label);
+//sourceLabel.html = '<a href="https://google.com">Test</a>';
+
 // Add bottom label
 var label = chart.chartContainer.createChild(am4core.Label);
 label.text = "[bold]HANDED-OVER AREA";
+//label.html = '<a href="https://google.com">HANDED-OVER AREA</a>';
 label.fontSize = "1.5em";
 label.align = "center";
 label.marginTop = 0;
@@ -980,7 +984,8 @@ const BOTTOM_LABEL_COL = am4core.color("#FFA500");
 const TOP_TITLE_COL = am4core.color("#FFFFFF");
 
 var title = chart.titles.create();
-title.text = "[bold]EXISTING STRUCTURE";
+//title.text = "[bold]EXISTING STRUCTURE";
+title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Land_Structure2/index.html" target="_blank">EXISTING STRUCTURE</a>';
 title.fontSize = "2em";
 title.align = "center";
 title.marginBottom = -15;
@@ -1317,7 +1322,8 @@ const BOTTOM_LABEL_COL = am4core.color("#FFA500");
 const TOP_TITLE_COL = am4core.color("#FFFFFF");
 
 var title = chart.titles.create();
-title.text = "[bold]INFORMAL SETTLERS";
+//title.text = "[bold]INFORMAL SETTLERS";
+title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Land_Structure2/index.html" target="_blank">INFORMAL SETTLERS</a>';
 title.fontSize = "2em";
 title.align = "center";
 title.marginBottom = -15;
@@ -1653,7 +1659,8 @@ const BOTTOM_LABEL_COL = am4core.color("#FFA500");
 const TOP_TITLE_COL = am4core.color("#FFFFFF");
 
 var title = chart.titles.create();
-title.text = "[bold]TREE CUTTING";
+//title.text = "[bold]TREE CUTTING";
+title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Tree_Cutting/index.html" target="_blank">TREE CUTTING</a>';
 title.fontSize = "2em";
 title.align = "center";
 title.marginBottom = -15;
@@ -1987,7 +1994,8 @@ const BOTTOM_LABEL_COL = am4core.color("#FFA500");
 const TOP_TITLE_COL = am4core.color("#FFFFFF");
 
 var title = chart.titles.create();
-title.text = "[bold]TREE COMPENSATION";
+//title.text = "[bold]TREE COMPENSATION";
+title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Tree_Cutting/index.html" target="_blank">TREE COMPENSATION</a>';
 title.fontSize = "2em";
 title.align = "center";
 title.marginBottom = -15;
@@ -2442,7 +2450,8 @@ const BOTTOM_LABEL_COL = am4core.color("#FFA500");
 const TOP_TITLE_COL = am4core.color("#FFFFFF");
 
 var title = chart.titles.create();
-title.text = "[bold]UTILITY";
+//title.text = "[bold]UTILITY";
+title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/N2_Utility_Relocation/index.html" target="_blank">UTILITY</a>';
 title.fontSize = "2em";
 title.align = "center";
 title.marginBottom = -15;
