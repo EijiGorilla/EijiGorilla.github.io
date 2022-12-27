@@ -206,7 +206,6 @@ function landUseChart(pixelValCount) {
           // 1. Water, 2. Trees, 4. Flooded Vegetation, 5. Crops, 7. Built Area, 8. Bare Ground, 9. Snow/Ice, 10. Clouds, 11. Rangeland
           const pixelArea = 100; // 10m x 10m
           const hectare = 10000; // 10000m2
-          ;
   
           const water = pixelValCount[1] === undefined || pixelValCount[1] === null ? 0 : pixelValCount[1] * pixelArea / hectare;
           const trees = pixelValCount[2] === undefined || pixelValCount[2] === null  ? 0 : pixelValCount[2] * pixelArea / hectare;
@@ -818,11 +817,11 @@ landUseChangeViewFilter.addEventListener("change", (event) => {
     landUseImage.visible = false;
     headerTitleDiv.innerHTML = "Land Use Change (2018-2021)";
 
-    removeChartEvents.remove();
+    removeChartEvents.removeAll();
     removeChartEvents = null;
     enableChartButton.classList.remove("esri-icon-pie-chart");
     enableChartButton.classList.add("esri-icon-pan");
-    graphic.geometry = null;
+    clearFilter();
 
     view.ui.add(legend, {
       position: "bottom-left"
@@ -858,9 +857,9 @@ landUseChangeViewFilter.addEventListener("change", (event) => {
               title: "Instructionn",
               content: `
               <div id="instructionDiv"; style='width:100%; padding:10px; background-color:black; color:white'>
-              1. <b>Drag</b> the pointer over the data or <b>click</b> to view the land cover types within a circle of user-defined radius (km) of the pointer location.<br><br>
-              2. <b>Click</b> the polygon icon to filter the data in a polygon. Sketch the polygon and <b>double-click</b> when enclosing the polygon.<br><br>
-              3. A chart shows percent land cover and area in ha inside the defined circle or polygon.<br><br>
+              1. <b>Drag</b> the pointer over the data or <b>click</b> the map to view land cover types within a circle in user-defined radius (km) of the pointer location.<br><br>
+              2. <b>Click</b> the polygon icon to filter the data in a polygon. Sketch the polygon and <b>double-click</b> to enclose the polygon.<br><br>
+              3. A chart shows percent land cover and its area in ha inside the defined circle or polygon.<br><br>
               4. <b>Click</b> the button below to toggle between view panning and the chart.<br><br>
               5. <b>NOTE: </b>The chart only works on Land Use (2021).</div>
               `,
@@ -894,6 +893,7 @@ enableChartButton.addEventListener("click", () =>{
     enableChartButton.classList.remove("esri-icon-pie-chart");
     enableChartButton.classList.add("esri-icon-pan");
     graphic.geometry = null;
+    sketchGeometry = null;
   }
 });
 
