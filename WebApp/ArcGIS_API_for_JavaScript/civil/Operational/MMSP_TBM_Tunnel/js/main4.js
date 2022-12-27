@@ -1659,6 +1659,8 @@ const options = {
       natmLayer.visible = false;
   
       tbmChart();
+      //natmChart();
+      surveyChart();
     }
     defaultRender();
 
@@ -1797,18 +1799,30 @@ const options = {
   var sectionType = event.target.value;
   //headerTitleDiv.innerHTML = sectionType;
   testFunction(sectionType);
- 
-  filterForTunnelType(sectionType);
-  sectionOnlyExpression(sectionType);
-  changeSelected();
-  
-  tbmChart();
-  natmChart();
-  SurveyChart();
-  
-  filterTbm();
-  filterNatm();
-  
+
+  if (sectionType === 'PO') {
+    document.getElementById("chartNatmDiv").style.display = 'none'; 
+    filterForTunnelType(sectionType);
+    sectionOnlyExpression(sectionType);
+    changeSelected();
+    
+    tbmChart();
+    
+    filterTbm();
+    filterNatm();
+
+  } else {
+    document.getElementById("chartNatmDiv").style.display = 'block'; 
+    filterForTunnelType(sectionType);
+    sectionOnlyExpression(sectionType);
+    changeSelected();
+    
+    tbmChart();
+    natmChart();
+    
+    filterTbm();
+    filterNatm();
+  }
   });
   
   
@@ -1821,428 +1835,473 @@ const options = {
   
   if (tunnelType === 'TBM') {
     zoomToLayer(tbmTunnelLayer);
+    tbmChart();
+    filterTbm();
+    document.getElementById("chartNatmDiv").style.display = 'none';
+    document.getElementById("chartTbmDiv").style.display = 'block';
+
   } else if (tunnelType === 'NATM') {
     zoomToLayer(natmLayer);
+    tbmChart();
+    natmChart();
+    filterNatm();
+    document.getElementById("chartNatmDiv").style.display = 'block';
+    document.getElementById("chartTbmDiv").style.display = 'none';
+
+  } else {
+    tbmChart();
+    filterTbm();
+    natmChart();
+    filterNatm();
+    document.getElementById("chartNatmDiv").style.display = 'block';
+    document.getElementById("chartTbmDiv").style.display = 'block';
   }
-  
-  tbmChart();
-  natmChart();
-  SurveyChart();
-  
-  filterTbm();
-  filterNatm();
   });
   
   //
   // Bottom Title Color
 const BOTTOM_LABEL_COL = am4core.color("#FFA500");
 const TOP_TITLE_COL = am4core.color("#FFFFFF");
+var axis1TickColor = "#C5C5C5";
+const chartPadding = 15;
 
 // Gauge Needle (hand) length
 const NEEDLE_LENGTH = am4core.percent(70);
   
   ///////// PIE CHART /////////
   // 1. TBM
+ 
   function tbmChart() {
-  var total_number = {
-    onStatisticField: "line",
-    outStatisticFieldName: "total_number",
-    statisticType: "count"
-  }
-  
-  var total_complete = {
-    onStatisticField: "CASE WHEN status = 4 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_complete",
-    statisticType: "sum"
-  }
-  
-  var query = tbmTunnelLayer.createQuery();
-  query.outStatistics = [total_number, total_complete];
-  query.returnGeometry = true;
-  
-  tbmTunnelLayer.queryFeatures(query).then(function(response) {
-  var stats = response.features[0].attributes;
-  
-  const tbm_total = stats.total_number;
-  const tbm_comp = stats.total_complete;
-  const COMPLETE_PERC = (tbm_comp/tbm_total)*100;
-  
-  var chart = am4core.create("chartTbmDiv", am4charts.GaugeChart);
+    var total_number = {
+      onStatisticField: "line",
+      outStatisticFieldName: "total_number",
+      statisticType: "count"
+    }
+    
+    var total_complete = {
+      onStatisticField: "CASE WHEN status = 4 THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete",
+      statisticType: "sum"
+    }
+    
+    var query = tbmTunnelLayer.createQuery();
+    query.outStatistics = [total_number, total_complete];
+    query.returnGeometry = true;
+    
+    tbmTunnelLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+    
+    
+    const totalNumber = stats.total_number;
+    const handedOver = stats.total_complete;
+    const LOT_HANDOVER_PERC = (handedOver/totalNumber)*100;
 
-/**
-* Normal axis
-*/
+    // create chart
+    var chart = am4core.create("chartTbmDiv", am4charts.GaugeChart);
+    chart.hiddenState.properties.opacity = 0;
+    chart.innerRadius = am4core.percent(82);
+    chart.responsive.enabled = true;
+    chart.responsive.useDefault = false
 
-var axis = chart.xAxes.push(new am4charts.ValueAxis());
-axis.min = 0;
-axis.max = 100;
-axis.strictMinMax = true;
-axis.renderer.radius = am4core.percent(80);
-axis.renderer.inside = true;
-axis.renderer.line.strokeOpacity = 1;
-axis.renderer.ticks.template.disabled = false
-axis.renderer.ticks.template.strokeOpacity = 1;
-axis.renderer.ticks.template.length = 10;
-axis.renderer.grid.template.disabled = true;
-axis.renderer.labels.template.radius = 40;
-axis.renderer.labels.template.adapter.add("text", function(text) {
-return text + "";
-})
-
-/**
-* Axis for ranges
-*/
-
-var colorSet = new am4core.ColorSet();
-
-var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
-axis2.min = 0;
-axis2.max = 100;
-axis2.strictMinMax = true;
-axis2.renderer.labels.template.disabled = true;
-axis2.renderer.ticks.template.disabled = true;
-axis2.renderer.grid.template.disabled = true;
-
-var range0 = axis2.axisRanges.create();
-range0.value = 0;
-range0.endValue = COMPLETE_PERC;
-range0.axisFill.fillOpacity = 1;
-range0.axisFill.fill = am4core.color("#00C3FF");
-
-var range1 = axis2.axisRanges.create();
-range1.value = COMPLETE_PERC;
-range1.endValue = 100;
-range1.axisFill.fillOpacity = 1;
-range1.axisFill.fill = am4core.color("#C5C5C5");
-range1.axisFill.fillOpacity = 0.3;
-
-/**
-* Label
-*/
-var label = chart.radarContainer.createChild(am4core.Label);
-label.isMeasured = false;
-label.fontSize = 45;
-label.x = am4core.percent(50);
-label.y = am4core.percent(100);
-label.horizontalCenter = "middle";
-label.verticalCenter = "bottom";
-
-const LABEL_TEXT = COMPLETE_PERC.toFixed(0).toString() + "%";
-label.text = LABEL_TEXT;
-label.fill =  am4core.color("#00C3FF");
-
-
-/**
-* Hand
-*/
-
-var hand = chart.hands.push(new am4charts.ClockHand());
-hand.axis = axis2;
-hand.innerRadius = NEEDLE_LENGTH;
-hand.startWidth = 10;
-hand.pin.disabled = true;
-hand.value = COMPLETE_PERC;
-hand.fill = am4core.color("#000000");
-hand.fillOpacity = 0.5;
-
-
-// Add chart title
-var title = chart.titles.create();
-title.text = "[bold]TBM";
-title.fontSize = 20;
-title.align = "center";
-title.fill = TOP_TITLE_COL;
-
-  
-  }); // end of queryFeatures
-  } // end of tbmChart
-
-
+    chart.padding(chartPadding, chartPadding, chartPadding, chartPadding);
+    chart.radius = am4core.percent(100); // size of pie chart
+    chart.resizable = true;
+    //chart.scale = 1;
+    
+      
+    /**
+    * Normal axis
+    */
+    
+    var axis = chart.xAxes.push(new am4charts.ValueAxis());
+    axis.min = 0;
+    axis.max = 100;
+    axis.strictMinMax = true;
+    axis.renderer.radius = am4core.percent(80);
+    axis.renderer.inside = true;
+    axis.renderer.line.strokeOpacity = 1;
+    axis.renderer.ticks.template.disabled = false
+    axis.renderer.ticks.template.strokeOpacity = 1;
+    axis.renderer.ticks.template.length = 10;
+    axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
+    axis.renderer.grid.template.disabled = true;
+    axis.renderer.labels.template.fontSize = "0.7em";
+    axis.renderer.labels.template.radius = 40;
+    axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
+    axis.renderer.labels.template.adapter.add("text", function(text) {
+    return text + "";
+    })
+    
+    /**
+    * Axis for ranges
+    */
+    
+    var colorSet = new am4core.ColorSet();
+    
+    var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+    axis2.min = 0;
+    axis2.max = 100;
+    axis2.strictMinMax = true;
+    axis2.renderer.labels.template.disabled = true;
+    axis2.renderer.ticks.template.disabled = true;
+    axis2.renderer.grid.template.disabled = true;
+    
+    var range0 = axis2.axisRanges.create();
+    range0.value = 0;
+    range0.endValue = LOT_HANDOVER_PERC;
+    range0.axisFill.fillOpacity = 1;
+    range0.axisFill.fill = am4core.color("#00C3FF");
+    
+    var range1 = axis2.axisRanges.create();
+    range1.value = LOT_HANDOVER_PERC;
+    range1.endValue = 100;
+    range1.axisFill.fillOpacity = 1;
+    range1.axisFill.fill = am4core.color("#C5C5C5");
+    range1.axisFill.fillOpacity = 0.3;
+    
+    /**
+    * Label
+    */
+    var label = chart.radarContainer.createChild(am4core.Label);
+    label.isMeasured = false;
+    label.fontSize = "2em";
+    label.x = am4core.percent(50);
+    label.y = am4core.percent(100);
+    label.horizontalCenter = "middle";
+    label.verticalCenter = "bottom";
+    
+    const LABEL_TEXT = LOT_HANDOVER_PERC.toFixed(0).toString() + "%";
+    label.text = LABEL_TEXT;
+    label.fill =  am4core.color("#00C3FF");
+    
+    
+    /**
+    * Hand
+    */
+    
+    var hand = chart.hands.push(new am4charts.ClockHand());
+    hand.axis = axis2;
+    hand.innerRadius = NEEDLE_LENGTH;
+    hand.startWidth = 10;
+    hand.pin.disabled = true;
+    hand.value = LOT_HANDOVER_PERC;
+    hand.fill = am4core.color("#FFA500");
+    hand.fillOpacity = 0.5;
+    hand.axis.strokeOpacity = 0.5;
+    
+    
+    // Add chart title
+    var title = chart.titles.create();
+    title.text = "[bold]TBM Tunnel";
+    title.fontSize = "1.2em";
+    title.align = "center";
+    title.marginBottom = -25;
+    title.marginTop = 0;
+    title.fill = TOP_TITLE_COL; 
+    });
+    }
 
 
   
   // 2. NATM
   function natmChart() {
-  var total_tobeC = {
-    onStatisticField: "CASE WHEN status = 1 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_tobeC",
-    statisticType: "sum"
-  }
-  
-  var total_complete = {
-    onStatisticField: "CASE WHEN status = 4 THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_complete",
-    statisticType: "sum"
-  }
-  
-  var query = natmLayer.createQuery();
-  query.outStatistics = [total_tobeC, total_complete];
-  query.returnGeometry = true;
-  
-  natmLayer.queryFeatures(query).then(function(response) {
-  var stats = response.features[0].attributes;
-  
-  const tbm_incomp = stats.total_tobeC;
-  const tbm_comp = stats.total_complete;
-  
-  var chart = am4core.create("chartNatmDiv",  am4charts.XYChart);
-  
-  // Responsive to screen size
-  chart.responsive.enabled = true;
-  chart.responsive.useDefault = false
-  chart.responsive.rules.push({
-    relevant: function(target) {
-      if (target.pixelWidth <= 400) {
-        return true;
-      }
-        return false;
-      },
-      state: function(target, stateId) {
-        
-        if (target instanceof am4charts.Chart) {
-          var state = target.states.create(stateId);
-          state.properties.paddingTop = 0;
-          state.properties.paddingRight = 15;
-          state.properties.paddingBottom = 5;
-          state.properties.paddingLeft = 15;
-          return state;
-        }
-        
-        if (target instanceof am4charts.Legend) {
-          var state = target.states.create(stateId);
-          state.properties.paddingTop = 0;
-          state.properties.paddingRight = 0;
-          state.properties.paddingBottom = 0;
-          state.properties.paddingLeft = 0;
-          state.properties.marginLeft = 0;
-          return state;
-        }
-        
-        if (target instanceof am4charts.AxisRendererY) {
-          var state = target.states.create(stateId);
-          state.properties.inside = false;
-          state.properties.maxLabelPosition = 0.99;
-          return state;
-        }
-        
-        if ((target instanceof am4charts.AxisLabel) && (target.parent instanceof am4charts.AxisRendererY)) { 
-          var state = target.states.create(stateId);
-          state.properties.dy = 0;
-          state.properties.paddingTop = 3;
-          state.properties.paddingRight = 5;
-          state.properties.paddingBottom = 3;
-          state.properties.paddingLeft = 5;
-          
-          // Create a separate state for background
-          // target.setStateOnChildren = true;
-          // var bgstate = target.background.states.create(stateId);
-          // bgstate.properties.fill = am4core.color("#fff");
-          // bgstate.properties.fillOpacity = 0;
-  
-          return state;
-        }
-        
-        // if ((target instanceof am4core.Rectangle) && (target.parent instanceof am4charts.AxisLabel) && (target.parent.parent instanceof am4charts.AxisRendererY)) { 
-        //   var state = target.states.create(stateId);
-        //   state.properties.fill = am4core.color("#f00");
-        //   state.properties.fillOpacity = 0.5;
-        //   return state;
-        // }
-  
-           return null;
-          }
-        });
-        
-        chart.hiddenState.properties.opacity = 0;
-        
-        chart.data = [
-        {
-            category: "TBM",
-            value1: tbm_comp,
-            value2: tbm_incomp
-        }
-    ];
-  
-    // Define chart setting
-    chart.colors.step = 2;
-    chart.padding(0, 0, 0, 0);
+    var total_number = {
+      onStatisticField: "Layer",
+      outStatisticFieldName: "total_number",
+      statisticType: "count"
+    }
     
-    // Axis Setting
-    /// Category Axis
-    var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-    categoryAxis.dataFields.category = "category";
-    categoryAxis.renderer.grid.template.location = 0;
-    categoryAxis.renderer.labels.template.fontSize = 0;
-    categoryAxis.renderer.labels.template.fill = "#ffffff";
-    categoryAxis.renderer.minGridDistance = 5; //can change label
-    categoryAxis.renderer.grid.template.strokeWidth = 0;
+    var total_complete = {
+      onStatisticField: "CASE WHEN status = 4 THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete",
+      statisticType: "sum"
+    }
     
-    /// Value Axis
-    var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
-    valueAxis.min = 0;
-    valueAxis.max = 100;
-    valueAxis.strictMinMax = true;
-    valueAxis.calculateTotals = true;
-    valueAxis.renderer.minWidth = 50;
-    valueAxis.renderer.labels.template.fontSize = 0;
-    valueAxis.renderer.labels.template.fill = "#ffffff";
-    valueAxis.renderer.grid.template.strokeWidth = 0;
+    var query = natmLayer.createQuery();
+    query.outStatistics = [total_number, total_complete];
+    query.returnGeometry = true;
     
-    // Layerview and Expand
-    function createSeries(field, name) {
-        var series = chart.series.push(new am4charts.ColumnSeries());
-        series.calculatePercent = true;
-        series.dataFields.valueX = field;
-        series.dataFields.categoryY = "category";
-        series.stacked = true;
-        series.dataFields.valueXShow = "totalPercent";
-        series.dataItems.template.locations.categoryY = 0.5;
-        
-        // Bar chart line color and width
-        series.columns.template.stroke = am4core.color("#FFFFFF"); //#00B0F0
-        series.columns.template.strokeWidth = 0.5;
-        series.name = name;
-        
-        var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-        
-        if (name == "Incomplete"){
-            series.fill = am4core.color("#FF000000");
-            labelBullet.locationX = 0.5;
-            labelBullet.label.text = "";
-            labelBullet.label.fill = am4core.color("#FFFFFFFF");
-            labelBullet.interactionsEnabled = false;
-            labelBullet.label.fontSize = 0;
-            labelBullet.locationX = 0.5;
-        
-        } else {
-            series.fill = am4core.color("#00B0F0"); // Completed
-            labelBullet.locationX = 0.5;
-            labelBullet.label.text = "{valueX.totalPercent.formatNumber('#.')}%";
-            labelBullet.label.fill = am4core.color("#ffffff");
-            labelBullet.interactionsEnabled = false;
-            labelBullet.label.fontSize = 10;
-            labelBullet.locationX = 0.5;
-        }
-        
-        series.columns.template.width = am4core.percent(60);
-        series.columns.template.tooltipText = "[font-size:15px]{name}: {valueX.value.formatNumber('#.')} ({valueX.totalPercent.formatNumber('#.')}%)"
-        
-        // Click chart and filter, update maps
-        const chartElement = document.getElementById("chartPanel");
-        series.columns.template.events.on("hit", filterByChart, this);
-  
-        function filterByChart(ev) {
-            const selectedC = ev.target.dataItem.component.name;
-            const selectedP = ev.target.dataItem.categoryY;
-            
-            // Layer
-            if (selectedC === "Incomplete") {
-                selectedStatus = 1;
-            } else if (selectedC === "Complete") {
-                selectedStatus = 4;
-            } else {
-                selectedLayer = null;
-            }
-            
-     view.when(function() {
-      view.whenLayerView(natmLayer).then(function (layerView) {
-        chartLayerView = layerView;
-        chartElement.style.visibility = "visible";
-        
-        natmLayer.queryFeatures().then(function(results) {
-          const RESULT_LENGTH = results.features;
-          const ROW_N = RESULT_LENGTH.length;
-  
-          let objID = [];
-          for (var i=0; i < ROW_N; i++) {
-              var obj = results.features[i].attributes.OBJECTID;
-              objID.push(obj);
-          }
-  
-          var queryExt = new Query({
-             objectIds: objID
-          });
-  
-          natmLayer.queryExtent(queryExt).then(function(result) {
-              if (result.extent) {
-                  view.goTo(result.extent)
-              }
-          });
-  
-          if (highlightSelect) {
-              highlightSelect.remove();
-          }
-          highlightSelect = layerView.highlight(objID);
-  
-          view.on("click", function() {
-            layerView.filter = null;
-            highlightSelect.remove();
-          });
-        }); // End of queryFeatures
-        layerView.filter = {
-          where: "status = " + selectedStatus
-        }
-      }); // End of view.whenLayerView
-    }); // End of view.when
-  } // End of filterByChart
-  } // End of createSlices function
-  
-  createSeries("value1", "Complete");
-  createSeries("value2", "Incomplete");
-  
-  }); // end of queryFeatures
-  } // 
-  
+    natmLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+    
+    
+    const totalNumber = stats.total_number;
+    const handedOver = stats.total_complete;
+    const LOT_HANDOVER_PERC = (handedOver/totalNumber)*100;
+
+    // create chart
+    var chart = am4core.create("chartNatmDiv", am4charts.GaugeChart);
+    chart.hiddenState.properties.opacity = 0;
+    chart.innerRadius = am4core.percent(82);
+    chart.responsive.enabled = true;
+    chart.responsive.useDefault = false
+
+    chart.padding(chartPadding, chartPadding, chartPadding, chartPadding);
+    chart.radius = am4core.percent(100); // size of pie chart
+    chart.resizable = true;
+    //chart.scale = 1;
+    
+      
+    /**
+    * Normal axis
+    */
+    
+    var axis = chart.xAxes.push(new am4charts.ValueAxis());
+    axis.min = 0;
+    axis.max = 100;
+    axis.strictMinMax = true;
+    axis.renderer.radius = am4core.percent(80);
+    axis.renderer.inside = true;
+    axis.renderer.line.strokeOpacity = 1;
+    axis.renderer.ticks.template.disabled = false
+    axis.renderer.ticks.template.strokeOpacity = 1;
+    axis.renderer.ticks.template.length = 10;
+    axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
+    axis.renderer.grid.template.disabled = true;
+    axis.renderer.labels.template.fontSize = "0.7em";
+    axis.renderer.labels.template.radius = 40;
+    axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
+    axis.renderer.labels.template.adapter.add("text", function(text) {
+    return text + "";
+    })
+    
+    /**
+    * Axis for ranges
+    */
+    
+    var colorSet = new am4core.ColorSet();
+    
+    var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+    axis2.min = 0;
+    axis2.max = 100;
+    axis2.strictMinMax = true;
+    axis2.renderer.labels.template.disabled = true;
+    axis2.renderer.ticks.template.disabled = true;
+    axis2.renderer.grid.template.disabled = true;
+    
+    var range0 = axis2.axisRanges.create();
+    range0.value = 0;
+    range0.endValue = LOT_HANDOVER_PERC;
+    range0.axisFill.fillOpacity = 1;
+    range0.axisFill.fill = am4core.color("#00C3FF");
+    
+    var range1 = axis2.axisRanges.create();
+    range1.value = LOT_HANDOVER_PERC;
+    range1.endValue = 100;
+    range1.axisFill.fillOpacity = 1;
+    range1.axisFill.fill = am4core.color("#C5C5C5");
+    range1.axisFill.fillOpacity = 0.3;
+    
+    /**
+    * Label
+    */
+    var label = chart.radarContainer.createChild(am4core.Label);
+    label.isMeasured = false;
+    label.fontSize = "2em";
+    label.x = am4core.percent(50);
+    label.y = am4core.percent(100);
+    label.horizontalCenter = "middle";
+    label.verticalCenter = "bottom";
+    
+    const LABEL_TEXT = LOT_HANDOVER_PERC.toFixed(0).toString() + "%";
+    label.text = LABEL_TEXT;
+    label.fill =  am4core.color("#00C3FF");
+    
+    
+    /**
+    * Hand
+    */
+    
+    var hand = chart.hands.push(new am4charts.ClockHand());
+    hand.axis = axis2;
+    hand.innerRadius = NEEDLE_LENGTH;
+    hand.startWidth = 10;
+    hand.pin.disabled = true;
+    hand.value = LOT_HANDOVER_PERC;
+    hand.fill = am4core.color("#FFA500");
+    hand.fillOpacity = 0.5;
+    hand.axis.strokeOpacity = 0.5;
+    
+    
+    // Add chart title
+    var title = chart.titles.create();
+    title.text = "[bold]NATM Tunnel";
+    title.fontSize = "1.2em";
+    title.align = "center";
+    title.marginBottom = -25;
+    title.marginTop = 0;
+    title.fill = TOP_TITLE_COL; 
+    });
+    }
+
   
   // 3. Dilapidation Survey
-  // 2. NATM
-  function SurveyChart() {
-  var total_dilap = {
-    onStatisticField: "CASE WHEN Rating = 'Dilapidated' THEN 1 ELSE 0 END",
-    outStatisticFieldName: "total_dilap",
-    statisticType: "sum"
-  }
-  
-  var total_survey = {
-    onStatisticField: "Rating",
-    outStatisticFieldName: "total_survey",
-    statisticType: "count"
-  }
-  
-  
-  var query = obstructionLayer.createQuery();
-  query.outStatistics = [total_dilap, total_survey];
-  query.returnGeometry = true;
-  query.outFields = ["Rating"];
-  
-  obstructionLayer.queryFeatures(query).then(function(response) {
-  var stats = response.features[0].attributes;
-  
-  const dilap = stats.total_dilap;
-  
-  var chart = am4core.create("chartSurveyDiv",  am4charts.XYChart);
-  
-  // Responsive to screen size
-  chart.responsive.enabled = true;
-  chart.responsive.useDefault = false
-  chart.responsive.rules.push({
-    relevant: function(target) {
-      if (target.pixelWidth <= 400) {
-        return true;
+  function surveyChart() {
+    var total_good = {
+      onStatisticField: "CASE WHEN Rating = 'Good' THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_good",
+      statisticType: "sum"
+    };
+
+    var total_fair = {
+      onStatisticField: "CASE WHEN Rating = 'Fair' THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_fair",
+      statisticType: "sum"
+    };
+    
+    var total_dilapidated = {
+      onStatisticField: "CASE WHEN Rating = 'Dilapidated' THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_dilapidated",
+      statisticType: "sum"
+    };
+
+    var total_others = {
+      onStatisticField: "CASE WHEN Rating IS NULL THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_others",
+      statisticType: "sum"
+    };
+
+    
+    var query = obstructionLayer.createQuery();
+    query.outStatistics = [total_good, total_fair, total_dilapidated, total_others];
+    query.returnGeometry = true;
+    
+    obstructionLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+    
+    const goodScore = stats.total_good;
+    const fairScore = stats.total_fair;
+    const dilapidatedScore = stats.total_dilapidated;
+    const otherScore = stats.total_others;
+    
+    var chart = am4core.create("chartSurveyDiv", am4charts.PieChart);
+    
+    // Add data
+    chart.data = [
+    {
+      "name": "Good",
+      "status": goodScore,
+      "color": am4core.color("#70A800")
+    },
+    {
+      "name": "Fair",
+      "status": fairScore,
+      "color": am4core.color("#E6E600")   
+    },
+    {
+      "name": "Dilapidated",
+      "status": dilapidatedScore,
+      "color": am4core.color("#E60000") 
+    },
+    {
+      "name": "Others",
+      "status": otherScore,
+      "color": am4core.color("#FFFFFF")
+    },
+    ];
+    
+    // Set inner radius
+    chart.innerRadius = am4core.percent(30);
+    chart.padding(0, 0, 0, 0);
+    
+    // Add and configure Series
+    function createSlices(field, status){
+    var pieSeries = chart.series.push(new am4charts.PieSeries());
+    pieSeries.dataFields.value = field;
+    pieSeries.dataFields.category = status;
+    
+    pieSeries.slices.template.propertyFields.fill = "color";
+    pieSeries.slices.template.stroke = am4core.color("#fff");
+    pieSeries.slices.template.strokeWidth = 1;
+    pieSeries.slices.template.strokeOpacity = 1;
+    pieSeries.slices.template
+    // change the cursor on hover to make it apparent the object can be interacted with
+    .cursorOverStyle = [
+      {
+        "property": "cursor",
+        "value": "pointer"
       }
+    ];
+    
+    // Hover setting
+    pieSeries.tooltip.label.fontSize = 9;
+    
+    // Pie
+    //pieSeries.alignLabels = false;
+    //pieSeries.labels.template.bent = false;
+    pieSeries.labels.template.disabled = true;
+    pieSeries.labels.template.radius = 3;
+    pieSeries.labels.template.padding(0,0,0,0);
+    pieSeries.labels.template.fontSize = 9;
+    pieSeries.labels.template.fill = "#ffffff";
+    
+    // Ticks (a straight line)
+    //pieSeries.ticks.template.disabled = true;
+    pieSeries.ticks.template.fill = "#ffff00";
+    
+    // Create a base filter effect (as if it's not there) for the hover to return to
+    var shadow = pieSeries.slices.template.filters.push(new am4core.DropShadowFilter);
+    shadow.opacity = 0;
+    
+    // Chart Title
+    let title = chart.titles.create();
+    title.text = "DILAPIDATION SURVEY";
+    title.fontSize = "1.2em";
+    title.fontWeight = "bold";
+    title.align = "center";
+    title.marginBottom = 0;
+    title.marginTop = 15;
+    title.fill = TOP_TITLE_COL; 
+    
+    // Create hover state
+    var hoverState = pieSeries.slices.template.states.getKey("hover"); // normally we have to create the hover state, in this case it already exists
+    
+    // Slightly shift the shadow and make it more prominent on hover
+    var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
+    hoverShadow.opacity = 0.7;
+    hoverShadow.blur = 5;
+    
+    // Add a legend
+    const LEGEND_FONT_SIZE = 13;
+    chart.legend = new am4charts.Legend();
+    chart.legend.valueLabels.template.align = "right"
+    chart.legend.valueLabels.template.textAlign = "end";
+    
+    //chart.legend.position = "bottom";
+    chart.legend.labels.template.fontSize = LEGEND_FONT_SIZE;
+    chart.legend.labels.template.fill = "#ffffff";
+    chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+    chart.legend.valueLabels.template.fontSize = LEGEND_FONT_SIZE; 
+    chart.legend.itemContainers.template.paddingTop = 4;
+    chart.legend.itemContainers.template.paddingBottom = 4;
+
+
+    pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
+    //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+    
+    // Responsive code for chart
+    chart.responsive.enabled = true;
+    chart.responsive.useDefault = false
+    
+    chart.responsive.rules.push({
+      relevant: function(target) {
+        if (target.pixelWidth <= 400) {
+          return true;
+        }
         return false;
       },
       state: function(target, stateId) {
-        
-        if (target instanceof am4charts.Chart) {
+        if (target instanceof am4charts.PieSeries) {
           var state = target.states.create(stateId);
-          state.properties.paddingTop = 0;
-          state.properties.paddingRight = 15;
-          state.properties.paddingBottom = 5;
-          state.properties.paddingLeft = 15;
+          
+          var labelState = target.labels.template.states.create(stateId);
+          labelState.properties.disabled = true;
+          
+          var tickState = target.ticks.template.states.create(stateId);
+          tickState.properties.disabled = true;
           return state;
         }
-        
+    
         if (target instanceof am4charts.Legend) {
           var state = target.states.create(stateId);
           state.properties.paddingTop = 0;
@@ -2252,170 +2311,82 @@ title.fill = TOP_TITLE_COL;
           state.properties.marginLeft = 0;
           return state;
         }
-        
-        if (target instanceof am4charts.AxisRendererY) {
-          var state = target.states.create(stateId);
-          state.properties.inside = false;
-          state.properties.maxLabelPosition = 0.99;
-          return state;
-        }
-        
-        if ((target instanceof am4charts.AxisLabel) && (target.parent instanceof am4charts.AxisRendererY)) { 
-          var state = target.states.create(stateId);
-          state.properties.dy = 0;
-          state.properties.paddingTop = 3;
-          state.properties.paddingRight = 5;
-          state.properties.paddingBottom = 3;
-          state.properties.paddingLeft = 5;
+        return null;
+      }
+    });
+    // Responsive code for chart
+    
+    /// Define marker symbols properties
+    var marker = chart.legend.markers.template.children.getIndex(0);
+    var markerTemplate = chart.legend.markers.template;
+    marker.cornerRadius(12, 12, 12, 12);
+    marker.strokeWidth = 1;
+    marker.strokeOpacity = 1;
+    marker.stroke = am4core.color("#ccc");
+    markerTemplate.width = 14;
+    markerTemplate.height = 14;
+    
+    // This creates initial animation
+    //pieSeries.hiddenState.properties.opacity = 1;
+    //pieSeries.hiddenState.properties.endAngle = -90;
+    //pieSeries.hiddenState.properties.startAngle = -90;
+    
+    // Click chart and filter, update maps
+    pieSeries.slices.template.events.on("hit", filterByChart, this);
+    function filterByChart(ev) {
+      const SELECTED = ev.target.dataItem.category;
+      console.log(SELECTED);
+      
+      view.when(function() {
+        view.whenLayerView(obstructionLayer).then(function (layerView) {
+          chartLayerView = layerView;
+          CHART_ELEMENT.style.visibility = "visible";
           
-          // Create a separate state for background
-          target.setStateOnChildren = true;
-          var bgstate = target.background.states.create(stateId);
-          bgstate.properties.fill = am4core.color("#fff");
-          bgstate.properties.fillOpacity = 0;
-  
-          return state;
-        }
-        
-        if ((target instanceof am4core.Rectangle) && (target.parent instanceof am4charts.AxisLabel) && (target.parent.parent instanceof am4charts.AxisRendererY)) { 
-           var state = target.states.create(stateId);
-           state.properties.fill = am4core.color("#f00");
-           state.properties.fillOpacity = 0.5;
-           return state;
-         }
-  
-           return null;
-          }
-        });
-        
-        chart.hiddenState.properties.opacity = 0;
-        
-        chart.data = [
-        {
-            category: "Dilapidated",
-            value1: dilap,
-            value2: 0
-        }
-    ];
-  
-    // Define chart setting
-    chart.colors.step = 2;
-    chart.padding(0, 0, 0, 0);
+          obstructionLayer.queryFeatures().then(function(results) {
+            const RESULT_LENGTH = results.features;
+            const ROW_N = RESULT_LENGTH.length;
     
-    // Axis Setting
-    /// Category Axis
-    /// Category Axis
-    var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-    categoryAxis.dataFields.category = "category";
-    categoryAxis.renderer.grid.template.location = 0;
-    categoryAxis.renderer.labels.template.fontSize = 0;
-    categoryAxis.renderer.labels.template.fill = "#ffffff";
-    categoryAxis.renderer.minGridDistance = 5; //can change label
-    categoryAxis.renderer.grid.template.strokeWidth = 0;
+            let objID = [];
+            for (var i=0; i < ROW_N; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
     
-    /// Value Axis
-    var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
-    valueAxis.strictMinMax = true;
-    valueAxis.calculateTotals = true;
-    valueAxis.renderer.labels.template.fontSize = 0;
-    valueAxis.renderer.labels.template.fill = "#ffffff";
-    valueAxis.renderer.grid.template.strokeWidth = 0;
+            var queryExt = new Query({
+               objectIds: objID
+            });
     
-    // Layerview and Expand
-    function createSeries(field, name) {
-        var series = chart.series.push(new am4charts.ColumnSeries());
-        series.dataFields.valueX = field;
-        series.dataFields.categoryY = "category";
-        series.stacked = true;
-        series.dataItems.template.locations.categoryY = 0.5;
-        
-        // Bar chart line color and width
-        series.columns.template.stroke = am4core.color("#00000000"); //#00B0F0
-        series.columns.template.strokeWidth = 0.5;
-        series.name = name;
-        
-        var labelBullet = series.bullets.push(new am4charts.LabelBullet());
-  
-        if (name === "Dilapidated"){
-          series.fill = am4core.color("#00000000");
-          labelBullet.locationX = 0.5;
-          labelBullet.label.text = "{valueX.formatNumber('#.')}";
-          //labelBullet.label.fill = am4core.color("#00FFFFFF");
-          labelBullet.label.fill = am4core.color("#FF0000");
-          labelBullet.interactionsEnabled = false;
-          labelBullet.label.fontSize = 50;
-          labelBullet.locationX = 0.5;
-  
-        } else if (name === "temp") {
-          series.fill = am4core.color("#00000000");
-        labelBullet.locationX = 0.5;
-        //labelBullet.label.fill = am4core.color("#00FFFFFF");
-        labelBullet.label.fill = am4core.color("#FFFFFF");
-        labelBullet.interactionsEnabled = false;
-        labelBullet.label.fontSize = 19;
-        labelBullet.locationX = 0.5;
-        }
-  
-        series.columns.template.width = am4core.percent(60);
-        
-        // Click chart and filter, update maps
-        const chartElement = document.getElementById("chartPanel");
-        series.columns.template.events.on("hit", filterByChart, this);
-  
-        function filterByChart(ev) {
-            const selectedC = ev.target.dataItem.component.name;
-            const selectedP = ev.target.dataItem.categoryY;
-            
-     view.when(function() {
-      view.whenLayerView(obstructionLayer).then(function (layerView) {
-        chartLayerView = layerView;
-        chartElement.style.visibility = "visible";
-        
-        obstructionLayer.queryFeatures().then(function(results) {
-          const RESULT_LENGTH = results.features;
-          const ROW_N = RESULT_LENGTH.length;
-  
-          let objID = [];
-          for (var i=0; i < ROW_N; i++) {
-              var obj = results.features[i].attributes.OBJECTID;
-              objID.push(obj);
-          }
-  
-          var queryExt = new Query({
-             objectIds: objID
-          });
-  
-          obstructionLayer.queryExtent(queryExt).then(function(result) {
-              if (result.extent) {
-                  view.goTo(result.extent)
-              }
-          });
-  
-          if (highlightSelect) {
+            obstructionLayer.queryExtent(queryExt).then(function(result) {
+                if (result.extent) {
+                    view.goTo(result.extent)
+                }
+            });
+    
+            if (highlightSelect) {
+                highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+    
+            view.on("click", function() {
+              layerView.filter = null;
               highlightSelect.remove();
+            });
+          }); // End of queryFeatures
+          layerView.filter = {
+            where: "Rating = " + SELECTED
           }
-          highlightSelect = layerView.highlight(objID);
-  
-          view.on("click", function() {
-            layerView.filter = null;
-            highlightSelect.remove();
-          });
-        }); // End of queryFeatures
-        layerView.filter = {
-          where: "Rating = '" + selectedC + "'"
-        }
-      }); // End of view.whenLayerView
-    }); // End of view.when
-  } // End of filterByChart
-  } // End of createSlices function
-  
-  createSeries("value1", "Dilapidated");
-  createSeries("value2", "temp")
-  
-  }); // end of queryFeatures
-  } // end of updateChartWater
-  SurveyChart();
-  
+        }); // End of view.whenLayerView
+      }); // End of view.when
+    } // End of filterByChart
+    } // End of createSlices function
+    
+    createSlices("status", "name");
+    
+    //return TOTAL_NUMBER_LOTS;
+    }); // End of queryFeatures
+    } // End of updateChartLot()
+    
+
   
   am4core.options.autoDispose = true;
   }); // end am4core.ready()
@@ -2457,7 +2428,7 @@ title.fill = TOP_TITLE_COL;
     expandIconClass: "esri-icon-time-clock",
     group: "bottom-right"
   });
-  view.ui.add(timesliderExpand, {position: "bottom-right"});
+  view.ui.add(timesliderExpand, {position: "bottom-left"});
   
   // Segment Plan Date needs to be displayed only when timesliderExpand widget is open; otherwise, hidden
   segmentedDateDiv.style.display = 'none';
