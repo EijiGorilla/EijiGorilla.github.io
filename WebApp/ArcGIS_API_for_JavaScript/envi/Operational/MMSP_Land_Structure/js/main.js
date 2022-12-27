@@ -929,7 +929,7 @@ lotLayer.queryFeatures(query).then(function(response){
 var stats = response.features[0].attributes;
 
 const LOT_TOTAL = stats.totalLot;
-totalNumberDiv.innerHTML = LOT_TOTAL + " (" + totalLotValue + ")";
+totalNumberDiv.innerHTML = thousands_separators(LOT_TOTAL) + " (" + totalLotValue + ")";
 });
 }
 
@@ -949,7 +949,7 @@ structureLayer.queryFeatures(query).then(function(response){
 var stats = response.features[0].attributes;
 
 const STRUCTURE_TOTAL = stats.totalStructure;
-structureTotalNumberDiv.innerHTML = STRUCTURE_TOTAL;
+structureTotalNumberDiv.innerHTML = thousands_separators(STRUCTURE_TOTAL);
 });
 }
 
