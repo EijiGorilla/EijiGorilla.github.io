@@ -2340,7 +2340,7 @@ const NEEDLE_LENGTH = am4core.percent(70);
       view.when(function() {
         view.whenLayerView(obstructionLayer).then(function (layerView) {
           chartLayerView = layerView;
-          CHART_ELEMENT.style.visibility = "visible";
+          //CHART_ELEMENT.style.visibility = "visible";
           
           obstructionLayer.queryFeatures().then(function(results) {
             const RESULT_LENGTH = results.features;
@@ -2373,7 +2373,7 @@ const NEEDLE_LENGTH = am4core.percent(70);
             });
           }); // End of queryFeatures
           layerView.filter = {
-            where: "Rating = " + SELECTED
+            where: "Rating = '" + SELECTED + "'"
           }
         }); // End of view.whenLayerView
       }); // End of view.when
