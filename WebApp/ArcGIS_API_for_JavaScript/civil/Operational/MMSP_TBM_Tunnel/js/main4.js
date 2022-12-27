@@ -2442,9 +2442,6 @@ const NEEDLE_LENGTH = am4core.percent(70);
   function testFunction(selectedSectionValue) {
       reactiveUtils.when(() => timesliderExpand?.expanded === false, () => tbmTunnelLayer.definitionExpression = selectedSectionValue === "PO" ? "Section = 'PO'" : "Section = 'Remaining'");
   }
-    
-  
-
 
   // Watch update on timeSlider
   timeSlider.watch("timeExtent", function(timeExtent) {
@@ -2485,7 +2482,7 @@ const NEEDLE_LENGTH = am4core.percent(70);
             type: "point",
             x: long,
             y: lat,
-            z: 15
+            z: 5
           },
           type: "simple",
           symbol: {
@@ -2653,6 +2650,32 @@ const NEEDLE_LENGTH = am4core.percent(70);
   }),
   "top-right"
   );
+
+    // Instruction Expand
+    const instructionsExpand = new Expand({
+      expandIconClass: "esri-icon-question",
+      expandTooltip: "How to use this map",
+      view: view,
+      expanded: true,
+      content: `
+      <div style='width:400px; padding:10px; background-color:black; color:white'>
+      1. <b>Filter</b> section (PO or Remaining) from the dropdown list.<br>
+      2. <b>Filter</b> tunnel type (TBM or NATM) cascadingly from the sectin dropdown list if needed.<br>
+      3. <b>Click</b> the sliced sections of dilapidation survey chart. It only highlights the associated buildings on the map.<br>
+      4. <b>Click and Expand</b> time slider widget at the bottom left, which shows segmentation plan date over time.<br>
+      5. <b>Toggle</b>'See through ground' at the bottom right to view underground.<br>
+      6. <b>Animate</b> TBM between Depot and Quirino Highway station.</div>
+      `
+    });
+    view.ui.add(instructionsExpand, "top-right");
+  
+    // Close the 'help' popup when view is focused
+        view.watch("focused", (isFocused) => {
+          if (isFocused) {
+            instructionsExpand.expanded = false;
+          }
+        });
+
   
   // See-through-Ground        
   view.when(function() {
