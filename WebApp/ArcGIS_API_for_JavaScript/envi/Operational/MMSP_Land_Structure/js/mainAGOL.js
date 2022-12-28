@@ -4,7 +4,7 @@ require([
   "esri/views/MapView",
   "esri/views/SceneView",
   "esri/layers/FeatureLayer",
-  "esri/views/layers/support/FeatureFilter",
+  "esri/layers/support/FeatureFilter",
   "esri/layers/SceneLayer",
   "esri/layers/Layer",
   "esri/layers/TileLayer",
@@ -36,16 +36,16 @@ require([
   "esri/widgets/Locate",
   "esri/widgets/BasemapToggle",
 ], function(Basemap, Map, MapView, SceneView, 
-            FeatureLayer, FeatureFilter,
-            SceneLayer, Layer, TileLayer, VectorTileLayer,
-            LabelClass, LabelSymbol3D, WebMap,
-            WebScene, PortalItem, Portal,
-            TimeSlider, Legend, LayerList, Fullscreen,
-            geometryService, Query,
-            StatisticDefinition, WebStyleSymbol,
-            Expand, Editor, UniqueValueRenderer,
-            FeatureTable, Compass, ElevationLayer, Ground, RelationshipQuery,
-            GraphicsLayer, Search, Locate, BasemapToggle) {
+  FeatureLayer, FeatureFilter,
+  SceneLayer, Layer, TileLayer, VectorTileLayer,
+  LabelClass, LabelSymbol3D, WebMap,
+  WebScene, PortalItem, Portal,
+  TimeSlider, Legend, LayerList, Fullscreen,
+  geometryService, Query,
+  StatisticDefinition, WebStyleSymbol,
+  Expand, Editor, UniqueValueRenderer,
+  FeatureTable, Compass, ElevationLayer, Ground, RelationshipQuery,
+  GraphicsLayer, Search, Locate, BasemapToggle) {
 
 // ----------- Base layers -------------------- //
 var basemap = new Basemap({
@@ -709,7 +709,7 @@ map.add(stationLayer, 0);
 
 var lotLayer = new FeatureLayer({
     portalItem: {
-        id: "ce8796a2cefe4ed78b308cbd8eed9e06"
+        id: "5a0b175a1f214b5394e26ff554bf8b79"
     },
   layerId: 15,
   outFields: ["*"],
@@ -748,7 +748,7 @@ map.add(lotLayer, 0);
 // Structure Layer
 var structureLayer = new FeatureLayer({
     portalItem: {
-        id: "ce8796a2cefe4ed78b308cbd8eed9e06"
+        id: "5a0b175a1f214b5394e26ff554bf8b79"
     },
   layerId: 0,
   title: "Status of Structure",
@@ -948,111 +948,6 @@ var stationLayer = new FeatureLayer({
 stationLayer.listMode = "hide";
 map.add(stationLayer, 0);
 
-
-var lotLayer = new FeatureLayer({
-    portalItem: {
-        id: "ce8796a2cefe4ed78b308cbd8eed9e06"
-    },
-  layerId: 15,
-  outFields: ["*"],
-  title: "Status of Land Acquisition",
-        
-//labelsVisible: false,
-  labelingInfo: [LOT_LABEL_CLASS],
-  renderer: lotLayerRenderer,
-  popupTemplate: {
-    title: "<p>{Id}</p>",
-    lastEditInfoEnabled: false,
-    returnGeometry: true,
-    content: [
-      {
-        type: "fields",
-        fieldInfos: [
-          {
-            fieldName: "OWNER",
-            label: "Land Owner"
-          },
-          {
-            fieldName: "Station1"
-          },
-          {
-            fieldName: "StatusNVS3",
-            label: "<p>Status of Land Acquisition</p>"
-          }
-        ]
-      }
-    ]
-  }
-});
-map.add(lotLayer, 0);
-
-
-// Structure Layer
-var structureLayer = new FeatureLayer({
-    portalItem: {
-        id: "ce8796a2cefe4ed78b308cbd8eed9e06"
-    },
-  layerId: 0,
-  title: "Status of Structure",
-  outFields: ["*"],
-  renderer: structureLayerRenderer,
-  popupTemplate: {
-    title: "<p>Structure ID: {Id_1}</p>" ,
-    lastEditInfoEnabled: false,
-    returnGeometry: true,
-    content: [
-      {
-        type: "fields",
-        fieldInfos: [
-          {
-            fieldName: "CN",
-            label: "Lot No."
-          },
-          {
-            fieldName: "Status",
-            label: "<p>Status of Structure</p>"
-          }
-        ]
-      }
-    ]
-  }
-});
-map.add(structureLayer);
-structureLayer.visible = true;
-
-// Priority Lot
-/*
-var priorityLayer = new FeatureLayer ({
-    portalItem: {
-    id: "032432d931624de9bf5ff03f1f9d7016",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  layerId: 2,
-  definitionExpression: "Priority3 = 1",
-  //renderer: priorityLotRenderer,
-  title: "Priority Lot",
-  popupEnabled: false
-});
-map.add(priorityLayer, 0);
-*/
-
-// ISF
-var isfLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-    layerId: 20,
-    title: "ISF",
-    outFields: ["*"],
-    returnGeometry: true,
-    renderer: isfRenderer,
-    labelsVisible: false
-});
-map.add(isfLayer);
-
-
 //*********** END OF DATA IMPORT ******************//
 
 
@@ -1132,7 +1027,7 @@ lotLayer.queryFeatures(query).then(function(response){
 var stats = response.features[0].attributes;
 
 const LOT_TOTAL = stats.totalLot;
-totalNumberDiv.innerHTML = LOT_TOTAL + " (" + totalLotValue + ")";
+totalNumberDiv.innerHTML = thousands_separators(LOT_TOTAL) + " (" + totalLotValue + ")";
 });
 }
 
@@ -1152,7 +1047,7 @@ structureLayer.queryFeatures(query).then(function(response){
 var stats = response.features[0].attributes;
 
 const STRUCTURE_TOTAL = stats.totalStructure;
-structureTotalNumberDiv.innerHTML = STRUCTURE_TOTAL;
+structureTotalNumberDiv.innerHTML = thousands_separators(STRUCTURE_TOTAL);
 });
 }
 
@@ -2915,6 +2810,7 @@ element: applicationDiv
 );
 
 // Locate widget
+/*
 let locateWidget = new Locate({
 view: view,   // Attaches the Locate button to the view
 graphic: new Graphic({
@@ -2924,7 +2820,7 @@ symbol: { type: "simple-marker" }  // overwrites the default symbol used for the
 });
 
 view.ui.add(locateWidget, "top-left");
-
+*/
 
 /*
 // Print widget
