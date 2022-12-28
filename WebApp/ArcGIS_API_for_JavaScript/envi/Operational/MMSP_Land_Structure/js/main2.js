@@ -36,16 +36,16 @@ require([
   "esri/widgets/Locate",
   "esri/widgets/BasemapToggle",
 ], function(Basemap, Map, MapView, SceneView, 
-  FeatureLayer, FeatureFilter,
-  SceneLayer, Layer, TileLayer, VectorTileLayer,
-  LabelClass, LabelSymbol3D, WebMap,
-  WebScene, PortalItem, Portal,
-  TimeSlider, Legend, LayerList, Fullscreen,
-  geometryService, Query,
-  StatisticDefinition, WebStyleSymbol,
-  Expand, Editor, UniqueValueRenderer,
-  FeatureTable, Compass, ElevationLayer, Ground, RelationshipQuery,
-  GraphicsLayer, Search, Locate, BasemapToggle) {
+            FeatureLayer, FeatureFilter,
+            SceneLayer, Layer, TileLayer, VectorTileLayer,
+            LabelClass, LabelSymbol3D, WebMap,
+            WebScene, PortalItem, Portal,
+            TimeSlider, Legend, LayerList, Fullscreen,
+            geometryService, Query,
+            StatisticDefinition, WebStyleSymbol,
+            Expand, Editor, UniqueValueRenderer,
+            FeatureTable, Compass, ElevationLayer, Ground, RelationshipQuery,
+            GraphicsLayer, Search, Locate, BasemapToggle) {
 
 // ----------- Base layers -------------------- //
 var basemap = new Basemap({
@@ -154,7 +154,7 @@ family: "Gill Sans",
 size: 8
 }
 },
-labelPlacement: "above-center",
+labelPlacement: "always-horizontal",
 labelExpressionInfo: {
 expression: "$feature.CN"
 }
@@ -424,7 +424,7 @@ outline: {
 // Construction boundary Renderer -----------------------
 let ConstructionBoundaryFill = {
 type: "unique-value",
-valueExpression: "When($feature.MappingBoundary == 1, 'Boundary',$feature.Comp_Agency)",
+valueExpression: "When($feature.MappingBoundary == 1, 'Boundary',$feature.MappingBoundary)",
 uniqueValueInfos: [
 {
 value: "Boundary",
@@ -567,213 +567,250 @@ outline: {
 // Import Layers                 //
 //*******************************//
 // Construction boundary
-// Construction boundary
 var constBoundary = new FeatureLayer({
-  portalItem: {
-    id: "5a0b175a1f214b5394e26ff554bf8b79"
-  },
-  layerId: 5,
-  outFields: ["*"],
-  renderer: ConstructionBoundaryFill,
-  definitionExpression: "MappingBoundary = 1",
-  title: "Construction Boundary",
-  popupEnabled: false
+portalItem: {
+id: "b0cf28b499a54de7b085725bca08deee",
+portal: {
+url: "https://gis.railway-sector.com/portal"
+}
+},
+layerId: 4,
+outFields: ["*"],
+renderer: ConstructionBoundaryFill,
+definitionExpression: "MappingBoundary = 1",
+title: "Construction Boundary",
+popupEnabled: false
 });
 //constBoundary.listMode = "hide";
 map.add(constBoundary);
 
 // Alignment
 var alignmentLine = new FeatureLayer({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-layerId: 14,
-  outFields: ["*"],
-  title: "Alignment Line",
-  popupEnabled: false
+portalItem: {
+id: "b0cf28b499a54de7b085725bca08deee",
+portal: {
+url: "https://gis.railway-sector.com/portal"
+}
+},
+layerId: 13,
+outFields: ["*"],
+title: "Alignment Line",
+popupEnabled: false
 });
 //constBoundary.listMode = "hide";
 map.add(alignmentLine);
 
 // Segment DPWH
 var dpwhSegmentLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 3,
-  title: "DPWH Segment",
-  outFields: ["*"],
-  popupEnabled: false
+portalItem: {
+id: "b0cf28b499a54de7b085725bca08deee",
+portal: {
+url: "https://gis.railway-sector.com/portal"
+}
+},
+layerId: 2,
+title: "DPWH Segment",
+outFields: ["*"],
+popupEnabled: false
 });
 map.add(dpwhSegmentLayer);
 
 // BSS Boundary
 var bssDepotLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 4,
-  title: "BSS Boundary",
-  outFields: ["*"],
-  popupEnabled: false
+portalItem: {
+id: "b0cf28b499a54de7b085725bca08deee",
+portal: {
+url: "https://gis.railway-sector.com/portal"
+}
+},
+layerId: 3,
+title: "BSS Boundary",
+outFields: ["*"],
+popupEnabled: false
 });
 map.add(bssDepotLayer);
 
 // Creek Diversion
 var creekDivLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 11,
-  title: "Creek Diversion",
-  outFields: ["*"],
-  popupEnabled: false
+portalItem: {
+id: "b0cf28b499a54de7b085725bca08deee",
+portal: {
+url: "https://gis.railway-sector.com/portal"
+}
+},
+layerId: 10,
+title: "Creek Diversion",
+outFields: ["*"],
+popupEnabled: false
 });
 map.add(creekDivLayer);
 
 // Depot Building
 var depotBuildingLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 7,
-  title: "Depot Building",
-  outFields: ["*"],
-  popupEnabled: false
+portalItem: {
+id: "b0cf28b499a54de7b085725bca08deee",
+portal: {
+url: "https://gis.railway-sector.com/portal"
+}
+},
+layerId: 6,
+title: "Depot Building",
+outFields: ["*"],
+popupEnabled: false
 });
 map.add(depotBuildingLayer);
 
 // BSS Building
 var bssDepotBuildingLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 8,
-  title: "BSS Building",
-  outFields: ["*"],
-  popupEnabled: false
+portalItem: {
+id: "b0cf28b499a54de7b085725bca08deee",
+portal: {
+url: "https://gis.railway-sector.com/portal"
+}
+},
+layerId: 7,
+title: "BSS Building",
+outFields: ["*"],
+popupEnabled: false
 });
 map.add(bssDepotBuildingLayer);
 
 // East Valenzuela
 var evsLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 10,
-  title: "East Valenzuela",
-  outFields: ["*"],
-  popupEnabled: false
+portalItem: {
+id: "b0cf28b499a54de7b085725bca08deee",
+portal: {
+url: "https://gis.railway-sector.com/portal"
+}
+},
+layerId: 9,
+title: "East Valenzuela",
+outFields: ["*"],
+popupEnabled: false
 });
 map.add(evsLayer);
 
 // NNC Construction boundary (Senate)
 var senateBoundaryLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 6,
-  title: "NCC Property",
-  outFields: ["*"],
-  popupEnabled: false
+portalItem: {
+id: "b0cf28b499a54de7b085725bca08deee",
+portal: {
+url: "https://gis.railway-sector.com/portal"
+}
+},
+layerId: 5,
+title: "NCC Property",
+outFields: ["*"],
+popupEnabled: false
 });
 //senateBoundaryLayer.list = "hide";
 map.add(senateBoundaryLayer);
 
 // Station1 box
 var poSectionBoxLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 9,
-  renderer: poSectionBoxRenderer,
-  title: "PO Section",
-  outFields: ["*"],
-  popupEnabled: false
+portalItem: {
+id: "b0cf28b499a54de7b085725bca08deee",
+portal: {
+url: "https://gis.railway-sector.com/portal"
+}
+},
+layerId: 8,
+renderer: poSectionBoxRenderer,
+title: "PO Section",
+outFields: ["*"],
+popupEnabled: false
 });
 map.add(poSectionBoxLayer);
 
 
 // Station1 point feature
 var stationLayer = new FeatureLayer({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 2,
-  definitionExpression: "Project = 'MMSP'"
-              //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
+portalItem: {
+id: "b0cf28b499a54de7b085725bca08deee",
+portal: {
+url: "https://gis.railway-sector.com/portal"
+}
+},
+layerId: 1,
+definitionExpression: "Project = 'MMSP'"
+        //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
 });
 stationLayer.listMode = "hide";
 map.add(stationLayer, 0);
 
 
 var lotLayer = new FeatureLayer({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 15,
-  outFields: ["*"],
-  title: "Status of Land Acquisition",
-        
+portalItem: {
+id: "032432d931624de9bf5ff03f1f9d7016",
+portal: {
+url: "https://gis.railway-sector.com/portal"
+}
+},
+layerId: 1,
+outFields: ["*"],
+title: "Status of Land Acquisition",
+  
 //labelsVisible: false,
-  labelingInfo: [LOT_LABEL_CLASS],
-  renderer: lotLayerRenderer,
-  popupTemplate: {
-    title: "<p>{Id}</p>",
-    lastEditInfoEnabled: false,
-    returnGeometry: true,
-    content: [
-      {
-        type: "fields",
-        fieldInfos: [
-          {
-            fieldName: "OWNER",
-            label: "Land Owner"
-          },
-          {
-            fieldName: "Station1"
-          },
-          {
-            fieldName: "StatusNVS3",
-            label: "<p>Status of Land Acquisition</p>"
-          }
-        ]
-      }
-    ]
-  }
+labelingInfo: [LOT_LABEL_CLASS],
+renderer: lotLayerRenderer,
+popupTemplate: {
+title: "<p>{Id}</p>",
+lastEditInfoEnabled: false,
+returnGeometry: true,
+content: [
+{
+  type: "fields",
+  fieldInfos: [
+    {
+      fieldName: "OWNER",
+      label: "Land Owner"
+    },
+    {
+      fieldName: "Station1"
+    },
+    {
+      fieldName: "StatusNVS3",
+      label: "<p>Status of Land Acquisition</p>"
+    }
+  ]
+}
+]
+}
 });
 map.add(lotLayer, 0);
 
 
 // Structure Layer
 var structureLayer = new FeatureLayer({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
+portalItem: {
+id: "ec9dac0c16af4797bb917a0babc735e9",
+portal: {
+url: "https://gis.railway-sector.com/portal"
+}
+},
+title: "Status of Structure",
+outFields: ["*"],
+renderer: structureLayerRenderer,
+popupTemplate: {
+title: "<p>Structure ID: {Id_1}</p>" ,
+lastEditInfoEnabled: false,
+returnGeometry: true,
+content: [
+{
+  type: "fields",
+  fieldInfos: [
+    {
+      fieldName: "CN",
+      label: "Lot No."
     },
-  layerId: 0,
-  title: "Status of Structure",
-  outFields: ["*"],
-  renderer: structureLayerRenderer,
-  popupTemplate: {
-    title: "<p>Structure ID: {Id_1}</p>" ,
-    lastEditInfoEnabled: false,
-    returnGeometry: true,
-    content: [
-      {
-        type: "fields",
-        fieldInfos: [
-          {
-            fieldName: "CN",
-            label: "Lot No."
-          },
-          {
-            fieldName: "Status",
-            label: "<p>Status of Structure</p>"
-          }
-        ]
-      }
-    ]
-  }
+    {
+      fieldName: "Status",
+      label: "<p>Status of Structure</p>"
+    }
+  ]
+}
+]
+}
 });
 map.add(structureLayer);
 structureLayer.visible = true;
@@ -781,172 +818,37 @@ structureLayer.visible = true;
 // Priority Lot
 /*
 var priorityLayer = new FeatureLayer ({
-    portalItem: {
-    id: "032432d931624de9bf5ff03f1f9d7016",
-    portal: {
-      url: "https://gis.railway-sector.com/portal"
-    }
-  },
-  layerId: 2,
-  definitionExpression: "Priority3 = 1",
-  //renderer: priorityLotRenderer,
-  title: "Priority Lot",
-  popupEnabled: false
+portalItem: {
+id: "032432d931624de9bf5ff03f1f9d7016",
+portal: {
+url: "https://gis.railway-sector.com/portal"
+}
+},
+layerId: 2,
+definitionExpression: "Priority3 = 1",
+//renderer: priorityLotRenderer,
+title: "Priority Lot",
+popupEnabled: false
 });
 map.add(priorityLayer, 0);
 */
 
 // ISF
 var isfLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-    layerId: 20,
-    title: "ISF",
-    outFields: ["*"],
-    returnGeometry: true,
-    renderer: isfRenderer,
-    labelsVisible: false
+portalItem: {
+  id: "a2e32eb82db84b3a8006e1c1e2cd7874",
+  portal: {
+      url: "https://gis.railway-sector.com/portal"
+  }
+},
+title: "ISF",
+outFields: ["*"],
+returnGeometry: true,
+renderer: isfRenderer,
+labelsVisible: false
 });
 map.add(isfLayer);
-// Construction boundary
-var constBoundary = new FeatureLayer({
-  portalItem: {
-    id: "5a0b175a1f214b5394e26ff554bf8b79"
-  },
-  layerId: 5,
-  outFields: ["*"],
-  renderer: ConstructionBoundaryFill,
-  definitionExpression: "MappingBoundary = 1",
-  title: "Construction Boundary",
-  popupEnabled: false
-});
-//constBoundary.listMode = "hide";
-map.add(constBoundary);
 
-// Alignment
-var alignmentLine = new FeatureLayer({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-layerId: 14,
-  outFields: ["*"],
-  title: "Alignment Line",
-  popupEnabled: false
-});
-//constBoundary.listMode = "hide";
-map.add(alignmentLine);
-
-// Segment DPWH
-var dpwhSegmentLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 3,
-  title: "DPWH Segment",
-  outFields: ["*"],
-  popupEnabled: false
-});
-map.add(dpwhSegmentLayer);
-
-// BSS Boundary
-var bssDepotLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 4,
-  title: "BSS Boundary",
-  outFields: ["*"],
-  popupEnabled: false
-});
-map.add(bssDepotLayer);
-
-// Creek Diversion
-var creekDivLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 11,
-  title: "Creek Diversion",
-  outFields: ["*"],
-  popupEnabled: false
-});
-map.add(creekDivLayer);
-
-// Depot Building
-var depotBuildingLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 7,
-  title: "Depot Building",
-  outFields: ["*"],
-  popupEnabled: false
-});
-map.add(depotBuildingLayer);
-
-// BSS Building
-var bssDepotBuildingLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 8,
-  title: "BSS Building",
-  outFields: ["*"],
-  popupEnabled: false
-});
-map.add(bssDepotBuildingLayer);
-
-// East Valenzuela
-var evsLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 10,
-  title: "East Valenzuela",
-  outFields: ["*"],
-  popupEnabled: false
-});
-map.add(evsLayer);
-
-// NNC Construction boundary (Senate)
-var senateBoundaryLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 6,
-  title: "NCC Property",
-  outFields: ["*"],
-  popupEnabled: false
-});
-//senateBoundaryLayer.list = "hide";
-map.add(senateBoundaryLayer);
-
-// Station1 box
-var poSectionBoxLayer = new FeatureLayer ({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 9,
-  renderer: poSectionBoxRenderer,
-  title: "PO Section",
-  outFields: ["*"],
-  popupEnabled: false
-});
-map.add(poSectionBoxLayer);
-
-
-// Station1 point feature
-var stationLayer = new FeatureLayer({
-    portalItem: {
-        id: "5a0b175a1f214b5394e26ff554bf8b79"
-    },
-  layerId: 2,
-  definitionExpression: "Project = 'MMSP'"
-              //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
-});
-stationLayer.listMode = "hide";
-map.add(stationLayer, 0);
 
 //*********** END OF DATA IMPORT ******************//
 
@@ -1704,7 +1606,7 @@ shadow.opacity = 0;
 // Chart Title
 let title = chart.titles.create();
 title.text = "Land Acquisition";
-title.fontSize = 20;
+title.fontSize = "1.2em";
 title.fontWeight = "bold";
 title.fill = am4core.color("#ffffff");
 title.marginTop = 7;
@@ -1718,7 +1620,7 @@ hoverShadow.opacity = 0.7;
 hoverShadow.blur = 5;
 
 // Add a legend
-const LEGEND_FONT_SIZE = 15;
+const LEGEND_FONT_SIZE = "0.9em";
 chart.legend = new am4charts.Legend();
 chart.legend.valueLabels.template.align = "right"
 chart.legend.valueLabels.template.textAlign = "end";
@@ -1730,43 +1632,12 @@ chart.legend.valueLabels.template.fill = am4core.color("#ffffff");
 chart.legend.valueLabels.template.fontSize = LEGEND_FONT_SIZE; 
 pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
 //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+chart.legend.itemContainers.template.paddingTop = "2em";
+chart.legend.itemContainers.template.paddingBottom = "2em";
 
 // Responsive code for chart
 chart.responsive.enabled = true;
-chart.responsive.useDefault = false
 
-chart.responsive.rules.push({
-  relevant: function(target) {
-    if (target.pixelWidth <= 400) {
-      return true;
-    }
-    return false;
-  },
-  state: function(target, stateId) {
-    if (target instanceof am4charts.PieSeries) {
-      var state = target.states.create(stateId);
-      
-      var labelState = target.labels.template.states.create(stateId);
-      labelState.properties.disabled = true;
-      
-      var tickState = target.ticks.template.states.create(stateId);
-      tickState.properties.disabled = true;
-      return state;
-    }
-
-    if (target instanceof am4charts.Legend) {
-      var state = target.states.create(stateId);
-      state.properties.paddingTop = 0;
-      state.properties.paddingRight = 0;
-      state.properties.paddingBottom = 0;
-      state.properties.paddingLeft = 0;
-      state.properties.marginLeft = 0;
-      return state;
-    }
-    return null;
-  }
-});
-// Responsive code for chart
 
 /// Define marker symbols properties
 var marker = chart.legend.markers.template.children.getIndex(0);
@@ -2044,6 +1915,8 @@ chart.legend.valueLabels.template.fill = am4core.color("#ffffff");
 chart.legend.valueLabels.template.fontSize = LEGEND_FONT_SIZE; 
 pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
 //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+chart.legend.itemContainers.template.paddingTop = "2em";
+chart.legend.itemContainers.template.paddingBottom = "2em";
 
 chart.legend.horizontalGap = 0;
 chart.legend.marginLeft = 0;
@@ -2067,39 +1940,6 @@ markerTemplate.height = 18;
 
 // Responsive code for chart
 chart.responsive.enabled = true;
-chart.responsive.useDefault = false
-
-chart.responsive.rules.push({
-relevant: function(target) {
-if (target.pixelWidth <= 400) {
-return true;
-}
-return false;
-},
-state: function(target, stateId) {
-if (target instanceof am4charts.PieSeries) {
-var state = target.states.create(stateId);
-
-var labelState = target.labels.template.states.create(stateId);
-labelState.properties.disabled = true;
-var tickState = target.ticks.template.states.create(stateId);
-tickState.properties.disabled = true;
-return state;
-}
-
-if (target instanceof am4charts.Legend) {
-var state = target.states.create(stateId);
-state.properties.paddingTop = 0;
-state.properties.paddingRight = 0;
-state.properties.paddingBottom = 0;
-state.properties.paddingLeft = 0;
-state.properties.marginLeft = 0;
-return state;
-}
-return null;
-}
-});
-// Responsive code for chart
 
 
 // Click chart and filter, update maps
@@ -2254,71 +2094,6 @@ series.columns.template.strokeOpacity = 0;
 // Responsive code: 
 chart.responsive.enabled = true;
 
-
-chart.responsive.rules.push({
-relevant: function(target) {
-  if (target.pixelWidth <= 100) {
-    return true;
-  }
-  return false;
-},
-state: function(target, stateId) {
-  if (target instanceof am4charts.Chart) {
-    var state = target.states.create(stateId);
-    state.properties.paddingTop = 0;
-    state.properties.paddingRight = 15;
-    state.properties.paddingBottom = 5;
-    state.properties.paddingLeft = 15;
-    return state;
-  }
-  if (target instanceof am4charts.Legend) {
-    var state = target.states.create(stateId);
-    state.properties.paddingTop = 0;
-    state.properties.paddingRight = 0;
-    state.properties.paddingBottom = 0;
-    state.properties.paddingLeft = 0;
-    state.properties.marginLeft = 0;
-    return state;
-  }
-
-  if (target instanceof am4charts.AxisRendererY) {
-    var state = target.states.create(stateId);
-    state.properties.inside = false;
-    state.properties.maxLabelPosition = 0.99;
-    return state;
-  }
-
-  if ((target instanceof am4charts.AxisLabel) && (target.parent instanceof am4charts.AxisRendererY)) { 
-    var state = target.states.create(stateId);
-    state.properties.dy = 0;
-    state.properties.paddingTop = 3;
-    state.properties.paddingRight = 5;
-    state.properties.paddingBottom = 3;
-    state.properties.paddingLeft = 5;
-
-    /*
-    // Create a separate state for background
-    target.setStateOnChildren = true;
-    var bgstate = target.background.states.create(stateId);
-    bgstate.properties.fill = am4core.color("#fff");
-    bgstate.properties.fillOpacity = 0;
-    */
-
-    return state;
-  }
-
-// if ((target instanceof am4core.Rectangle) && (target.parent instanceof am4charts.AxisLabel) && (target.parent.parent instanceof am4charts.AxisRendererY)) { 
-//   var state = target.states.create(stateId);
-//   state.properties.fill = am4core.color("#f00");
-//   state.properties.fillOpacity = 0.5;
-//   return state;
-// }
-
-return null;
-}
-});
-// Responsive code: END
-
 // Click chart and filer 
 const CHART_ELEMENT = document.getElementById("chartPanel");
 series.columns.template.events.on("hit", filterByChart, this);
@@ -2380,7 +2155,7 @@ labelBullet.label.fontSize = 14;
 var title = chart.titles.create();
 title.text = "Mode of Acquisition"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
 title.fontWeight = "bold";
-title.fontSize = 16;
+title.fontSize = "1em";
 title.fill = "#3ce00a";
 
 series.columns.template.adapter.add("fill", function(fill, target){
@@ -2480,71 +2255,6 @@ series.columns.template.strokeOpacity = 0;
 
 // Responsive code: 
 chart.responsive.enabled = true;
-chart.responsive.useDefault = false
-
-chart.responsive.rules.push({
-relevant: function(target) {
-  if (target.pixelWidth <= 400) {
-    return true;
-  }
-  return false;
-},
-state: function(target, stateId) {
-  if (target instanceof am4charts.Chart) {
-    var state = target.states.create(stateId);
-    state.properties.paddingTop = 0;
-    state.properties.paddingRight = 15;
-    state.properties.paddingBottom = 5;
-    state.properties.paddingLeft = 15;
-    return state;
-  }
-  if (target instanceof am4charts.Legend) {
-    var state = target.states.create(stateId);
-    state.properties.paddingTop = 0;
-    state.properties.paddingRight = 0;
-    state.properties.paddingBottom = 0;
-    state.properties.paddingLeft = 0;
-    state.properties.marginLeft = 0;
-    return state;
-  }
-
-  if (target instanceof am4charts.AxisRendererY) {
-    var state = target.states.create(stateId);
-    state.properties.inside = false;
-    state.properties.maxLabelPosition = 0.99;
-    return state;
-  }
-
-  if ((target instanceof am4charts.AxisLabel) && (target.parent instanceof am4charts.AxisRendererY)) { 
-    var state = target.states.create(stateId);
-    state.properties.dy = 0;
-    state.properties.paddingTop = 3;
-    state.properties.paddingRight = 5;
-    state.properties.paddingBottom = 3;
-    state.properties.paddingLeft = 5;
-
-    /*
-    // Create a separate state for background
-    target.setStateOnChildren = true;
-    var bgstate = target.background.states.create(stateId);
-    bgstate.properties.fill = am4core.color("#fff");
-    bgstate.properties.fillOpacity = 0;
-    */
-
-    return state;
-  }
-
-// if ((target instanceof am4core.Rectangle) && (target.parent instanceof am4charts.AxisLabel) && (target.parent.parent instanceof am4charts.AxisRendererY)) { 
-//   var state = target.states.create(stateId);
-//   state.properties.fill = am4core.color("#f00");
-//   state.properties.fillOpacity = 0.5;
-//   return state;
-// }
-
-return null;
-}
-});
-// Responsive code: END
 
 // Click chart and filer 
 const CHART_ELEMENT = document.getElementById("chartPanel");
@@ -2696,7 +2406,7 @@ item.visible = false
 //*****************************//
 var legend = new Legend({
 view: view,
-container: legendDiv,
+container: document.getElementById("legendDiv"),
 layerInfos: [
 {
 layer: lotLayer,
