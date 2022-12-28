@@ -200,12 +200,12 @@ sketchViewModel.on(["create"], (event) => {
     landUseImage.computeStatisticsHistograms(params).then((response) => {
       const pixelValCount = response.histograms[0].counts;
       landUseChart(pixelValCount)
+      // When a sketched polygon exceeds the memory size limit, it fails.
     }).catch(function(error) {
       if (error.name != "AbortError") {
         console.error(error);
-        console.log("ERROR");
-
         alertDiv.style.display = 'block';
+        // click the close button
         close[0].onclick = function(){
           alertDiv.style.display = 'none';
           var div = this.parentElement;
