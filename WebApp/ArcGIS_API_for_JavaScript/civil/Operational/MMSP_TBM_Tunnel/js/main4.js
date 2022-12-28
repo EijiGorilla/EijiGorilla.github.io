@@ -2482,7 +2482,7 @@ const NEEDLE_LENGTH = am4core.percent(70);
             type: "point",
             x: long,
             y: lat,
-            z: 5
+            z: 0
           },
           type: "simple",
           symbol: {
@@ -2659,13 +2659,13 @@ const NEEDLE_LENGTH = am4core.percent(70);
       expanded: true,
       content: `
       <div style='width:400px; padding:10px; background-color:black; color:white'><br><br>
-      <b>User Instruction</b>
+      <b>User Instruction</b><br><br>
       1. <b>Filter</b> section (PO or Remaining) from the dropdown list.<br>
-      2. <b>Filter</b> tunnel type (TBM or NATM) cascadingly from the sectin dropdown list if needed.<br>
+      2. <b>Filter</b> tunnel type (TBM or NATM) from the 2nd dropdown list if needed.<br>
       3. <b>Click</b> the sliced sections of dilapidation survey chart. It only highlights the associated buildings on the map.<br>
       4. <b>Click and Expand</b> time slider widget at the bottom left, which shows segmentation plan date over time.<br>
-      5. <b>Toggle</b>'See through ground' at the bottom right to view underground.<br>
-      6. <b>Animate</b> TBM between Depot and Quirino Highway station.</div>
+      5. <b>Toggle</b> 'See through ground' at the bottom right to view underground.<br>
+      6. <b>Click once</b> anywhere on the map to <b>animate</b> 3D TBM that moves between Depot and Quirino Highway station.</div>
       `
     });
     view.ui.add(instructionsExpand, "top-right");
