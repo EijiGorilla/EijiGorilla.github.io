@@ -1632,7 +1632,7 @@ labelBullet.label.fontSize = 0;
 
 }
 series.columns.template.width = am4core.percent(60);
-series.columns.template.tooltipText = "[font-size:20px]{name}: {valueX.value.formatNumber('#.')}"
+series.columns.template.tooltipText = "[font-size:20px]{name}: {valueX.value.formatNumber('#.')} ({valueX.totalPercent.formatNumber('#.')}%)"
 
 // Click chart and filter, update maps
 const chartElement = document.getElementById("chartPanel");
