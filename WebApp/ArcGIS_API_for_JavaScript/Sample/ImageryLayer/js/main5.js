@@ -77,6 +77,8 @@ const landUseChangeViewFilter = document.getElementById("landUseChangeViewFilter
         url: "https://env1.arcgis.com/arcgis/rest/services/Sentinel_2_10m_Land_Cover_Change/ImageServer",
         title: "Land Cover Change (2018-2021)",
         format: "lerc",
+        blendMode: "color-dodge",
+        effect: "bloom(0.5, 0.5px, 20%) drop-shadow(1px, 1px, 1px, grey)",
         renderingRule: serviceRFT,
         popupTemplate: {
           title: "Land Use Change Type",
@@ -184,9 +186,10 @@ sketchViewModel.on(["create"], (event) => {
       x: pixelSizeX,
       y: pixelSizeY,
       spatialReference: {
-        wkid: view.spatialReference.wkid
+        wkid: landUseImage.spatialReference.wkid
       }
     }
+    console.log(pixelSize.spatialReference.wkid);
 
     // Get parameters using sketched geometry
     let params = new ImageHistogramParameters({
@@ -194,8 +197,6 @@ sketchViewModel.on(["create"], (event) => {
       pixelSize: pixelSize
     })
 
-    
-    
 
     landUseImage.computeStatisticsHistograms(params).then((response) => {
       const pixelValCount = response.histograms[0].counts;
@@ -212,9 +213,12 @@ sketchViewModel.on(["create"], (event) => {
           //div.style.opacity = "0";
           setTimeout(function(){ div.style.display = "none"; }, 600);
         }
-        
       }
       });
+
+      //sketchLayer.remove(event.graphic);
+
+
 
   } // if (event.state == "complete")
 }); // sketchViewModel.on
@@ -410,13 +414,7 @@ function landUseChart(pixelValCount) {
 }
 
 
-sketchViewModel.on(["update"], (event) => {
-  const eventInfo = event.toolEventInfo;
-  // update the filter every time the user moves the filtergeometry
-  if (event.toolEventInfo && event.toolEventInfo.type.includes("stop")) {
-      sketchGeometry = event.graphics[0].geometry;
-  }
-});
+
 
 
 //-----------------------------------------------------------//
@@ -480,7 +478,6 @@ function updateRadius() {
         event.stopPropagation();
         getLandCoverPixelInfo(event);
 
-        
         const currentPoly = document.querySelector('.active').id;
         //console.log(currentPoly);
         /* this does not work
@@ -490,11 +487,7 @@ function updateRadius() {
           document.querySelector('#circle-geometry-button').classList.add('.active');
         }
         */
-        
       }
-
-
-      
     })
   }
 
@@ -574,7 +567,10 @@ const getLandCoverPixelInfo = promiseUtils.debounce((event) => {
 
         const circle = new Circle({
           center: point,
-          radius: bufferDim * pixelSizeX
+          radius: bufferDim * pixelSizeX,
+          spatialReference: {
+            wkid: landUseImage.spatialReference.wkid
+          }
         });
         graphic.geometry = circle;
 
@@ -845,7 +841,7 @@ landUseChangeViewFilter.addEventListener("change", (event) => {
     landUseImage.visible = false;
     headerTitleDiv.innerHTML = "Land Use Change (2018-2021)";
 
-    removeChartEvents.removeAll();
+    removeChartEvents.remove();
     removeChartEvents = null;
     enableChartButton.classList.remove("esri-icon-pie-chart");
     enableChartButton.classList.add("esri-icon-pan");
