@@ -2658,7 +2658,8 @@ const NEEDLE_LENGTH = am4core.percent(70);
       view: view,
       expanded: true,
       content: `
-      <div style='width:400px; padding:10px; background-color:black; color:white'>
+      <div style='width:400px; padding:10px; background-color:black; color:white'><br><br>
+      <b>User Instruction</b>
       1. <b>Filter</b> section (PO or Remaining) from the dropdown list.<br>
       2. <b>Filter</b> tunnel type (TBM or NATM) cascadingly from the sectin dropdown list if needed.<br>
       3. <b>Click</b> the sliced sections of dilapidation survey chart. It only highlights the associated buildings on the map.<br>
