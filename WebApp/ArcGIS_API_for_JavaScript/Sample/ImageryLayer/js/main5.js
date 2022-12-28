@@ -382,6 +382,7 @@ function landUseChart(pixelValCount) {
         }); // end of am4core
 }
 
+
 sketchViewModel.on(["update"], (event) => {
   const eventInfo = event.toolEventInfo;
   // update the filter every time the user moves the filtergeometry
