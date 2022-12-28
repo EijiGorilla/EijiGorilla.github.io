@@ -89,9 +89,13 @@ const landUseChangeViewFilter = document.getElementById("landUseChangeViewFilter
 // Refer to this link: https://developers.arcgis.com/javascript/latest/sample-code/layers-imagery-clientside/
 // https://developers.arcgis.com/javascript/latest/sample-code/sandbox/?sample=featurelayerview-query-geometry
 // Default Display
+var alertDiv = document.getElementById('alert');
+var close = document.getElementsByClassName("closebtn");
+
 function defaultDisplay() {
   landUseImage.visible = true;
   landUseChangeImage.visible = false;
+  alertDiv.style.display = 'none';
 }
 defaultDisplay();
 
@@ -119,7 +123,6 @@ function filterByGeometry(event) {
     const geometryType = event.target.value;
     clearFilter();
     sketchViewModel.create(geometryType);
-  
     // Remove circle sketch
     pixelSlider.visible = false;
     graphic.geometry = null;
@@ -191,14 +194,38 @@ sketchViewModel.on(["create"], (event) => {
       pixelSize: pixelSize
     })
 
+    
+    
+
     landUseImage.computeStatisticsHistograms(params).then((response) => {
       const pixelValCount = response.histograms[0].counts;
       landUseChart(pixelValCount)
-    });
+    }).catch(function(error) {
+      if (error.name != "AbortError") {
+        console.error(error);
+        console.log("ERROR");
+
+        alertDiv.style.display = 'block';
+        close[0].onclick = function(){
+          alertDiv.style.display = 'none';
+          var div = this.parentElement;
+          //div.style.opacity = "0";
+          setTimeout(function(){ div.style.display = "none"; }, 600);
+        }
+        
+      }
+      });
 
   } // if (event.state == "complete")
 }); // sketchViewModel.on
 
+/*
+.catch(function(error) {
+  if (error.name != "AbortError") {
+    console.error(error);
+  }
+  });
+*/
 function landUseChart(pixelValCount) {
   am4core.ready(function() {
     am4core.useTheme(am4themes_animated);
@@ -217,7 +244,7 @@ function landUseChart(pixelValCount) {
           const clouds = pixelValCount[10] === undefined || pixelValCount[10] === null  ? 0 : pixelValCount[10] * pixelArea / hectare;
           const rangeLand = pixelValCount[11] === undefined || pixelValCount[11] === null  ? 0 : pixelValCount[11] * pixelArea / hectare;
   
-          //console.log("Water: " + water + ", Trees: " + trees + ", Crops: " + crops + ", Built Area: " + builtArea);
+          console.log("Water: " + water + ", Trees: " + trees + ", Crops: " + crops + ", Built Area: " + builtArea);
   
           // Chart
           var chart = am4core.create("chartdiv", am4charts.PieChart);
