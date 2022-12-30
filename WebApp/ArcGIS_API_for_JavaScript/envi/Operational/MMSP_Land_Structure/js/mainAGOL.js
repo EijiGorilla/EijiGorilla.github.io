@@ -1513,6 +1513,7 @@ if (!val) {
       }
 
       // Add Expropriation lots to list
+      console.log(attributes.ID);
       li.innerHTML = "<b>" + attributes.ID + "</b>" + "<br>" + attributes.OWNER + "</br>";
       li.addEventListener("click", function(event) {
         var target = event.target;

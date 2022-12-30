@@ -113,79 +113,33 @@
     }
 
     /* Expropriation List */
-    
-.panel-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background-color: rgb(0, 0, 0);
-}
+    .panel-side li {
+      padding: 3% 5%;
+    }
 
-.panel-side {
-  padding: 0px;
-  box-sizing: border-box;
-  width: 12vw;
-  height: 89vh;
-  position: fixed;
-  margin: 1 3 3 1;
-  color: #fff;
-  background-color: rgb(0, 0, 0);
-  overflow-y: scroll;
-  overflow-x: auto;
-}
+    .panel-side li b{
+      color: red;
+      font-size: 0.8vw;
+    }
 
-.panel-side h2 {
-  padding: 5 5%;
-  margin: 0;
-  width: 12.25vw;
-  font-size: 1.1vw;
-  font-weight: 600;
-  text-align: center;
-  color: white;
-  background-color: rgb(0, 0, 0);
-  position: sticky;
-  top: 0;
-}
+    .panel-result {
+      cursor: pointer;
+      margin: 0px 0;
+    }
 
-.panel-side ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-weight: 100;
-  color: white;
-  font-size: 1.2vw;
-  background-color: rgb(0, 0, 0);
-}
+    .panel-result:hover,
+    .panel-result:focus,
+    .panel-result.selected {
+      background-color: rgba(73, 72, 72, 0.5);
+    }
 
-.panel-side li {
-  list-style: none;
-  padding: 3% 5%;
-  font-size: 0.8vw;
-  background-color: rgb(0, 0, 0);
-}
-
-.panel-side li b{
-  color: red;
-  font-size: 0.8vw;
-}
-
-.panel-result {
-  cursor: pointer;
-  margin: 0px 0;
-  background-color: rgb(0, 0, 0);
-}
-
-.panel-result:hover,
-.panel-result:focus,
-.panel-result.selected {
-  background-color: rgba(73, 72, 72, 0.5);
-}
-
-#expropriationList {
-  background-color: rgb(0, 0, 0);
-  width: 16vw;
-  height: 88vh;
-}
+    #expropriationListDiv {
+      list-style: none;
+      padding: 3% 5%;
+      font-size: 0.8vw;
+      width: 17vw;
+      height: 88vh;
+    }
 
 
     /* MOA Chart for Lot */
@@ -210,7 +164,7 @@
     }
     
   </style>
-  <body>
+  <body class="sassy-theme">
     <calcite-loader></calcite-loader>
     <calcite-shell content-behind>
       
@@ -239,7 +193,6 @@
           <calcite-action data-action-id="basemaps" icon="basemap" text="Basemaps"></calcite-action>
           <calcite-action data-action-id="legend" icon="legend" text="Legend"></calcite-action>
           <calcite-action data-action-id="bookmarks" icon="bookmark" text="Bookmarks"></calcite-action>
-          <calcite-action data-action-id="print" icon="print" text="Print"></calcite-action>
           <calcite-action data-action-id="information" icon="information" text="Information"></calcite-action>
         </calcite-action-bar>
         
@@ -255,9 +208,6 @@
         </calcite-panel>
         <calcite-panel heading="Bookmarks" height-scale="l" data-panel-id="bookmarks" hidden>
           <div id="bookmarks-container"></div>
-        </calcite-panel>
-        <calcite-panel heading="Print" height-scale="l" data-panel-id="print" hidden>
-          <div id="print-container"></div>
         </calcite-panel>
 
         
@@ -302,7 +252,11 @@
                 </calcite-tab>
                 <calcite-tab>Tab 2 content</calcite-tab>
                 <calcite-tab>
-                    <div id="expropriationListDiv"></div>
+                  <div class="panel-side esri-widget">
+                    <ul id="expropriationListDiv">
+                      <li>Loading&hellip;</li>
+                    </ul>
+                  </div>
                 </calcite-tab>
             </div>
         </calcite-tabs>
@@ -320,13 +274,28 @@
       "esri/widgets/BasemapGallery",
       "esri/widgets/LayerList",
       "esri/widgets/Legend",
-      "esri/widgets/Print",
       "esri/rest/support/Query",
       "esri/widgets/Fullscreen",
       "esri/layers/support/FeatureFilter",
-      "esri/widgets/TableList"
+      "esri/widgets/TableList",
+      "esri/portal/PortalItem",
+      "esri/portal/Portal",
+      "esri/rest/geometryService",
+      "esri/rest/support/StatisticDefinition",
+      "esri/symbols/WebStyleSymbol",
+      "esri/widgets/Expand",
+      "esri/renderers/UniqueValueRenderer",
+      "esri/Ground",
+      "esri/rest/support/RelationshipQuery",
+      "esri/layers/GraphicsLayer",
+      "esri/widgets/Search",
+      "esri/widgets/Locate",
+      "esri/widgets/BasemapToggle",
     ], function(WebMap, MapView, Map, FeatureLayer, Bookmarks, BasemapGallery, LayerList, Legend, 
-                Query, Print, Fullscreen, FeatureFilter, TableList ) {
+                Query, Fullscreen, FeatureFilter, TableList, PortalItem, Portal, geometryService,
+                StatisticDefinition, WebStyleSymbol, Expand, UniqueValueRenderer, Ground,
+                RelationshipQuery, GraphicsLayer, Search, Locate, BasemapToggle
+                 ) {
       
     var map = new Map({
         basemap: "gray-vector", // "streets-night-vector", basemap
@@ -541,6 +510,7 @@
                                 
                                 // Add Expropriation lots to list
                                 li.innerHTML = "<b>" + attributes.ID + "</b>" + "<br>" + attributes.OWNER + "</br>";
+
                                 li.addEventListener("click", function(event) {
                                     var target = event.target;
                                     var objectId = feature.attributes.OBJECTID;
@@ -574,7 +544,6 @@
                                         });
                                     }); // End of li.addEventListener
                                     expropriationList.appendChild(li);
-                                    console.log(expropriationList);
                                 }); // End of result.features.forEach
                             }); // End of layerView.queryFeatures
                         } // End of if (!val)
@@ -1111,11 +1080,12 @@
         container: "legend-container"
       });
       
+      /*
       const print = new Print({
         view,
         container: "print-container"
       });
-
+      */
     
       
       // view.when
