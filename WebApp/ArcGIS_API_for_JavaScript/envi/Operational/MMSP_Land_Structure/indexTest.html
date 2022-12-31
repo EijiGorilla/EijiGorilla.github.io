@@ -109,10 +109,26 @@
       text-align: center;
       font-weight: normal;
       font-size: 1.5vw;
-      height: 8vh;
-      margin-top: 10;
-      padding-top: 5;
       border: solid 0.5px gray;
+      padding-top: 1%;
+      padding-bottom: 4%;
+    }
+
+    #lotNumberDiv b,
+    #handedOverLotNumberDiv b,
+    #structureNumberDiv b,
+    #isfNumberDiv b {
+      font-size: 1.0vw;
+      font-family: 'Calibri';
+      font-weight: bold;
+      color:rgb(250, 246, 246);
+    }
+
+    br {
+      content: "";
+      margin: 2em;
+      display: block;
+      font-size: 24%;
     }
 
     /* Expropriation List */
@@ -156,9 +172,9 @@
     /* MOA Chart for Lot */
     #chartMoaLotDiv {
         width: 100%;
-        height: 28%;
+        height: 35%;
         align-items: center;
-        padding: 5;
+        padding: 1%;
     }
 
     /* Dropdown list */
@@ -166,18 +182,11 @@
       background-color: rgb(0, 0, 0, 0);
         width: 50%;
         opacity: 1;
-        color: white;
+        color: black;
         text-align: right;
         margin: auto;
     }
 
-    b {
-        font-size: 1.0vw;
-        padding-top: 1%;
-        font-family: 'Calibri';
-        font-weight: bold;
-        color:rgb(250, 246, 246);
-    }
 
     /* Browser Setting */
     ::-webkit-scrollbar {
@@ -197,11 +206,11 @@
 
       <!-- Dropdown Lists -->
       <div id="dropdownDiv" class="esri-widget">
-        <label>
+        <label id="dropdownLandTypeLabel">
           Land Type:
           <select id="landTypeSelect" class="esri-widget"></select>
         </label>
-        <label>
+        <label id="dropdownStationTypeLabel">
           Station:
           <select id="stationSelect" class="esri-widget"></select>
         </label>
@@ -1071,7 +1080,7 @@
            var stats = response.features[0].attributes;
            const LOT_TOTAL = stats.totalLot;
            const totalValue = thousands_separators(LOT_TOTAL) + " (" + totalLotValue + ")";
-           lotNumberDiv.innerHTML = `<b>Number of Lots</b><br><br>${totalValue}`
+           lotNumberDiv.innerHTML = dark.disabled ? `<b style="color:black">Number of Lots</b><br>${totalValue}` : `<b>Number of Lots</b><br>${totalValue}`;
          });
        }
         totalNumberOfLots().then(totalNumberOfLotsAll);
@@ -1091,7 +1100,7 @@
                 var stats = response.features[0].attributes;
 
                 const HAND_OVER_TOTAL = thousands_separators(stats.totalHandedOverLot);
-                handedOverLotNumberDiv.innerHTML = `<b>Number of Handed-Over</b><br><br>${HAND_OVER_TOTAL}`;
+                handedOverLotNumberDiv.innerHTML = dark.disabled ? `<b style="color:black">Number of Handed-Over</b><br><br>${HAND_OVER_TOTAL}` : `<b>Number of Handed-Over</b><br><br>${HAND_OVER_TOTAL}`;
             });
         }
         handedOverNumberLot();
@@ -1210,7 +1219,6 @@
 
         // Add the unique values to Land Type select element
         function addToSelect(values) {
-          console.log(values);
           values.sort();
           values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
           values.forEach(function(value) {
@@ -1486,7 +1494,13 @@
 
         // Charts for Lot and Structure
         // Lot Chart
-        
+        const dark = document.querySelector("#arcgis-maps-sdk-theme-dark");
+        const light = document.querySelector("#arcgis-maps-sdk-theme-light");
+
+        // Set color in light theme
+        const lightThemeColor = "#212121";
+        const darkThemeColor = "#FFFFFF";
+
         function updateChartLot() {
         // First, define statuses
         function Status_Name_Lot(){
@@ -1610,7 +1624,7 @@
         ];
 
         // Hover setting
-        pieSeries.tooltip.label.fontSize = 9;
+        pieSeries.tooltip.label.fontSize = 12;
 
         // Pie
         //pieSeries.alignLabels = false;
@@ -1654,8 +1668,8 @@
 
         //chart.legend.position = "bottom";
         chart.legend.labels.template.fontSize = LEGEND_FONT_SIZE;
-        chart.legend.labels.template.fill = "#ffffff";
-        chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+        chart.legend.labels.template.fill = dark.disabled ? lightThemeColor : darkThemeColor;
+        chart.legend.valueLabels.template.fill = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor); 
         chart.legend.valueLabels.template.fontSize = LEGEND_FONT_SIZE; 
         pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
         //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
@@ -1790,11 +1804,11 @@
         categoryAxis.renderer.minGridDistance = 1;
         categoryAxis.renderer.inversed = true;
         categoryAxis.renderer.grid.template.disabled = true;
-        categoryAxis.renderer.labels.template.fontSize = 11;
-        categoryAxis.renderer.labels.template.fill = "#ffffff";
+        categoryAxis.renderer.labels.template.fontSize = "0.85em";
+        categoryAxis.renderer.labels.template.fill = dark.disabled ? lightThemeColor : darkThemeColor;
         categoryAxis.renderer.minGridDistance = 5; //can change label
         categoryAxis.renderer.grid.template.strokeOpacity = 1;
-        categoryAxis.renderer.grid.template.stroke = am4core.color("#FFFFFF");
+        categoryAxis.renderer.grid.template.stroke = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor);
         categoryAxis.renderer.grid.template.strokeWidth = 1.5;
 
         //categoryAxis.renderer.cellStartLocation = 0;
@@ -1802,7 +1816,7 @@
 
         categoryAxis.renderer.line.strokeOpacity = 1;
         categoryAxis.renderer.line.strokeWidth = 1.5;
-        categoryAxis.renderer.line.stroke = am4core.color("#FFFFFF");
+        categoryAxis.renderer.line.stroke = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor);
 
         // Create value axis
         var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
@@ -1811,10 +1825,10 @@
         valueAxis.calculateTotals = true;
         valueAxis.renderer.minWidth = 50;
         valueAxis.renderer.labels.template.fontSize = 12;
-        valueAxis.renderer.labels.template.fill = "#ffffff";
+        valueAxis.renderer.labels.template.fill = dark.disabled ? lightThemeColor : darkThemeColor;
         valueAxis.renderer.line.strokeOpacity = 1;
         valueAxis.renderer.line.strokeWidth = 1.5;
-        valueAxis.renderer.line.stroke = am4core.color("#FFFFFF");
+        valueAxis.renderer.line.stroke = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor);
 
         var series = chart.series.push(new am4charts.ColumnSeries());
         series.dataFields.categoryY = "category";
@@ -1878,7 +1892,7 @@
         labelBullet.label.horizontalCenter = "left";
         labelBullet.label.text = "{values.valueX.workingValue.formatNumber('#')}"; //#.0as for 17k
         labelBullet.locationX = 0.5;
-        labelBullet.label.fill = am4core.color("#ffffff");
+        labelBullet.label.fill = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor);
         labelBullet.interactionsEnabled = false;
         labelBullet.label.fontSize = 14;
 
@@ -1912,55 +1926,6 @@
 
         updateMoaChartLot();
 
-
-
-        
-      
-      });// End of am4chart
-
-      
-      // Widgets
-      
-      const basemaps = new BasemapGallery({
-        view,
-        container: "basemaps-container"
-      });
-      
-      const bookmarks = new Bookmarks({
-        view,
-        container: "bookmarks-container"
-      });
-      
-      const layerList = new LayerList({
-        view: view,
-        selectionEnabled: true,
-        container: "layers-container",
-        listItemCreatedFunction: function(event) {
-          const item = event.item;
-          if (item.title === "BSS Boundary" || item.title === "BSS Building" || item.title === "Depot Building"){
-            item.visible = false
-          }
-        }
-      });
-      
-      const legend = new Legend({
-        view,
-        container: "legend-container"
-      });
-
-      const locate = new Locate({
-        view: view,
-        container: "locate-container"
-      });
-      
-      /*
-      const print = new Print({
-        view,
-        container: "print-container"
-      });
-      */
-    
-      
       // view.when
       view.when(() => {
         document.querySelector("#header-title").textContent = "MMSP LAND ACQUISITION";
@@ -2007,16 +1972,74 @@
           // ArcGIS Maps SDK theme
           const dark = document.querySelector("#arcgis-maps-sdk-theme-dark");
           const light = document.querySelector("#arcgis-maps-sdk-theme-light");
+
+          // Negate the 'disabled' attribute on both stylesheets to toggle their boolean values
           dark.disabled = !dark.disabled;
           light.disabled = !light.disabled;
           // ArcGIS Maps SDK basemap
           map.basemap = dark.disabled ? "gray-vector" : "dark-gray-vector";
+
+          // Change the title color by theme
+          totalNumberOfLots().then(totalNumberOfLotsAll);
+          updateChartLot();
+          updateMoaChartLot()
+          handedOverNumberLot();
+
+          const dropdownLandTypeLabel = document.getElementById("dropdownLandTypeLabel");
+          const dropdownStationTypeLabel = document.getElementById("dropdownStationTypeLabel");
+
+          dropdownLandTypeLabel.style.color = dark.disabled ? "black" : "white";
+          dropdownStationTypeLabel.style.color = dark.disabled ? "black" : "white";
         };
 
         document.querySelector("calcite-switch").addEventListener("calciteSwitchChange", toggleThemes);
-
       }); // end of view.when
 
+      });// End of am4chart
+
+      
+      // Widgets
+      
+      const basemaps = new BasemapGallery({
+        view,
+        container: "basemaps-container"
+      });
+      
+      const bookmarks = new Bookmarks({
+        view,
+        container: "bookmarks-container"
+      });
+      
+      const layerList = new LayerList({
+        view: view,
+        selectionEnabled: true,
+        container: "layers-container",
+        listItemCreatedFunction: function(event) {
+          const item = event.item;
+          if (item.title === "BSS Boundary" || item.title === "BSS Building" || item.title === "Depot Building"){
+            item.visible = false
+          }
+        }
+      });
+      
+      const legend = new Legend({
+        view,
+        container: "legend-container"
+      });
+
+      const locate = new Locate({
+        view: view,
+        container: "locate-container"
+      });
+      
+      /*
+      const print = new Print({
+        view,
+        container: "print-container"
+      });
+      */
+    
+      
 
 
     });
