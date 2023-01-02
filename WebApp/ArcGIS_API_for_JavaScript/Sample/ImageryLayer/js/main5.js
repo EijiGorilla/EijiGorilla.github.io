@@ -183,8 +183,8 @@ sketchViewModel.on(["create"], (event) => {
 
     // You must provide pixelSize; otherwise, 'computeStaticsHistograms' does not work
     let pixelSize = {
-      x: pixelSizeX,
-      y: pixelSizeY,
+      x: view.resolution,
+      y: view.resolution,
       spatialReference: {
         wkid: landUseImage.spatialReference.wkid
       }
