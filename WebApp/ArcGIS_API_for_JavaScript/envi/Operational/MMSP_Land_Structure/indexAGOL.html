@@ -1,93 +1,131 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>MMSP Land Acquisition</title>
+    
+    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+    
+    <script src="https://js.arcgis.com/calcite-components/1.0.0-beta.99/calcite.esm.js" type="module"></script>
+    <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/1.0.0-beta.99/calcite.css" />
+    <link rel="stylesheet" href="css/mainAGOL.css">
 
-    <meta
-    name="viewport"
-    content="initial-scale=1,maximum-scale=1,user-scalable=no"
-  />
-    <!--
-  ArcGIS API for JavaScript, https://js.arcgis.com
-  For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
-  https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
-  -->
-<title>MMSP_Land Acquisition</title>
+    <script src="https://js.arcgis.com/4.25/"></script>
+    <script src="js/mainAGOL.js"></script>
+    <link disabled id="arcgis-maps-sdk-theme-dark" rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css" />
+    <link id="arcgis-maps-sdk-theme-light" rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css" />
+    
 
-<link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"/>
-<link rel="stylesheet" href="css/mainAGOL.css">
+  </head>
 
-<!-- Resources -->
-<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
-<script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-<script src="https://js.arcgis.com/4.25/"></script>
-<script src="js/mainAGOL.js"></script>
+  <body class="sassy-theme">
+    <calcite-loader></calcite-loader>
+    <calcite-shell content-behind>
+      
+       <!--  Header slot  -->
+      <div slot="header" id="header">
+        
+      <!-- Title -->
+      <h2 id="header-title" slot="header"></h2>
 
-</head>
-<body class="sassy-theme">
-  <div id="applicationDiv">
-    <div id="headerDiv">
-      <div id="headerTitleDiv"></div>
-      <div class="DateDiv">As of December 27, 2022</div>
-      <div class="esri-widget" id="dropdownDiv">
-        <label for="sel-options">Land Type</label>
-        <select id="landTypeSelect" class="esri-widget"></select>
-        <label for="sel-options">Station:</label>
-        <select id="valSelect" class="esri-widget" width="150" style="width: 150px"></select>
-
+      <!-- Dropdown Lists -->
+      <div id="dropdownDiv" class="esri-widget">
+        <label id="dropdownLandTypeLabel">
+          Land Type:
+          <select id="landTypeSelect" class="esri-widget"></select>
+        </label>
+        <label id="dropdownStationTypeLabel">
+          Section:
+          <select id="stationSelect" class="esri-widget"></select>
+        </label>
       </div>
-    </div>
-    <div class="container">
-      <div class="BoxA">
-        <div class = "panel-side esri-widget" id="legendDiv"></div>
-      </div>
-      <div class="boxB">
-        <div class="panel-side esri-widget">
-          <h2>Lots of <b style="color:rgb(255, 0, 0)">Expro Case</b></h2>
-          <ul id="relocationOwnerList">
-            <li>Loading&hellip;</li>
-          </ul>
+
+      <!-- Controls -->
+        <div id="header-controls">
+          <!-- Dark Mode Switch -->
+          <calcite-label layout="inline" class="label-wrapper">
+            <calcite-icon icon="brightness" scale="s" class="switch-icon"></calcite-icon>
+            <calcite-switch></calcite-switch>
+            <calcite-icon icon="moon" scale="s" class="switch-icon"></calcite-icon>
+          </calcite-label>
         </div>
       </div>
-      <div class="BoxC">
-        <div id="viewDiv"></div>
-      </div>
-      <div class="BoxD">
-        <div id="chartPanel">
-          <div id="chartdiv"></div>
-          <div id="optionsDiv" class="esri-widget">
-            <div id="totalNumberLotDiv"></div>
-            <div id="totalNumberDiv"></div>
-          </div>
-          <div id="lotMoaChartDiv"></div>
-          <div id="optionsDiv" class="esri-widget">
-            <div id="handedOverButton" class="handedOverButtonClass">
-              <div id="handedoverNumberLotDiv"></div>
-              <div id="menu" class="esri-widget">
-                <input type="checkbox" id="opacityInput" unchecked />
-              </div>
+
+      <!-- Icon -->
+      <!-- https://developers.arcgis.com/calcite-design-system/icons/?icon=list&library=Calcite%20UI -->
+      <calcite-shell-panel slot="panel-start" detached>
+        <calcite-action-bar slot="action-bar">
+          <calcite-action data-action-id="layers" icon="layers" text="Layers"></calcite-action>
+          <calcite-action data-action-id="basemaps" icon="basemap" text="Basemaps"></calcite-action>
+          <calcite-action data-action-id="legend" icon="legend" text="Legend"></calcite-action>
+          <calcite-action data-action-id="information" icon="information" text="Information"></calcite-action>
+          <calcite-action data-action-id="locate" icon="gps-on-f" text="My Location"></calcite-action>
+        </calcite-action-bar>
+        
+        <!-- Map-specific panels (each one provides a div for ArcGIS Maps SDK for JavaScript widgets) -->
+        <calcite-panel heading="Layers" height-scale="l" data-panel-id="layers" hidden>
+          <div id="layers-container"></div>
+        </calcite-panel>
+        <calcite-panel heading="Basemaps" height-scale="l" data-panel-id="basemaps" hidden>
+          <div id="basemaps-container"></div>
+        </calcite-panel>
+        <calcite-panel heading="Legend" height-scale="l" data-panel-id="legend" hidden>
+          <div id="legend-container"></div>
+        </calcite-panel>
+        <calcite-panel heading="Click the icon below" width-scale="w" data-panel-id="locate" hidden>
+          <div id="locate-container"></div>
+        </calcite-panel>
+
+        
+        <!-- Info panel (populates with info from the web map) -->
+        <calcite-panel heading="Description" data-panel-id="information" hidden>
+          <div id="info-content">
+            <!-- <img id="item-thumbnail" alt="webmap thumbnail" /> -->
+            <div id="item-description">
+              <!-- Dynamically populated -->
             </div>
-            <div id="lotHandedOverDiv"></div>
           </div>
-        </div>
-      </div>
-      <div class="BoxE">
-        <div id="structureChartPanel">
-          <div id="structureChartDiv"></div>
-          <div id="optionsDiv" class="esri-widget">
-            <div id="totalNumberStrucDiv"></div>
-            <div id="structureTotalNumberDiv"></div>
-          </div>
-          <div id="structureMoaChartDiv"></div>
-          <div id="optionsDiv" class="esri-widget">
-            <div id="isfNumberStrucDiv"></div>
-            <div id="isfDiv"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-</body>
-</html>
+        </calcite-panel>
+      </calcite-shell-panel>
+
+      <div id="viewDiv">
+        <!-- Chart Panel -->
+        <!-- Tabs "https://esri.github.io/calcite-web/documentation/patterns/#tabs" -->
+        <!-- Tabs "https://developers.arcgis.com/calcite-design-system/components/tabs/" -->
+        <calcite-tabs>
+            <div id="chartPanel">
+                <calcite-tab-nav slot="tab-nav">
+                    <calcite-tab-title selected>Land</calcite-tab-title>
+                    <calcite-tab-title>Structure</calcite-tab-title>
+                    <calcite-tab-title>Expro List</calcite-tab-title>
+                </calcite-tab-nav>
+                <calcite-tab>
+                    <div id="pieChartLotDiv"></div>
+                    <div id="lotNumberDiv"></div>
+                    <div id="chartMoaLotDiv"></div>
+                    <input id="handedOverButton" type="checkbox" id="opacityInput" unchecked />
+                    <div id="handedOverLotNumberDiv"></div>
+                </calcite-tab>
+                <calcite-tab>
+                  <div id="pieChartStructureDiv"></div>
+                  <div id="structureNumberDiv"></div>
+                  <div id="chartMoaStructureDiv"></div>
+                  <div id="isfNumberDiv"></calcite-label>
+                  </div>
+                </calcite-tab>
+                <calcite-tab>
+                  <div class="panel-side esri-widget">
+                    <ul id="expropriationListDiv">
+                      <li>Loading&hellip;</li>
+                    </ul>
+                  </div>
+                </calcite-tab>
+            </div>
+        </calcite-tabs>
+       </div>
+
+    </calcite-shell>
+  </body>
