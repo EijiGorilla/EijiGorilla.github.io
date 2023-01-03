@@ -266,7 +266,6 @@
           <div id="locate-container"></div>
         </calcite-panel>
 
-        
         <!-- Info panel (populates with info from the web map) -->
         <calcite-panel heading="Description" data-panel-id="information" hidden>
           <div id="info-content">
@@ -3639,6 +3638,72 @@
         view: view,
         container: "locate-container"
       });
+
+      var searchWidget = new Search({
+        view: view,
+        container: "search-container",
+        locationEnabled: false,
+        allPlaceholder: "LotID, StructureID, Chainage",
+        includeDefaultSources: false,
+        sources: [
+            {
+                layer: lotLayer,
+                searchFields: ["LotID"],
+                displayField: "LotID",
+                exactMatch: false,
+                outFields: ["LotID"],
+                name: "Lot ID",
+                placeholder: "example: 10083"
+            },
+            {
+                layer: structureLayer,
+                searchFields: ["StrucID"],
+                displayField: "StrucID",
+                exactMatch: false,
+                outFields: ["StrucID"],
+                name: "Structure ID",
+                placeholder: "example: MCRP-01-02-ML022"
+            },
+            {
+                layer: chainageLayer,
+                searchFields: ["KmSpot"],
+                displayField: "KmSpot",
+                exactMatch: false,
+                outFields: ["*"],
+                name: "Main KM",
+                placeholder: "example: 80+400"
+            },
+            {
+                layer: PierNoLayer,
+                searchFields: ["PIER"],
+                displayField: "PIER",
+                exactMatch: false,
+                outFields: ["PIER"],
+                name: "Pier No",
+                zoomScale: 1000,
+                placeholder: "example: P-288"
+            }
+        ]
+        });
+
+        view.ui.empty("top-left");
+
+        const searchExpand = new Expand({
+            view: view,
+            content: searchWidget,
+            expandIconClass: "esri-icon-search",
+            group: "top-right"
+        });
+        view.ui.add(searchExpand, {
+            position: "top-right"
+        });
+
+        searchExpand.watch("expanded", function() {
+            if(!searchExpand.expanded) {
+                searchWidget.searchTerm = null;
+            }
+        });
+
 
     });
   </script>
