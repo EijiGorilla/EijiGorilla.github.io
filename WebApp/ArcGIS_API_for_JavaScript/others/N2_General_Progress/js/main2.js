@@ -644,10 +644,10 @@ var title = chart.titles.create();
 //'<a href="https://google.com"}">More info</a>'
 
 //title.text = "[bold]LAND";
-title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Land_Structure2/index.html" target="_blank">LAND</a>';
-title.fontSize = "2em";
+title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Land_Structure2/index2.html" target="_blank">LAND</a>';
+title.fontSize = "1.7em";
 title.align = "center";
-title.marginBottom = -15;
+title.marginBottom = -10;
 title.marginTop = 0;
 title.fill = TOP_TITLE_COL;
 
@@ -988,7 +988,7 @@ var title = chart.titles.create();
 title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Land_Structure2/index2.html" target="_blank">EXISTING STRUCTURE</a>';
 title.fontSize = "2em";
 title.align = "center";
-title.marginBottom = -15;
+title.marginBottom = -10;
 title.marginTop = 0;
 title.fill = TOP_TITLE_COL;
 
@@ -1323,10 +1323,10 @@ const TOP_TITLE_COL = am4core.color("#FFFFFF");
 
 var title = chart.titles.create();
 //title.text = "[bold]INFORMAL SETTLERS";
-title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Land_Structure2/index.html" target="_blank">INFORMAL SETTLERS</a>';
+title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Land_Structure2/index2.html" target="_blank">INFORMAL SETTLERS</a>';
 title.fontSize = "2em";
 title.align = "center";
-title.marginBottom = -15;
+title.marginBottom = -10;
 title.marginTop = 0;
 title.fill = TOP_TITLE_COL;
 
@@ -1663,7 +1663,7 @@ var title = chart.titles.create();
 title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Tree_Cutting/index.html" target="_blank">TREE CUTTING</a>';
 title.fontSize = "2em";
 title.align = "center";
-title.marginBottom = -15;
+title.marginBottom = -10;
 title.marginTop = 0;
 title.fill = TOP_TITLE_COL;
 
@@ -1998,7 +1998,7 @@ var title = chart.titles.create();
 title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Tree_Cutting/index.html" target="_blank">TREE COMPENSATION</a>';
 title.fontSize = "2em";
 title.align = "center";
-title.marginBottom = -15;
+title.marginBottom = -10;
 title.marginTop = 0;
 title.fill = TOP_TITLE_COL;
 
@@ -2454,7 +2454,7 @@ var title = chart.titles.create();
 title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/civil/Operational/N2_Utility_Relocation/index.html" target="_blank">UTILITY</a>';
 title.fontSize = "2em";
 title.align = "center";
-title.marginBottom = -15;
+title.marginBottom = -10;
 title.marginTop = 0;
 title.fill = TOP_TITLE_COL;
 
