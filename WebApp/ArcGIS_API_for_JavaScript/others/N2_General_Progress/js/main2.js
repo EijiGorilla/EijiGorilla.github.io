@@ -223,7 +223,10 @@ var utilityLineChartDiv = document.getElementById("utilityLineChartDiv");
 
 var informationDiv = document.getElementById("informationDiv");
 
-informationDiv.innerHTML =  "<br>" + "<b>" + "Note:" + "</b>" + "<br>" + "<br>" + "* Each gauge shows percent progress of each CP in the sliced chart.";
+//informationDiv.innerHTML =  "<br>" + "<b>" + "Note:" + "</b>" + "<br>" + "<br>" + "* Each gauge shows percent progress of each CP in the sliced chart.";
+informationDiv.innerHTML =  `<b>Note:</b><br>
+                             1. Each gauge shows percent progress of CPs in the sliced area.<br>
+                             2. <b>Click</b> the title of gauges to access individual web mapping applications for more detailed information.`
 
 // Thousand separators function
 function thousands_separators(num)
