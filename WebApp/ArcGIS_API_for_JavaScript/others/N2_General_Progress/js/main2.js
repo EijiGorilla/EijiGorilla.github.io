@@ -4,7 +4,7 @@ require([
   "esri/views/MapView",
   "esri/views/SceneView",
   "esri/layers/FeatureLayer",
-  "esri/views/layers/support/FeatureFilter",
+  "esri/layers/support/FeatureFilter",
   "esri/layers/SceneLayer",
   "esri/layers/Layer",
   "esri/layers/TileLayer",
@@ -223,7 +223,7 @@ var utilityLineChartDiv = document.getElementById("utilityLineChartDiv");
 
 var informationDiv = document.getElementById("informationDiv");
 
-informationDiv.innerHTML =  "<br>" + "<b>" + "Note:" + "</b>" + "<br>" + "<br>" + "* Values in the sliced chart of gauges represent percent progress of each CP.";
+informationDiv.innerHTML =  "<br>" + "<b>" + "Note:" + "</b>" + "<br>" + "<br>" + "* Each gauge shows percent progress of each CP in the sliced chart.";
 
 // Thousand separators function
 function thousands_separators(num)
@@ -355,7 +355,7 @@ function legendCP() {
   
   
   // Add a legend
-  const LegendFontSizze = 20;
+  const LegendFontSizze = "1em";
   chart.legend = new am4charts.Legend();
   
   chart.legend.valueLabels.template.align = "right"
@@ -2603,9 +2603,8 @@ utilityPointTotal()
 .then(utilityLineCompleted)
 .then(utilityChart)
 
-
-
-
 }); // end am4core.ready()
+
+
 
 });
