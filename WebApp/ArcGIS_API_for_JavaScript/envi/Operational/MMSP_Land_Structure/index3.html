@@ -2531,13 +2531,54 @@
         view: view,
         container: "locate-container"
       });
-      
-      /*
-      const print = new Print({
-        view,
-        container: "print-container"
+
+      var searchWidget = new Search({
+        view: view,
+        locationEnabled: false,
+        allPlaceholder: "LotID, StructureID",
+        includeDefaultSources: false,
+        sources: [
+          {
+            layer: lotLayer,
+            searchFields: ["ID"],
+            displayField: "ID",
+            exactMatch: false,
+            outFields: ["ID"],
+            name: "Lot No",
+            placeholder: "example: DP89"
+          },
+          {
+            layer: structureLayer,
+            searchFields: ["Id_1"],
+            displayField: "Id",
+            exactMatch: false,
+            outFields: ["Id_1"],
+            name: "Structure ID",
+            placeholder: "example: QH-MMSP-02-01-S045C"
+          }
+        ]
       });
-      */
+
+      view.ui.empty("top-left");
+
+      // Create Expand widge for Search widget
+      const searchExpand = new Expand({
+        view: view,
+        content: searchWidget,
+        expandIconClass: "esri-icon-search",
+        group: "top-right"
+      });
+
+      view.ui.add(searchExpand, {
+        position: "top-right"
+      });
+
+      searchExpand.watch("expanded", function() {
+        if(!searchExpand.expanded) {
+          searchWidget.searchTerm = null;
+        }
+      });
+
     
       
 
