@@ -985,7 +985,7 @@ const TOP_TITLE_COL = am4core.color("#FFFFFF");
 
 var title = chart.titles.create();
 //title.text = "[bold]EXISTING STRUCTURE";
-title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Land_Structure2/index.html" target="_blank">EXISTING STRUCTURE</a>';
+title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Land_Structure2/index2.html" target="_blank">EXISTING STRUCTURE</a>';
 title.fontSize = "2em";
 title.align = "center";
 title.marginBottom = -15;
