@@ -201,6 +201,32 @@ var stationLayer = new SceneLayer({
   stationLayer.listMode = "hide";
   map.add(stationLayer, 0);
 
+    // PROW //
+    var rowLayer = new FeatureLayer ({
+      portalItem: {
+        id: "590680d19f2e48fdbd8bcddce3aaedb5",
+        portal: {
+          url: "https://gis.railway-sector.com/portal"
+        }   
+      },
+      layerId: 1,
+      title: "ROW",
+      popupEnabled: false
+    });
+    map.add(rowLayer,2);  // PROW //
+    var rowLayer = new FeatureLayer ({
+      portalItem: {
+        id: "590680d19f2e48fdbd8bcddce3aaedb5",
+        portal: {
+          url: "https://gis.railway-sector.com/portal"
+        }   
+      },
+      layerId: 1,
+      title: "ROW",
+      popupEnabled: false
+    });
+    map.add(rowLayer,2);
+    
 // Station structures
 const buildingLayer = new BuildingSceneLayer({
 portalItem: {
