@@ -809,7 +809,9 @@ view.when(function() {
 
       selectedBuildingDiv.innerHTML = feature;
 
-      zoomToLayer(stColumnLayer);
+      // Be careful with zooming to depot buldings. Some do not have structural components.
+      // In this case, you will be zoomed to Africa. So may not be a good ideas to use zoom using building scene layer.
+      //zoomToLayer(stColumnLayer);
       totalProgressDepot()
       chartStFoundation();
       chartStColumn();
