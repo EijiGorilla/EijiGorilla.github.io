@@ -297,6 +297,8 @@ const stationColor = {
           }
       },
       //labelingInfo: [stationLabelMMSP, stationLabelNSCREX, stationLabelNSCR],
+      outFields: ["Station", "Sector", "StnName"],
+      definitionExpression: "Station <> 'NCC'",
       renderer: stationsRenderer,
       labelingInfo: [labelClass],
        elevationInfo: {
@@ -445,7 +447,7 @@ current[0].className = current[0].className.replace(" active","");
 this.className += " active";
 
 const selectedID = event.target.id;
-stationLayer.definitionExpression = "Sector = '" + selectedID + "'";
+stationLayer.definitionExpression = "Sector = '" + selectedID + "'" + " AND " + "Station <> 'NCC'";
 stationLine.definitionExpression = "Sector = '" + selectedID +  "'";
 zoomToLayer(stationLayer);
 
