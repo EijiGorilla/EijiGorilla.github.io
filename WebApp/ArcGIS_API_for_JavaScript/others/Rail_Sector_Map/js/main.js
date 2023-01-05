@@ -547,7 +547,8 @@ if(selectedID == "MMSP") {
 //const myLi = document.querySelectorAll('myLi')
 
 view.ui.empty("top-left"); 
-  // Full screen logo
+/*
+// Full screen logo
   view.ui.add(
       new Fullscreen({
           view: view,
@@ -555,6 +556,6 @@ view.ui.empty("top-left");
       }),
       "bottom-left"
   );
-
+*/
 
 });
