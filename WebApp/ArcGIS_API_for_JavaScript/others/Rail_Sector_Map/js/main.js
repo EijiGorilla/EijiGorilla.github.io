@@ -96,11 +96,11 @@ var map = new Map({
     }
   });
 
-  var stationLabelNSTren = new LabelClass({
+  var stationLabelNSCR = new LabelClass({
       type: "label-3d", // autocasts as new LabelSymbol3D()
       labelPlacement: "above-center",
       labelExpressionInfo: {
-      expression: "When($feature.Project == 'NSTren', $feature.Station, '')"
+      expression: "When($feature.Project == 'NSCR', $feature.Station, '')"
     },
       symbol: {
       type: "label-3d",// autocasts as new LabelSymbol3D()
@@ -168,7 +168,7 @@ var map = new Map({
         {
           type: "text", // autocasts as new TextSymbol3DLayer()
           material: {
-            color: "white"
+            color: "orange"
           },
           size: 15,
           color: "black",
@@ -237,10 +237,11 @@ minWorldLength: 50
   /* Company and Utilty Relocation Status Symbols with Callout */
 var stationsRenderer = {
 type: "unique-value",
-field: "Project",
-valueExpression: "When($feature.Project == 'MMSP', 'MMSP', \
-                     $feature.Project == 'NSCR-Ex', 'NSCREx', \
-                     $feature.Project == 'NSTren', 'NSTren', $feature.Project)",
+field: "Sector",
+valueExpression: "When($feature.Sector == 'MMSP', 'MMSP', \
+                     $feature.Sector == 'MCRP', 'MCRP', \
+                     $feature.Sector == 'NSRP', 'NSRP', \
+                     $feature.Sector == 'NSCR', 'NSCR', $feature.Sector)",
 uniqueValueInfos: [
   {
       value: "MMSP",
@@ -251,7 +252,7 @@ uniqueValueInfos: [
       )
   },
   {
-      value: "NSCREx",
+      value: "MCRP",
       symbol: getUniqueValueSymbol(
           "https://EijiGorilla.github.io/Symbols/station_symbol_nscrex.png",
           "#D13470",
@@ -259,7 +260,15 @@ uniqueValueInfos: [
       )
   },
   {
-      value: "NSTren",
+    value: "NSRP",
+    symbol: getUniqueValueSymbol(
+        "https://EijiGorilla.github.io/Symbols/station_symbol_nscrex.png",
+        "#D13470",
+        20
+    )
+  },
+  {
+      value: "NSCR",
       symbol: getUniqueValueSymbol(
           "https://EijiGorilla.github.io/Symbols/station_symbol_nstren.png",
           "#D13470",
@@ -272,9 +281,10 @@ uniqueValueInfos: [
 
 // Station Line Color
 const stationColor = {
-'MMSP': [205, 97, 85],
-'NSCR-Ex': [102, 153, 205],
-'NSTren': [112, 168, 0]
+  'MMSP': [205, 97, 85],
+  'MCRP': [102, 153, 205],
+  'NSRP': [102, 153, 205],
+  'NSCR': [112, 168, 0]
 };
 
 //********** Read Feature and Scene Layers
@@ -286,7 +296,7 @@ const stationColor = {
               url: "https://gis.railway-sector.com/portal"
           }
       },
-      //labelingInfo: [stationLabelMMSP, stationLabelNSCREX, stationLabelNSTren],
+      //labelingInfo: [stationLabelMMSP, stationLabelNSCREX, stationLabelNSCR],
       renderer: stationsRenderer,
       labelingInfo: [labelClass],
        elevationInfo: {
@@ -303,7 +313,7 @@ const stationColor = {
             type: "fields",
             fieldInfos: [
               {
-                fieldName: "Project"
+                fieldName: "Sector"
               },
               {
                 fieldName: "Extension"
@@ -365,7 +375,7 @@ return {
 
 function renderStationLine() {
 const renderer = new UniqueValueRenderer({
-  field: "Project"
+  field: "Sector"
 });
 
 for (let property in stationColor) {
@@ -374,12 +384,12 @@ for (let property in stationColor) {
           value: property,
           symbol: lineSizeShapeSymbolLayers("quad", "none", "miter", 8, 30, "heading", property)
       });
-  } else if (property == 'NSCR-Ex') {
+  } else if (property == 'MCRP' || property == 'NSRP') {
       renderer.addUniqueValueInfo({
           value: property,
           symbol: lineSizeShapeSymbolLayers("quad", "none", "miter", 8, 30, "heading", property)
       });
-  } else if (property == 'NSTren') {
+  } else if (property == 'NSCR') {
       renderer.addUniqueValueInfo({
           value: property,
           symbol: lineSizeShapeSymbolLayers("quad", "none", "miter", 8, 30, "heading", property)
@@ -421,8 +431,8 @@ var projectList = document.getElementById("projectList");
 var ttt = projectList.getElementsByClassName("test");
 
 // Default station is MMSP
-stationLayer.definitionExpression = "Project = 'MMSP'";
-stationLine.definitionExpression = "Project = 'MMSP'";
+stationLayer.definitionExpression = "Sector = 'MMSP'";
+stationLine.definitionExpression = "Sector = 'MMSP'";
 zoomToLayer(stationLayer);
 
 for(var i = 0; i < ttt.length; i ++) {
@@ -435,22 +445,27 @@ current[0].className = current[0].className.replace(" active","");
 this.className += " active";
 
 const selectedID = event.target.id;
+stationLayer.definitionExpression = "Sector = '" + selectedID + "'";
+stationLine.definitionExpression = "Sector = '" + selectedID +  "'";
+zoomToLayer(stationLayer);
 
 
+/*
 if(selectedID == "MMSP") {
-  stationLayer.definitionExpression = "Project = '" + selectedID + "'";
-  stationLine.definitionExpression = "Project = '" + selectedID +  "'";
+  stationLayer.definitionExpression = "Sector = '" + selectedID + "'";
+  stationLine.definitionExpression = "Sector = '" + selectedID +  "'";
   zoomToLayer(stationLayer);
 
-} else if (selectedID == "NSCR-Ex") {
-  stationLayer.definitionExpression = "Project = '" + selectedID + "'";
-  stationLine.definitionExpression = "Project = '" + selectedID +  "'";
+} else if (selectedID == "MCRP" || selectedID == "NSRP") {
+  stationLayer.definitionExpression = "Sector = '" + selectedID + "'";
+  stationLine.definitionExpression = "Sector = '" + selectedID +  "'";
   zoomToLayer(stationLayer);        
-} else if (selectedID == "NSTren") {
-  stationLayer.definitionExpression = "Project = '" + selectedID + "'";
-  stationLine.definitionExpression = "Project = '" + selectedID +  "'";
+} else if (selectedID == "NSCR") {
+  stationLayer.definitionExpression = "Sector = '" + selectedID + "'";
+  stationLine.definitionExpression = "Sector = '" + selectedID +  "'";
   zoomToLayer(stationLayer);  
 }
+*/
 }
 
 
