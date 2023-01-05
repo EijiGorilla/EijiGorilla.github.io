@@ -1901,7 +1901,6 @@ const NEEDLE_LENGTH = am4core.percent(70);
     chart.hiddenState.properties.opacity = 0;
     chart.innerRadius = am4core.percent(82);
     chart.responsive.enabled = true;
-    chart.responsive.useDefault = false
 
     chart.padding(chartPadding, chartPadding, chartPadding, chartPadding);
     chart.radius = am4core.percent(100); // size of pie chart
@@ -2034,7 +2033,6 @@ const NEEDLE_LENGTH = am4core.percent(70);
     chart.hiddenState.properties.opacity = 0;
     chart.innerRadius = am4core.percent(82);
     chart.responsive.enabled = true;
-    chart.responsive.useDefault = false
 
     chart.padding(chartPadding, chartPadding, chartPadding, chartPadding);
     chart.radius = am4core.percent(100); // size of pie chart
@@ -2281,7 +2279,6 @@ const NEEDLE_LENGTH = am4core.percent(70);
     
     // Responsive code for chart
     chart.responsive.enabled = true;
-    chart.responsive.useDefault = false
     
     chart.responsive.rules.push({
       relevant: function(target) {
@@ -2658,14 +2655,14 @@ const NEEDLE_LENGTH = am4core.percent(70);
       view: view,
       expanded: true,
       content: `
-      <div style='width:400px; padding:10px; background-color:black; color:white'><br><br>
-      <b>User Instruction</b><br><br>
-      1. <b>Filter</b> section (PO or Remaining) from the dropdown list.<br>
-      2. <b>Filter</b> tunnel type (TBM or NATM) from the 2nd dropdown list if needed.<br>
-      3. <b>Click</b> the sliced sections of dilapidation survey chart. It only highlights the associated buildings on the map.<br>
-      4. <b>Click and Expand</b> time slider widget at the bottom left, which shows segmentation plan date over time.<br>
-      5. <b>Toggle</b> 'See through ground' at the bottom right to view underground.<br>
-      6. <b>Click once</b> anywhere on the map to <b>animate</b> 3D TBM that moves between Depot and Quirino Highway station.</div>
+      <div style='width:400px; padding:10px; background-color:black; color:white'>
+      <p><b>General Instruction</b></p>
+      <p>1. <b>Filter</b> section (PO or Remaining) from the dropdown list.</p>
+      <p>2. <b>Filter</b> tunnel type (TBM or NATM) from the 2nd dropdown list if needed.</p>
+      <p>3. <b>Click</b> the sliced sections of dilapidation survey chart. It only highlights the associated buildings on the map.</p>
+      <p>4. <b>Click and Expand</b> time slider widget at the bottom left, which shows segmentation plan date over time.</p>
+      <p>5. <b>Toggle</b> 'See through ground' at the bottom right to view underground.</p>
+      <p>6. <b>Click once</b> anywhere on the map to <b>animate</b> 3D TBM that moves between Depot and Quirino Highway station.</div>
       `
     });
     view.ui.add(instructionsExpand, "top-right");
