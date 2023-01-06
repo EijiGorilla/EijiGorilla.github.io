@@ -251,6 +251,63 @@
           ]
         };
 
+        // Prepare two renderers for layer: main and sub
+        let defaultSymbol = {
+        type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+        color: [0,0,0,0],
+        style: "solid",
+        outline: {  // autocasts as new SimpleLineSymbol()
+            color: [110, 110, 110],
+            width: 0.7
+        }
+    };
+
+    /*
+    const zoneCode = [
+            "AG", // [1]
+            "C-1", "C-2", "C-3", //[2-4]
+            "GO", // 5
+            "PL", // 6
+            "E-1", "E-2", // 7,8
+            "I-2", "I-3", // 9,10
+            "R-1", "R-2", "R-3", "R-4", // 11-14
+            "NR", // 15
+            "PRO", // 16
+            "S-DW", "S-DR", "S-RP", "S-JW", "S-RN", "S-WS", "S-CN", "S-HB", "S-F", "S-W", "S-E", "S-C", //17-28
+            "S-H" // 29
+        ]
+*/
+        let mainRenderer = {
+          type: "unique-value",
+          defaultSymbol: defaultSymbol,
+          valueExpression: "When($feature.zonecode == 'AG', 'AG', \
+                                 $feature.zonecode == 'C-1' || $feature.zonecode == 'C-2' || $feature.zonecode == 'C-3', 'C',\
+                                 $feature.zonecode == 'GO', 'GO',\
+                                 $feature.zonecode == 'PL', 'PL',\
+                                 $feature.zonecode == 'E-1' || $feature.zonecode == 'E-2', 'E',\
+                                 $feature.zonecode == 'I-2' || $feature.zonecode == 'I-3', 'I',\
+                                 $feature.zonecode == 'R-1' || $feature.zonecode == 'R-2' || $feature.zonecode == 'R-3' || $feature.zonecode == 'R-4', 'R',\
+                                 $feature.zonecode == 'NR', 'NR',\
+                                 $feature.zonecode == 'PRO', 'PRO',\
+                                 $feature.zonecode == 'S-DW' || $feature.zonecode == 'S-DR' || \
+                                 $feature.zonecode == 'S-RP' || $feature.zonecode == 'S-JW' || \
+                                 $feature.zonecode == 'S-RN' || $feature.zonecode == 'S-WS' || \
+                                 $feature.zonecode == 'S-CN' || $feature.zonecode == 'S-HB' || \
+                                 $feature.zonecode == 'S-F' || $feature.zonecode == 'S-W' || \
+                                 $feature.zonecode == 'S-E' || $feature.zonecode == 'S-C', 's' \
+                                 $feature.zonecode == 'S-H', 'S-H', $feature.zonecode)",
+
+
+        }
+
+        let subRenderer = {
+
+        }
+
+
+
+        //
+
         const layer = new FeatureLayer({
           minScale: 0,
           maxScale: 0,
@@ -386,13 +443,16 @@
             "color": am4core.color("#d7a700"),
             "breakdown": [{
               "category": zoneCode[1],
-              "value": codeValueCount[2]
+              "value": codeValueCount[2],
+              "color": am4core.color("#F5B88F"),
             }, {
               "category": zoneCode[2],
-              "value": codeValueCount[3]
+              "value": codeValueCount[3],
+              "color": am4core.color("#FF7575"),
             }, {
               "category": zoneCode[3],
-              "value": codeValueCount[4]
+              "value": codeValueCount[4],
+              "color": am4core.color("#FF0000"),
             }]
           }, {
             "category": zoneSummaryCode[2],
@@ -409,8 +469,6 @@
           chart.width = am4core.percent(100);
           chart.height = am4core.percent(100);
           chart.layout = "horizontal";
-
-
 
           /**
            * Column chart
@@ -436,7 +494,7 @@
           var labelBullet = columnSeries.bullets.push(new am4charts.LabelBullet());
           labelBullet.label.text = "{valueX.formatNumber('#.')}";
           columnSeries.columns.template.tooltipText = "{valueX.formatNumber('#.')}";
-        
+          
           /**
            * Pie chart
            */
@@ -486,14 +544,17 @@
               // Update column chart
               columnSeries.appeared = false;
               columnChart.data = ev.target.dataItem.dataContext.breakdown;
-              columnSeries.fill = ev.target.fill;
+              //columnSeries.fill = ev.target.fill;
               columnSeries.reinit();
-              
+
+
+              columnSeries.columns.template.propertyFields.fill = "color";
               // Update labels
               label1.text = pieChart.numberFormatter.format(ev.target.dataItem.values.value.percent, "#.'%'");
               label1.fill = ev.target.fill;
               
               label2.text = ev.target.dataItem.category;
+              //console.log(columnChart.data[0].category);
             }
           });
 
