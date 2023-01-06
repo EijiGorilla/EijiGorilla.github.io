@@ -661,7 +661,7 @@ title.fill = TOP_TITLE_COL;
 var label = chart.chartContainer.createChild(am4core.Label);
 label.text = "[bold]HANDED-OVER AREA";
 //label.html = '<a href="https://google.com">HANDED-OVER AREA</a>';
-label.fontSize = "1.5em";
+label.fontSize = "1.4em";
 label.align = "center";
 label.marginTop = 0;
 label.fill = BOTTOM_LABEL_COL;
@@ -726,7 +726,7 @@ range.label.location = 0.5;
 range.label.inside = true;
 range.label.radius = am4core.percent(10);
 range.label.paddingBottom = -5; // ~half font size
-range.label.fontSize = "1.5em"; // category label (i.e., N-01, N-02, ....)
+range.label.fontSize = "1.4em"; // category label (i.e., N-01, N-02, ....)
 
 }
 
@@ -738,7 +738,7 @@ var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
 var label = chart.radarContainer.createChild(am4core.Label);
 label.isMeasured = false;
-label.fontSize = "3.8em";
+label.fontSize = "3.5em";
 label.x = am4core.percent(50);
 label.y = am4core.percent(100);
 label.paddingBottom = -5;
@@ -998,7 +998,7 @@ title.fill = TOP_TITLE_COL;
 // Add bottom label
 var label = chart.chartContainer.createChild(am4core.Label);
 label.text = "[bold]DISMANTLED";
-label.fontSize = "1.5em";
+label.fontSize = "1.4em";
 label.align = "center";
 label.marginTop = 0;
 label.fill = BOTTOM_LABEL_COL;
@@ -1063,7 +1063,7 @@ range.label.location = 0.5;
 range.label.inside = true;
 range.label.radius = am4core.percent(10);
 range.label.paddingBottom = -5; // ~half font size
-range.label.fontSize = "1.5em"; // category label (i.e., N-01, N-02, ....)
+range.label.fontSize = "1.4em"; // category label (i.e., N-01, N-02, ....)
 }
 
 var matchingGrade = lookUpGrade(data.score, data.gradingData);
@@ -1074,7 +1074,7 @@ var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
 var label = chart.radarContainer.createChild(am4core.Label);
 label.isMeasured = false;
-label.fontSize = "3.8em";
+label.fontSize = "3.5em";
 label.x = am4core.percent(50);
 label.y = am4core.percent(100);
 label.paddingBottom = -5;
@@ -1336,7 +1336,7 @@ title.fill = TOP_TITLE_COL;
 // Add bottom label
 var label = chart.chartContainer.createChild(am4core.Label);
 label.text = "[bold]RELOCATED";
-label.fontSize = "1.5em";
+label.fontSize = "1.4em";
 label.align = "center";
 label.marginTop = 0;
 label.fill = BOTTOM_LABEL_COL;
@@ -1401,7 +1401,7 @@ range.label.location = 0.5;
 range.label.inside = true;
 range.label.radius = am4core.percent(10);
 range.label.paddingBottom = -5; // ~half font size
-range.label.fontSize = "1.5em"; // category label (i.e., N-01, N-02, ....)
+range.label.fontSize = "1.4em"; // category label (i.e., N-01, N-02, ....)
 }
 
 var matchingGrade = lookUpGrade(data.score, data.gradingData);
@@ -1412,7 +1412,7 @@ var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
 var label = chart.radarContainer.createChild(am4core.Label);
 label.isMeasured = false;
-label.fontSize = "3.8em";
+label.fontSize = "3.5em";
 label.x = am4core.percent(50);
 label.y = am4core.percent(100);
 label.paddingBottom = -5;
@@ -1673,7 +1673,7 @@ title.fill = TOP_TITLE_COL;
 // Add bottom label
 var label = chart.chartContainer.createChild(am4core.Label);
 label.text = "[bold]CUT/EARTHBALLED";
-label.fontSize = "1.5em";
+label.fontSize = "1.4em";
 label.align = "center";
 label.marginTop = 0;
 label.fill = BOTTOM_LABEL_COL;
@@ -1738,7 +1738,7 @@ range.label.location = 0.5;
 range.label.inside = true;
 range.label.radius = am4core.percent(10);
 range.label.paddingBottom = -5; // ~half font size
-range.label.fontSize = "1.5em"; // category label (i.e., N-01, N-02, ....)
+range.label.fontSize = "1.4em"; // category label (i.e., N-01, N-02, ....)
 }
 
 var matchingGrade = lookUpGrade(data.score, data.gradingData);
@@ -1749,7 +1749,7 @@ var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
 var label = chart.radarContainer.createChild(am4core.Label);
 label.isMeasured = false;
-label.fontSize = "3.8em";
+label.fontSize = "3.5em";
 label.x = am4core.percent(50);
 label.y = am4core.percent(100);
 label.paddingBottom = -5;
@@ -2008,7 +2008,7 @@ title.fill = TOP_TITLE_COL;
 // Add bottom label
 var label = chart.chartContainer.createChild(am4core.Label);
 label.text = "[bold]COMPENSATED";
-label.fontSize = "1.5em";
+label.fontSize = "1.4em";
 label.align = "center";
 label.marginTop = 0;
 label.fill = BOTTOM_LABEL_COL;
@@ -2073,7 +2073,7 @@ range.label.location = 0.5;
 range.label.inside = true;
 range.label.radius = am4core.percent(10);
 range.label.paddingBottom = -5; // ~half font size
-range.label.fontSize = "1.5em"; // category label (i.e., N-01, N-02, ....)
+range.label.fontSize = "1.4em"; // category label (i.e., N-01, N-02, ....)
 }
 
 var matchingGrade = lookUpGrade(data.score, data.gradingData);
@@ -2084,7 +2084,7 @@ var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
 var label = chart.radarContainer.createChild(am4core.Label);
 label.isMeasured = false;
-label.fontSize = "3.8em";
+label.fontSize = "3.5em";
 label.x = am4core.percent(50);
 label.y = am4core.percent(100);
 label.paddingBottom = -5;
@@ -2464,7 +2464,7 @@ title.fill = TOP_TITLE_COL;
 // Add bottom label
 var label = chart.chartContainer.createChild(am4core.Label);
 label.text = "[bold]COMPLETED";
-label.fontSize = "1.5em";
+label.fontSize = "1.4em";
 label.align = "center";
 label.marginTop = 0;
 label.fill = BOTTOM_LABEL_COL;
@@ -2529,7 +2529,7 @@ range.label.location = 0.5;
 range.label.inside = true;
 range.label.radius = am4core.percent(10);
 range.label.paddingBottom = -5; // ~half font size
-range.label.fontSize = "1.5em"; // category label (i.e., N-01, N-02, ....)
+range.label.fontSize = "1.4em"; // category label (i.e., N-01, N-02, ....)
 }
 
 var matchingGrade = lookUpGrade(data.score, data.gradingData);
@@ -2540,7 +2540,7 @@ var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
 var label = chart.radarContainer.createChild(am4core.Label);
 label.isMeasured = false;
-label.fontSize = "3.8em";
+label.fontSize = "3.5em";
 label.x = am4core.percent(50);
 label.y = am4core.percent(100);
 label.paddingBottom = -5;
