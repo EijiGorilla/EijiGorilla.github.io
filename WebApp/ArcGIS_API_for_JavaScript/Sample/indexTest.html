@@ -15,8 +15,8 @@
       href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"
     />
     <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
     <script src="https://js.arcgis.com/4.25/"></script>
 
     <style>
@@ -44,6 +44,26 @@
         border-width: 2px;
         border-color: #323232;
         border-style: solid;
+      }
+
+      #chartdiv {
+        position: absolute;
+        z-index: 99;
+        top: 0;
+        right: 0;
+        width: 40vw;
+        height: 50%;
+        background-color: white;
+      }
+
+      #chartdiv1 {
+        position: absolute;
+        z-index: 99;
+        bottom: 0;
+        right: 0;
+        width: 40vw;
+        height: 20%;
+        background-color: white;
       }
     </style>
 
@@ -261,9 +281,25 @@
             "PRO", // 16
             "S-DW", "S-DR", "S-RP", "S-JW", "S-RN", "S-WS", "S-CN", "S-HB", "S-F", "S-W", "S-E", "S-C", //17-28
             "S-H" // 29
-        ]       
+        ]
 
-        function originalFunction() {
+        const zoneSummaryCode = [
+          "AG",
+          "C",
+          "GO",
+          "PL",
+          "E",
+          "I",
+          "R",
+          "NR",
+          "PRO",
+          "S",
+          "S-H"
+        ]
+
+        am4core.ready(function() {
+          am4core.useTheme(am4themes_animated);
+          function originalFunction() {
             return layer.queryFeatures(query).then(function(response) {
             stats = response.features;
             const codeValues = [];
@@ -271,11 +307,8 @@
                 const attributes = result.attributes;
                 const code = attributes.zonecode;
                 const INDEX = zoneCode.indexOf(code) + 1;
-                
                 codeValues.push(INDEX);
-
             });
-            
             return codeValues;
          });
         }
@@ -285,14 +318,191 @@
             for (let i = 0; i < codeValues.length; i++) {
                 codeValueCount[codeValues[i]] = 1 + (codeValueCount[codeValues[i]] || 0);
             }
-            console.log(codeValueCount);
+            const AG = codeValueCount[1];
+            const C = codeValueCount[2] + codeValueCount[3] + codeValueCount[4];
+            const GO = codeValueCount[5];
+            const PL = codeValueCount[6];
+            const E = codeValueCount[7] + codeValueCount[8];
+            const I = codeValueCount[9] + codeValueCount[10];
+            const R = codeValueCount[11] + codeValueCount[12] + codeValueCount[13] + codeValueCount[14];
+            const NR = codeValueCount[15];
+            const PRO = codeValueCount[16];
+            const S = codeValueCount[17] + codeValueCount[18] + codeValueCount[19] + codeValueCount[20] +
+                      codeValueCount[21] + codeValueCount[22] + codeValueCount[23] + codeValueCount[24] +
+                      codeValueCount[25] + codeValueCount[26] + codeValueCount[27] + codeValueCount[28];
+            const SH = codeValueCount[29];
 
-            const zc_AG = codeValueCount[1];
-            const zc_C = codeValueCount[2] + codeValueCount[3] + codeValueCount[4];
+            const codeValueCountSum = {1: AG, 2: C, 3: GO, 4: PL, 5: E, 6: I, 7: R, 8: NR, 9: PRO, 10: S, 11: SH};
             
+            return [codeValueCount, codeValueCountSum];
         }
 
-        originalFunction().then(getCountEachCode);
+        originalFunction().then(getCountEachCode).then(codeChart2);
+        function codeChart2([codeValueCount, codeValueCountSum]) {
+          var chart = am4core.create("chartdiv1", am4charts.PieChart);
+          // Add data
+          chart.data = [ {
+            "category": zoneSummaryCode[0],
+            "value": codeValueCountSum[1],
+            "color": am4core.color("#dc4534"),
+          }, {
+            "category": zoneSummaryCode[1],
+            "value": codeValueCountSum[2],
+            "color": am4core.color("#d7a700"),
+          }, {
+            "category": zoneSummaryCode[2],
+            "value": codeValueCountSum[3],
+            "color": am4core.color("#68ad5c"),
+          }
+          ];
+
+          // Add and configure Series
+          var pieSeries = chart.series.push(new am4charts.PieSeries());
+          pieSeries.dataFields.value = "value";
+          pieSeries.dataFields.category = "category";
+          pieSeries.slices.template.stroke = am4core.color("#fff");
+          pieSeries.slices.template.strokeOpacity = 1;
+          pieSeries.slices.template.propertyFields.fill = "color";
+          // This creates initial animation
+          pieSeries.hiddenState.properties.opacity = 1;
+          pieSeries.hiddenState.properties.endAngle = -90;
+          pieSeries.hiddenState.properties.startAngle = -90;
+
+          chart.hiddenState.properties.radius = am4core.percent(0);
+          pieSeries.innerRadius = am4core.percent(50);
+
+        }
+
+
+        function codeChart([codeValueCount, codeValueCountSum]) {
+          var data = [{
+            "category": zoneSummaryCode[0],
+            "value": codeValueCountSum[1],
+            "color": am4core.color("#dc4534"),
+
+          }, {
+            "category": zoneSummaryCode[1],
+            "value": codeValueCountSum[2],
+            "color": am4core.color("#d7a700"),
+            "breakdown": [{
+              "category": zoneCode[1],
+              "value": codeValueCount[2]
+            }, {
+              "category": zoneCode[2],
+              "value": codeValueCount[3]
+            }, {
+              "category": zoneCode[3],
+              "value": codeValueCount[4]
+            }]
+          }, {
+            "category": zoneSummaryCode[2],
+            "value": codeValueCountSum[3],
+            "color": am4core.color("#68ad5c"),
+          }]
+
+          /**
+           * Chart container
+           */
+
+          // Create chart instance
+          var chart = am4core.create("chartdiv", am4core.Container);
+          chart.width = am4core.percent(100);
+          chart.height = am4core.percent(100);
+          chart.layout = "horizontal";
+
+
+
+          /**
+           * Column chart
+           */
+
+          // Create chart instance
+          var columnChart = chart.createChild(am4charts.XYChart);
+
+          // Create axes
+          var categoryAxis = columnChart.yAxes.push(new am4charts.CategoryAxis());
+          categoryAxis.dataFields.category = "category";
+          categoryAxis.renderer.grid.template.location = 0;
+          categoryAxis.renderer.inversed = true;
+
+          var valueAxis = columnChart.xAxes.push(new am4charts.ValueAxis());
+
+          // Create series
+          var columnSeries = columnChart.series.push(new am4charts.ColumnSeries());
+          columnSeries.dataFields.valueX = "value";
+          columnSeries.dataFields.categoryY = "category";
+          columnSeries.columns.template.strokeWidth = 0;
+
+          var labelBullet = columnSeries.bullets.push(new am4charts.LabelBullet());
+          labelBullet.label.text = "{valueX.formatNumber('#.')}";
+          columnSeries.columns.template.tooltipText = "{valueX.formatNumber('#.')}";
+        
+          /**
+           * Pie chart
+           */
+
+          // Create chart instance
+          var pieChart = chart.createChild(am4charts.PieChart);
+          pieChart.data = data;
+          pieChart.innerRadius = am4core.percent(50);
+
+          // Add and configure Series
+          var pieSeries = pieChart.series.push(new am4charts.PieSeries());
+          pieSeries.dataFields.value = "value";
+          pieSeries.dataFields.category = "category";
+          pieSeries.slices.template.propertyFields.fill = "color";
+          pieSeries.labels.template.disabled = true;
+
+          // Set up labels
+          var label1 = pieChart.seriesContainer.createChild(am4core.Label);
+          label1.text = "";
+          label1.horizontalCenter = "middle";
+          label1.fontSize = 35;
+          label1.fontWeight = 600;
+          label1.dy = -30;
+
+          var label2 = pieChart.seriesContainer.createChild(am4core.Label);
+          label2.text = "";
+          label2.horizontalCenter = "middle";
+          label2.fontSize = 12;
+          label2.dy = 20;
+
+          // Auto-select first slice on load
+          pieChart.events.on("ready", function(ev) {
+            pieSeries.slices.getIndex(0).isActive = true;
+          });
+
+          // Set up toggling events
+          pieSeries.slices.template.events.on("toggled", function(ev) {
+            if (ev.target.isActive) {
+              
+              // Untoggle other slices
+              pieSeries.slices.each(function(slice) {
+                if (slice != ev.target) {
+                  slice.isActive = false;
+                }
+              });
+              
+              // Update column chart
+              columnSeries.appeared = false;
+              columnChart.data = ev.target.dataItem.dataContext.breakdown;
+              columnSeries.fill = ev.target.fill;
+              columnSeries.reinit();
+              
+              // Update labels
+              label1.text = pieChart.numberFormatter.format(ev.target.dataItem.values.value.percent, "#.'%'");
+              label1.fill = ev.target.fill;
+              
+              label2.text = ev.target.dataItem.category;
+            }
+          });
+
+        }
+
+        originalFunction().then(getCountEachCode).then(codeChart);
+
+        });
+
 
 
 
@@ -323,6 +533,9 @@
 
   <body>
     <div id="legend-node" class="esri-widget"></div>
-    <div id="viewDiv"></div>
+    <div id="chartdiv1"></div>
+    <div id="viewDiv">
+      <div id="chartdiv"></div>
+    </div>
   </body>
 </html>
