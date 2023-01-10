@@ -331,6 +331,14 @@ function legendCP() {
     "color": am4core.color("#BF40BF")
   }
   ];
+
+
+  var title = chart.titles.create();
+  title.text = "CP"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+  title.fontSize = 20;
+  title.fill = "#ffffff";
+  title.marginTop = 150;
+  title.marginBottom = -40;
   
   // Set inner radius
   chart.innerRadius = am4core.percent(0);
