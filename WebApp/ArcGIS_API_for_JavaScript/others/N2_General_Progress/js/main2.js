@@ -306,39 +306,31 @@ function legendCP() {
   // Add data
   chart.data = [
   {
-    "CP": "N-01 (%)",
+    "CP": "CP N-01 (%)",
     "status": n01,
     "color": am4core.color("#ffa500")
   },
   {
-    "CP": "N-02 (%)",
+    "CP": "CP N-02 (%)",
     "status": n02,
     "color": am4core.color("#00ff00")
   },
   {
-    "CP": "N-03 (%)",
+    "CP": "CP N-03 (%)",
     "status": n03,
     "color": am4core.color("#00c5ff")   
   },
   {
-    "CP": "N-04 (%)",
+    "CP": "CP N-04 (%)",
     "status": n04,
     "color": am4core.color("#FFFF00") 
   },
   {
-    "CP": "N-05 (%)",
+    "CP": "CP N-05 (%)",
     "status": n05,
     "color": am4core.color("#BF40BF")
   }
   ];
-
-
-  var title = chart.titles.create();
-  title.text = "CP"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
-  title.fontSize = 20;
-  title.fill = "#ffffff";
-  title.marginTop = 150;
-  title.marginBottom = -40;
   
   // Set inner radius
   chart.innerRadius = am4core.percent(0);
