@@ -1386,6 +1386,61 @@ const options = {
     }
   
     renderStructureLayer();
+
+    // TBM Shaft
+    var tbmShaft = new SceneLayer({ //structureLayer
+      portalItem: {
+        id: "0bba3bc8c087412b89a3d72a47a1c6aa",
+        portal: {
+          url: "https://gis.railway-sector.com/portal"
+        }
+      },
+      popupEnabled: false,
+        elevationInfo: {
+            mode: "absolute-height",
+            offset: 0
+        },
+        title: "TBM Shaft"
+        // when filter using date, example below. use this format
+        //definitionExpression: "EndDate = date'2020-6-3'"
+    });
+    map.add(tbmShaft, 1);
+  
+    function renderTbmShaftLayer() {
+      const renderer = new UniqueValueRenderer({
+        field: "Status"
+      });
+  
+      for (let property in colors3D) {
+        if (colors3D.hasOwnProperty(property)) {
+          renderer.addUniqueValueInfo({
+            value: property,
+            symbol: {
+              type: "mesh-3d",
+              symbolLayers: [
+                {
+                  type: "fill",
+                  material: {
+                    color: colors3D[property],
+                    colorMixMode: "replace"
+                  },
+                  edges: {
+                    type: "solid", // autocasts as new SolidEdges3D()
+                    color: [225, 225, 225, 0.8], //225, 225, 225, 0.3
+                    size: 1
+                    }
+                }
+              ]
+             }
+          });
+        }
+      }
+  
+      tbmShaft.renderer = renderer;
+    }
+  
+    renderTbmShaftLayer();
+  
   
   // Bridge Layer:-------------------        
     var bridgeLayer = new SceneLayer({
@@ -1862,6 +1917,8 @@ const options = {
   // Bottom Title Color
 const BOTTOM_LABEL_COL = am4core.color("#FFA500");
 const TOP_TITLE_COL = am4core.color("#FFFFFF");
+const LABEL_FILL_COL = am4core.color("#00C3FF");
+
 var axis1TickColor = "#C5C5C5";
 const chartPadding = 15;
 
@@ -1907,7 +1964,14 @@ const NEEDLE_LENGTH = am4core.percent(70);
     chart.resizable = true;
     //chart.scale = 1;
     
-      
+    // Add bottom label
+    var label = chart.chartContainer.createChild(am4core.Label);
+    label.text = "Segmented";
+    label.fontSize = "0.9em";
+    label.align = "center";
+    label.marginTop = -20;
+    label.fill = LABEL_FILL_COL;
+
     /**
     * Normal axis
     */
@@ -1949,7 +2013,7 @@ const NEEDLE_LENGTH = am4core.percent(70);
     range0.value = 0;
     range0.endValue = LOT_HANDOVER_PERC;
     range0.axisFill.fillOpacity = 1;
-    range0.axisFill.fill = am4core.color("#00C3FF");
+    range0.axisFill.fill = LABEL_FILL_COL;
     
     var range1 = axis2.axisRanges.create();
     range1.value = LOT_HANDOVER_PERC;
@@ -1960,7 +2024,7 @@ const NEEDLE_LENGTH = am4core.percent(70);
     
     /**
     * Label
-    */
+    */       
     var label = chart.radarContainer.createChild(am4core.Label);
     label.isMeasured = false;
     label.fontSize = "2em";
@@ -1971,7 +2035,7 @@ const NEEDLE_LENGTH = am4core.percent(70);
     
     const LABEL_TEXT = LOT_HANDOVER_PERC.toFixed(0).toString() + "%";
     label.text = LABEL_TEXT;
-    label.fill =  am4core.color("#00C3FF");
+    label.fill =  LABEL_FILL_COL;
     
     
     /**
@@ -1992,14 +2056,13 @@ const NEEDLE_LENGTH = am4core.percent(70);
     // Add chart title
     var title = chart.titles.create();
     title.text = "[bold]TBM Tunnel";
-    title.fontSize = "1.2em";
+    title.fontSize = "1.1em";
     title.align = "center";
     title.marginBottom = -25;
     title.marginTop = 0;
     title.fill = TOP_TITLE_COL; 
     });
     }
-
 
   
   // 2. NATM
@@ -2039,7 +2102,14 @@ const NEEDLE_LENGTH = am4core.percent(70);
     chart.resizable = true;
     //chart.scale = 1;
     
-      
+    // Add bottom label
+    var label = chart.chartContainer.createChild(am4core.Label);
+    label.text = "Segmented";
+    label.fontSize = "0.9em";
+    label.align = "center";
+    label.marginTop = -20;
+    label.fill = LABEL_FILL_COL;
+  
     /**
     * Normal axis
     */
@@ -2081,7 +2151,7 @@ const NEEDLE_LENGTH = am4core.percent(70);
     range0.value = 0;
     range0.endValue = LOT_HANDOVER_PERC;
     range0.axisFill.fillOpacity = 1;
-    range0.axisFill.fill = am4core.color("#00C3FF");
+    range0.axisFill.fill = LABEL_FILL_COL;
     
     var range1 = axis2.axisRanges.create();
     range1.value = LOT_HANDOVER_PERC;
@@ -2103,7 +2173,7 @@ const NEEDLE_LENGTH = am4core.percent(70);
     
     const LABEL_TEXT = LOT_HANDOVER_PERC.toFixed(0).toString() + "%";
     label.text = LABEL_TEXT;
-    label.fill =  am4core.color("#00C3FF");
+    label.fill =  LABEL_FILL_COL;
     
     
     /**
@@ -2244,7 +2314,7 @@ const NEEDLE_LENGTH = am4core.percent(70);
     // Chart Title
     let title = chart.titles.create();
     title.text = "DILAPIDATION SURVEY";
-    title.fontSize = "1.2em";
+    title.fontSize = "1.1em";
     title.fontWeight = "bold";
     title.align = "center";
     title.marginBottom = 0;
