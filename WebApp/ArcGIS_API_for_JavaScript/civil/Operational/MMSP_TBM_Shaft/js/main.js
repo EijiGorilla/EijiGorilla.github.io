@@ -34,7 +34,8 @@ require([
   "esri/Ground",
   "esri/widgets/BasemapToggle",
   "esri/popup/content/ImageMediaInfo",
-  "esri/popup/content/AttachmentsContent"
+  "esri/popup/content/AttachmentsContent",
+  "esri/widgets/ElevationProfile"
 ], function(Basemap, Map, MapView, SceneView, 
             FeatureLayer, FeatureFilter,
             SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -45,7 +46,7 @@ require([
             StatisticDefinition, WebStyleSymbol,
             TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
             FeatureTable, Compass, ElevationLayer, Ground, BasemapToggle,
-            ImageMediaInfo, AttachmentsContent) {
+            ImageMediaInfo, AttachmentsContent, ElevationProfile) {
 
 let chartLayerView;
 ////////////////////////////////////////////////////
@@ -140,6 +141,8 @@ const worldElevation = new ElevationLayer({
   var headerTitleDiv = document.getElementById("headerTitleDiv");
   var applicationDiv = document.getElementById("applicationDiv");
   const StructureTypesButton = document.getElementById("dataTypeInput");
+
+
 
 //*******************************//
 // Label Class Property Settings //
