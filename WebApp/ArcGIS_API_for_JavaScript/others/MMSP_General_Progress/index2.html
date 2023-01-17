@@ -28,31 +28,62 @@
   <body class="calcite-theme-dark">
     <calcite-loader></calcite-loader>
     <calcite-shell content-behind>
-      <div id="applicationDiv">
-        <div id="headerTitleDiv">General Progress of MMSP Pre-Construction</div>
-        <div class="contentBox">
-          <div class="container">
-            <div class="landStrucIsfBox">
-              <div id="landChartDiv"></div>
-              <div id="structureChartDiv"></div>
-              <div id="isfChartDiv"></div>
+      <calcite-tabs>
+        <div id="applicationDiv">
+          <div id="headerTitleDiv">General Progress of MMSP Pre-Construction</div>
+          <calcite-tab-nav slot="tab-nav" id="thetabs">
+            <calcite-tab-title class="Stations" selected>Stations</calcite-tab-title>
+            <calcite-tab-title class="Subterranean">Subterranean</calcite-tab-title>
+          </calcite-tab-nav>
+          <calcite-tab>
+            <div class="contentBox">
+              <div class="container">
+                  <div class="landStrucIsfBox">
+                    <div id="landChartDiv"></div>
+                    <div id="structureChartDiv"></div>
+                    <div id="isfChartDiv"></div>
+                  </div>
+                <div class="treeBox">
+                  <div id="treeCuttingChartDiv"></div>
+                  <div id="treeCompenChartDiv"></div>
+                  <div id="treeEmptyChartDiv"></div>
+                </div>
+                <div class="utilityBox">
+                  <div id="utilityPointChartDiv"></div>
+                  <div id="utilityLineChartDiv"></div>
+                  <div id="utilityEmptyChartDiv"></div>
+                </div>      
             </div>
-            <div class="treeBox">
-              <div id="treeCuttingChartDiv"></div>
-              <div id="treeCompenChartDiv"></div>
-              <div id="treeEmptyChartDiv"></div>
             </div>
-            <div class="utilityBox">
-              <div id="utilityPointChartDiv"></div>
-              <div id="utilityLineChartDiv"></div>
-              <div id="utilityEmptyChartDiv"></div>
-            </div>      
+          </calcite-tab>
+          <calcite-tab>
+            <div class="contentBox2">
+              <div class="container2">
+                  <div class="landStrucIsfBox2">
+                    <div id="landChartDiv2"></div>
+                    <div id="structureChartDiv"></div>
+                    <div id="isfChartDiv"></div>
+                  </div>
+                <div class="treeBox2">
+                  <div id="treeCuttingChartDiv"></div>
+                  <div id="treeCompenChartDiv"></div>
+                  <div id="treeEmptyChartDiv"></div>
+                </div>
+                <div class="utilityBox2">
+                  <div id="utilityPointChartDiv"></div>
+                  <div id="utilityLineChartDiv"></div>
+                  <div id="utilityEmptyChartDiv"></div>
+                </div>      
+            </div>
+            </div>
+          </calcite-tab>
+
+            <div id="legendChartDiv"></div>
+          <div class="dateDiv">December 31, 2022</div>
+          <div id="informationDiv"></div>
         </div>
-        </div>
-          <div id="legendChartDiv"></div>
-        <div class="dateDiv">December 31, 2022</div>
-        <div id="informationDiv"></div>
-      </div>
+      </calcite-tabs>
+
     </calcite-shell>
   </body>
 
@@ -80,6 +111,11 @@ calcite-shell-panel {
     bottom: 0;
 }
 
+calcite-tab-nav {
+      margin: auto;
+      width: 20vw;
+    }
+
 #info-content {
       padding: 0.75rem;
     }
@@ -102,14 +138,16 @@ calcite-shell-panel {
   padding: 0;
 }
 
-.contentBox {
+.contentBox,
+.contentBox2 {
   display: grid;
   grid-template-columns: 80vw 17.8vw;
   width: 100%;
   height: 88vh;
 }
 
-.container {
+.container,
+.container2 {
   display: grid;
   flex-wrap: wrap;
   height: 88vh;
@@ -143,7 +181,9 @@ calcite-shell-panel {
 }
 
 .landStrucIsfBox,
-.treeBox {
+.treeBox,
+.landStrucIsfBox2,
+.treeBox2 {
   display: inline-flex;
   height: 30.5vh;
   width: 100%;
@@ -155,7 +195,8 @@ calcite-shell-panel {
   border-bottom: 0.7px solid rgb(185, 171, 171);
 }
 
-.utilityBox {
+.utilityBox,
+.utilityBox2 {
   display: inline-flex;
   height: 29.5vh;
   width: 100%;
@@ -179,6 +220,7 @@ calcite-shell-panel {
 }
 
 #landChartDiv,
+#landChartDiv2,
 #structureChartDiv,
 #isfChartDiv,
 #treeCuttingChartDiv,
@@ -1069,9 +1111,387 @@ hand.showValue(value, 1000, am4core.ease.cubicOut);
 */
 
 }
-totalLotNumberStation()
+
+function lotChart() {
+  totalLotNumberStation()
 .then(lotSummaryStation)
 .then(laFigureLotStation);
+}
+
+// Land (Subterranean)
+function totalLotNumberStation2() {
+    var total_number_lot = {
+        onStatisticField: "CASE WHEN StatusNVS3 >= 1 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_number_lot",
+        statisticType: "sum"
+    };
+
+    var query = lotLayer.createQuery();
+    query.outStatistics = [total_number_lot];
+    query.where = "Type = 'Subterranean'";
+
+    return lotLayer.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+
+        const totalNumberLot = stats.total_number_lot;
+        //const LOT_HANDOVER_PERC = (handedOver/affected)*100;
+        return totalNumberLot;
+    });
+}
+
+function lotSummaryStation2(totalNumberLot) {
+    var total_lot_number = {
+        onStatisticField: "CASE WHEN StatusNVS3 >= 1 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_lot_number",
+        statisticType: "sum"
+    }
+
+    var total_lot_handedOver = {
+        onStatisticField: "CASE WHEN HandedOver = 1 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_lot_handedOver",
+        statisticType: "sum"
+    }
+
+var query = lotLayer.createQuery();
+query.outStatistics = [total_lot_number, total_lot_handedOver];
+query.returnGeometry = true;
+query.where = "Type = 'Subterranean'";
+query.groupByFieldsForStatistics = ["Package"];
+
+    var cp101 = [];
+    var cp101_a = [];
+
+    var cp102 = [];
+    var cp102_a = [];
+
+    var cp103 = [];
+    var cp103_a = [];
+
+    var cp104 = [];
+    var cp104_a = [];
+
+    var cp105 = [];
+    var cp105_a = [];
+
+    var cp105 = [];
+    var cp105_a = [];
+
+    var cp108 = [];
+    var cp108_a = [];
+
+    var cp109 = [];
+    var cp109_a = [];
+
+return lotLayer.queryFeatures(query).then(function(response) {
+stats = response.features;
+
+stats.forEach((result, index) => {
+const attributes = result.attributes;
+const cpPackage = result.attributes.Package;
+const totalLot = attributes.total_lot_number;
+const totalHandedOver = attributes.total_lot_handedOver;
+const LOT_HANDOVER_PERC = (totalHandedOver/totalNumberLot)*100;
+const lot_handedover_perc = (totalHandedOver/totalLot)*100;
+
+if (cpPackage === 'CP101') {
+  cp101.push(LOT_HANDOVER_PERC);
+  cp101_a.push(lot_handedover_perc);
+
+} else if (cpPackage === 'CP102') {
+  cp102.push(LOT_HANDOVER_PERC);
+  cp102_a.push(lot_handedover_perc);
+
+} else if (cpPackage === 'CP103') {
+  cp103.push(LOT_HANDOVER_PERC);
+  cp103_a.push(lot_handedover_perc);
+
+} else if (cpPackage === 'CP104') {
+  cp104.push(LOT_HANDOVER_PERC);
+  cp104_a.push(lot_handedover_perc);
+
+} else if (cpPackage === 'CP105') {
+  cp105.push(LOT_HANDOVER_PERC);
+  cp105_a.push(lot_handedover_perc);
+
+} else if (cpPackage === 'CP108') {
+  cp108.push(LOT_HANDOVER_PERC);
+  cp108_a.push(lot_handedover_perc);
+
+} else if (cpPackage === 'CP109') {
+  cp109.push(LOT_HANDOVER_PERC);
+  cp109_a.push(lot_handedover_perc);
+}
+
+
+});
+
+return [cp101, cp102, cp103, cp104, cp105, cp108, cp109,
+        cp101_a, cp102_a, cp103_a, cp104_a, cp105_a, cp108_a, cp109_a];
+});
+
+} // End of lotSummary function
+
+function laFigureLotStation2([cp101, cp102, cp103, cp104, cp105, cp108, cp109, cp101_a, cp102_a, cp103_a, cp104_a, cp105_a, cp108_a, cp109_a]) {
+const totalScore = Number(cp101) + Number(cp102) + Number(cp103) + Number(cp104) + Number(cp105) + Number(cp108) + Number(cp109);
+
+const CP101 = Number(cp101);
+const CP102 = Number(cp101) + Number(cp102);
+const CP103 = Number(cp101) + Number(cp102) + Number(cp103);
+const CP104 = Number(cp101) + Number(cp102) + Number(cp103) + Number(cp104);
+const CP105 = Number(cp101) + Number(cp102) + Number(cp103) + Number(cp104) + Number(cp105);
+const CP108 = Number(cp101) + Number(cp102) + Number(cp103) + Number(cp104) + Number(cp105) + Number(cp108);
+const CP109 = Number(cp101) + Number(cp102) + Number(cp103) + Number(cp104) + Number(cp105) + Number(cp108) + Number(cp109);
+
+var chartMin = 0;
+var chartMax = 100;
+
+// #ffea8c|#b3ab60|#4b595e|#6693c8|#aadbff
+// const colors = ["#ffea8c", "#b3ab60", "#4b595e", "#6693c8", "#aadbff"];
+
+var data = {
+score: totalScore,
+gradingData: [
+{
+  title: Number(cp101).toFixed(0),
+  color: color_101,
+  lowScore: 0,
+  highScore: CP101
+},
+{
+  title: Number(cp102).toFixed(0),
+  color: color_102,
+  lowScore: CP101,
+  highScore: CP102
+},
+{
+  title: Number(cp103).toFixed(0),
+  color: color_103,
+  lowScore: CP102,
+  highScore: CP103
+},
+{
+  title: Number(cp104).toFixed(0),
+  color: color_104,
+  lowScore: CP103,
+  highScore: CP104
+},
+{
+  title: Number(cp105).toFixed(0),
+  color: color_105,
+  lowScore: CP104,
+  highScore: CP105
+},
+{
+  title: Number(cp108).toFixed(0),
+  color: color_108,
+  lowScore: CP105,
+  highScore: CP108
+},
+{
+  title: Number(cp109).toFixed(0),
+  color: color_109,
+  lowScore: CP108,
+  highScore: CP109
+},
+{
+  title: "",
+  color: "#C5C5C5",
+  lowScore: CP109,
+  highScore: 100
+}
+]
+};
+
+/**
+Grading Lookup
+*/
+function lookUpGrade(lookupScore, grades) {
+// Only change code below this line
+for (var i = 0; i < grades.length; i++) {
+if (
+  grades[i].lowScore < lookupScore &&
+  grades[i].highScore >= lookupScore
+) {
+  return grades[i];
+}
+}
+return null;
+}
+
+// create chart
+var chart = am4core.create("landChartDiv2", am4charts.GaugeChart);
+chart.hiddenState.properties.opacity = 0;
+chart.fontSize = 11;
+chart.innerRadius = am4core.percent(80);
+chart.resizable = true;
+chart.responsive.enabled = true;
+/**
+* Chart Title
+*/
+// Title Color
+
+
+var title = chart.titles.create();
+//'<a href="https://google.com"}">More info</a>'
+
+//title.text = "[bold]LAND";
+title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/MMSP_Land_Structure/index4.html" target="_blank">LAND</a>';
+title.fontSize = "1.7em";
+title.align = "center";
+title.marginBottom = -10;
+title.marginTop = 0;
+title.fill = TOP_TITLE_COL;
+
+//var sourceLabel = chart.createChild(am4core.Label);
+//sourceLabel.html = '<a href="https://google.com">Test</a>';
+
+// Add bottom label
+var label = chart.chartContainer.createChild(am4core.Label);
+label.text = "[bold]HANDED-OVER";
+//label.html = '<a href="https://google.com">HANDED-OVER AREA</a>';
+label.fontSize = "1.4em";
+label.align = "center";
+label.marginTop = labelMarginTop;
+label.fill = BOTTOM_LABEL_COL;
+
+/**
+* Normal axis
+*/
+
+var axis = chart.xAxes.push(new am4charts.ValueAxis());
+axis.min = chartMin;
+axis.max = chartMax;
+axis.strictMinMax = true;
+axis.renderer.radius = am4core.percent(80);
+axis.renderer.inside = true;
+axis.renderer.line.strokeOpacity = 0.5; // line opacity inside curve line
+axis.renderer.ticks.template.disabled = false;
+axis.renderer.ticks.template.strokeOpacity = 1;
+//axis.renderer.ticks.template.strokeWidth = 1;
+axis.renderer.ticks.template.length = 10;
+axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
+//axis.renderer.grid.template.disabled = true;
+axis.renderer.labels.template.radius = am4core.percent(40);
+axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em inner radius axis percent labels (0 to 100%)
+axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
+
+/**
+* Axis for ranges
+*/
+
+var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+axis2.min = chartMin;
+axis2.max = chartMax;
+axis2.strictMinMax = true;
+axis2.renderer.labels.template.disabled = true;
+axis2.renderer.ticks.template.disabled = true;
+axis2.renderer.grid.template.disabled = true; // when true inside tick marks will disappear
+axis2.renderer.grid.template.opacity = 0.5;
+axis2.renderer.labels.template.bent = true;
+axis2.renderer.labels.template.fill = am4core.color("#000");
+axis2.renderer.labels.template.fontWeight = "bold";
+axis2.renderer.labels.template.fillOpacity = 0.7;
+
+
+
+/**
+Ranges
+*/
+
+for (let grading of data.gradingData) {
+var range = axis2.axisRanges.create();
+range.axisFill.fill = am4core.color(grading.color);
+range.axisFill.fillOpacity = 1; // default 0.8 fill-color of 
+range.axisFill.zIndex = -1;
+range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
+range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
+range.grid.strokeOpacity = 0; // changes opacity of inside tick mark
+range.stroke = am4core.color(grading.color).lighten(-0.1);
+range.label.inside = true;
+range.label.text = grading.title.toUpperCase();
+range.label.inside = true;
+range.label.location = 0.5;
+range.label.inside = true;
+range.label.radius = am4core.percent(10);
+range.label.paddingBottom = -5; // ~half font size
+range.label.fontSize = "1.4em"; // category label (i.e., CP101, CP102, ....)
+
+}
+
+var matchingGrade = lookUpGrade(data.score, data.gradingData);
+
+/**
+* Label 1 (total Percent)
+*/
+
+var label = chart.radarContainer.createChild(am4core.Label);
+label.isMeasured = false;
+label.fontSize = "3.5em";
+label.x = am4core.percent(50);
+label.y = am4core.percent(100);
+label.paddingBottom = -5;
+label.horizontalCenter = "middle";
+label.verticalCenter = "bottom";
+//label.dataItem = data;
+label.text = data.score.toFixed(0).toString() + "%";
+//label.text = "{score}";
+//label.fill = am4core.color(matchingGrade.color);
+label.fill =  am4core.color(chartTitleLabelFillCol);
+
+/**
+* Label 2
+*/
+
+/*
+var label2 = chart.radarContainer.createChild(am4core.Label);
+label2.isMeasured = false;
+label2.fontSize = titleFontSize;
+label2.horizontalCenter = "middle";
+label2.verticalCenter = "bottom";
+label2.text = matchingGrade.title.toUpperCase();
+//label2.fill = am4core.color(matchingGrade.color);
+label2.fill =  am4core.color("#00C3FF");
+*/
+/**
+* Hand
+*/
+
+var hand = chart.hands.push(new am4charts.ClockHand());
+hand.axis = axis2;
+hand.innerRadius = am4core.percent(55);
+hand.startWidth = 8;
+hand.pin.disabled = true;
+hand.value = data.score;
+hand.fill = am4core.color("#000000"); // inner color of needle
+//hand.stroke = am4core.color("#000");
+hand.fillOpacity = 0.5;
+
+/*
+hand.events.on("positionchanged", function(){
+label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
+var value2 = axis.positionToValue(hand.currentPosition);
+var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
+label2.text = matchingGrade.title.toUpperCase();
+label2.fill = am4core.color(matchingGrade.color);
+label2.stroke = am4core.color(matchingGrade.color);  
+label.fill = am4core.color(matchingGrade.color);
+})
+*/
+/*
+setInterval(function() {
+var value = chartMin + Math.random() * (chartMax - chartMin);
+hand.showValue(value, 1000, am4core.ease.cubicOut);
+}, 2000);
+*/
+
+}
+
+function lotChart2() {
+  totalLotNumberStation2()
+.then(lotSummaryStation2)
+.then(laFigureLotStation2);
+}
+
 
 /// 2. Land (Subterranean)
 
@@ -1432,9 +1852,12 @@ hand.showValue(value, 1000, am4core.ease.cubicOut);
 */
 
 }
-totalStructureNumber()
-.then(strucSummary)
-.then(laFigureStruc);
+
+function structureChart() {
+  totalStructureNumber()
+  .then(strucSummary)
+  .then(laFigureStruc);
+}
 
 
 /// 3. ISF
@@ -1792,9 +2215,12 @@ hand.showValue(value, 1000, am4core.ease.cubicOut);
 */
 
 }
-isfTotalArea()
-.then(isfSummary)
-.then(laFigureIsf);
+
+function isfChart() {
+  isfTotalArea()
+  .then(isfSummary)
+  .then(laFigureIsf);
+}
 
 
 // Tree
@@ -2156,9 +2582,13 @@ hand.showValue(value, 1000, am4core.ease.cubicOut);
 */
 
 }
-treeCuttingTotal()
-.then(treeCutSummary)
-.then(treeCuttingFigure);
+
+function treeCuttingChart() {
+  treeCuttingTotal()
+  .then(treeCutSummary)
+  .then(treeCuttingFigure);
+}
+
 
 // Tree Compensation
 function treeCompenTotal() {
@@ -2514,9 +2944,12 @@ hand.showValue(value, 1000, am4core.ease.cubicOut);
 */
 
 }
-treeCompenTotal()
-.then(treeCompenSummary)
-.then(treeCompenFigure);
+
+function treeCompensationChart() {
+  treeCompenTotal()
+  .then(treeCompenSummary)
+  .then(treeCompenFigure);
+}
 
 
 // Utility Point + Line Total Number
@@ -3014,12 +3447,32 @@ hand.showValue(value, 1000, am4core.ease.cubicOut);
 
 }
 
-utilityPointTotal()
-.then(utilityLineTotal)
-.then(utilityPointCompleted)
-.then(utilityLineCompleted)
-.then(utilityChart)
+function utilityAllChart() {
+  utilityPointTotal()
+  .then(utilityLineTotal)
+  .then(utilityPointCompleted)
+  .then(utilityLineCompleted)
+  .then(utilityChart)
+}
 
+// Run all charts
+lotChart();
+lotChart2()
+structureChart();
+isfChart();
+treeCuttingChart();
+treeCompensationChart();
+utilityAllChart();
+
+/*
+document.getElementById("thetabs").addEventListener("calciteTabsActivate", clickedTab);
+function clickedTab(event) {
+  const value = event.target.className;
+  if (value === 'Subterranean') {
+    utilityAllChart();
+  }
+}
+*/
 }); // end am4core.ready()
 
 
@@ -3028,7 +3481,6 @@ utilityPointTotal()
     document.querySelector("#informationDiv").innerHTML = `<b>Note:</b><br>
                              <p>1. The sliced areas in gauges show percent progress of CPs.</p>
                              2. <b>Click</b> the title of gauges to access individual web mapping applications for more detailed information.`;
-
 
 
 
