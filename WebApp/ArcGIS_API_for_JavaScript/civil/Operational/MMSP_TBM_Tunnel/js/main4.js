@@ -1251,7 +1251,6 @@ const options = {
     layerId: 2,
     labelingInfo: [tbmSpotLabel2],
      title: "TBM Segment",
-     //definitionExpression: "sens='Aller'",
      outFields: ["*"]
     });
     map.add(tbmTunnelLayer);
@@ -1701,16 +1700,15 @@ const options = {
   var highlightSelect;
   
 
-  
+ 
   // Create a Bar chart to calculate % completion for each viaduct sample
   am4core.ready(function() {
   am4core.useTheme(am4themes_animated);
-  
+  tbmTunnelLayer.definitionExpression = "Package = 'CP101'";
     // Default
     function defaultRender(){
-      tbmTunnelLayer.definitionExpression = "Section = 'PO'";
+      
       tbmTunnelLayer.visible = true;
-      natmLayer.definitionExpression = null;
       natmLayer.visible = false;
   
       tbmChart();
@@ -1722,20 +1720,20 @@ const options = {
   
   // Add Section and tunnel type to drop-down lists
   /// 1. Section
-  function sectionTypeValues() {
-    var sectionArray = [];
+  function contractPackageValues() {
+    var cpArray = [];
     var query = tbmTunnelLayer.createQuery();
-    query.outField = ["Section"];
-    query.where = "Section IS NOT NULL";
+    query.outField = ["Package"];
+    query.where = "Package IS NOT NULL";
     query.returnGeometry = true;
     return tbmTunnelLayer.queryFeatures(query).then(function(response) {
       var stats = response.features;
       stats.forEach((result, index) => {
       var attributes = result.attributes;
-      const SectionValues = attributes.Section;
-      sectionArray.push(SectionValues);
+      const SectionValues = attributes.Package;
+      cpArray.push(SectionValues);
     });
-    return sectionArray;
+    return cpArray;
   });
   }
   
@@ -1755,78 +1753,72 @@ const options = {
   values.forEach(function(value) {
   var option = document.createElement("option");
   option.text = value;
-  sectionSelect.add(option);
+  cpSelect.add(option);
   });
   }
-  function sectionListQuery(){
-  sectionTypeValues()
+  function cpListQuery(){
+    contractPackageValues()
   .then(getUniqueValueSection)
   .then(addToSelectSection)
   }
-  sectionListQuery();
+  cpListQuery();
   
   /// 2. Tunnel Type
   
-  function filterForTunnelType(sectionValue) {
-  
-  if (sectionValue === 'PO' || sectionValue === undefined) {
-  allArray = ['TBM'];
-  
-  } else if (sectionValue === 'Remaining') {
-  allArray = ['TBM','NATM'];
-  }
-  
-  var uniqueValues2 = [];
-  allArray.forEach(function(item, i) {
-    if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
-        uniqueValues2.push(item);
-    }
-  });
-  
-  tunnelSelect.options.length = 0;
-  uniqueValues2.sort();
-  uniqueValues2.unshift('None');
-  uniqueValues2.forEach(function(value) {
-  var option = document.createElement("option");
-  option.text = value;
-  tunnelSelect.add(option);
-  });
-  }
-  
-  
-  
-  function sectionOnlyExpression(sectionValue) {
-    if (sectionValue === 'None') {
-      tbmTunnelLayer.definitionExpression = null;
-      natmLayer.definitionExpression = null;
+  function filterForTunnelType(cpValue) {
+    if (cpValue === 'CP104') {
+      allArray = ['TBM', 'NATM'];
+    
     } else {
-      tbmTunnelLayer.definitionExpression = "Section = '" + sectionValue + "'";
-      natmLayer.definitionExpression = "Section = '" + sectionValue + "'";
+      allArray = ['TBM'];
     }
+
+    var uniqueValues2 = [];
+    allArray.forEach(function(item, i) {
+      if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
+          uniqueValues2.push(item);
+      }
+    });
+  
+    tunnelSelect.options.length = 0;
+    uniqueValues2.sort();
+    uniqueValues2.unshift('None');
+    uniqueValues2.forEach(function(value) {
+      var option = document.createElement("option");
+      option.text = value;
+      tunnelSelect.add(option);
+    });
+    
+
   }
   
-  function sectionTunnelTypeExpression(sectionValue, tunnelValue) {
   
-    if (sectionValue === 'PO' && tunnelValue === 'TBM') {
-      tbmTunnelLayer.definitionExpression = "Section = '" + sectionValue + "'";
+  function sectionOnlyExpression(cpValue) {
+      tbmTunnelLayer.definitionExpression = "Package = '" + cpValue + "'";
+      natmLayer.definitionExpression = "Package = '" + cpValue + "'";
+  }
+  
+  function sectionTunnelTypeExpression(cpValue, tunnelValue) {
+  
+    if (cpValue !== 'CP104' && tunnelValue === 'TBM') {
+      tbmTunnelLayer.definitionExpression = "Package = '" + cpValue + "'";
       natmLayer.visible = false;
 
-    } else if (sectionValue === 'PO' && tunnelValue === 'None') {
-      tbmTunnelLayer.definitionExpression = "Section = '" + sectionValue + "'";
-      natmLayer.visible = false;
-  
-    } else if (sectionValue === 'Remaining' && tunnelValue === 'NATM') {
+    } else if (cpValue === 'CP104' && tunnelValue === 'NATM') {
       tbmTunnelLayer.visible = false;
       natmLayer.visible = true;
-      natmLayer.definitionExpression = null;
-  
-    } else if (sectionValue === 'Remaining' && tunnelValue === 'TBM') {
-      tbmTunnelLayer.definitionExpression = "Section = '" + sectionValue + "'";
+
+    } else if (cpValue === 'CP104' && tunnelValue === 'TBM') {
+      tbmTunnelLayer.definitionExpression = "Package = '" + cpValue + "'";
       tbmTunnelLayer.visible = true;
       natmLayer.visible = false;
-
-    } else if (sectionValue === 'Remaining' && tunnelValue === 'None') {
-      tbmTunnelLayer.definitionExpression = "Section = '" + sectionValue + "'";
+  
+    } else if (cpValue !== 'CP104' && tunnelValue === 'None') {
+      tbmTunnelLayer.visible = "Package = '" + cpValue + "'";
+      natmLayer.visible = false;
+  
+    } else if (cpValue === 'CP104' && tunnelValue === 'None') {
+      tbmTunnelLayer.definitionExpression = "Package = '" + cpValue + "'";
       tbmTunnelLayer.visible = true;
       natmLayer.visible = true;
     }
@@ -1850,33 +1842,33 @@ const options = {
     };
   
   /// 1. Section dropdown list ('PO', 'Remaining')
-  sectionSelect.addEventListener("change", function(event) {
-  var sectionType = event.target.value;
+  cpSelect.addEventListener("change", function(event) {
+  var cpValue = event.target.value;
   //headerTitleDiv.innerHTML = sectionType;
-  testFunction(sectionType);
+  //testFunction(cpValue);
 
-  if (sectionType === 'PO') {
-    document.getElementById("chartNatmDiv").style.display = 'none'; 
-    filterForTunnelType(sectionType);
-    sectionOnlyExpression(sectionType);
-    changeSelected();
-    
-    tbmChart();
-    
-    filterTbm();
-    filterNatm();
+  changeSelected();
 
-  } else {
-    document.getElementById("chartNatmDiv").style.display = 'block'; 
-    filterForTunnelType(sectionType);
-    sectionOnlyExpression(sectionType);
-    changeSelected();
-    
+  if (cpValue === 'CP104') { // i.e., TBM and NATM
+    document.getElementById("chartNatmDiv").style.display = 'block';
+    document.getElementById("chartTbmDiv").style.display = 'block';
+    filterForTunnelType(cpValue);
+    sectionOnlyExpression(cpValue);
+
     tbmChart();
     natmChart();
     
     filterTbm();
     filterNatm();
+
+  } else { // Only TBM
+    document.getElementById("chartTbmDiv").style.display = 'block';
+    filterForTunnelType(cpValue);
+    sectionOnlyExpression(cpValue);
+
+    tbmChart();
+    filterTbm();
+
   }
   });
   
@@ -1884,9 +1876,9 @@ const options = {
   /// 2. Tunnel Type dropdown list ('TBM', 'NATM')
   tunnelSelect.addEventListener("change", function(event) {
   var tunnelType = event.target.value;
-  var sectionType = sectionSelect.value;
+  var cpValue = cpSelect.value;
   
-  sectionTunnelTypeExpression(sectionType, tunnelType);
+  sectionTunnelTypeExpression(cpValue, tunnelType);
   
   if (tunnelType === 'TBM') {
     zoomToLayer(tbmTunnelLayer);
@@ -2402,7 +2394,6 @@ const NEEDLE_LENGTH = am4core.percent(70);
     pieSeries.slices.template.events.on("hit", filterByChart, this);
     function filterByChart(ev) {
       const SELECTED = ev.target.dataItem.category;
-      console.log(SELECTED);
       
       view.when(function() {
         view.whenLayerView(obstructionLayer).then(function (layerView) {
@@ -2461,7 +2452,7 @@ const NEEDLE_LENGTH = am4core.percent(70);
   //////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////
   // Timeslider
-  
+  /*
   const start = new Date(2022, 9, 1);
   const end = new Date(2022, 10, 1);
   
@@ -2505,9 +2496,11 @@ const NEEDLE_LENGTH = am4core.percent(70);
 
   // When segmentedDate slider is closed, tbm tunnel is re-rendered based on the section chosen (PO or Remaining)
 
-// When section is initially selected as PO:
-  function testFunction(selectedSectionValue) {
-      reactiveUtils.when(() => timesliderExpand?.expanded === false, () => tbmTunnelLayer.definitionExpression = selectedSectionValue === "PO" ? "Section = 'PO'" : "Section = 'Remaining'");
+// When CP is initially selected as CP101:
+  function testFunction(selectedCPValue) {
+      reactiveUtils.when(() => timesliderExpand?.expanded === false, () => tbmTunnelLayer.definitionExpression = "Package = '" + selectedCPValue + "'");
+      natmLayer.visible = false;
+
   }
 
   // Watch update on timeSlider
@@ -2519,8 +2512,8 @@ const NEEDLE_LENGTH = am4core.percent(70);
     const dateFilterExpression = "startdate <= date'" + timeExtent.end.getFullYear() + "-" + (timeExtent.end.getMonth()+1) + "-" + (timeExtent.end.getDate()) +"'";
     
     // Run based on selected Section values
-    const selectValue = sectionSelect.value;
-    tbmTunnelLayer.definitionExpression = selectValue === "PO" ? "Section = 'PO'" + " AND " + dateFilterExpression : "Section = 'Remaining'" + " AND " + dateFilterExpression;
+    const selectValue = cpSelect.value;
+    tbmTunnelLayer.definitionExpression = "Package = '" + selectValue + "'" + " AND " + dateFilterExpression;
     
     const tunnelStart = timeExtent.end.getFullYear() + "-" + (timeExtent.end.getMonth()+1) + "-" + (timeExtent.end.getDate());
     const tunnelStartTitle = "Segmentation Plan Date:";
@@ -2561,64 +2554,46 @@ const NEEDLE_LENGTH = am4core.percent(70);
             //size: 8,
             //color: [89, 229, 56, 1]
           }
-          /*
-                
-                symbol: {
-                type: "point-3d",
-                symbolLayers: [
-                    {
-                        type: "icon",
-                        resource: {
-                          href: "https://EijiGorilla.github.io/Symbols/TBM_LOGO2.png"
-                        },
-                        size: 30
-                        //resource: {primitive: "circle"},
-                        //material: {color: "green"}
-                    }
-                ],
-                verticalOffset: {
-                    screenLength: 100,
-                    maxWorldLength: 500,
-                    minWorldLength: 40
-                },
-                callout: {
-                    type: "line",
-                    size: 1.5,
-                    color: "#E83618",
-                    border: {
-                        color: "#E83618"
-                    }
-                },
-                maxScale: 1000,
-                minScale: 25000000
-            }
-            */
         });
         graphicsLayer.add(graphic);
       });
       });
   });
-  
+*/
+    /*
   let timeLayerView;
   view.whenLayerView(tbmTunnelLayer).then(function (layerView) {
   timeLayerView = layerView;
 
-  // WHen page is opened, we need to following to display tunnel for PO section
-  const sectionValue = sectionSelect.value;
-  console.log(sectionValue);
-  tbmTunnelLayer.definitionExpression = sectionValue === "PO" ? "Section = 'PO'" : "Section = 'Remaining'";
 
+  // WHen page is opened, we need to following to display tunnel for PO section
   view.on("click", function() {
       timeLayerView.filter = null;
-  
-      // filter tbm layer using currently selected section type: PO or Remaining
-      //const sectionValue = sectionSelect.value;
-      tbmTunnelLayer.definitionExpression = sectionValue === "PO" ? "Section = 'PO'" : "Section = 'Remaining'";
+      const cpValue = cpSelect.value;
+      const tunnelTypeValue = tunnelSelect.value;
+      console.log(cpValue + "; " + tunnelTypeValue);
+
+      if (cpValue === 'CP104' && (tunnelTypeValue === 'NATM' || tunnelTypeValue === 'None')) {
+        tbmTunnelLayer.definitionExpression = "Package = '" + cpValue + "'";
+        natmLayer.visible = true;
+
+      } else if (cpValue === 'CP104' && tunnelTypeValue === 'TBM') {
+        tbmTunnelLayer.definitionExpression = "Package = '" + cpValue + "'";
+        natmLayer.visible = false;
+
+      } else if (cpValue !== 'CP104' && (tunnelTypeValue === 'None' || tunnelTypeValue === 'TBM')) {
+        tbmTunnelLayer.definitionExpression = "Package = '" + cpValue + "'";
+        natmLayer.visible = false;
+
+      } 
+      
+
       graphicsLayer.removeAll();
       segmentedDateDiv.style.display = 'none';
     });
+
   });
-  
+    */
   
   //*****************************//
   //      LayerList             //
@@ -2790,4 +2765,7 @@ const NEEDLE_LENGTH = am4core.percent(70);
           // add the widget to the view
           view.ui.add(elevationProfile, "top-right");
     */      
+
+
+
   });
