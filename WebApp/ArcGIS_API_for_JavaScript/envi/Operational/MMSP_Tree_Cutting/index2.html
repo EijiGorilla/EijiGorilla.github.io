@@ -12,10 +12,10 @@
   -->
 <title>Tree Cutting (MMSP)</title>
 
-<link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"/>
+
 <script src="https://js.arcgis.com/calcite-components/1.0.0-beta.99/calcite.esm.js" type="module"></script>
 <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/1.0.0-beta.99/calcite.css" />
-
+<link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"/>
 
 <!-- Resources -->
 <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
@@ -63,6 +63,11 @@ body {
         height: 83vh;
     }
 
+    calcite-tabs {
+        width: 25.5vw;
+
+    }
+
     calcite-rating {
       margin-top: 0.25rem;
     }
@@ -98,11 +103,12 @@ body {
 
 #dropdownDiv {
     background-color: rgb(0, 0, 0, 0);
-        width: 50%;
-        opacity: 1;
-        color: black;
-        text-align: right;
-        margin: auto;
+    width: 50%;
+    opacity: 1;
+    color: black;
+    text-align: right;
+    margin: auto;
+    color: white;
 }
 
 #chartPanel {
@@ -141,40 +147,62 @@ body {
 
     #tcpExpiredListDiv {
       list-style: none;
-      padding: 0.5%;
-      padding-right: 5%;
+      padding: 1%;
       font-size: 0.8vw;
-      width: 17vw;
+      width: 18vw;
+      margin: auto;
+    }
 
+    #tcpExpiredListDiv p {
+      font-size: 0.8vw;
+      margin: auto;
     }
 
 
-#toggle-cluster {
-    z-index: 99;
-    position: absolute;
-    left: 4;
-    top: 0;
-    width: 97.5%;
+#treeCuttingNumberDiv,
+#treeCompensationNumberDiv {
+    color: rgb(0, 197, 255);
+    text-align: center;
+    font-weight: normal;
+    font-size: 1.5vw;
+    border: solid 0.5px gray;
+    padding-top: 2%;
+    padding-bottom: 4%;
+    margin: auto;
+    width: 80%;
+}
+
+#treeCuttingNumberDiv p,
+#treeCompensationNumberDiv p {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color:rgb(250, 246, 246);
+    margin: auto;
+    text-align: center;
+    padding-bottom: 5%;
+}
+
+#toggle-cluster,
+#toggle-cluster2 {
+    width: 70%;
+    margin: auto;
+    margin-top: 20%;
 }
 
 #treeCuttingDiv,
 #treeCompensationDiv {
-    width: 83%;
-    height: 60%;
+    width: 95%;
+    height: 65%;
     align-items: center;
     padding: 1%;
 }
 
 
 p {
-    color: rgb(0, 197, 255);
-    text-align: center;
+    color: red;
+    text-align: left;
     font-weight: bold;
-    font-size: 17px;
-    width: 100%;
-    vertical-align: text-bottom;
-    padding: 3px;
-    margin-top: 0px;
+    font-size: 0.5rem;
 }
 
 h2 {
@@ -290,16 +318,20 @@ br:after{content:' ';}
         <div id="viewDiv">
             <calcite-tabs>
                 <div id="chartPanel">
-                    <calcite-tab-nav slot="tab-nav">
-                        <calcite-tab-title selected>Cutting</calcite-tab-title>
-                        <calcite-tab-title>Compensation</calcite-tab-title>
-                        <calcite-tab-title>TCP Expired</calcite-tab-title>
+                    <calcite-tab-nav slot="tab-nav" id="thetabs">
+                        <calcite-tab-title class="Cutting" selected>Cutting</calcite-tab-title>
+                        <calcite-tab-title class="Compensation">Compensation</calcite-tab-title>
+                        <calcite-tab-title class="TCP Expired">TCP Expired</calcite-tab-title>
                     </calcite-tab-nav>
                     <calcite-tab>
                         <div id="treeCuttingDiv"></div>
+                        <div id="treeCuttingNumberDiv"></div>
+                        <button id="toggle-cluster" class="esri-button" type="button">Disable Clustering</button>
                     </calcite-tab>
                     <calcite-tab>
                       <div id="treeCompensationDiv"></div>
+                      <div id="treeCompensationNumberDiv"></div>
+                      <button id="toggle-cluster2" class="esri-button" type="button">Disable Clustering</button>
                     </calcite-tab>
                     <calcite-tab>
                         <div class="panel-side esri-widget">
@@ -1022,7 +1054,7 @@ compensationLayer
     .then((featureReduction) => {
       compensationLayer.featureReduction = featureReduction;
 
-      const toggleButton = document.getElementById("toggle-cluster");
+      const toggleButton = document.getElementById("toggle-cluster2");
       toggleButton.addEventListener("click", toggleClustering);
 
       // To turn off clustering on a layer, set the
@@ -1098,6 +1130,55 @@ compensationLayer
     am4core.ready(function() {
     am4core.useTheme(am4themes_animated);
 
+    // Thousand separators function
+    function thousands_separators(num) {
+        var num_parts = num.toString().split(".");
+        num_parts[0] = num_parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return num_parts.join(".");
+    }
+
+    // Total number of tree
+    function totalNumberTreeCut() {
+        var total_number_cutting = {
+            onStatisticField: "CASE WHEN TCP_Proces >= 1 THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_number_cutting",
+            statisticType: "sum"
+          };
+
+        var query = treeCuttingLayer.createQuery();
+        query.outStatistics = [total_number_cutting];
+        query.returnGeometry = true;
+
+        treeCuttingLayer.queryFeatures(query).then(function(response) {
+            var stats = response.features[0].attributes;
+            const total = thousands_separators(stats.total_number_cutting);
+            document.getElementById("treeCuttingNumberDiv").innerHTML = `<p>Number of Trees</p>${total}`;
+            //`<b>Number of Trees</b><br>${total}`
+        });
+    }
+    totalNumberTreeCut();
+
+    function totalNumberTreeCompen() {
+        var total_number_compen = {
+            onStatisticField: "CASE WHEN Tree_Compe >= 1 THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_number_compen",
+            statisticType: "sum"
+          };
+
+        var query = compensationLayer.createQuery();
+        query.outStatistics = [total_number_compen];
+        query.returnGeometry = true;
+
+        compensationLayer.queryFeatures(query).then(function(response) {
+            var stats = response.features[0].attributes;
+            const total = thousands_separators(stats.total_number_compen);
+            document.getElementById("treeCompensationNumberDiv").innerHTML = `<p>Number of Trees</p>${total}`;
+            //`<b>Number of Trees</b><br>${total}`
+        });
+    }
+    
+
+
     // TCP Expired List
     view.when(function() {
         var tcpExpiredList = document.getElementById("tcpExpiredListDiv");
@@ -1125,8 +1206,8 @@ compensationLayer
                             const station = attributes.Station1;
                             const commonName = attributes.Common_Nam;
 
-                            li.innerHTML = `ID: <b>${Id}</b><br>
-                                            Station: ${station}<br>
+                            li.innerHTML = `<p>ID: ${Id}</p>
+                                            <p>Station: ${station}</p>
                                             Common Name: ${commonName}
                                             `;
 
@@ -1366,6 +1447,9 @@ compensationLayer
         updateChartCutting();
         updateChartTreeComp();
 
+        totalNumberTreeCut();
+        totalNumberTreeCompen();
+
     });
 
     // Statino Dropdown list Event Listener
@@ -1383,6 +1467,9 @@ compensationLayer
         // Update chart
         updateChartCutting();
         updateChartTreeComp();
+
+        totalNumberTreeCut();
+        totalNumberTreeCompen();
 
     });
 
@@ -1993,6 +2080,26 @@ updateChartTreeComp();
             left: actionBarExpanded ? 135 : 45
           };
         });
+
+        //
+        document.querySelector("#thetabs").addEventListener("click", tabChange);
+        function tabChange(event) {
+            const value = event.target.className;
+            
+            if (value === 'Cutting') {
+                compensationLayer.visible = false;
+                treeCuttingLayer.visible = true;
+                updateChartCutting();
+                totalNumberTreeCut();
+
+            } else if (value === 'Compensation') {
+                treeCuttingLayer.visible = false;
+                compensationLayer.visible = true;
+                updateChartTreeComp();
+                totalNumberTreeCompen();
+            }
+            
+        }
         
 
       }); // end of view.when
@@ -2044,11 +2151,11 @@ view.when(function () {
         view: view,
         content: searchWidget,
         expandIconClass: "esri-icon-search",
-        group: "bottom-right"
+        group: "top-right"
     });
     
     view.ui.add(searchExpand, {
-            position: "bottom-right"
+            position: "top-right"
     });
     searchExpand.watch("expanded", function() {
         if(!searchExpand.expanded) {
