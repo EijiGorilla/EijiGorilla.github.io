@@ -41,20 +41,20 @@
             <div class="contentBox">
               <div class="container">
                 <div class="landStrucIsfBox">
-                  <div id="paidChartDiv"></div>
-                  <div id="structureChartDiv"></div>
+                  <div id="legalpChartDiv"></div>
                   <div id="appraisalChartDiv"></div>
+                  <div id="exproChartDiv"></div>
                 </div>
                 <div class="treeBox">
                   <div id="paypChartDiv"></div>
                   <div id="handedOverChartDiv"></div>
-                  <div id="exproChartDiv"></div>
+                  <div id="wopChartDiv"></div>
                 </div>
                 <div class="utilityBox">
-                  <div id="legalpChartDiv"></div>
+                  <div id="paidChartDiv"></div>
                   <div id="utilityLineChartDiv"></div>
-                  <div id="wopChartDiv"></div>
-                </div>      
+                  <div id="structureChartDiv"></div>
+                </div> 
             </div>
             </div>
           </calcite-tab>
@@ -62,26 +62,40 @@
             <div class="contentBox2">
               <div class="container2">
                 <div class="landStrucIsfBox2">
-                  <div id="paidChartDiv2"></div>
-                  <div id="structureChartDiv2"></div>
+                  <div id="legalpChartDiv2"></div>
                   <div id="appraisalChartDiv2"></div>
+                  <div id="exproChartDiv2"></div>
                 </div>
                 <div class="treeBox2">
                   <div id="paypChartDiv2"></div>
                   <div id="handedOverChartDiv2"></div>
-                  <div id="exproChartDiv2"></div>
+                  <div id="wopChartDiv2"></div>
                 </div>
                 <div class="utilityBox2">
-                  <div id="legalpChartDiv2"></div>
+                  <div id="paidChartDiv2"></div>
                   <div id="utilityLineChartDiv2"></div>
-                  <div id="wopChartDiv2"></div>
+                  <div id="structureChartDiv2"></div>
                 </div>      
             </div>
             </div>
           </calcite-tab>
+          <div id="infoIcon">
+            <calcite-action-bar slot="action-bar">
+              <calcite-action class="inforClass" data-action-id="information" icon="information" text="Information"></calcite-action>
+
+            </calcite-action-bar>
+            <calcite-panel heading="Description" data-panel-id="information" hidden>
+              <div id="info-content">
+                <!-- <img id="item-thumbnail" alt="webmap thumbnail" /> -->
+                <div id="item-description">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
+            </calcite-panel>
+          </div>
             <div id="legendChartDiv"></div>
           <div class="dateDiv">January 16, 2023</div> 
-          <div id="informationDiv"></div>  
+          <div id="informationDiv"></div>
         </div>
       </calcite-tabs>
     </calcite-shell>
@@ -106,6 +120,33 @@ body {
   padding: 10px;
   margin: 0 auto;
   box-sizing: border-box;
+
+}
+
+#item-description {
+  padding: 0.5rem;
+
+}
+
+#item-description b {
+  color: orange;
+}
+
+calcite-action-bar {
+  position: absolute;
+  z-index: 99;
+  top: 0;
+  right: 0;
+  margin: 1rem;
+}
+
+calcite-panel {
+  position: absolute;
+  z-index: 99;
+  bottom: 4rem;
+  right: 2rem;
+  width: 30vw;
+  
 
 }
 
@@ -449,36 +490,7 @@ var basemap = new Basemap({
   }); 
   //map.ground.surfaceColor = "#FFFF";
   //map.ground.opacity = 0.5;
-   
-  var view = new MapView({
-      map: map,
-      center: [120.57930, 15.18],
-      zoom: 10,
-      container: "viewDiv",
-      environment: {
-          background: {
-              type: "color", // autocasts as new ColorBackground()
-              color: [0, 0, 0, 1]
-              },
-              // disable stars
-              starsEnabled: false,
-              //disable atmosphere
-              atmosphereEnabled: false
-              }
-  });
 
-  //
-  function shiftCamera(deg) {
-    var camera = view.camera.clone();
-    camera.position.longitude += deg;
-    return camera;
-  }
-
-  function catchAbortError(error) {
-    if (error.name != "AbortError") {
-      console.error(error);
-    }
-  }
 
   // Setup UI
 
@@ -612,8 +624,12 @@ var informationDiv = document.getElementById("informationDiv");
 //informationDiv.innerHTML =  "<br>" + "<b>" + "Note:" + "</b>" + "<br>" + "<br>" + "* Each gauge shows percent progress of each CP in the sliced chart.";
 /*
 informationDiv.innerHTML =  `<b>Note:</b><br>
-                             <p>1. The sliced areas in gauges show percent progress of CPs.</p>
-                             2. <b>Click</b> the title of gauges to access individual web mapping applications for more detailed information.`
+                             <p>1. This dashboard shows the progress of land acquisition by individual processes using gauges.</p>
+                             <p>2. Each gauge shows two types of progress: overall progress (including all CPs) and progress of individual CPs.</p>
+                             <p>2.1. The overall progress including all CPs is indicated at the bottom of each gauge.(e.g., 20%).</p>
+                             <p>2.2. The progress of individual CPs is indicated in the sliced areas of each gauge with respective colors from Legend.</p>
+                             <p>3. <b>Click 'Station' or 'Subterranean'</b> tab at the screen top to view the respective progress of land acquisition.</p> 
+                             `
 */
 // Thousand separators function
 function thousands_separators(num)
@@ -4685,7 +4701,7 @@ const TOP_TITLE_COL = am4core.color("#FFFFFF");
 
 var title = chart.titles.create();
 //title.text = "[bold]EXISTING STRUCTURE";
-title.text = "[bold]For Appraisal/OtB";
+title.text = "[bold]For Appraisal/Offer to Buy";
 title.fontSize = "1.8em";
 title.align = "center";
 title.marginBottom = -10;
@@ -5732,17 +5748,43 @@ function handedOverLotChart2() {
 handedOverLotChart2();
 
 
-// Switch title
-//const stationTitle = "Progress of Land Acquisition at Stations";
-//const subterraneanTitle = "Progress of Land Acquisition at Subterranean";
-/*
-document.getElementById("thetabs")
-  .addEventListener("calciteTabsActivate", (event) =>
-    //console.log(event.target.selected.values)
-    headerTitleDiv.innerHTML = event.target.className == "Subterranean" ? subterraneanTitle : stationTitle
+  document.querySelector("#item-description").innerHTML = `
+                             <p>1. This dashboard shows the progress of land acquisition by individual processes using gauges.</p>
+                             <p>2. Each gauge shows two types of progress: overall progress (including all CPs) and progress of individual CPs.</p>
+                             <p>2.1. The overall progress including all CPs is indicated at the bottom of each gauge.(e.g., 20%).</p>
+                             <p>2.2. The progress of individual CPs is indicated in the sliced areas of each gauge with respective colors from Legend.</p>
+                             <p>3. <b>Click 'Station' or 'Subterranean'</b> tab at the screen top to view the respective progress of land acquisition.</p> 
+                             `;
+        let activeWidget;
+        const handleActionBarClick = ({ target }) => {
+          if (target.tagName !== "CALCITE-ACTION") {
+            return;
+          }
 
-  );
-*/
+          if (activeWidget) {
+            document.querySelector(`[data-action-id=${activeWidget}]`).active = false;
+            document.querySelector(`[data-panel-id=${activeWidget}]`).hidden = true;
+          }
+
+          const nextWidget = target.dataset.actionId;
+          if (nextWidget !== activeWidget) {
+            document.querySelector(`[data-action-id=${nextWidget}]`).active = true;
+            document.querySelector(`[data-panel-id=${nextWidget}]`).hidden = false;
+            activeWidget = nextWidget;
+          } else {
+            activeWidget = null;
+          }
+        };
+
+
+
+        // Action bar 
+        document.querySelector(".inforClass").addEventListener("click", handleActionBarClick);
+        let actionBarExpanded = false;
+
+        
+
+
 
 
 }); // end am4core.ready()
