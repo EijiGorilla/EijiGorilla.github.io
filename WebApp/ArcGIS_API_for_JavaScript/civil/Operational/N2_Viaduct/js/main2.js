@@ -901,6 +901,7 @@ async function initialization() {
   
     const total_complete = stats.total_complete;
     const total_obs = stats.total_obs;
+    console.log(total_obs);
     document.getElementById("totalProgressDiv").innerHTML = ((total_complete/total_obs)*100).toFixed(1) + " %";
   });
   }
