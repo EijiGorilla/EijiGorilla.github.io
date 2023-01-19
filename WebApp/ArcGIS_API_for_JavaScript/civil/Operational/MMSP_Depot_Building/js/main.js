@@ -316,7 +316,7 @@ elevationInfo: {
            mode: "on-the-ground"
            },
 renderer: ConstructionBoundaryFill,
-definitionExpression: "MappingBoundary = 1",
+definitionExpression: "MappingBoundary = 1" + " AND " + "Station = 'Depot'",
 title: "Construction Boundary",
 popupEnabled: false
 });
@@ -333,7 +333,7 @@ var stationLayer = new SceneLayer({
     },
        labelingInfo: [stationLabelClass],
        renderer: stationsRenderer,
-       definitionExpression: "sector = 'MMSP'",
+       definitionExpression: "sector = 'MMSP'" + " AND " + "Station = 'Depot'",
        popupEnabled: false,
        elevationInfo: {
            // this elevation mode will place points on top of
