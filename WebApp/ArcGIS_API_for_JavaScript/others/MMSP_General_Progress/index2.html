@@ -77,7 +77,19 @@
             </div>
             </div>
           </calcite-tab>
-
+          <div id="infoIcon">
+            <calcite-action-bar slot="action-bar">
+              <calcite-action class="inforClass" data-action-id="information" icon="information" text="Information"></calcite-action>
+            </calcite-action-bar>
+            <calcite-panel heading="Description" data-panel-id="information" hidden>
+              <div id="info-content">
+                <!-- <img id="item-thumbnail" alt="webmap thumbnail" /> -->
+                <div id="item-description">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
+            </calcite-panel>
+          </div>
             <div id="legendChartDiv"></div>
           <div class="dateDiv">January 16, 2023</div>
           <div id="informationDiv"></div>
@@ -103,6 +115,40 @@ body {
 
 }
 
+#item-description {
+  padding: 0.5rem;
+
+}
+
+#item-description b {
+  color: orange;
+}
+
+p {
+  font-size: 0.8rem;
+  width: auto;
+  vertical-align: text-bottom;
+  padding: 0;
+  margin-top: 0;
+}
+
+calcite-action-bar {
+  position: absolute;
+  z-index: 99;
+  top: 0;
+  right: 0;
+  margin: 1rem;
+}
+
+calcite-panel {
+  position: absolute;
+  z-index: 99;
+  bottom: 4rem;
+  right: 2rem;
+  width: 30vw;
+  
+
+}
 calcite-loader {
   align-self: center;
   justify-self: center;
@@ -256,17 +302,6 @@ padding-left: 10;
 line-height: 3rem;
 }
 ​
-
-
-
-p {
-  font-size: 1rem;
-  width: auto;
-  vertical-align: text-bottom;
-  padding: 0;
-  margin-top: 0;
-}
-
 
 h2 {
   font-weight: 400;
@@ -565,13 +600,14 @@ am4core.useTheme(am4themes_animated);
 const axis1TickColor = "#C5C5C5";
 const color_101  = "#ffa500";
 const color_102  = "#00ff00";
-const color_103 = "#00c5ff";
+const color_103 = "#70AD47";
 const color_104 = "#ffff00";
 const color_105 = "#bf40bf";
 const color_108 = "#ff7f7f";
 const color_109 = "#cdaa66";
+const color_handedOver = "#00c5ff"
 
-const BOTTOM_LABEL_COL = am4core.color("#00C3FF");
+const BOTTOM_LABEL_COL = am4core.color("#C5C5C5");
 const TOP_TITLE_COL = am4core.color("#FFFFFF");
 const chartTitleLabelFillCol = "#00C3FF";
 
@@ -581,6 +617,13 @@ const NEEDLE_LENGTH = am4core.percent(70);
 // chart title
 const titleFontSize = "1.3em";
 const labelMarginTop = -5;
+const title_land = "[bold]LAND";
+const title_struc = "[bold]EXISTING STRUCTURE";
+const title_ifs = "[bold]INFORMAL SETTLERS";
+const title_treeCut = "[bold]TREE CUTTING";
+const title_treeCommpen = "[bold]TREE COMPENSATION";
+const title_utility = "[bold]UTILITY";
+
 /////////////////////////////////////////
 
 // Legend
@@ -625,6 +668,11 @@ function legendPackage() {
     "CP": "CP 109 (%)",
     "status": 0,
     "color": am4core.color(color_109)
+  },
+  {
+    "CP": "All CPs (%)",
+    "status": 0,
+    "color": am4core.color(color_handedOver)
   },
 
   ];
@@ -3479,11 +3527,47 @@ function clickedTab(event) {
 
 
 // Information widget
+document.querySelector("#item-description").innerHTML = 
+                             `
+                             <p>1. This dashboard shows the progress of key pre-construction activities.</p>
+                              <p>2. Each gauge represents individual pre-constructions at the key process by different contract packages.</p>
+                              <p>3. Overall progress including all CPs is indicated at the bottom of each gauge.</p>
+                              <p>4. Progress of individual CPs is displayed in the sliced areas of each gauge with respective colors from Legend.</p>
+                              <p>5. <b>Click 'Station' or 'Subterranean'</b> tab at the screen top to view the respective progress of land acquisition.</p> 
+                              <p>6. <b>Click</b> the title of gauges to access individual web mapping applications for more detailed information.
+                             `;
+        let activeWidget;
+        const handleActionBarClick = ({ target }) => {
+          if (target.tagName !== "CALCITE-ACTION") {
+            return;
+          }
 
-    document.querySelector("#informationDiv").innerHTML = `<b>Note:</b><br>
+          if (activeWidget) {
+            document.querySelector(`[data-action-id=${activeWidget}]`).active = false;
+            document.querySelector(`[data-panel-id=${activeWidget}]`).hidden = true;
+          }
+
+          const nextWidget = target.dataset.actionId;
+          if (nextWidget !== activeWidget) {
+            document.querySelector(`[data-action-id=${nextWidget}]`).active = true;
+            document.querySelector(`[data-panel-id=${nextWidget}]`).hidden = false;
+            activeWidget = nextWidget;
+          } else {
+            activeWidget = null;
+          }
+        };
+
+
+
+        // Action bar 
+        document.querySelector(".inforClass").addEventListener("click", handleActionBarClick);
+        let actionBarExpanded = false;
+
+/*
+    document.querySelector("#informationDiv").innerHTML = `
                              <p>1. The sliced areas in gauges show percent progress of CPs.</p>
                              2. <b>Click</b> the title of gauges to access individual web mapping applications for more detailed information.`;
-
+*/
 
 
 
