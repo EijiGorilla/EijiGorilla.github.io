@@ -93,6 +93,7 @@
             </calcite-panel>
           </div>
             <div id="legendChartDiv"></div>
+            <div id="legendChartDiv2"></div>
           <div class="dateDiv">January 16, 2023</div> 
           <div id="informationDiv"></div>
           <calcite-button
@@ -281,6 +282,18 @@ calcite-rating {
 }
 
 #legendChartDiv {
+  position: absolute;
+  z-index: 99;
+  right: 80;
+  margin: 0;
+  padding: 0;
+  top: 0;
+  background-color: rgba(0, 0, 0, 0);
+  height: 50vh;
+  width: 10vw;
+}
+
+#legendChartDiv2 {
   position: absolute;
   z-index: 99;
   right: 80;
@@ -691,43 +704,43 @@ const onStatisticField_total = "CASE WHEN StatusNVS3 >= 1 THEN 1 ELSE 0 END";
 // 1. Legend
 function legendPackage() {
   var total_cp101_lot = {
-  onStatisticField: "CASE WHEN Package = 'CP101' THEN 1 ELSE 0 END",
+  onStatisticField: "CASE WHEN (Package = 'CP101' and StatusNVS3 >=1) THEN 1 ELSE 0 END",
   outStatisticFieldName: "total_cp101_lot",
   statisticType: "sum"
   };
   
   var total_cp102_lot = {
-  onStatisticField: "CASE WHEN Package = 'CP102' THEN 1 ELSE 0 END",
+  onStatisticField: "CASE WHEN (Package = 'CP102' and StatusNVS3 >=1) THEN 1 ELSE 0 END",
   outStatisticFieldName: "total_cp102_lot",
   statisticType: "sum"
   };
   
   var total_cp103_lot = {
-  onStatisticField: "CASE WHEN Package = 'CP103' THEN 1 ELSE 0 END",
+  onStatisticField: "CASE WHEN (Package = 'CP103' and StatusNVS3 >=1) THEN 1 ELSE 0 END",
   outStatisticFieldName: "total_cp103_lot",
   statisticType: "sum"
   };
   
   var total_cp104_lot = {
-  onStatisticField: "CASE WHEN Package = 'CP104' THEN 1 ELSE 0 END",
+  onStatisticField: "CASE WHEN (Package = 'CP104' and StatusNVS3 >=1) THEN 1 ELSE 0 END",
   outStatisticFieldName: "total_cp104_lot",
   statisticType: "sum"
   };
   
   var total_cp105_lot = {
-  onStatisticField: "CASE WHEN Package = 'CP105' THEN 1 ELSE 0 END",
+  onStatisticField: "CASE WHEN (Package = 'CP105' and StatusNVS3 >=1) THEN 1 ELSE 0 END",
   outStatisticFieldName: "total_cp105_lot",
   statisticType: "sum"
   };
 
   var total_cp108_lot = {
-  onStatisticField: "CASE WHEN Package = 'CP108' THEN 1 ELSE 0 END",
+  onStatisticField: "CASE WHEN (Package = 'CP108' and StatusNVS3 >=1) THEN 1 ELSE 0 END",
   outStatisticFieldName: "total_cp108_lot",
   statisticType: "sum"
   };
 
   var total_cp109_lot = {
-  onStatisticField: "CASE WHEN Package = 'CP109' THEN 1 ELSE 0 END",
+  onStatisticField: "CASE WHEN (Package = 'CP109' and StatusNVS3 >=1) THEN 1 ELSE 0 END",
   outStatisticFieldName: "total_cp109_lot",
   statisticType: "sum"
   };
@@ -743,6 +756,7 @@ function legendPackage() {
                          total_cp109_lot
                         ];
   query.returnGeometry = true;
+  query.where = "Type = 'Station'";
   
   return lotLayer.queryFeatures(query).then(function(response) {
   var stats = response.features[0].attributes;
@@ -754,49 +768,59 @@ function legendPackage() {
   const cp105 = stats.total_cp105_lot;
   const cp108 = stats.total_cp108_lot;
   const cp109 = stats.total_cp109_lot;
+  const allCps = cp101 + cp102 + cp103 + cp104 + cp105 + cp108 + cp109;
+
+  const legend_allCps = `All CPs (%), ${allCps}`;
+  const legend_cp101 = `CP 101 (%), ${cp101}`;
+  const legend_cp102 = `CP 101 (%), ${cp102}`;
+  const legend_cp103 = `CP 101 (%), ${cp103}`;
+  const legend_cp104 = `CP 101 (%), ${cp104}`;
+  const legend_cp105 = `CP 101 (%), ${cp105}`;
+  const legend_cp108 = `CP 101 (%), ${cp108}`;
+  const legend_cp109 = `CP 101 (%), ${cp109}`;
   
   var chart = am4core.create("legendChartDiv", am4charts.PieChart);
-  
+
   
   // Add data
   chart.data = [
   {
-    "CP": "All CPs (%)",
+    "CP": legend_allCps,
     "status": cp109,
     "color": am4core.color(color_handedOver)
   },
   {
-    "CP": "CP 101 (%)",
+    "CP": legend_cp101,
     "status": cp101,
     "color": am4core.color(color_101)
   },
   {
-    "CP": "CP 102 (%)",
+    "CP": legend_cp102,
     "status": cp102,
     "color": am4core.color(color_102)
   },
   {
-    "CP": "CP 103 (%)",
+    "CP": legend_cp103,
     "status": cp103,
     "color": am4core.color(color_103)   
   },
   {
-    "CP": "CP 104 (%)",
+    "CP": legend_cp104,
     "status": cp104,
     "color": am4core.color(color_104) 
   },
   {
-    "CP": "CP 105 (%)",
+    "CP": legend_cp105,
     "status": cp105,
     "color": am4core.color(color_105)
   },
   {
-    "CP": "CP 108 (%)",
+    "CP": legend_cp108,
     "status": cp108,
     "color": am4core.color(color_108)
   },
   {
-    "CP": "CP 109 (%)",
+    "CP": legend_cp109,
     "status": cp109,
     "color": am4core.color(color_109)
   },
@@ -912,7 +936,239 @@ function legendPackage() {
   } // End of updateChartLot()
   legendPackage();
   
+  function legendPackage2() {
+  var total_cp101_lot = {
+  onStatisticField: "CASE WHEN (Package = 'CP101' and StatusNVS3 >=1) THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_cp101_lot",
+  statisticType: "sum"
+  };
+  
+  var total_cp102_lot = {
+  onStatisticField: "CASE WHEN (Package = 'CP102' and StatusNVS3 >=1) THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_cp102_lot",
+  statisticType: "sum"
+  };
+  
+  var total_cp103_lot = {
+  onStatisticField: "CASE WHEN (Package = 'CP103' and StatusNVS3 >=1) THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_cp103_lot",
+  statisticType: "sum"
+  };
+  
+  var total_cp104_lot = {
+  onStatisticField: "CASE WHEN (Package = 'CP104' and StatusNVS3 >=1) THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_cp104_lot",
+  statisticType: "sum"
+  };
+  
+  var total_cp105_lot = {
+  onStatisticField: "CASE WHEN (Package = 'CP105' and StatusNVS3 >=1) THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_cp105_lot",
+  statisticType: "sum"
+  };
 
+  var total_cp108_lot = {
+  onStatisticField: "CASE WHEN (Package = 'CP108' and StatusNVS3 >=1) THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_cp108_lot",
+  statisticType: "sum"
+  };
+
+  var total_cp109_lot = {
+  onStatisticField: "CASE WHEN (Package = 'CP109' and StatusNVS3 >=1) THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_cp109_lot",
+  statisticType: "sum"
+  };
+  
+  
+  var query = lotLayer.createQuery();
+  query.outStatistics = [total_cp101_lot,
+                         total_cp102_lot, 
+                         total_cp103_lot, 
+                         total_cp104_lot,
+                         total_cp105_lot,
+                         total_cp108_lot,
+                         total_cp109_lot
+                        ];
+  query.returnGeometry = true;
+  query.where = "Type = 'Subterranean'";
+  
+  return lotLayer.queryFeatures(query).then(function(response) {
+  var stats = response.features[0].attributes;
+  
+  const cp101 = stats.total_cp101_lot;
+  const cp102 = stats.total_cp102_lot;
+  const cp103 = stats.total_cp103_lot;
+  const cp104 = stats.total_cp104_lot;
+  const cp105 = stats.total_cp105_lot;
+  const cp108 = stats.total_cp108_lot;
+  const cp109 = stats.total_cp109_lot;
+  const allCps = cp101 + cp102 + cp103 + cp104 + cp105 + cp108 + cp109;
+
+  const legend_allCps = `All CPs (%), ${allCps}`;
+  const legend_cp101 = `CP 101 (%), ${cp101}`;
+  const legend_cp102 = `CP 101 (%), ${cp102}`;
+  const legend_cp103 = `CP 101 (%), ${cp103}`;
+  const legend_cp104 = `CP 101 (%), ${cp104}`;
+  const legend_cp105 = `CP 101 (%), ${cp105}`;
+  const legend_cp108 = `CP 101 (%), ${cp108}`;
+  const legend_cp109 = `CP 101 (%), ${cp109}`;
+  
+  var chart = am4core.create("legendChartDiv2", am4charts.PieChart);
+
+  
+  // Add data
+  chart.data = [
+  {
+    "CP": legend_allCps,
+    "status": cp109,
+    "color": am4core.color(color_handedOver)
+  },
+  {
+    "CP": legend_cp101,
+    "status": cp101,
+    "color": am4core.color(color_101)
+  },
+  {
+    "CP": legend_cp102,
+    "status": cp102,
+    "color": am4core.color(color_102)
+  },
+  {
+    "CP": legend_cp103,
+    "status": cp103,
+    "color": am4core.color(color_103)   
+  },
+  {
+    "CP": legend_cp104,
+    "status": cp104,
+    "color": am4core.color(color_104) 
+  },
+  {
+    "CP": legend_cp105,
+    "status": cp105,
+    "color": am4core.color(color_105)
+  },
+  {
+    "CP": legend_cp108,
+    "status": cp108,
+    "color": am4core.color(color_108)
+  },
+  {
+    "CP": legend_cp109,
+    "status": cp109,
+    "color": am4core.color(color_109)
+  },
+
+  ];
+  
+  // Set inner radius
+  chart.innerRadius = am4core.percent(0);
+  chart.radius = am4core.percent(0);
+  // Add and configure Series
+  
+  function createSlices(field, status){
+  var pieSeries = chart.series.push(new am4charts.PieSeries());
+  pieSeries.dataFields.value = field;
+  pieSeries.dataFields.category = status;
+  pieSeries.disabled = true;
+  pieSeries.slices.template.propertyFields.fill = "color";
+  pieSeries.slices.template.stroke = am4core.color("#fff");
+  pieSeries.slices.template.strokeWidth = 0;
+  pieSeries.slices.template.strokeOpacity = 1;
+  
+  pieSeries.slices.template
+  // change the cursor on hover to make it apparent the object can be interacted with
+  .cursorOverStyle = [
+  {
+  "property": "cursor",
+  "value": "pointer"
+  }
+  ];
+  
+  
+  // Add a legend
+  const LegendFontSizze = "1em";
+  chart.legend = new am4charts.Legend();
+  
+  chart.legend.valueLabels.template.align = "right"
+  chart.legend.valueLabels.template.textAlign = "end";  
+
+  
+  //chart.legend.position = "bottom";
+  chart.legend.labels.template.fontSize = LegendFontSizze;
+  chart.legend.labels.template.fill = "#ffffff";
+  chart.legend.valueLabels.template.fill = am4core.color("#ffffff"); 
+
+  //pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
+  //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
+  
+  // Responsive code for chart
+  chart.responsive.enabled = true;
+  chart.responsive.useDefault = false
+  
+  chart.responsive.rules.push({
+  relevant: function(target) {
+  if (target.pixelWidth <= 400) {
+    return true;
+  }
+  return false;
+  },
+  state: function(target, stateId) {
+  if (target instanceof am4charts.PieSeries) {
+    var state = target.states.create(stateId);
+        
+    var labelState = target.labels.template.states.create(stateId);
+    labelState.properties.disabled = true;
+        
+    var tickState = target.ticks.template.states.create(stateId);
+    tickState.properties.disabled = true;
+    return state;
+  }
+  if (target instanceof am4charts.Legend) {
+    var state = target.states.create(stateId);
+    state.properties.paddingTop = 0;
+    state.properties.paddingRight = 0;
+    state.properties.paddingBottom = 0;
+    state.properties.paddingLeft = 0;
+    state.properties.marginLeft = 0;
+    return state;
+  }
+  return null;
+  }
+  });
+  // Responsive code for chart
+  
+  // Chart Title
+  //var title = chart.titles.create();
+  //title.text = "Land"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
+  //title.fontSize = 20;
+  //title.fontWeight = "bold";
+  //title.fill = "#ffffff";
+  //title.marginTop = 5;
+  
+  var marker = chart.legend.markers.template.children.getIndex(0);
+  var markerTemplate = chart.legend.markers.template;
+  //marker.cornerRadius(12, 12, 12, 12); round legend marker
+  marker.strokeWidth = 1;
+  marker.strokeOpacity = 1;
+  marker.stroke = am4core.color("#ccc");
+  
+  // Change size of legend marker
+  markerTemplate.width = 18;
+  markerTemplate.height = 18;
+  // This creates initial animation
+  //pieSeries.hiddenState.properties.opacity = 1;
+  //pieSeries.hiddenState.properties.endAngle = -90;
+  //pieSeries.hiddenState.properties.startAngle = -90;
+
+  
+  } // End of createSlices function
+  
+  createSlices("status", "CP");
+  
+  }); // End of queryFeatures
+  } // End of updateChartLot()
+  
 
 //////////////////////////////////////////////
 ///////////////////  Stations ///////////////////
@@ -921,7 +1177,7 @@ function legendPackage() {
 /// 2. Land (in only Station)
 function lotPaidTotalCount() {
     var total_number_lot = {
-        onStatisticField: "CASE WHEN StatusNVS3 >= 1 THEN 1 ELSE 0 END",
+        onStatisticField: onStatisticField_total,
         outStatisticFieldName: "total_number_lot",
         statisticType: "sum"
     };
@@ -949,7 +1205,7 @@ function lotPaidTotalCount() {
 
 function paidLotSummary([totalNumberLot, totalNumberPaid]) {
     var total_number_lot_cp = {
-        onStatisticField: "CASE WHEN StatusNVS3 >= 1 THEN 1 ELSE 0 END",
+        onStatisticField: onStatisticField_total,
         outStatisticFieldName: "total_number_lot_cp",
         statisticType: "sum"
     };
@@ -3163,138 +3419,379 @@ lotWopTotalCount().then(wopLotSummary).then(wopLotChart);
 
 
 // Handed over
-function handedOverLotChart() {
+function lotHandedOverTotalCount() {
     var total_number_lot = {
         onStatisticField: onStatisticField_total,
         outStatisticFieldName: "total_number_lot",
         statisticType: "sum"
     };
 
-    var total_handover_lot = {
+    var total_number_handedOver = {
         onStatisticField: "CASE WHEN HandedOver = 1 THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_handover_lot",
+        outStatisticFieldName: "total_number_handedOver",
         statisticType: "sum"
     };
 
     var query = lotLayer.createQuery();
-    query.outStatistics = [total_number_lot, total_handover_lot];
-    query.returnGeometry = true;
+    query.outStatistics = [total_number_lot, total_number_handedOver];
     query.where = "Type = 'Station'";
 
-    lotLayer.queryFeatures(query).then(function(response) {
+    return lotLayer.queryFeatures(query).then(function(response) {
         var stats = response.features[0].attributes;
 
-        const totalNumber = stats.total_number_lot;
-        const handedOver = stats.total_handover_lot;
-        const LOT_HANDOVER_PERC = (handedOver/totalNumber)*100;
+        const totalNumberLot = stats.total_number_lot;
+        const totalNumberHandedOver = stats.total_number_handedOver;
+        //const LOT_HANDOVER_PERC = (handedOver/affected)*100;
+        return [totalNumberLot, totalNumberHandedOver];
+        
+    });
+}
 
-        // create chart
-        var chart = am4core.create("handedOverChartDiv", am4charts.GaugeChart);
-        chart.hiddenState.properties.opacity = 0;
-        chart.fontSize = 11;
-        chart.innerRadius = am4core.percent(80);
-        chart.resizable = true;
-        chart.responsive.enabled = true;
+function handedOverLotSummary([totalNumberLot, totalNumberHandedOver]) {
+    var total_number_lot_cp = {
+        onStatisticField: onStatisticField_total,
+        outStatisticFieldName: "total_number_lot_cp",
+        statisticType: "sum"
+    };
 
-        const BOTTOM_LABEL_COL = am4core.color("#FFA500");
-        const TOP_TITLE_COL = am4core.color("#FFFFFF");
+    var total_number_handedOver_cp = {
+        onStatisticField: "CASE WHEN HandedOver = 1 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_number_handedOver_cp",
+        statisticType: "sum"
+    };
 
-        var title = chart.titles.create();
-        //title.text = "[bold]EXISTING STRUCTURE";
-        title.text = title_handedOver;
-        title.fontSize = "2.5em";
-        title.align = "center";
-        title.marginBottom = -10;
-        title.marginTop = 0;
-        title.fill = am4core.color(color_handedOver);
+    var query = lotLayer.createQuery();
+    query.outStatistics = [total_number_lot_cp, total_number_handedOver_cp];
+    query.returnGeometry = true;
+    query.where = "Type = 'Station'";
+    query.groupByFieldsForStatistics = ["Package"];
+
+    var cp101 = [];
+    var cp101_a = [];
+
+    var cp102 = [];
+    var cp102_a = [];
+
+    var cp103 = [];
+    var cp103_a = [];
+
+    var cp104 = [];
+    var cp104_a = [];
+
+    var cp105 = [];
+    var cp105_a = [];
+
+    var cp105 = [];
+    var cp105_a = [];
+
+    var cp108 = [];
+    var cp108_a = [];
+
+    var cp109 = [];
+    var cp109_a = [];
+
+return lotLayer.queryFeatures(query).then(function(response) {
+    stats = response.features;
+
+    stats.forEach((result, index) => {
+        const attributes = result.attributes;
+        const cpPackage = attributes.Package;
+        const handedover_lot = attributes.total_number_lot_cp;
+        const handedover_CP = attributes.total_number_handedOver_cp;
+        
+        const HANDEDOVER_CP_PERC = (handedover_CP/totalNumberLot)*100;
+        const handedover_cp_perc = (handedover_CP/handedover_lot)*100;
+
+        //
+        if (cpPackage === 'CP101') {
+            cp101.push(HANDEDOVER_CP_PERC);
+            cp101_a.push(handedover_cp_perc);
+
+        } else if (cpPackage === 'CP102') {
+            cp102.push(HANDEDOVER_CP_PERC);
+            cp102_a.push(handedover_cp_perc);
+
+        } else if (cpPackage === 'CP103') {
+            cp103.push(HANDEDOVER_CP_PERC);
+            cp103_a.push(handedover_cp_perc);
+
+        } else if (cpPackage === 'CP104') {
+            cp104.push(HANDEDOVER_CP_PERC);
+            cp104_a.push(handedover_cp_perc);
+
+        } else if (cpPackage === 'CP105') {
+            cp105.push(HANDEDOVER_CP_PERC);
+            cp105_a.push(handedover_cp_perc);
+
+        } else if (cpPackage === 'CP108') {
+            cp108.push(HANDEDOVER_CP_PERC);
+            cp108_a.push(handedover_cp_perc);
+
+        } else if (cpPackage === 'CP109') {
+            cp109.push(HANDEDOVER_CP_PERC);
+            cp109_a.push(handedover_cp_perc);
+
+        }
+
+    });
+    return [cp101, cp102, cp103, cp104, cp105, cp108, cp109,
+            cp101_a, cp102_a, cp103_a, cp104_a, cp105_a, cp108_a, cp109_a];
+});
+
+} // End of wopLotSummary function
+
+function handedOverLotChart([cp101, cp102, cp103, cp104, cp105, cp108, cp109, cp101_a, cp102_a, cp103_a, cp104_a, cp105_a, cp108_a, cp109_a]) {
+  var totalScore = Number(cp101) + Number(cp102) + Number(cp103) + Number(cp104) + Number(cp105);
+
+  var CP101 = Number(cp101);
+  var CP102 = Number(cp101) + Number(cp102);
+  var CP103 = Number(cp101) + Number(cp102) + Number(cp103);
+  var CP104 = Number(cp101) + Number(cp102) + Number(cp103) + Number(cp104);
+  var CP105 = Number(cp101) + Number(cp102) + Number(cp103) + Number(cp104) + Number(cp105);
+  var CP108 = Number(cp101) + Number(cp102) + Number(cp103) + Number(cp104) + Number(cp105) + Number(cp108);
+  var CP109 = Number(cp101) + Number(cp102) + Number(cp103) + Number(cp104) + Number(cp105) + Number(cp108) + Number(cp109);
+
+  var chartMin = 0;
+  var chartMax = 100;
+
+// #ffea8c|#b3ab60|#4b595e|#6693c8|#aadbff
+// const colors = ["#ffea8c", "#b3ab60", "#4b595e", "#6693c8", "#aadbff"];
+
+var data = {
+score: totalScore,
+gradingData: [
+{
+  title: isNaN(cp101_a) ? "" : Number(cp101_a).toFixed(0),
+  color: color_101,
+  lowScore: 0,
+  highScore: CP101
+},
+{
+  title: isNaN(cp102_a) ? "" : Number(cp102_a).toFixed(0),
+  color: color_102,
+  lowScore: CP101,
+  highScore: CP102
+},
+{
+  title: isNaN(cp103_a) ? "" : Number(cp103_a).toFixed(0),
+  color: color_103,
+  lowScore: CP102,
+  highScore: CP103
+},
+{
+  title: isNaN(cp104_a) ? "" : Number(cp104_a).toFixed(0),
+  color: color_104,
+  lowScore: CP103,
+  highScore: CP104
+},
+{
+  title: isNaN(cp105_a) ? "" : Number(cp105_a).toFixed(0),
+  color: color_105,
+  lowScore: CP104,
+  highScore: CP105
+},
+{
+  title: isNaN(cp108_a) ? "" : Number(cp108_a).toFixed(0),
+  color: color_108,
+  lowScore: CP105,
+  highScore: CP108
+},
+{
+  title: isNaN(cp109_a) ? "" : Number(cp109_a).toFixed(0),
+  color: color_109,
+  lowScore: CP108,
+  highScore: CP109
+},
+{
+  title: "",
+  color: "#C5C5C5",
+  lowScore: CP105,
+  highScore: 100
+}
+]
+};
+
+/**
+Grading Lookup
+*/
+function lookUpGrade(lookupScore, grades) {
+// Only change code below this line
+for (var i = 0; i < grades.length; i++) {
+if (
+  grades[i].lowScore < lookupScore &&
+  grades[i].highScore >= lookupScore
+) {
+  return grades[i];
+}
+}
+return null;
+}
+
+// create chart
+var chart = am4core.create("handedOverChartDiv", am4charts.GaugeChart);
+chart.hiddenState.properties.opacity = 0;
+chart.fontSize = 11;
+chart.innerRadius = am4core.percent(80);
+chart.resizable = true;
+chart.responsive.enabled = true;
+/**
+* Chart Title
+*/
+// Title Color
+const BOTTOM_LABEL_COL = am4core.color("#FFA500");
+const TOP_TITLE_COL = am4core.color("#FFFFFF");
+
+var title = chart.titles.create();
+//title.text = "[bold]EXISTING STRUCTURE";
+title.text = title_handedOver;
+title.fontSize = "1.8em";
+title.align = "center";
+title.marginBottom = -10;
+title.marginTop = 0;
+title.fill = TOP_TITLE_COL;
+
+// Add bottom label
+/*
+var label = chart.chartContainer.createChild(am4core.Label);
+label.text = "[bold]PAID";
+label.fontSize = "1.4em";
+label.align = "center";
+label.marginTop = 0;
+label.fill = BOTTOM_LABEL_COL;
+*/
+/**
+* Normal axis
+*/
+
+var axis = chart.xAxes.push(new am4charts.ValueAxis());
+axis.min = chartMin;
+axis.max = chartMax;
+axis.strictMinMax = true;
+axis.renderer.radius = am4core.percent(80);
+axis.renderer.inside = true;
+axis.renderer.line.strokeOpacity = 0.5; // line opacity inside curve line
+axis.renderer.ticks.template.disabled = false;
+axis.renderer.ticks.template.strokeOpacity = 1;
+//axis.renderer.ticks.template.strokeWidth = 1;
+axis.renderer.ticks.template.length = 10;
+axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
+//axis.renderer.grid.template.disabled = true;
+axis.renderer.labels.template.radius = am4core.percent(40);
+axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em inner radius axis percent labels (0 to 100%)
+axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
+
+/**
+* Axis for ranges
+*/
+
+var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+axis2.min = chartMin;
+axis2.max = chartMax;
+axis2.strictMinMax = true;
+axis2.renderer.labels.template.disabled = true;
+axis2.renderer.ticks.template.disabled = true;
+axis2.renderer.grid.template.disabled = true; // when true inside tick marks will disappear
+axis2.renderer.grid.template.opacity = 0.5;
+axis2.renderer.labels.template.bent = true;
+axis2.renderer.labels.template.fill = am4core.color("#000");
+axis2.renderer.labels.template.fontWeight = "bold";
+axis2.renderer.labels.template.fillOpacity = 0.7; // 0.3 // category labels: N-01, N-02,....
 
 
-        /**
-        * Normal axis
-        */
 
-        var axis = chart.xAxes.push(new am4charts.ValueAxis());
-        axis.min = 0;
-        axis.max = 100;
-        axis.strictMinMax = true;
-        axis.renderer.radius = am4core.percent(80);
-        axis.renderer.inside = true;
-        axis.renderer.line.strokeOpacity = 0.5; // line opacity inside curve line
-        axis.renderer.ticks.template.disabled = false;
-        axis.renderer.ticks.template.strokeOpacity = 1;
-        //axis.renderer.ticks.template.strokeWidth = 1;
-        axis.renderer.ticks.template.length = 10;
-        axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
-        //axis.renderer.grid.template.disabled = true;
-        axis.renderer.labels.template.radius = am4core.percent(40);
-        axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em inner radius axis percent labels (0 to 100%)
-        axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
+/**
+Ranges
+*/
 
+for (let grading of data.gradingData) {
+var range = axis2.axisRanges.create();
+range.axisFill.fill = am4core.color(grading.color);
+range.axisFill.fillOpacity = 1;
+range.axisFill.zIndex = -1;
+range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
+range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
+range.grid.strokeOpacity = 0; // changes opacity of inside tick mark
+range.stroke = am4core.color(grading.color).lighten(-0.1);
+range.label.inside = true;
+range.label.text = grading.title.toUpperCase();
+range.label.inside = true;
+range.label.location = 0.5;
+range.label.inside = true;
+range.label.radius = am4core.percent(10);
+range.label.paddingBottom = -5; // ~half font size
+range.label.fontSize = "1.4em"; // category label (i.e., N-01, N-02, ....)
+}
 
-        /**
-        * Axis for ranges
-        */
+var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
-        var colorSet = new am4core.ColorSet();
+/**
+* Label 1 (total Percent)
+*/
 
-        var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
-        axis2.min = 0;
-        axis2.max = 100;
-        axis2.strictMinMax = true;
-        axis2.renderer.labels.template.disabled = true;
-        axis2.renderer.ticks.template.disabled = true;
-        axis2.renderer.grid.template.disabled = true;
+var label = chart.radarContainer.createChild(am4core.Label);
+label.isMeasured = false;
+label.fontSize = "3.5em";
+label.x = am4core.percent(50);
+label.y = am4core.percent(100);
+label.paddingBottom = -5;
+label.horizontalCenter = "middle";
+label.verticalCenter = "bottom";
+//label.dataItem = data;
+label.text = data.score.toFixed(0).toString() + "%";
+//label.text = "{score}";
+//label.fill = am4core.color(matchingGrade.color);
+label.fill =  am4core.color("#00C3FF");
 
-        var range0 = axis2.axisRanges.create();
-        range0.value = 0;
-        range0.endValue = LOT_HANDOVER_PERC;
-        range0.axisFill.fillOpacity = 1;
-        range0.axisFill.fill = am4core.color(color_handedOver);
+/**
+* Label 2
+*/
 
-        var range1 = axis2.axisRanges.create();
-        range1.value = LOT_HANDOVER_PERC;
-        range1.endValue = 100;
-        range1.axisFill.fillOpacity = 1;
-        range1.axisFill.fill = am4core.color("#ffffff");
-        range1.axisFill.fillOpacity = 0.7;
+/*
+var label2 = chart.radarContainer.createChild(am4core.Label);
+label2.isMeasured = false;
+label2.fontSize = "2em";
+label2.horizontalCenter = "middle";
+label2.verticalCenter = "bottom";
+label2.text = matchingGrade.title.toUpperCase();
+//label2.fill = am4core.color(matchingGrade.color);
+label2.fill =  am4core.color("#00C3FF");
+*/
+/**
+* Hand
+*/
 
-        /**
-        * Label
-        */
-        var label = chart.radarContainer.createChild(am4core.Label);
-        label.isMeasured = false;
-        label.fontSize = 45;
-        label.x = am4core.percent(50);
-        label.y = am4core.percent(100);
-        label.horizontalCenter = "middle";
-        label.verticalCenter = "bottom";
+var hand = chart.hands.push(new am4charts.ClockHand());
+hand.axis = axis2;
+hand.innerRadius = am4core.percent(55);
+hand.startWidth = 8;
+hand.pin.disabled = true;
+hand.value = data.score;
+hand.fill = am4core.color("#000000"); // inner color of needle
+//hand.stroke = am4core.color("#000");
+hand.fillOpacity = 0.5;
 
-        const LABEL_TEXT = LOT_HANDOVER_PERC.toFixed(0).toString() + "%";
-        label.text = LABEL_TEXT;
-        label.fill =  am4core.color(color_handedOver);
+/*
+hand.events.on("positionchanged", function(){
+label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
+var value2 = axis.positionToValue(hand.currentPosition);
+var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
+label2.text = matchingGrade.title.toUpperCase();
+label2.fill = am4core.color(matchingGrade.color);
+label2.stroke = am4core.color(matchingGrade.color);  
+label.fill = am4core.color(matchingGrade.color);
+})
+*/
+/*
+setInterval(function() {
+var value = chartMin + Math.random() * (chartMax - chartMin);
+hand.showValue(value, 1000, am4core.ease.cubicOut);
+}, 2000);
+*/
 
-
-        /**
-        * Hand
-        */
-
-        var hand = chart.hands.push(new am4charts.ClockHand());
-        hand.axis = axis2;
-        hand.innerRadius = NEEDLE_LENGTH;
-        hand.startWidth = 10;
-        hand.pin.disabled = true;
-        hand.value = LOT_HANDOVER_PERC;
-        hand.fill = am4core.color("#000000");
-        hand.fillOpacity = 0.5;
-
-
-
-
-    }); // end of queryFeatures
 
 
 }
-handedOverLotChart();
+lotHandedOverTotalCount().then(handedOverLotSummary).then(handedOverLotChart);
 
 
 //////////////////////////////////////////////
@@ -5545,147 +6042,389 @@ lotWopTotalCount2().then(wopLotSummary2).then(wopLotChart2);
 
 
 // Handed over
-function handedOverLotChart2() {
+function lotHandedOverTotalCount2() {
     var total_number_lot = {
-        onStatisticField: "StatusNVS3",
+        onStatisticField: onStatisticField_total,
         outStatisticFieldName: "total_number_lot",
-        statisticType: "count"
+        statisticType: "sum"
     };
 
-    var total_handover_lot = {
+    var total_number_handedOver = {
         onStatisticField: "CASE WHEN HandedOver = 1 THEN 1 ELSE 0 END",
-        outStatisticFieldName: "total_handover_lot",
+        outStatisticFieldName: "total_number_handedOver",
         statisticType: "sum"
     };
 
     var query = lotLayer.createQuery();
-    query.outStatistics = [total_number_lot, total_handover_lot];
-    query.returnGeometry = true;
+    query.outStatistics = [total_number_lot, total_number_handedOver];
     query.where = "Type = 'Subterranean'";
 
-    lotLayer.queryFeatures(query).then(function(response) {
+    return lotLayer.queryFeatures(query).then(function(response) {
         var stats = response.features[0].attributes;
 
-        const totalNumber = stats.total_number_lot;
-        const handedOver = stats.total_handover_lot;
-        const LOT_HANDOVER_PERC = (handedOver/totalNumber)*100;
+        const totalNumberLot = stats.total_number_lot;
+        const totalNumberHandedOver = stats.total_number_handedOver;
+        //const LOT_HANDOVER_PERC = (handedOver/affected)*100;
+        return [totalNumberLot, totalNumberHandedOver];
+        
+    });
+}
 
-        // create chart
-        var chart = am4core.create("handedOverChartDiv2", am4charts.GaugeChart);
-        chart.hiddenState.properties.opacity = 0;
-        chart.fontSize = 11;
-        chart.innerRadius = am4core.percent(80);
-        chart.resizable = true;
-        chart.responsive.enabled = true;
+function handedOverLotSummary2([totalNumberLot, totalNumberHandedOver]) {
+    var total_number_lot_cp = {
+        onStatisticField: onStatisticField_total,
+        outStatisticFieldName: "total_number_lot_cp",
+        statisticType: "sum"
+    };
 
-        const BOTTOM_LABEL_COL = am4core.color("#FFA500");
-        const TOP_TITLE_COL = am4core.color("#FFFFFF");
+    var total_number_handedOver_cp = {
+        onStatisticField: "CASE WHEN HandedOver = 1 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_number_handedOver_cp",
+        statisticType: "sum"
+    };
 
-        var title = chart.titles.create();
-        //title.text = "[bold]EXISTING STRUCTURE";
-        title.text = title_handedOver;
-        title.fontSize = "2.5em";
-        title.align = "center";
-        title.marginBottom = -10;
-        title.marginTop = 0;
-        title.fill = am4core.color(color_handedOver);
+    var query = lotLayer.createQuery();
+    query.outStatistics = [total_number_lot_cp, total_number_handedOver_cp];
+    query.returnGeometry = true;
+    query.where = "Type = 'Subterranean'";
+    query.groupByFieldsForStatistics = ["Package"];
+
+    var cp101 = [];
+    var cp101_a = [];
+
+    var cp102 = [];
+    var cp102_a = [];
+
+    var cp103 = [];
+    var cp103_a = [];
+
+    var cp104 = [];
+    var cp104_a = [];
+
+    var cp105 = [];
+    var cp105_a = [];
+
+    var cp105 = [];
+    var cp105_a = [];
+
+    var cp108 = [];
+    var cp108_a = [];
+
+    var cp109 = [];
+    var cp109_a = [];
+
+return lotLayer.queryFeatures(query).then(function(response) {
+    stats = response.features;
+
+    stats.forEach((result, index) => {
+        const attributes = result.attributes;
+        const cpPackage = attributes.Package;
+        const handedover_lot = attributes.total_number_lot_cp;
+        const handedover_CP = attributes.total_number_handedOver_cp;
+        
+        const HANDEDOVER_CP_PERC = (handedover_CP/totalNumberLot)*100;
+        const handedover_cp_perc = (handedover_CP/handedover_lot)*100;
+
+        //
+        if (cpPackage === 'CP101') {
+            cp101.push(HANDEDOVER_CP_PERC);
+            cp101_a.push(handedover_cp_perc);
+
+        } else if (cpPackage === 'CP102') {
+            cp102.push(HANDEDOVER_CP_PERC);
+            cp102_a.push(handedover_cp_perc);
+
+        } else if (cpPackage === 'CP103') {
+            cp103.push(HANDEDOVER_CP_PERC);
+            cp103_a.push(handedover_cp_perc);
+
+        } else if (cpPackage === 'CP104') {
+            cp104.push(HANDEDOVER_CP_PERC);
+            cp104_a.push(handedover_cp_perc);
+
+        } else if (cpPackage === 'CP105') {
+            cp105.push(HANDEDOVER_CP_PERC);
+            cp105_a.push(handedover_cp_perc);
+
+        } else if (cpPackage === 'CP108') {
+            cp108.push(HANDEDOVER_CP_PERC);
+            cp108_a.push(handedover_cp_perc);
+
+        } else if (cpPackage === 'CP109') {
+            cp109.push(HANDEDOVER_CP_PERC);
+            cp109_a.push(handedover_cp_perc);
+
+        }
+
+    });
+    return [cp101, cp102, cp103, cp104, cp105, cp108, cp109,
+            cp101_a, cp102_a, cp103_a, cp104_a, cp105_a, cp108_a, cp109_a];
+});
+
+} // End of wopLotSummary function
+
+function handedOverLotChart2([cp101, cp102, cp103, cp104, cp105, cp108, cp109, cp101_a, cp102_a, cp103_a, cp104_a, cp105_a, cp108_a, cp109_a]) {
+  var totalScore = Number(cp101) + Number(cp102) + Number(cp103) + Number(cp104) + Number(cp105);
+
+  var CP101 = Number(cp101);
+  var CP102 = Number(cp101) + Number(cp102);
+  var CP103 = Number(cp101) + Number(cp102) + Number(cp103);
+  var CP104 = Number(cp101) + Number(cp102) + Number(cp103) + Number(cp104);
+  var CP105 = Number(cp101) + Number(cp102) + Number(cp103) + Number(cp104) + Number(cp105);
+  var CP108 = Number(cp101) + Number(cp102) + Number(cp103) + Number(cp104) + Number(cp105) + Number(cp108);
+  var CP109 = Number(cp101) + Number(cp102) + Number(cp103) + Number(cp104) + Number(cp105) + Number(cp108) + Number(cp109);
+
+  var chartMin = 0;
+  var chartMax = 100;
+
+// #ffea8c|#b3ab60|#4b595e|#6693c8|#aadbff
+// const colors = ["#ffea8c", "#b3ab60", "#4b595e", "#6693c8", "#aadbff"];
+
+var data = {
+score: totalScore,
+gradingData: [
+{
+  title: isNaN(cp101_a) ? "" : Number(cp101_a).toFixed(0),
+  color: color_101,
+  lowScore: 0,
+  highScore: CP101
+},
+{
+  title: isNaN(cp102_a) ? "" : Number(cp102_a).toFixed(0),
+  color: color_102,
+  lowScore: CP101,
+  highScore: CP102
+},
+{
+  title: isNaN(cp103_a) ? "" : Number(cp103_a).toFixed(0),
+  color: color_103,
+  lowScore: CP102,
+  highScore: CP103
+},
+{
+  title: isNaN(cp104_a) ? "" : Number(cp104_a).toFixed(0),
+  color: color_104,
+  lowScore: CP103,
+  highScore: CP104
+},
+{
+  title: isNaN(cp105_a) ? "" : Number(cp105_a).toFixed(0),
+  color: color_105,
+  lowScore: CP104,
+  highScore: CP105
+},
+{
+  title: isNaN(cp108_a) ? "" : Number(cp108_a).toFixed(0),
+  color: color_108,
+  lowScore: CP105,
+  highScore: CP108
+},
+{
+  title: isNaN(cp109_a) ? "" : Number(cp109_a).toFixed(0),
+  color: color_109,
+  lowScore: CP108,
+  highScore: CP109
+},
+{
+  title: "",
+  color: "#C5C5C5",
+  lowScore: CP105,
+  highScore: 100
+}
+]
+};
+
+/**
+Grading Lookup
+*/
+function lookUpGrade(lookupScore, grades) {
+// Only change code below this line
+for (var i = 0; i < grades.length; i++) {
+if (
+  grades[i].lowScore < lookupScore &&
+  grades[i].highScore >= lookupScore
+) {
+  return grades[i];
+}
+}
+return null;
+}
+
+// create chart
+var chart = am4core.create("handedOverChartDiv2", am4charts.GaugeChart);
+chart.hiddenState.properties.opacity = 0;
+chart.fontSize = 11;
+chart.innerRadius = am4core.percent(80);
+chart.resizable = true;
+chart.responsive.enabled = true;
+/**
+* Chart Title
+*/
+// Title Color
+const BOTTOM_LABEL_COL = am4core.color("#FFA500");
+const TOP_TITLE_COL = am4core.color("#FFFFFF");
+
+var title = chart.titles.create();
+//title.text = "[bold]EXISTING STRUCTURE";
+title.text = title_handedOver;
+title.fontSize = "1.8em";
+title.align = "center";
+title.marginBottom = -10;
+title.marginTop = 0;
+title.fill = TOP_TITLE_COL;
+
+// Add bottom label
+/*
+var label = chart.chartContainer.createChild(am4core.Label);
+label.text = "[bold]PAID";
+label.fontSize = "1.4em";
+label.align = "center";
+label.marginTop = 0;
+label.fill = BOTTOM_LABEL_COL;
+*/
+/**
+* Normal axis
+*/
+
+var axis = chart.xAxes.push(new am4charts.ValueAxis());
+axis.min = chartMin;
+axis.max = chartMax;
+axis.strictMinMax = true;
+axis.renderer.radius = am4core.percent(80);
+axis.renderer.inside = true;
+axis.renderer.line.strokeOpacity = 0.5; // line opacity inside curve line
+axis.renderer.ticks.template.disabled = false;
+axis.renderer.ticks.template.strokeOpacity = 1;
+//axis.renderer.ticks.template.strokeWidth = 1;
+axis.renderer.ticks.template.length = 10;
+axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
+//axis.renderer.grid.template.disabled = true;
+axis.renderer.labels.template.radius = am4core.percent(40);
+axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em inner radius axis percent labels (0 to 100%)
+axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
+
+/**
+* Axis for ranges
+*/
+
+var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+axis2.min = chartMin;
+axis2.max = chartMax;
+axis2.strictMinMax = true;
+axis2.renderer.labels.template.disabled = true;
+axis2.renderer.ticks.template.disabled = true;
+axis2.renderer.grid.template.disabled = true; // when true inside tick marks will disappear
+axis2.renderer.grid.template.opacity = 0.5;
+axis2.renderer.labels.template.bent = true;
+axis2.renderer.labels.template.fill = am4core.color("#000");
+axis2.renderer.labels.template.fontWeight = "bold";
+axis2.renderer.labels.template.fillOpacity = 0.7; // 0.3 // category labels: N-01, N-02,....
 
 
-        /**
-        * Normal axis
-        */
 
-        var axis = chart.xAxes.push(new am4charts.ValueAxis());
-        axis.min = 0;
-        axis.max = 100;
-        axis.strictMinMax = true;
-        axis.renderer.radius = am4core.percent(80);
-        axis.renderer.inside = true;
-        axis.renderer.line.strokeOpacity = 0.5; // line opacity inside curve line
-        axis.renderer.ticks.template.disabled = false;
-        axis.renderer.ticks.template.strokeOpacity = 1;
-        //axis.renderer.ticks.template.strokeWidth = 1;
-        axis.renderer.ticks.template.length = 10;
-        axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
-        //axis.renderer.grid.template.disabled = true;
-        axis.renderer.labels.template.radius = am4core.percent(40);
-        axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em inner radius axis percent labels (0 to 100%)
-        axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
+/**
+Ranges
+*/
 
+for (let grading of data.gradingData) {
+var range = axis2.axisRanges.create();
+range.axisFill.fill = am4core.color(grading.color);
+range.axisFill.fillOpacity = 1;
+range.axisFill.zIndex = -1;
+range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
+range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
+range.grid.strokeOpacity = 0; // changes opacity of inside tick mark
+range.stroke = am4core.color(grading.color).lighten(-0.1);
+range.label.inside = true;
+range.label.text = grading.title.toUpperCase();
+range.label.inside = true;
+range.label.location = 0.5;
+range.label.inside = true;
+range.label.radius = am4core.percent(10);
+range.label.paddingBottom = -5; // ~half font size
+range.label.fontSize = "1.4em"; // category label (i.e., N-01, N-02, ....)
+}
 
-        /**
-        * Axis for ranges
-        */
+var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
-        var colorSet = new am4core.ColorSet();
+/**
+* Label 1 (total Percent)
+*/
 
-        var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
-        axis2.min = 0;
-        axis2.max = 100;
-        axis2.strictMinMax = true;
-        axis2.renderer.labels.template.disabled = true;
-        axis2.renderer.ticks.template.disabled = true;
-        axis2.renderer.grid.template.disabled = true;
+var label = chart.radarContainer.createChild(am4core.Label);
+label.isMeasured = false;
+label.fontSize = "3.5em";
+label.x = am4core.percent(50);
+label.y = am4core.percent(100);
+label.paddingBottom = -5;
+label.horizontalCenter = "middle";
+label.verticalCenter = "bottom";
+//label.dataItem = data;
+label.text = data.score.toFixed(0).toString() + "%";
+//label.text = "{score}";
+//label.fill = am4core.color(matchingGrade.color);
+label.fill =  am4core.color("#00C3FF");
 
-        var range0 = axis2.axisRanges.create();
-        range0.value = 0;
-        range0.endValue = LOT_HANDOVER_PERC;
-        range0.axisFill.fillOpacity = 1;
-        range0.axisFill.fill = am4core.color(color_handedOver);
+/**
+* Label 2
+*/
 
-        var range1 = axis2.axisRanges.create();
-        range1.value = LOT_HANDOVER_PERC;
-        range1.endValue = 100;
-        range1.axisFill.fillOpacity = 1;
-        range1.axisFill.fill = am4core.color("#ffffff");
-        range1.axisFill.fillOpacity = 0.7;
+/*
+var label2 = chart.radarContainer.createChild(am4core.Label);
+label2.isMeasured = false;
+label2.fontSize = "2em";
+label2.horizontalCenter = "middle";
+label2.verticalCenter = "bottom";
+label2.text = matchingGrade.title.toUpperCase();
+//label2.fill = am4core.color(matchingGrade.color);
+label2.fill =  am4core.color("#00C3FF");
+*/
+/**
+* Hand
+*/
 
-        /**
-        * Label
-        */
-        var label = chart.radarContainer.createChild(am4core.Label);
-        label.isMeasured = false;
-        label.fontSize = 45;
-        label.x = am4core.percent(50);
-        label.y = am4core.percent(100);
-        label.horizontalCenter = "middle";
-        label.verticalCenter = "bottom";
+var hand = chart.hands.push(new am4charts.ClockHand());
+hand.axis = axis2;
+hand.innerRadius = am4core.percent(55);
+hand.startWidth = 8;
+hand.pin.disabled = true;
+hand.value = data.score;
+hand.fill = am4core.color("#000000"); // inner color of needle
+//hand.stroke = am4core.color("#000");
+hand.fillOpacity = 0.5;
 
-        const LABEL_TEXT = LOT_HANDOVER_PERC.toFixed(0).toString() + "%";
-        label.text = LABEL_TEXT;
-        label.fill =  am4core.color(color_handedOver);
+/*
+hand.events.on("positionchanged", function(){
+label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
+var value2 = axis.positionToValue(hand.currentPosition);
+var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
+label2.text = matchingGrade.title.toUpperCase();
+label2.fill = am4core.color(matchingGrade.color);
+label2.stroke = am4core.color(matchingGrade.color);  
+label.fill = am4core.color(matchingGrade.color);
+})
+*/
+/*
+setInterval(function() {
+var value = chartMin + Math.random() * (chartMax - chartMin);
+hand.showValue(value, 1000, am4core.ease.cubicOut);
+}, 2000);
+*/
 
-
-        /**
-        * Hand
-        */
-
-        var hand = chart.hands.push(new am4charts.ClockHand());
-        hand.axis = axis2;
-        hand.innerRadius = NEEDLE_LENGTH;
-        hand.startWidth = 10;
-        hand.pin.disabled = true;
-        hand.value = LOT_HANDOVER_PERC;
-        hand.fill = am4core.color("#000000");
-        hand.fillOpacity = 0.5;
-
-
-
-
-    }); // end of queryFeatures
 
 
 }
-handedOverLotChart2();
+lotHandedOverTotalCount2().then(handedOverLotSummary2).then(handedOverLotChart2);
 
 
   document.querySelector("#item-description").innerHTML = 
                               `
-                              <p>1. This dashboard shows the progress of land acquisition using gauges.</p>
+                              <p>1. This dashboard shows progress of land acquisition using gauges.</p>
                               <p>2. Each gauge represents individual land processes per different contract packages.</p>
                               <p>3. Overall progress per land process including all CPs is indicated at the bottom of each gauge.</p>
                               <p>4. Progress of individual CPs is displayed in the sliced areas of each gauge with respective colors from Legend.</p>
-                              <p>3. <b>Click 'Station' or 'Subterranean'</b> tab at the screen top to view the respective progress of land acquisition.</p> 
+                              <p>5. <b>Click 'Station' or 'Subterranean'</b> tab at the screen top to view the respective progress of land acquisition.</p> 
+                              <p>6. Values in Legend represent the total number of lots for the respective legend items.
                              `;
         let activeWidget;
         const handleActionBarClick = ({ target }) => {
@@ -5708,14 +6447,29 @@ handedOverLotChart2();
           }
         };
 
-
-
         // Action bar 
         document.querySelector(".inforClass").addEventListener("click", handleActionBarClick);
         let actionBarExpanded = false;
 
         
 
+        // update legend when Station or Subterranean is chosen
+        document.querySelector("#thetabs").addEventListener("click", switchArea);
+        function switchArea(event) {
+          const value = event.target.className;
+          if (value === 'Stations') {
+            document.getElementById("legendChartDiv").style.display = 'block';
+            document.getElementById("legendChartDiv2").style.display = 'none';
+            legendPackage();
+
+          } else {
+            document.getElementById("legendChartDiv").style.display = 'none';
+            document.getElementById("legendChartDiv2").style.display = 'block';
+            legendPackage2();
+          }
+
+          
+        }
 
 
 
