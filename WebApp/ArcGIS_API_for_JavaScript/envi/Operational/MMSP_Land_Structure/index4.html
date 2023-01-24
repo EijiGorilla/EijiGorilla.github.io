@@ -1187,14 +1187,39 @@
           query.outStatistics = [totalStructure];
           query.returnGeometry = true;
 
-          structureLayer.queryFeatures(query).then(function(response){
+          return structureLayer.queryFeatures(query).then(function(response){
             var stats = response.features[0].attributes;
 
             const STRUCTURE_TOTAL = thousands_separators(stats.totalStructure);
-            structureNumberDiv.innerHTML = dark.disabled ? `<b style="color:black">Number of Structures</b><br><br>${STRUCTURE_TOTAL}` : `<b>Number of Structures</b><br><br>${STRUCTURE_TOTAL}`;
+           // structureNumberDiv.innerHTML = dark.disabled ? `<b style="color:black">Number of Structures</b><br><br>${STRUCTURE_TOTAL}` : `<b>Number of Structures</b><br><br>${STRUCTURE_TOTAL}`;
+
+            return STRUCTURE_TOTAL; 
           });
         }
-        totalNumberOfStructures();
+   
+
+        function totalNumberOfStructureAll(structureValue) {
+          var totalStructureAll = {
+            onStatisticField: "Id",
+            outStatisticFieldName: "totalStructureAll",
+            statisticType: "count"
+          }
+
+          var query = structureLayer.createQuery();
+          query.outStatistics = [totalStructureAll];
+          query.returnGeometry = true;
+
+          structureLayer.queryFeatures(query).then(function(response) {
+            var stats = response.features[0].attributes;
+
+            const total = thousands_separators(stats.totalStructureAll);
+            const totalValue = thousands_separators(total) + " (" + structureValue + ")";
+            structureNumberDiv.innerHTML = dark.disabled ? `<b style="color:black">Number of Structures</b><br>${totalValue}` : `<b>Number of Structures</b><br>${totalValue}`;
+            //structureNumberDiv.innerHTML = dark.disabled ? `<b style="color:black">Number of Structures</b><br><br>${STRUCTURE_TOTAL}` : `<b>Number of Structures</b><br><br>${STRUCTURE_TOTAL}`;
+
+          })
+        }
+        totalNumberOfStructures().then(totalNumberOfStructureAll);
 
         // Total number of ISF
         function isfNumber() {
@@ -1519,7 +1544,7 @@
           updateMoaChartLot();
           handedOverNumberLot();
           updateChartStructure();
-          totalNumberOfStructures();
+          totalNumberOfStructures().then(totalNumberOfStructureAll);
           updateMoaChartStructure();
           isfNumber();
 
@@ -1552,7 +1577,7 @@
           updateMoaChartLot();
           handedOverNumberLot();
           updateChartStructure();
-          totalNumberOfStructures();
+          totalNumberOfStructures().then(totalNumberOfStructureAll);
           updateMoaChartStructure();
           isfNumber();
 
@@ -1573,7 +1598,7 @@
           updateMoaChartLot();
           handedOverNumberLot();
           updateChartStructure();
-          totalNumberOfStructures();
+          totalNumberOfStructures().then(totalNumberOfStructureAll);
           updateMoaChartStructure();
           isfNumber();
 
@@ -2630,7 +2655,7 @@
           updateMoaChartLot()
           handedOverNumberLot();
           updateChartStructure();
-          totalNumberOfStructures();
+          totalNumberOfStructures().then(totalNumberOfStructureAll);
           updateMoaChartStructure();
           isfNumber();
 
