@@ -2,7 +2,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <title>N2 Land Acquisition</title>
+    <title>General Progress</title>
     
     <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
     <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/1.0.0-beta.99/calcite.css" />
 
     <script src="https://js.arcgis.com/4.25/"></script>
-    <link disabled id="arcgis-maps-sdk-theme-dark" rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css" />
     <link id="arcgis-maps-sdk-theme-light" rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css" />
 
   </head>
@@ -82,44 +81,6 @@
       margin: 0 0.5rem;
     }
 
-    
-    #chartPanel {
-        background-color: rgb(0, 0, 0, 0);
-        padding: 10;
-    }
-    
-    #pieChartLotDiv,
-    #pieChartStructureDiv,
-    #pieChartIsfDiv {
-      width: 100%;
-      height: 45%;
-      align-items: center;
-      padding: 1%;
-    }
-
-    
-    #lotNumberDiv,
-    #pteLotNumberDiv,
-    #structureNumberDiv,
-    #pteStructureNumberDiv {
-      color: rgb(0, 197, 255);
-      text-align: center;
-      font-weight: normal;
-      font-size: 1.5vw;
-      border: solid 0.5px gray;
-      padding-top: 1%;
-      padding-bottom: 4%;
-    }
-
-    #lotNumberDiv b,
-    #pteLotNumberDiv b,
-    #structureNumberDiv b,
-    #pteStructureNumberDiv b {
-      font-size: 1.0vw;
-      font-family: 'Calibri';
-      font-weight: bold;
-      color:rgb(250, 246, 246);
-    }
 
     br {
       content: "";
@@ -132,73 +93,76 @@
         color: orange;
     }
 
+    h2 {
+      position: absolute;
+      z-index: 99;
+      top: 0;
+      left: 0;
+      margin: 1rem;
+    }
+
     #dateDiv {
+      position: absolute;
+      z-index: 99;
+      bottom: 0;
+      right: 0;
       font-size: 0.85vw;
       text-align: right;
       display: flex;
       align-items: flex-end;
       font-weight: bold;
+      margin: 1rem;
+
     }
 
-    /* Expropriation List */
-    /** clear background color of list box **/
-    .panel-side {
-      background-color: rgb(0, 0, 0, 0);
-      margin-top: 1%;
+
+
+    /* Project list*/
+    #projectList {
+      color: grey;
     }
 
-    /** adjust line height between texts **/
-    .panel-side li {
-      padding: 1% 1%;
-    }
-
-    /** adjust lot ID's font size and color **/
-    .panel-side li b{
-      color: red;
-      font-size: 0.8vw;
-    }
-
-    .panel-result {
-      cursor: pointer;
-      margin: 0px 0;
-    }
-
-    .panel-result:hover,
-    .panel-result:focus,
-    .panel-result.selected {
-      background-color: rgba(73, 72, 72, 0.5);
-    }
-
-    #expropriationListDiv {
-      list-style: none;
-      padding: 0.5%;
-      padding-right: 5%;
-      font-size: 0.8vw;
-      width: 17vw;
-    }
-
-    /* MOA Chart */
-    #chartMoaLotDiv,
-    #chartMoaStructureDiv {
-        width: 100%;
-        height: 35%;
-        align-items: center;
-        padding: 1%;
-    }
-
-    /* Dropdown list */
-    #dropdownDiv {
-      background-color: rgb(0, 0, 0, 0);
-        width: 50%;
-        opacity: 1;
+    .active, .test:hover {
+      background-color: rgba(77, 75, 75, 0);
         color: black;
-        text-align: right;
-        margin: auto;
+        font-size: 1.2rem;
+        /*text-decoration: underline;*/
+        font-weight: bold;
     }
+
+    ul {
+      list-style-type: none; /* remove list bullets*/
+    }
+
+    .panel {
+      box-sizing: border-box;
+      width: 20%;
+      position: absolute;
+      text-align: left;
+      top: 0;
+      right: 0;
+      font-size: 1rem;
+      color: white;
+      background-color: rgb(0, 0, 0, 0);
+      overflow: auto;
+      z-index: 99;
+      /*transition: 3;*/
+      line-height: 2rem;
+      margin: 6;
+
+
+      }
 
     /* Browser Setting */
     ::-webkit-scrollbar {
         display: none;
+    }
+
+    #legend-container {
+      color: black;
+      font-weight: bold;
+      width: 100%;
+      background-color:rgb(255, 255, 255, 0.7);
     }
     
     /*  */
@@ -206,76 +170,37 @@
       display: none;
     }
 
+    
+    .sassy-theme .esri-legend .esri-legend__layer-cell--info {
+      /*background-color: black;*/
+      color: black;
+      font-size: 1rem;
+    }
+    
+
+
   </style>
   <body class="sassy-theme">
     <calcite-loader></calcite-loader>
     <calcite-shell content-behind>
-      
-       <!--  Header slot  -->
-      <div slot="header" id="header">
-        
-      <!-- Title -->
-      <h2 id="header-title" slot="header"></h2>
-
-      <div id="dateDiv">January 5, 2023</div>
-
-      <!-- Controls -->
-        <div id="header-controls">
-          <!-- Dark Mode Switch -->
-          <calcite-label layout="inline" class="label-wrapper">
-            <calcite-icon icon="brightness" scale="s" class="switch-icon"></calcite-icon>
-            <calcite-switch></calcite-switch>
-            <calcite-icon icon="moon" scale="s" class="switch-icon"></calcite-icon>
-          </calcite-label>
-        </div>
-      </div>
-
-      <!-- Icon -->
-      <!-- https://developers.arcgis.com/calcite-design-system/icons/?icon=list&library=Calcite%20UI -->
-      <calcite-shell-panel slot="panel-start" detached>
-        <calcite-action-bar slot="action-bar">
-          <calcite-action data-action-id="layers" icon="layers" text="Layers"></calcite-action>
-          <calcite-action data-action-id="basemaps" icon="basemap" text="Basemaps"></calcite-action>
-          <calcite-action data-action-id="legend" icon="legend" text="Legend"></calcite-action>
-          <calcite-action data-action-id="information" icon="information" text="Information"></calcite-action>
-          <calcite-action data-action-id="locate" icon="gps-on-f" text="My Location"></calcite-action>
-        </calcite-action-bar>
-        
-        <!-- Map-specific panels (each one provides a div for ArcGIS Maps SDK for JavaScript widgets) -->
-        <calcite-panel heading="Layers" height-scale="l" data-panel-id="layers" hidden>
-          <div id="layers-container"></div>
-        </calcite-panel>
-        <calcite-panel heading="Basemaps" height-scale="l" data-panel-id="basemaps" hidden>
-          <div id="basemaps-container"></div>
-        </calcite-panel>
-        <calcite-panel heading="Legend" height-scale="l" data-panel-id="legend" hidden>
-          <div id="legend-container"></div>
-        </calcite-panel>
-        <calcite-panel heading="Click the icon below" width-scale="w" data-panel-id="locate" hidden>
-          <div id="locate-container"></div>
-        </calcite-panel>
-
-        <!-- Info panel (populates with info from the web map) -->
-        <calcite-panel heading="Description" data-panel-id="information" hidden>
-          <div id="info-content">
-            <!-- <img id="item-thumbnail" alt="webmap thumbnail" /> -->
-            <div id="item-description">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
-        </calcite-panel>
-      </calcite-shell-panel>
-
       <div id="viewDiv">
-        <!-- Chart Panel -->
-        <!-- Tabs "https://esri.github.io/calcite-web/documentation/patterns/#tabs" -->
-        <!-- Tabs "https://developers.arcgis.com/calcite-design-system/components/tabs/" -->
-       </div>
-
+        <!-- Title -->
+        <h2 id="header-title">GENERAL PROGRESS</h2>
+        <div id="dateDiv">January 5, 2023</div>
+        <div id="legend-container"></div>
+        <div class="panel">
+          <ul id="projectList">
+            <li class="test active" id="N2">NSCR-Ex (Malolos-Clark)</li>
+            <li class="test" id="SC">NSCR-Ex (Solis-Calamba)</li>
+          </ul>
+      </div>
+      </div>
     </calcite-shell>
   </body>
   <script>
     require([
+      "esri/Basemap",
+      "esri/layers/VectorTileLayer",
       "esri/WebMap",
       "esri/views/MapView",
       "esri/Map",
@@ -306,15 +231,25 @@
       "esri/layers/support/LabelClass",
       "esri/popup/content/CustomContent",
       "esri/layers/TileLayer"
-    ], function(WebMap, MapView, Map, FeatureLayer, Bookmarks, BasemapGallery, LayerList, Legend, 
+    ], function(Basemap, VectorTileLayer, WebMap, MapView, Map, FeatureLayer, Bookmarks, BasemapGallery, LayerList, Legend, 
                 Query, Fullscreen, FeatureFilter, TableList, PortalItem, Portal, geometryService,
                 StatisticDefinition, WebStyleSymbol, Expand, UniqueValueRenderer, Ground,
                 RelationshipQuery, GraphicsLayer, Graphic, Search, Locate, BasemapToggle, PopupTemplate,
                 LabelClass, CustomContent, TileLayer
                  ) {
-      
+                  
+                  
+    var basemap = new Basemap({
+      baseLayers: [
+          new VectorTileLayer({
+          portalItem: {
+              id: "a56c8ba20f4c4a54a0b1440bbf631911" // 3a62040541b84f528da3ac7b80cf4a63
+          }
+          })
+      ]
+    });
     var map = new Map({
-        basemap: "gray-vector", // "streets-night-vector", basemap
+        basemap: basemap, // "streets-night-vector", basemap
         ground: "world-elevation",
     }); 
 
@@ -355,7 +290,59 @@
       
     //------------- Layer ----------------------------- /
     // Centerline
-    var centerlineLayer = new FeatureLayer({
+        // Chnage line color 
+        const lineColor = {
+          procurement_hex: "#d92b30",
+          procurement_rgb: [],
+          
+          awarded_hex: "#0070ff",
+          awarded_rgb: [],
+
+          construction_hex: "#38A800",
+          construction_rgb: [56, 168, 0]
+        }
+
+    const lineWidth = "10px";
+    let centerLineSymbol = {
+      type: "unique-value",
+      valueExpression: "When($feature.Status == 'Procurement', 'procurement', \
+                            $feature.Status == 'Awarded', 'awarded', \
+                            $feature.Status == 'Construction', 'construction', $feature.Status)",
+      uniqueValueInfos: [
+        {
+          value: "procurement",
+          label: "Procurement",
+          symbol: {
+            type: "simple-line",
+            color: lineColor.procurement_hex,
+            width: lineWidth,
+            style: "solid"
+          }
+        },
+        {
+          value: "awarded",
+          label: "Awarded",
+          symbol: {
+            type: "simple-line",
+            color: lineColor.awarded_hex,
+            width: lineWidth,
+            style: "solid"
+          }
+        },
+        {
+          value: "construction",
+          label: "Construction",
+          symbol: {
+            type: "simple-line",
+            color: lineColor.construction_hex,
+            width: lineWidth,
+            style: "solid"
+          }
+        },
+      ]
+    }
+
+    var n2CenterlineLayer = new FeatureLayer({
         portalItem: {
             id: "590680d19f2e48fdbd8bcddce3aaedb5",
             portal: {
@@ -363,11 +350,27 @@
             }
         },
         layerId: 7,
-        title: "Centerline",
+        title: "N2 Centerline",
+        renderer: centerLineSymbol,
         outFields: ["*"],
         popuEnabled: false,
     });
-    map.add(centerlineLayer);
+    map.add(n2CenterlineLayer);
+
+    var scCenterlineLayer = new FeatureLayer({
+        portalItem: {
+            id: "d3926383cf3548569372216edb808996",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 7,
+        title: "SC Centerline",
+        renderer: centerLineSymbol,
+        outFields: ["*"],
+        popuEnabled: false,
+    });
+    map.add(scCenterlineLayer);
 
 
     // Beak points between individua CPs
@@ -378,11 +381,12 @@
                 url: "https://gis.railway-sector.com/portal"
             }
         },
-        title: "Break Points",
+        title: "N2 Break Points",
         definitionExpression: "Extension = 'N2'" + " AND " + "Id >= 1",
         outFields: ["*"],
         popuEnabled: false
     });
+    n2BreakPointsCP.listMode = "hide";
     map.add(n2BreakPointsCP);
 
     var scBreakPointsCP = new FeatureLayer({
@@ -392,11 +396,12 @@
                 url: "https://gis.railway-sector.com/portal"
             }
         },
-        title: "Break Points",
+        title: "SC Break Points",
         definitionExpression: "Extension = 'SC'" + " AND " + "Id >= 1",
         outFields: ["*"],
         popuEnabled: false
     });
+    scBreakPointsCP.listMode = "hide";
     map.add(scBreakPointsCP);
 
     // Station point feature
@@ -407,11 +412,11 @@
             haloColor: "black",
             haloSize: 0.1,
             font: {
-                size: 10,
+                size: 12,
                 //weight: "bold"
             }
         },
-        labelPlacement: "below-left",
+        labelPlacement: "center-left",
         labelExpressionInfo: {
             expression: "$feature.Station"
         }
@@ -434,8 +439,38 @@
     n2StationLayer.listMode = "hide";
     map.add(n2StationLayer);
 
+    var scStationLayer = new FeatureLayer({
+        portalItem: {
+            id: "d3926383cf3548569372216edb808996",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 2,
+        title: "SC Station",
+        outFields: ["*"],
+        popuEnabled: false,
+        labelingInfo: [labelStation]
+    });
+    scStationLayer.listMode = "hide";
+    map.add(scStationLayer);
+
 
     /////////////////// END Of LAYER IMPORT ////////////////////////////
+    // Default Display
+    function defaultDisplay() {
+      n2StationLayer.visible = true;
+      scStationLayer.visible = false;
+
+      n2BreakPointsCP.definitionExpression = "Extension = 'N2'" + " AND " + "Id >= 1";
+
+      n2CenterlineLayer.visible = true;
+      scCenterlineLayer.visible = false;
+
+      zoomToLayer(n2StationLayer);
+    }
+    defaultDisplay();
+
 
     // Zoom
     function zoomToLayer(layer) {
@@ -451,8 +486,49 @@
       });
     }
 
+    // Project list
+    var projectList = document.getElementById("projectList");
+    var ttt = projectList.getElementsByClassName("test");
+
+    for(var i = 0; i < ttt.length; i ++) {
+      ttt[i].addEventListener("click", filterByP);
+    }
+
+      function filterByP(event) {
+        var current = document.getElementsByClassName("active");
+        current[0].className = current[0].className.replace(" active","");
+        this.className += " active";
+
+        const selectedID = event.target.id;
+        console.log(selectedID);
+        if(selectedID === 'N2') {
+          n2StationLayer.visible = true;
+          scStationLayer.visible = false;
+
+          n2BreakPointsCP.definitionExpression = "Extension = 'N2'" + " AND " + "Id >= 1";
+  
+          n2CenterlineLayer.visible = true;
+          scCenterlineLayer.visible = false;
+
+          zoomToLayer(n2StationLayer);
+
+        } else if(selectedID === 'SC'){
+          n2StationLayer.visible = false;
+          scStationLayer.visible = true;
+
+          scBreakPointsCP.definitionExpression = "Extension = 'SC'" + " AND " + "Id >= 1";
+  
+          n2CenterlineLayer.visible = false;
+          scCenterlineLayer.visible = true;
+
+          zoomToLayer(scStationLayer);
+        }
+
+      }
+
     // Draw CP break line on the map
     const graphicsLayer = new GraphicsLayer();
+    graphicsLayer.listMode = "hide";
     map.add(graphicsLayer);
 
     // Point and Line feature
@@ -569,7 +645,7 @@
     });
 
 
-         // SC
+    // SC
     var query = scBreakPointsCP.createQuery();
     query.orderByFields = ["Id"];
     scBreakPointsCP.queryFeatures(query).then(function(response) {
@@ -616,13 +692,13 @@
         };
 
         // Add to Graphic
-        const polylineGraphic = new Graphic({
+        const scPolylineGraphic = new Graphic({
             geometry: polyline,
             symbol: simpleLineSymbol
         });
 
         // Dispaly grapchicsLayer
-        graphicsLayer.add(polylineGraphic);
+        graphicsLayer.add(scPolylineGraphic);
 
 
         // 2. Add text symbol
@@ -675,79 +751,10 @@
         }
     }); 
 
-     
-      // view.when
-      view.when(() => {
-        document.querySelector("#header-title").textContent = "N2 LAND ACQUISITION";
-        document.querySelector("#item-description").innerHTML = `1. You can opt for either <b>light theme or dark theme</b> for a window screen via a switch icon in the upper right.<br>
-                                                                 2. You can <b>filter the data</b> by City, Barangy, and expected hand-over date using dropdown lits.<br>
-                                                                 3. You can view progress on acquisition of land/structure in charts.<br>
-                                                                 4. <b>Click pie chart</b> to view lots/structures on the map corresponding to the selected progress.<br>
-                                                                 5. <b>Lots under expropriation</b> is available in the 'Expro List' tab under the theme switch.<br>
-                                                                 6. Click/unclick widgets icon for viewing Layer list, legend, basemaps, and locate widgets under the main title.<br>
-                                                                 7. <b>Toggle a checkbox</b> above the Land pie chart to view <b>handed-over areas</b> (m2) of CPs.`
-                                                                 ;
-        
-        let activeWidget;
-        const handleActionBarClick = ({ target }) => {
-          if (target.tagName !== "CALCITE-ACTION") {
-            return;
-          }
 
-          if (activeWidget) {
-            document.querySelector(`[data-action-id=${activeWidget}]`).active = false;
-            document.querySelector(`[data-panel-id=${activeWidget}]`).hidden = true;
-          }
+    view.ui.empty("top-left");
 
-          const nextWidget = target.dataset.actionId;
-          if (nextWidget !== activeWidget) {
-            document.querySelector(`[data-action-id=${nextWidget}]`).active = true;
-            document.querySelector(`[data-panel-id=${nextWidget}]`).hidden = false;
-            activeWidget = nextWidget;
-          } else {
-            activeWidget = null;
-          }
-        };
-
-        // Action bar 
-        document.querySelector("calcite-action-bar").addEventListener("click", handleActionBarClick);
-        let actionBarExpanded = false;
-        document.addEventListener("calciteActionBarToggle", event => {
-          actionBarExpanded = !actionBarExpanded;
-          view.padding = {
-            left: actionBarExpanded ? 135 : 45
-          };
-        });
-        
-        // Switch theme
-        document.querySelector("calcite-shell").hidden = false;
-        document.querySelector("calcite-loader").hidden = true;
-
-        const toggleThemes = () => {
-          // Calcite theme
-          document.body.classList.toggle("calcite-theme-dark");
-          // ArcGIS Maps SDK theme
-          const dark = document.querySelector("#arcgis-maps-sdk-theme-dark");
-          const light = document.querySelector("#arcgis-maps-sdk-theme-light");
-
-          // Negate the 'disabled' attribute on both stylesheets to toggle their boolean values
-          dark.disabled = !dark.disabled;
-          light.disabled = !light.disabled;
-          // ArcGIS Maps SDK basemap
-          map.basemap = dark.disabled ? "gray-vector" : "dark-gray-vector";
-
-         
-
-        };
-
-        document.querySelector("calcite-switch").addEventListener("calciteSwitchChange", toggleThemes);
-
-    }); // end of view.when
-
-
-      
       // Widgets
-      
       const basemaps = new BasemapGallery({
         view,
         container: "basemaps-container"
@@ -757,18 +764,31 @@
         view: view,
         selectionEnabled: true,
         container: "layers-container",
+        /*
         listItemCreatedFunction: function(event) {
           const item = event.item;
           if (item.title === "Chainage" || item.title === "Pier No." || item.title === "Free-and-Clear Area"){
             item.visible = false
           }
         }
+        */
       });
       
       const legend = new Legend({
         view,
-        container: "legend-container"
+        container: "legend-container",
+        layerInfos: [
+          {
+            layer: n2CenterlineLayer,
+            title: "LEGEND"
+          },
+          {
+            layer: scCenterlineLayer,
+            title: "LEGEND"
+          }
+        ]
       });
+      view.ui.add(legend, "bottom-left");
 
       const locate = new Locate({
         view: view,
