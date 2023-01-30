@@ -1796,6 +1796,7 @@ const options = {
   function sectionOnlyExpression(cpValue) {
       tbmTunnelLayer.definitionExpression = "Package = '" + cpValue + "'";
       natmLayer.definitionExpression = "Package = '" + cpValue + "'";
+      natmLayer.visible = true;
   }
   
   function sectionTunnelTypeExpression(cpValue, tunnelValue) {
