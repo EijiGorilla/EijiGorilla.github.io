@@ -4,11 +4,6 @@
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
     <title>General Progress</title>
     
-    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
-    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
-    <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
-    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-    
     <script src="https://js.arcgis.com/calcite-components/1.0.0-beta.99/calcite.esm.js" type="module"></script>
     <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/1.0.0-beta.99/calcite.css" />
 
@@ -25,75 +20,7 @@
       height: 100%;
       width: 100%;
     }
-
-    body {
-      display: flex;
-    }
-
-    calcite-loader {
-      align-self: center;
-      justify-self: center;
-    }
     
-    calcite-label {
-      --calcite-label-margin-bottom: 0px;
-    }
-
-    calcite-tab {
-        height: 83vh;
-        width: 90%;
-    }
-
-    calcite-action-bar {
-      position: absolute;
-      z-index: 99;
-      bottom: 0;
-      right: 0;
-      margin: 1rem;
-    }
-
-
-    #info-content {
-      padding: 0.75rem;
-    }
-
-    calcite-rating {
-      margin-top: 0.25rem;
-    }
-
-
-    
-    #header {
-      display: flex;
-      padding: 0 1rem;
-      background-color: var(--calcite-ui-foreground-1);
-    }
-
-    #header-controls {
-      display: flex;
-      margin-inline-start: auto;
-      align-self: center;
-    }
-
-    .label-wrapper {
-      display: flex;
-      margin-inline: 1rem;
-      padding: 0.5rem;
-      border: 1px solid var(--calcite-ui-border-1);
-      cursor: pointer;
-    }
-
-    calcite-switch {
-      margin: 0 0.5rem;
-    }
-
-
-    br {
-      content: "";
-      margin: 2em;
-      display: block;
-      font-size: 24%;
-    }
 
     b {
         color: orange;
@@ -193,6 +120,7 @@
         <div id="legend-container"></div>
         <div class="panel">
           <ul id="projectList">
+            <li class="test" id="MMSP">MMSP</li>
             <li class="test active" id="N2">NSCR-Ex (Malolos-Clark)</li>
             <li class="test" id="SC">NSCR-Ex (Solis-Calamba)</li>
           </ul>
@@ -240,9 +168,8 @@
                 RelationshipQuery, GraphicsLayer, Graphic, Search, Locate, BasemapToggle, PopupTemplate,
                 LabelClass, CustomContent, TileLayer
                  ) {
-                  
-                  
-    var basemap = new Basemap({
+      
+    const basemap = new Basemap({
       baseLayers: [
           new VectorTileLayer({
           portalItem: {
@@ -258,8 +185,6 @@
 
     var view = new MapView({
         map: map,
-        center: [120.57930, 15.18],
-        zoom: 12,
         container: "viewDiv",
         environment: {
           background: {
@@ -269,27 +194,6 @@
         }
     });
 
-    // Default Renderer for Polygon------------
-    let defaultLotSymbolBoundary = {
-      type: "simple-fill",
-      color: [0, 0, 0, 0],
-      style: "solid",
-      outline: {
-        style: "short-dash",
-        color: [215, 215, 158],
-        width: 1.5
-      }
-    };
-
-    let defaultSymbol = {
-        type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-        color: [0,0,0,0],
-        style: "solid",
-        outline: {  // autocasts as new SimpleLineSymbol()
-            color: [110, 110, 110],
-            width: 0.7
-        }
-    };
       
     //------------- Layer ----------------------------- /
     // Centerline
@@ -306,6 +210,8 @@
         }
 
     const lineWidth = "10px";
+
+
     let centerLineSymbol = {
       type: "unique-value",
       valueExpression: "When($feature.Status == 'Procurement', 'procurement', \
@@ -345,6 +251,21 @@
       ]
     }
 
+    // Centerline
+    var mmspCenterlineLayer = new FeatureLayer({
+      portalItem: {
+            id: "71dfd84340024822859586922ced59d7",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        title: "MMSP Centerline",
+        renderer: centerLineSymbol,
+        outFields: ["*"],
+        popupEnabled: false,
+    });
+    map.add(mmspCenterlineLayer);
+
     var n2CenterlineLayer = new FeatureLayer({
         portalItem: {
             id: "590680d19f2e48fdbd8bcddce3aaedb5",
@@ -356,7 +277,7 @@
         title: "N2 Centerline",
         renderer: centerLineSymbol,
         outFields: ["*"],
-        popuEnabled: false,
+        popupEnabled: false,
     });
     map.add(n2CenterlineLayer);
 
@@ -371,7 +292,7 @@
         title: "SC Centerline",
         renderer: centerLineSymbol,
         outFields: ["*"],
-        popuEnabled: false,
+        popupEnabled: false,
     });
     map.add(scCenterlineLayer);
 
@@ -387,7 +308,7 @@
         title: "N2 Break Points",
         definitionExpression: "Extension = 'N2'" + " AND " + "Id >= 1",
         outFields: ["*"],
-        popuEnabled: false
+        popupEnabled: false
     });
     n2BreakPointsCP.listMode = "hide";
     map.add(n2BreakPointsCP);
@@ -402,7 +323,7 @@
         title: "SC Break Points",
         definitionExpression: "Extension = 'SC'" + " AND " + "Id >= 1",
         outFields: ["*"],
-        popuEnabled: false
+        popupEnabled: false
     });
     scBreakPointsCP.listMode = "hide";
     map.add(scBreakPointsCP);
@@ -435,7 +356,7 @@
         layerId: 2,
         title: "Station",
         outFields: ["*"],
-        popuEnabled: false,
+        popupEnabled: false,
         definitionExpression: "Station <> 'NCC'",
         labelingInfo: [labelStation]
     });
@@ -452,41 +373,76 @@
         layerId: 2,
         title: "SC Station",
         outFields: ["*"],
-        popuEnabled: false,
+        popupEnabled: false,
         labelingInfo: [labelStation]
     });
     scStationLayer.listMode = "hide";
     map.add(scStationLayer);
 
+    // MMSP Station
+    var mmspLabelStation = new LabelClass({
+        symbol: {
+            type: "text",
+            color: "blue",
+            haloColor: "black",
+            haloSize: 0.1,
+            font: {
+                size: 12,
+                //weight: "bold"
+            }
+        },
+        labelPlacement: "center-left",
+        labelExpressionInfo: {
+            expression: "$feature.Station1"
+        }
+    });
+
+    var mmspStationLayer = new FeatureLayer({
+      portalItem: {
+            id: "b0cf28b499a54de7b085725bca08deee",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 1,
+        title: "MMSP Station",
+        outFields: ["*"],
+        popupEnabled: false,
+        labelingInfo: [mmspLabelStation]
+    });
+    scStationLayer.listMode = "hide";
+    map.add(mmspStationLayer);
+
 
     /////////////////// END Of LAYER IMPORT ////////////////////////////
-    // Default Display
+// Zoom
+function zoomToLayer(layer) {
+  return layer.queryExtent().then(function(response) {
+    view.goTo(response.extent, { //response.extent
+      speedFactor: 2
+    }).catch(function(error) {
+      if (error.name != "AbortError") {
+        console.error(error);
+      }
+    });
+  });
+}
     function defaultDisplay() {
       n2StationLayer.visible = true;
-      scStationLayer.visible = false;
+        scStationLayer.visible = false;
+        mmspStationLayer.visible = false;
 
-      n2BreakPointsCP.definitionExpression = "Extension = 'N2'" + " AND " + "Id >= 1";
+        n2BreakPointsCP.visible = true;
+        scBreakPointsCP.visible = false;
 
-      n2CenterlineLayer.visible = true;
-      scCenterlineLayer.visible = false;
+        n2GraphicsLayer.visible = true;
+        scGraphicsLayer.visible = false;
 
-      zoomToLayer(n2StationLayer);
-    }
-    defaultDisplay();
+        n2CenterlineLayer.visible = true;
+        scCenterlineLayer.visible = false;
+        mmspCenterlineLayer.visible = false;
 
-
-    // Zoom
-    function zoomToLayer(layer) {
-      return layer.queryExtent().then(function(response) {
-        view.goTo(response.extent, { //response.extent
-          speedFactor: 2,
-          zoom: 17
-        }).catch(function(error) {
-          if (error.name != "AbortError") {
-            console.error(error);
-          }
-        });
-      });
+        zoomToLayer(n2CenterlineLayer);
     }
 
     // Project list
@@ -514,16 +470,24 @@
         this.className += " active";
 
         const selectedID = event.target.id;
+
         if(selectedID === 'N2') {
           n2StationLayer.visible = true;
           scStationLayer.visible = false;
+          mmspStationLayer.visible = false;
 
-          n2BreakPointsCP.definitionExpression = "Extension = 'N2'" + " AND " + "Id >= 1";
+          n2BreakPointsCP.visible = true;
+          scBreakPointsCP.visible = false;
+
+          n2GraphicsLayer.visible = true;
+          scGraphicsLayer.visible = false;
+          mmspGraphicsLayer.visible = false;
   
           n2CenterlineLayer.visible = true;
           scCenterlineLayer.visible = false;
+          mmspCenterlineLayer.visible = false;
 
-          zoomToLayer(n2StationLayer);
+          zoomToLayer(n2CenterlineLayer);
 
           selectedLink.style.display = 'block';
           selectedLink.setAttribute('href', mapSource[1])
@@ -531,25 +495,50 @@
         } else if(selectedID === 'SC'){
           n2StationLayer.visible = false;
           scStationLayer.visible = true;
+          mmspStationLayer.visible = false;
 
-          scBreakPointsCP.definitionExpression = "Extension = 'SC'" + " AND " + "Id >= 1";
+          n2BreakPointsCP.visible = false;
+          scBreakPointsCP.visible = true;
   
           n2CenterlineLayer.visible = false;
           scCenterlineLayer.visible = true;
+          mmspCenterlineLayer.visible = false;
+
+          n2GraphicsLayer.visible = false;
+          scGraphicsLayer.visible = true;
+          mmspGraphicsLayer.visible = false;
 
           zoomToLayer(scStationLayer);
 
+
           selectedLink.style.display = 'none';
+          selectedLink.setAttribute('href', mapSource[0])
+
+        } else if (selectedID == 'MMSP') {
+          n2StationLayer.visible = false;
+          scStationLayer.visible = false;
+          mmspStationLayer.visible = true;
+
+          n2BreakPointsCP.visible = false;
+          scBreakPointsCP.visible = false;
+
+          n2GraphicsLayer.visible = false;
+          scGraphicsLayer.visible = false;
+          mmspGraphicsLayer.visible = true;
+  
+          n2CenterlineLayer.visible = false;
+          scCenterlineLayer.visible = false;
+          mmspCenterlineLayer.visible = true;
+
+          zoomToLayer(mmspStationLayer);
+
+          selectedLink.style.display = 'block';
           selectedLink.setAttribute('href', mapSource[0])
         }
 
       }
 
     // Draw CP break line on the map
-    const graphicsLayer = new GraphicsLayer();
-    graphicsLayer.listMode = "hide";
-    map.add(graphicsLayer);
-
     // Point and Line feature
     const cpLineColor = [128,128,128];
     const cpLabelColor = [0, 0, 0];
@@ -557,7 +546,122 @@
     const cpLineWidth = 1;
     const cpFontSize = 15;
 
+    // MMSP
+    
+    const mmspGraphicsLayer = new GraphicsLayer();
+    mmspGraphicsLayer.listMode = "hide";
+    map.add(mmspGraphicsLayer);
+
+    var query = mmspStationLayer.createQuery();
+    query.orderByFields = ["Id"];
+    query.where = "Id >= 1";
+
+    mmspStationLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features;
+        const paths = [];
+        const points = [];
+        const CPs = [];
+
+        stats.forEach((result, index) => {
+            const attributes = result.attributes;
+            const cp = attributes.CPs;
+            CPs.push(cp);
+
+            // Collect geometry of each break point
+            const pointX0 = result.geometry.longitude;
+            const pointY0 = result.geometry.latitude;
+
+            // Calculate end poins and store it in a path for line generation
+            const pointX1 = pointX0 + 0.04;
+            const path = [
+                [pointX0, pointY0],
+                [pointX1, pointY0]
+            ]
+
+            // Append each path to paths
+            paths.push(path);
+
+            // Calculate a point for text symbol
+            const point = [pointX1, pointY0];
+            points.push(point);
+        });
+
+        // 1. Draw a horizontal line at break points of individual CPs
+        // Define polyline paths and type
+        const polyline = {
+            type: "polyline",
+            paths: paths
+        };
+
+        // Set line properties
+        const simpleLineSymbol = {
+            type: "simple-line",
+            color: cpLineColor,
+            width: cpLineWidth
+        };
+
+        // Add to Graphic
+        const mmspPolylineGraphic = new Graphic({
+            geometry: polyline,
+            symbol: simpleLineSymbol
+        });
+
+
+        // 2. Add text symbol
+        for(var i=0; i < points.length; i++){
+            if(i <= points.length-2){
+                const pointTextX = points[i][0] + 0.01;
+                const pointTextY0 = points[i][1];
+                const pointTextY1 = points[i+1][1];
+                const pointTextY = (pointTextY0 + pointTextY1) / 2;
+
+                const point = {
+                    type: "point",
+                    longitude: pointTextX,
+                    latitude: pointTextY
+                };
+
+                let textSymbol = {
+                    type: "text",  // autocasts as new TextSymbol()
+                    color: cpLabelColor,
+                    //haloColor: "black",
+                    //haloSize: "1px",
+                    text: CPs[i],
+                    //xoffset: 3,
+                    //yoffset: -5,
+                    font: {  // autocasts as new Font()
+                        size: cpFontSize,
+                        //family: "Josefin Slab",
+                        weight: "bold"
+                    }
+                };
+
+                const simpleMarkerSymbol = {
+                    type: "simple-marker",
+                    color: [226, 119, 40],
+                    size: 12,
+                    style: "circle",
+                    outline: {
+                        width: 1,
+                        color: [255, 255, 255, 1]
+                    }
+                };
+
+                const mmspPointGraphic = new Graphic({
+                    geometry: point,
+                    symbol: textSymbol
+                });
+                mmspGraphicsLayer.addMany([mmspPolylineGraphic, mmspPointGraphic]);
+            }
+        }
+    });
+    
+
     // N2
+    const n2GraphicsLayer = new GraphicsLayer();
+    n2GraphicsLayer.listMode = "hide";
+    map.add(n2GraphicsLayer);
+
     var query = n2BreakPointsCP.createQuery();
     query.orderByFields = ["Id"];
     n2BreakPointsCP.queryFeatures(query).then(function(response) {
@@ -605,13 +709,10 @@
         };
 
         // Add to Graphic
-        const polylineGraphic = new Graphic({
+        const n2PolylineGraphic = new Graphic({
             geometry: polyline,
             symbol: simpleLineSymbol
         });
-
-        // Dispaly grapchicsLayer
-        graphicsLayer.add(polylineGraphic);
 
 
         // 2. Add text symbol
@@ -654,17 +755,21 @@
                     }
                 };
 
-                const pointGraphic = new Graphic({
+                const n2PointGraphic = new Graphic({
                     geometry: point,
                     symbol: textSymbol
                 });
-                graphicsLayer.add(pointGraphic);
+                n2GraphicsLayer.addMany([n2PolylineGraphic, n2PointGraphic]);
             }
         }
     });
 
 
     // SC
+      const scGraphicsLayer = new GraphicsLayer();
+      scGraphicsLayer.listMode = "hide";
+      map.add(scGraphicsLayer);
+
     var query = scBreakPointsCP.createQuery();
     query.orderByFields = ["Id"];
     scBreakPointsCP.queryFeatures(query).then(function(response) {
@@ -717,7 +822,6 @@
         });
 
         // Dispaly grapchicsLayer
-        graphicsLayer.add(scPolylineGraphic);
 
 
         // 2. Add text symbol
@@ -761,41 +865,31 @@
                     }
                 };
 
-                const pointGraphic = new Graphic({
+                const scPointGraphic = new Graphic({
                     geometry: point,
                     symbol: textSymbol
                 });
-                graphicsLayer.add(pointGraphic);
+                scGraphicsLayer.addMany([scPolylineGraphic, scPointGraphic]);
             }
         }
     });
 
+    defaultDisplay();
+
+
+
     view.ui.empty("top-left");
 
       // Widgets
-      const basemaps = new BasemapGallery({
-        view,
-        container: "basemaps-container"
-      });
-      
-      const layerList = new LayerList({
-        view: view,
-        selectionEnabled: true,
-        container: "layers-container",
-        /*
-        listItemCreatedFunction: function(event) {
-          const item = event.item;
-          if (item.title === "Chainage" || item.title === "Pier No." || item.title === "Free-and-Clear Area"){
-            item.visible = false
-          }
-        }
-        */
-      });
       
       const legend = new Legend({
         view,
         container: "legend-container",
         layerInfos: [
+          {
+            layer: mmspCenterlineLayer,
+            title: "LEGEND"
+          },
           {
             layer: n2CenterlineLayer,
             title: "LEGEND"
@@ -807,12 +901,6 @@
         ]
       });
       view.ui.add(legend, "bottom-left");
-
-      const locate = new Locate({
-        view: view,
-        container: "locate-container"
-      });
-
 
 
     });
