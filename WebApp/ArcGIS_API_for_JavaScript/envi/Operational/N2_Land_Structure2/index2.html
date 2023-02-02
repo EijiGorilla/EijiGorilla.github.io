@@ -288,11 +288,11 @@
         <!-- Tabs "https://developers.arcgis.com/calcite-design-system/components/tabs/" -->
         <calcite-tabs>
             <div id="chartPanel">
-                <calcite-tab-nav slot="tab-nav">
-                    <calcite-tab-title selected>Land</calcite-tab-title>
-                    <calcite-tab-title>Structure</calcite-tab-title>
-                    <calcite-tab-title>ISF</calcite-tab-title>
-                    <calcite-tab-title>Expro List</calcite-tab-title>
+                <calcite-tab-nav slot="tab-nav" id="thetabs">
+                    <calcite-tab-title class="Land" selected>Land</calcite-tab-title>
+                    <calcite-tab-title class="Structure">Structure</calcite-tab-title>
+                    <calcite-tab-title class="ISF">ISF</calcite-tab-title>
+                    <calcite-tab-title class="ExproList">Expro List</calcite-tab-title>
                 </calcite-tab-nav>
                 <calcite-tab>
                     <calcite-switch class="chartChange"></calcite-switch>
@@ -1407,9 +1407,9 @@
             type: "text",
             color: "orange",
             haloColor: "black",
-            haloSize: 0.7,
+            haloSize: 0.2,
             font: {
-                size: 20,
+                size: 12,
                 weight: "bold"
             }
         },
@@ -1444,7 +1444,6 @@
       return layer.queryExtent().then(function(response) {
         view.goTo(response.extent, { //response.extent
           speedFactor: 2,
-          zoom: 17
         }).catch(function(error) {
           if (error.name != "AbortError") {
             console.error(error);
@@ -1453,7 +1452,7 @@
       });
     }
       
-
+zoomToLayer(stationLayer);
       // Chart-----------------------------------------------
       let chartLayerView;
       var highlightSelect;
@@ -1469,6 +1468,12 @@
       
       am4core.ready(function() {
         am4core.useTheme(am4themes_animated);
+
+        // Default
+        reloISFLayer.visible = false;
+
+
+
         // Expropriation List----------------------------------
      
         view.when(function() {
@@ -3626,6 +3631,21 @@
         }       
     };
     document.querySelector(".chartChange").addEventListener("calciteSwitchChange", toggleChart);
+
+    // Switch between Occupancy (structure) and ISF point features
+    document.querySelector("#thetabs").addEventListener("click", tabChange);
+    function tabChange(event) {
+        const value = event.target.className;
+        
+        if (value === 'ISF') {
+            reloISFLayer.visible = true;
+            relocationPtLayer.visible = false;
+            updateChartISF();
+        } else if (value === 'Land' || value === 'Structure' || value === 'ExproList' ){
+            reloISFLayer.visible = false;
+            relocationPtLayer.visible = true;
+        }
+    }
     }); // end of view.when
 
       });// End of am4chart
