@@ -234,35 +234,6 @@ minWorldLength: 50
     };
 
 
-    // Contract Package labels
-    var mmspCenterlineLayer = new FeatureLayer({
-      portalItem: {
-            id: "71dfd84340024822859586922ced59d7",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
-        },
-        title: "MMSP Centerline",
-        outFields: ["*"],
-        popupEnabled: false,
-    });
-    //map.add(mmspCenterlineLayer);
-
-    var mmspStationLayer = new FeatureLayer({
-      portalItem: {
-            id: "b0cf28b499a54de7b085725bca08deee",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
-        },
-        layerId: 1,
-        title: "MMSP Station",
-        outFields: ["*"],
-        popupEnabled: false,
-    });
-    //mmspStationLayer.listMode = "hide";
-    //map.add(mmspStationLayer);
-
   //********* Set Renderer
   /* Company and Utilty Relocation Status Symbols with Callout */
 var stationsRenderer = {
@@ -434,123 +405,6 @@ stationLine.renderer = renderer;
 renderStationLine();
 
 
-///////////////////////////////////////////////////////
-const cpLineColor = [128,128,128];
-const cpLabelColor = [255, 255, 255];
-
-const cpLineWidth = 1.5;
-const cpFontSize = 13;
-    // MMSP
-    const mmspGraphicsLayer = new GraphicsLayer();
-    mmspGraphicsLayer.listMode = "hide";
-    map.add(mmspGraphicsLayer);
-
-    var query = mmspStationLayer.createQuery();
-    query.orderByFields = ["Id"];
-    query.where = "Id >= 1";
-
-    mmspStationLayer.queryFeatures(query).then(function(response) {
-      var stats = response.features;
-        const paths = [];
-        const points = [];
-        const CPs = [];
-
-        stats.forEach((result, index) => {
-            const attributes = result.attributes;
-            const cp = attributes.CPs;
-            CPs.push(cp);
-
-            // Collect geometry of each break point
-            const pointX0 = result.geometry.longitude;
-            const pointY0 = result.geometry.latitude;
-
-            // Calculate end poins and store it in a path for line generation
-            const pointX1 = pointX0 + 0.04;
-            const path = [
-                [pointX0, pointY0],
-                [pointX1, pointY0]
-            ]
-
-            // Append each path to paths
-            paths.push(path);
-
-            // Calculate a point for text symbol
-            const point = [pointX1, pointY0];
-            points.push(point);
-        });
-
-        // 1. Draw a horizontal line at break points of individual CPs
-        // Define polyline paths and type
-        const polyline = {
-            type: "polyline",
-            paths: paths
-        };
-
-        // Set line properties
-        const simpleLineSymbol = {
-            type: "simple-line",
-            color: cpLineColor,
-            width: cpLineWidth
-        };
-
-        // Add to Graphic
-        const mmspPolylineGraphic = new Graphic({
-            geometry: polyline,
-            symbol: simpleLineSymbol
-        });
-
-
-        // 2. Add text symbol
-        for(var i=0; i < points.length; i++){
-            if(i <= points.length-2){
-                const pointTextX = points[i][0] - 0.005;
-                const pointTextY0 = points[i][1];
-                const pointTextY1 = points[i+1][1];
-                const pointTextY = (pointTextY0 + pointTextY1) / 2;
-
-                const point = {
-                    type: "point",
-                    longitude: pointTextX,
-                    latitude: pointTextY
-                };
-
-                let textSymbol = {
-                    type: "text",  // autocasts as new TextSymbol()
-                    color: cpLabelColor,
-                    //haloColor: "black",
-                    //haloSize: "1px",
-                    text: CPs[i],
-                    //xoffset: 3,
-                    //yoffset: -5,
-                    font: {  // autocasts as new Font()
-                        size: cpFontSize,
-                        //family: "Josefin Slab",
-                        weight: "bold"
-                    }
-                };
-
-                const mmspPointGraphic = new Graphic({
-                    geometry: point,
-                    symbol: textSymbol
-                });
-                mmspGraphicsLayer.addMany([mmspPolylineGraphic, mmspPointGraphic]);
-            }
-        }
-    });
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 //////////////////////////////////////////////////////////////
 
@@ -592,32 +446,17 @@ ttt[i].addEventListener("click", filterByP);
 }
 
 function filterByP(event) {
-var current = document.getElementsByClassName("active");
-current[0].className = current[0].className.replace(" active","");
-this.className += " active";
+  var current = document.getElementsByClassName("active");
+  current[0].className = current[0].className.replace(" active","");
+  this.className += " active";
 
-const selectedID = event.target.id;
-stationLayer.definitionExpression = "Sector = '" + selectedID + "'" + " AND " + "Station <> 'NCC'";
-stationLine.definitionExpression = "Sector = '" + selectedID +  "'";
-zoomToLayer(stationLayer);
-
-
-/*
-if(selectedID == "MMSP") {
-  stationLayer.definitionExpression = "Sector = '" + selectedID + "'";
+  const selectedID = event.target.id;
+  stationLayer.definitionExpression = "Sector = '" + selectedID + "'" + " AND " + "Station <> 'NCC'";
   stationLine.definitionExpression = "Sector = '" + selectedID +  "'";
   zoomToLayer(stationLayer);
 
-} else if (selectedID == "MCRP" || selectedID == "NSRP") {
-  stationLayer.definitionExpression = "Sector = '" + selectedID + "'";
-  stationLine.definitionExpression = "Sector = '" + selectedID +  "'";
-  zoomToLayer(stationLayer);        
-} else if (selectedID == "NSCR") {
-  stationLayer.definitionExpression = "Sector = '" + selectedID + "'";
-  stationLine.definitionExpression = "Sector = '" + selectedID +  "'";
-  zoomToLayer(stationLayer);  
-}
-*/
+
+
 }
 
 
