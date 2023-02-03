@@ -78,9 +78,9 @@ var map = new Map({
       viewingMode: "local",
       camera: {
           position: {
-              x: 120.770421,
-              y: 14.902323,
-              z: 500
+              x: 120.75200,
+              y: 14.90,
+              z: 2500
               },
               tilt: 65
               },
@@ -139,7 +139,7 @@ symbol: osmSymbol
           material: {
             color: [255, 170, 0]
           },
-          size: 20,
+          size: 14,
           color: "black",
           haloColor: "black",
           haloSize: 1,
@@ -183,7 +183,7 @@ symbol: osmSymbol
 // Station Layer
 var stationLayer = new SceneLayer({
       portalItem: {
-          id: "207cb34b8a324b40985b5805862c4b29",
+          id: "87903f4d1859454a837d68e18a27ad4c",
           portal: {
             url: "https://gis.railway-sector.com/portal"
           }
@@ -195,7 +195,7 @@ var stationLayer = new SceneLayer({
            // buildings or other SceneLayer 3D objects
            mode: "relative-to-ground"
            },
-       definitionExpression: "Extension = 'N2'"
+       definitionExpression: "Extension = 'SC'"
         //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
   });
   stationLayer.listMode = "hide";
@@ -204,7 +204,7 @@ var stationLayer = new SceneLayer({
     // PROW //
     var rowLayer = new FeatureLayer ({
       portalItem: {
-        id: "590680d19f2e48fdbd8bcddce3aaedb5",
+        id: "d3926383cf3548569372216edb808996",
         portal: {
           url: "https://gis.railway-sector.com/portal"
         }   
@@ -216,15 +216,15 @@ var stationLayer = new SceneLayer({
     map.add(rowLayer,2);  // PROW //
     
 // Station structures
-const buildingLayer = new BuildingSceneLayer({ 
+const buildingLayer = new BuildingSceneLayer({
 portalItem: {
-id: "19fcf150d0474029a49643408a7c17dc", 
+id: "1fa64c7247364c90a3b9b5801f41cfbb",
 portal: {
 url: "https://gis.railway-sector.com/portal"
 }
 },
 outFields: ["*"],
-title: "N2 Station Structures"
+title: "SC Station Structures"
 
 });
 map.add(buildingLayer);
@@ -247,7 +247,7 @@ disciplines: false
 
 /// chart
 const headerTitleDiv = document.getElementById("headerTitleDiv");
-
+const excludedLayers = [];
 
 /*
     const excludedLayers = [];
@@ -270,9 +270,10 @@ const headerTitleDiv = document.getElementById("headerTitleDiv");
           var sliceTiltEnabled = true;
 */
 // Discipline: Architectural
-var columnsLayer = null;
 var floorsLayer = null;
 var wallsLayer = null;
+var genericModelLayer = null;
+var massLayer = null;
 
 // Discipline: Structural
 var stFramingLayer = null;
@@ -291,15 +292,17 @@ switch (layer.modelName) {
 case "FullModel":
   layer.visible = true;
   break;
- 
-  case "Columns":
-    columnsLayer = layer;
-    //excludedLayers.push(layer);
-    break;
 
+case "GenericModel":
+  genericModelLayer = layer;
+  excludedLayers.push(genericModelLayer);
+
+  case "Mass":
+    massLayer = layer;
+    excludedLayers.push(massLayer);
+ 
   case "Floors":
     floorsLayer = layer;
-    //excludedLayers
     break;
 
   case "Walls":
@@ -460,8 +463,9 @@ function totalProgressStFoundation() {
   });
   }
   
-  // Columns
-  function totalProgressColumns(compile_stFraming) {
+  // Roofs
+  /*
+  function totalProgressRoofs(compile_stFraming) {
   // structural Foundation
   var total_complete = {
   onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
@@ -475,10 +479,10 @@ function totalProgressStFoundation() {
   statisticType: "count"
   };
   
-  var query = columnsLayer.createQuery();
+  var query = roofsLayer.createQuery();
   query.outStatistics = [total_complete, total_obs];
   query.returnGeometry = true;
-  return columnsLayer.queryFeatures(query).then(function(response) {
+  return roofsLayer.queryFeatures(query).then(function(response) {
   var stats = response.features[0].attributes;
   
   const total_comp = stats.total_complete;
@@ -490,7 +494,8 @@ function totalProgressStFoundation() {
   return compile_columns;
   });
   }
-  
+  */
+
   // Floors
   function totalProgressFloors(compile_columns) {
   // structural Foundation
@@ -562,7 +567,7 @@ function totalProgressStFoundation() {
     totalProgressStFoundation()
     .then(totalProgressStColumn)
     .then(totalProgressStFraming)
-    .then(totalProgressColumns)
+    //.then(totalProgressRoofs)
     .then(totalProgressFloors)
     .then(totalProgressWalls)
     .then(progressAll)
@@ -577,8 +582,7 @@ am4core.useTheme(am4themes_animated);
 // Total progress //
 
 buildingLayer.when(() => {
-  const defaultStation = "Station = 8";
-  columnsLayer.definitionExpression = defaultStation;
+  const defaultStation = "Station = 16";
   floorsLayer.definitionExpression = defaultStation;
   wallsLayer.definitionExpression = defaultStation;
 
@@ -586,7 +590,6 @@ buildingLayer.when(() => {
   stColumnLayer.definitionExpression = defaultStation;
   stFoundationLayer.definitionExpression = defaultStation;
 
-  columnsLayer.visible = true;
   floorsLayer.visible = true;
   wallsLayer.visible = true;
   //windowsLayer.visible = true;
@@ -615,16 +618,14 @@ current[0].className = current[0].className.replace(" active","");
 this.className += " active";
 
 const selectedID = event.target.id;
-if(selectedID == "Calumpit") {
-  columnsLayer.definitionExpression = "Station  = 8";
-  floorsLayer.definitionExpression = "Station  = 8";
-  wallsLayer.definitionExpression = "Station  = 8";
+if(selectedID == "EDSA" || selectedID == "EDSB") {
+  floorsLayer.definitionExpression = "Station = 16";
+  wallsLayer.definitionExpression = "Station = 16";
 
-  stFramingLayer.definitionExpression = "Station  = 8";
-  stColumnLayer.definitionExpression = "Station  = 8";
-  stFoundationLayer.definitionExpression = "Station  = 8";
+  stFramingLayer.definitionExpression = "Station = 16";
+  stColumnLayer.definitionExpression = "Station = 16";
+  stFoundationLayer.definitionExpression = "Station = 16";
 
-  columnsLayer.visible = true;
   floorsLayer.visible = true;
   wallsLayer.visible = true;
   //windowsLayer.visible = true;
@@ -637,38 +638,14 @@ if(selectedID == "Calumpit") {
   totalProgressStation();
   zoomToLayer(stFramingLayer);
 
-} else if (selectedID == "Apalit") {
-  columnsLayer.definitionExpression = "Station  = 7";
-  floorsLayer.definitionExpression = "Station  = 7";
-  wallsLayer.definitionExpression = "Station  = 7";
+} else if (selectedID == "Buendia") {
+  floorsLayer.definitionExpression = "Station = 15";
+  wallsLayer.definitionExpression = "Station = 15";
 
-  stFramingLayer.definitionExpression = "Station  = 7";
-  stColumnLayer.definitionExpression = "Station  = 7";
-  stFoundationLayer.definitionExpression = "Station  = 7";
+  stFramingLayer.definitionExpression = "Station = 15";
+  stColumnLayer.definitionExpression = "Station = 15";
+  stFoundationLayer.definitionExpression = "Station = 15";
 
-  columnsLayer.visible = true;
-  floorsLayer.visible = true;
-  wallsLayer.visible = true;
-  //windowsLayer.visible = true;
-
-  stFramingLayer.visible = true;
-  stColumnLayer.visible = true;
-  stFoundationLayer.visible = true;    
-
-  combineCharts();
-  totalProgressStation();
-  zoomToLayer(stFramingLayer); 
-
-} else if (selectedID == "San Fernando") {
-  columnsLayer.definitionExpression = "Station  = 6";
-  floorsLayer.definitionExpression = "Station  = 6";
-  wallsLayer.definitionExpression = "Station  = 6";
-
-  stFramingLayer.definitionExpression = "Station  = 6";
-  stColumnLayer.definitionExpression = "Station  = 6";
-  stFoundationLayer.definitionExpression = "Station  = 6";
-
-  columnsLayer.visible = true;
   floorsLayer.visible = true;
   wallsLayer.visible = true;
   //windowsLayer.visible = true;
@@ -681,16 +658,14 @@ if(selectedID == "Calumpit") {
   totalProgressStation();
   zoomToLayer(stFramingLayer); 
 
-} else if (selectedID == "Angeles") {
-  columnsLayer.definitionExpression = "Station  = 5";
-  floorsLayer.definitionExpression = "Station  = 5";
-  wallsLayer.definitionExpression = "Station  = 5";
+} else if (selectedID == "Sucat") {
+  floorsLayer.definitionExpression = "Station = 20";
+  wallsLayer.definitionExpression = "Station = 20";
 
-  stFramingLayer.definitionExpression = "Station  = 5";
-  stColumnLayer.definitionExpression = "Station  = 5";
-  stFoundationLayer.definitionExpression = "Station  = 5";
+  stFramingLayer.definitionExpression = "Station = 20";
+  stColumnLayer.definitionExpression = "Station = 20";
+  stFoundationLayer.definitionExpression = "Station = 20";
 
-  columnsLayer.visible = true;
   floorsLayer.visible = true;
   wallsLayer.visible = true;
   //windowsLayer.visible = true;
@@ -703,38 +678,14 @@ if(selectedID == "Calumpit") {
   totalProgressStation();
   zoomToLayer(stFramingLayer); 
 
-} else if (selectedID == "Clark") {
-  columnsLayer.definitionExpression = "Station  = 4";
-  floorsLayer.definitionExpression = "Station  = 4";
-  wallsLayer.definitionExpression = "Station  = 4";
+} else if (selectedID == "Sta Rosa") {
+  floorsLayer.definitionExpression = "Station = 26";
+  wallsLayer.definitionExpression = "Station = 26";
 
-  stFramingLayer.definitionExpression = "Station  = 4";
-  stColumnLayer.definitionExpression = "Station  = 4";
-  stFoundationLayer.definitionExpression = "Station  = 4";
+  stFramingLayer.definitionExpression = "Station = 26";
+  stColumnLayer.definitionExpression = "Station = 26";
+  stFoundationLayer.definitionExpression = "Station = 26";
 
-  columnsLayer.visible = true;
-  floorsLayer.visible = true;
-  wallsLayer.visible = true;
-  //windowsLayer.visible = true;
-
-  stFramingLayer.visible = true;
-  stColumnLayer.visible = true;
-  stFoundationLayer.visible = true;       
-
-  combineCharts();
-  totalProgressStation();
-  zoomToLayer(stFramingLayer); 
-
-} else if (selectedID == "CIA") {
-  columnsLayer.definitionExpression = "Station  = 3";
-  floorsLayer.definitionExpression = "Station  = 3";
-  wallsLayer.definitionExpression = "Station  = 3";
-
-  stFramingLayer.definitionExpression = "Station  = 3";
-  stColumnLayer.definitionExpression = "Station  = 3";
-  stFoundationLayer.definitionExpression = "Station  = 3";
-
-  columnsLayer.visible = true;
   floorsLayer.visible = true;
   wallsLayer.visible = true;
   //windowsLayer.visible = true;
@@ -943,7 +894,7 @@ function chartStFoundation() {
             stFramingLayer.visible = false;
             wallsLayer.visible = false;
             floorsLayer.visible = false;
-            columnsLayer.visible = false;
+            doorsLayer.visible = false;
 
 
             // Listen to the click event on the map view and resets to default 
@@ -953,7 +904,7 @@ function chartStFoundation() {
               stFramingLayer.visible = true;
               wallsLayer.visible = true;
               floorsLayer.visible = true;
-              columnsLayer.visible = true;
+              doorsLayer.visible = true;
             });
 
 
@@ -1158,7 +1109,7 @@ chart.data = [
         stFramingLayer.visible = false;
         wallsLayer.visible = false;
         floorsLayer.visible = false;
-        columnsLayer.visible = false;
+        doorsLayer.visible = false;
 
 
         // Listen to the click event on the map view and resets to default 
@@ -1168,7 +1119,7 @@ chart.data = [
           stFramingLayer.visible = true;
           wallsLayer.visible = true;
           floorsLayer.visible = true;
-          columnsLayer.visible = true;
+          doorsLayer.visible = true;
         });
   } // End of filterByChart
 } // end of createSeries function
@@ -1372,7 +1323,7 @@ chart.data = [
         stFramingLayer.visible = true;
         wallsLayer.visible = false;
         floorsLayer.visible = false;
-        columnsLayer.visible = false;
+        doorsLayer.visible = false;
 
 
         // Listen to the click event on the map view and resets to default 
@@ -1382,7 +1333,7 @@ chart.data = [
           stFramingLayer.visible = true;
           wallsLayer.visible = true;
           floorsLayer.visible = true;
-          columnsLayer.visible = true;
+          doorsLayer.visible = true;
         });
   } // End of filterByChart
 } // end of createSeries function
@@ -1586,7 +1537,7 @@ chart.data = [
         stFramingLayer.visible = false;
         wallsLayer.visible = false;
         floorsLayer.visible = true;
-        columnsLayer.visible = false;
+        doorsLayer.visible = false;
 
 
         // Listen to the click event on the map view and resets to default 
@@ -1596,7 +1547,7 @@ chart.data = [
           stFramingLayer.visible = true;
           wallsLayer.visible = true;
           floorsLayer.visible = true;
-          columnsLayer.visible = true;
+          doorsLayer.visible = true;
         });
   } // End of filterByChart
 } // end of createSeries function
@@ -1800,7 +1751,7 @@ chart.data = [
         stFramingLayer.visible = false;
         wallsLayer.visible = true;
         floorsLayer.visible = false;
-        columnsLayer.visible = false;
+        doorsLayer.visible = false;
 
 
         // Listen to the click event on the map view and resets to default 
@@ -1810,7 +1761,7 @@ chart.data = [
           stFramingLayer.visible = true;
           wallsLayer.visible = true;
           floorsLayer.visible = true;
-          columnsLayer.visible = true;
+          doorsLayer.visible = true;
         });
   } // End of filterByChart
 } // end of createSeries function
@@ -1822,32 +1773,32 @@ createSeries("value3", "Incomplete");
 }); // end of queryFeatures
 } // End of Chart
 
-
-// 6. Columns
-function chartColumns() {
+/*
+// 6. Roofs
+function chartRoofs() {
 var total_columns_tobec = {
-onStatisticField: "CASE WHEN (Types = 7 and Status = 1) THEN 1 ELSE 0 END",
+onStatisticField: "CASE WHEN (Types = 1 and Status = 1) THEN 1 ELSE 0 END",
 outStatisticFieldName: "total_columns_tobec",
 statisticType: "sum"
 };
 
 var total_columns_underc = {
-onStatisticField: "CASE WHEN (Types = 7 and Status = 2) THEN 1 ELSE 0 END",
+onStatisticField: "CASE WHEN (Types = 1 and Status = 2) THEN 1 ELSE 0 END",
 outStatisticFieldName: "total_columns_underc",
 statisticType: "sum"  
 };
 
 var total_columns_comp = {
-onStatisticField: "CASE WHEN (Types = 7 and Status = 4) THEN 1 ELSE 0 END",
+onStatisticField: "CASE WHEN (Types = 1 and Status = 4) THEN 1 ELSE 0 END",
 outStatisticFieldName: "total_columns_comp",
 statisticType: "sum"  
 };
 
-var query = columnsLayer.createQuery();
+var query = roofsLayer.createQuery();
 query.outStatistics = [total_columns_tobec, total_columns_underc, total_columns_comp];
 query.returnGeometry = true;
 
-columnsLayer.queryFeatures(query).then(function(response) {
+roofsLayer.queryFeatures(query).then(function(response) {
 var stats = response.features[0].attributes;
 
 const columns_tobec = stats.total_columns_tobec;
@@ -1855,7 +1806,7 @@ const columns_underc = stats.total_columns_underc;
 const columns_comp = stats.total_columns_comp;
 
 // Chart //
-var chart = am4core.create("chartColumnsDiv", am4charts.XYChart);
+var chart = am4core.create("chartRoofsDiv", am4charts.XYChart);
 chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
 // Responsive to screen size
 chart.responsive.enabled = true;
@@ -1921,7 +1872,7 @@ chart.responsive.rules.push({
 
 chart.data = [
   {
-      category: "Columns",
+      category: "Roofs",
       value1: columns_comp,
       value2: columns_underc,
       value3: columns_tobec,
@@ -2014,7 +1965,7 @@ chart.data = [
         stFramingLayer.visible = false;
         wallsLayer.visible = false;
         floorsLayer.visible = false;
-        columnsLayer.visible = true;
+        doorsLayer.visible = true;
 
 
         // Listen to the click event on the map view and resets to default 
@@ -2024,7 +1975,7 @@ chart.data = [
           stFramingLayer.visible = true;
           wallsLayer.visible = true;
           floorsLayer.visible = true;
-          columnsLayer.visible = true;
+          doorsLayer.visible = true;
         });
   } // End of filterByChart
 } // end of createSeries function
@@ -2035,14 +1986,14 @@ createSeries("value3", "Incomplete");
 
 }); // end of queryFeatures
 } // End of Chart
-
+*/
 function combineCharts() {
   chartStFoundation();
   chartStColumn();
   chartStFraming();
   chartFloors()
   chartWalls();
-  chartColumns();
+ // chartRoofs();
 }
 am4core.options.autoDispose = true;
 }); // End of am4core.ready
