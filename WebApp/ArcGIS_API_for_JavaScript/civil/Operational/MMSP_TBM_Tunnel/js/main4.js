@@ -1804,24 +1804,30 @@ const options = {
     if (cpValue !== 'CP104' && tunnelValue === 'TBM') {
       tbmTunnelLayer.definitionExpression = "Package = '" + cpValue + "'";
       natmLayer.visible = false;
+      zoomToLayer(tbmTunnelLayer);
 
     } else if (cpValue === 'CP104' && tunnelValue === 'NATM') {
       tbmTunnelLayer.visible = false;
       natmLayer.visible = true;
+      zoomToLayer(natmLayer);
 
     } else if (cpValue === 'CP104' && tunnelValue === 'TBM') {
       tbmTunnelLayer.definitionExpression = "Package = '" + cpValue + "'";
       tbmTunnelLayer.visible = true;
       natmLayer.visible = false;
+      zoomToLayer(tbmTunnelLayer);
   
     } else if (cpValue !== 'CP104' && tunnelValue === 'None') {
       tbmTunnelLayer.visible = "Package = '" + cpValue + "'";
       natmLayer.visible = false;
+      zoomToLayer(tbmTunnelLayer);
   
     } else if (cpValue === 'CP104' && tunnelValue === 'None') {
       tbmTunnelLayer.definitionExpression = "Package = '" + cpValue + "'";
       tbmTunnelLayer.visible = true;
       natmLayer.visible = true;
+      zoomToLayer(tbmTunnelLayer);
+
     }
   }
   
@@ -1901,6 +1907,7 @@ const options = {
     filterTbm();
     natmChart();
     filterNatm();
+    zoomToLayer(tbmTunnelLayer);
     document.getElementById("chartNatmDiv").style.display = 'block';
     document.getElementById("chartTbmDiv").style.display = 'block';
   }
