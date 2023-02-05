@@ -1,0 +1,1155 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>General Progress</title>
+    
+    <script type="module" src="https://js.arcgis.com/calcite-components/1.0.3/calcite.esm.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.0.3/calcite.css" />
+
+    <script src="https://js.arcgis.com/4.25/"></script>
+    <link id="arcgis-maps-sdk-theme-light" rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css" />
+
+  </head>
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    #overviewDiv {
+      position: absolute;
+        bottom: 12px;
+        left: 12px;
+        width: 300px;
+        height: 200px;
+        border: 1px solid black;
+        z-index: 1;
+        overflow: hidden;
+    }
+
+    #extentDiv {
+        background-color: rgba(0, 0, 0, 0.5);
+        position: absolute;
+        z-index: 2;
+      }
+    
+
+    b {
+        color: orange;
+    }
+
+    h2 {
+      position: absolute;
+      z-index: 99;
+      top: 0;
+      left: 0;
+      margin: 1rem;
+    }
+
+    #dateDiv {
+      position: absolute;
+      z-index: 99;
+      bottom: 0;
+      left: 0;
+      font-size: 0.7rem;
+      text-align: right;
+      display: flex;
+      align-items: flex-end;
+      font-weight: bold;
+      margin: 1rem;
+
+    }
+
+    /* Project list*/
+    #projectList {
+      color: grey;
+    }
+
+    .active, .test:hover {
+      background-color: rgba(77, 75, 75, 0);
+        color: black;
+        font-size: 1.2rem;
+        /*text-decoration: underline;*/
+        font-weight: bold;
+    }
+
+    ul {
+      list-style-type: none; /* remove list bullets*/
+    }
+
+    .panel {
+      box-sizing: border-box;
+      width: 20%;
+      position: absolute;
+      text-align: left;
+      top: 0;
+      right: 0;
+      font-size: 1rem;
+      color: white;
+      background-color: rgb(0, 0, 0, 0);
+      overflow: auto;
+      z-index: 99;
+      /*transition: 3;*/
+      line-height: 2rem;
+      margin: 6;
+      margin-right: 0;
+
+
+      }
+
+    /* Browser Setting */
+    ::-webkit-scrollbar {
+        display: none;
+    }
+
+    #legend-container {
+      color: black;
+      font-weight: bold;
+      width: 100%;
+      background-color:rgb(255, 255, 255, 0.7);
+    }
+    
+    /*  */
+    .sassy-theme .esri-legend__layer-caption {
+      display: none;
+    }
+    
+    .sassy-theme .esri-legend .esri-legend__layer-cell--info {
+      /*background-color: black;*/
+      color: black;
+      font-size: 1rem;
+    }
+
+    .sassy-theme .esri-widget--button {
+      color: white;
+    }
+
+
+
+
+  </style>
+  <body class="sassy-theme">
+    <calcite-loader></calcite-loader>
+    <calcite-shell content-behind>
+      <div id="overviewDiv"><div id="extentDiv"></div></div>
+      <div id="viewDiv">
+        <!-- Title -->
+        <!-- Check out this: https://developers.arcgis.com/calcite-design-system/components/button/ -->
+        <h2 id="header-title">GENERAL PROGRESS</h2>
+        <calcite-button
+          id="myLink"
+          href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/others/N2_General_Progress/index3.html"
+          icon-end="dashboard"
+          label="View progress on pre-constructions in dashboard"
+          target="_blank">
+          Dashboard
+        </calcite-button>
+        <div id="dateDiv">January 31, 2023</div>
+        <div id="legend-container"></div>
+        <div class="panel">
+          <ul id="projectList">
+            <li class="test" id="MMSP">MMSP</li>
+            <li class="test active" id="N2">NSCR-Ex (Malolos-Clark)</li>
+            <li class="test" id="SC">NSCR-Ex (Solis-Calamba)</li>
+          </ul>
+      </div>
+      </div>
+    </calcite-shell>
+  </body>
+  <script>
+    require([
+      "esri/Basemap",
+      "esri/layers/VectorTileLayer",
+      "esri/WebMap",
+      "esri/views/MapView",
+      "esri/Map",
+      "esri/layers/FeatureLayer",
+      "esri/widgets/Bookmarks",
+      "esri/widgets/BasemapGallery",
+      "esri/widgets/LayerList",
+      "esri/widgets/Legend",
+      "esri/rest/support/Query",
+      "esri/widgets/Fullscreen",
+      "esri/layers/support/FeatureFilter",
+      "esri/widgets/TableList",
+      "esri/portal/PortalItem",
+      "esri/portal/Portal",
+      "esri/rest/geometryService",
+      "esri/rest/support/StatisticDefinition",
+      "esri/symbols/WebStyleSymbol",
+      "esri/widgets/Expand",
+      "esri/renderers/UniqueValueRenderer",
+      "esri/Ground",
+      "esri/rest/support/RelationshipQuery",
+      "esri/layers/GraphicsLayer",
+      "esri/Graphic",
+      "esri/widgets/Search",
+      "esri/widgets/Locate",
+      "esri/widgets/BasemapToggle",
+      "esri/PopupTemplate",
+      "esri/layers/support/LabelClass",
+      "esri/popup/content/CustomContent",
+      "esri/layers/TileLayer",
+      "esri/geometry/Extent",
+      "esri/core/reactiveUtils",
+      "esri/core/promiseUtils"
+    ], function(Basemap, VectorTileLayer, WebMap, MapView, Map, FeatureLayer, Bookmarks, BasemapGallery, LayerList, Legend, 
+                Query, Fullscreen, FeatureFilter, TableList, PortalItem, Portal, geometryService,
+                StatisticDefinition, WebStyleSymbol, Expand, UniqueValueRenderer, Ground,
+                RelationshipQuery, GraphicsLayer, Graphic, Search, Locate, BasemapToggle, PopupTemplate,
+                LabelClass, CustomContent, TileLayer, Extent, reactiveUtils, promiseUtils
+                 ) {
+      
+    const basemap = new Basemap({
+      baseLayers: [
+          new VectorTileLayer({
+          portalItem: {
+              id: "a56c8ba20f4c4a54a0b1440bbf631911" // 3a62040541b84f528da3ac7b80cf4a63
+          }
+          })
+      ]
+    });
+    var map = new Map({
+        basemap: basemap, // "streets-night-vector", basemap
+        ground: "world-elevation",
+    }); 
+
+    var view = new MapView({
+        map: map,
+        container: "viewDiv",
+        environment: {
+          background: {
+          type: "color", // autocasts as new ColorBackground()
+          color: [0, 0, 0, 1]
+          },
+        }
+    });
+
+    // Inset maps (overview extent map)
+    //https://www.esri.com/arcgis-blog/products/js-api-arcgis/mapping/inset-maps-for-the-web/
+    //https://developers.arcgis.com/javascript/latest/sample-code/overview-map/
+    //https://developers.arcgis.com/javascript/latest/sample-code/watch-for-changes/
+    // sample smart map: https://ekenes.github.io/national-park-visits/?viewType=all&variable=bivariate&year=2021
+    // Overview Extent
+    var overViewMap = new Map({
+        basemap: basemap, // "streets-night-vector", basemap
+        ground: "world-elevation",
+    }); 
+
+    const fixedExtent = new Extent({
+      xmin: 13279655.74,
+      xmax: 13646553.47,
+      ymin: 1536432.57,
+      ymax: 1781031.06
+    });
+
+    const overViewCenter = [120.9411264, 14.7354620];
+    const zoom = 6;
+    var overView = new MapView({
+        map: overViewMap,
+        container: "overviewDiv",
+        center: overViewCenter,
+        zoom: zoom,
+        //extent: fixedExtent,
+        constraints: {
+          rotationEnabled: false,
+        },
+        ui: {
+          components: ["attribution"]
+        }
+    });
+
+    // Disable all the navigation
+    overView.when(disableZooming);
+
+function disableZooming(overView) {
+  overView.popup.dockEnabled = true;
+
+  // Removes the zoom action on the popup
+  overView.popup.actions = [];
+
+  // stops propagation of default behavior when an event fires
+  function stopEvtPropagation(event) {
+    event.stopPropagation();
+  }
+
+  // exlude the zoom widget from the default UI
+  view.ui.components = [];
+  overView.ui.components = [];
+
+  // disable mouse wheel scroll zooming on the overView
+  overView.on("mouse-wheel", stopEvtPropagation);
+
+  // disable zooming via double-click on the overView
+  overView.on("double-click", stopEvtPropagation);
+
+  // disable zooming out via double-click + Control on the overView
+  overView.on("double-click", ["Control"], stopEvtPropagation);
+
+  // disables pinch-zoom and panning on the overView
+  overView.on("drag", stopEvtPropagation);
+
+  // disable the overView's zoom box to prevent the Shift + drag
+  // and Shift + Control + drag zoom gestures.
+  overView.on("drag", ["Shift"], stopEvtPropagation);
+  overView.on("drag", ["Shift", "Control"], stopEvtPropagation);
+
+  // prevents zooming with the + and - keys
+  overView.on("key-down", (event) => {
+    const prohibitedKeys = ["+", "-", "Shift", "_", "=", "ArrowUp", "ArrowDown", "ArrowRight", "ArrowLeft"];
+    const keyPressed = event.key;
+    if (prohibitedKeys.indexOf(keyPressed) !== -1) {
+      event.stopPropagation();
+    }
+  });
+
+  return overView;
+}
+
+    ///////////////////////////////////////////////////////
+       
+       //*******************************************************************
+        // Watching properties for changes
+        // 1. Watch view.stationary property
+        // 2. Watch visible property of popup
+        //*******************************************************************
+        // Watch view's stationary property for becoming true.
+        reactiveUtils.when(
+          () => overView.stationary === true,
+          () => {
+            // Get the new center of the view only when view is stationary.
+            if (overView.center) {
+              const info = `
+              x: ${overView.center.x.toFixed(2)}
+              y: ${overView.center.y.toFixed(2)}`;
+              
+        
+            }
+            // Get the new extent of the view only when view is stationary.
+            if (overView.extent) {
+              const info = `
+              xmin: ${overView.extent.xmin.toFixed(2)}
+              xmax: ${overView.extent.xmax.toFixed(2)}
+              ymin: ${overView.extent.ymin.toFixed(2)}
+              ymax: ${overView.extent.ymax.toFixed(2)}`;
+              console.log(info);
+        
+            }
+          }
+        );
+///////////////////////////////////////////
+    overView.when(() => {
+      view.when(() => {
+        setup();
+      });
+    });
+
+    const extentDebouncer = promiseUtils.debounce(() => {
+           overView.goTo({
+              center: overViewCenter,
+            });
+        });
+
+    function setup() {
+      const extent3Dgraphic = new Graphic({
+        geometry: null,
+        symbol: {
+          type: "simple-fill",
+          color: [0, 0, 0, 0],
+          outline: {
+            width: 2,
+            color: [178,34,34]
+          }
+        }
+      });
+      overView.graphics.add(extent3Dgraphic);
+
+      reactiveUtils.watch(
+        () => view.extent,
+        (extent) => {
+          // Sync the overview map location
+          // whenever the 3d view is stationary
+          extentDebouncer().then(() => {
+            extent3Dgraphic.geometry = extent;
+          });
+        },
+        {
+          initial: true
+        }
+      );
+    }
+      
+    //------------- Layer ----------------------------- /
+    // Centerline
+        // Chnage line color 
+        const lineColor = {
+          procurement_hex: "#d92b30",
+          procurement_rgb: [],
+          
+          awarded_hex: "#0070ff",
+          awarded_rgb: [],
+
+          construction_hex: "#38A800",
+          construction_rgb: [56, 168, 0]
+        }
+
+    const lineWidth = "10px";
+
+
+    let centerLineSymbol = {
+      type: "unique-value",
+      valueExpression: "When($feature.Status == 'Procurement', 'procurement', \
+                            $feature.Status == 'Awarded', 'awarded', \
+                            $feature.Status == 'Construction', 'construction', $feature.Status)",
+      uniqueValueInfos: [
+        {
+          value: "procurement",
+          label: "Procurement",
+          symbol: {
+            type: "simple-line",
+            color: lineColor.procurement_hex,
+            width: lineWidth,
+            style: "solid"
+          }
+        },
+        {
+          value: "awarded",
+          label: "Awarded",
+          symbol: {
+            type: "simple-line",
+            color: lineColor.awarded_hex,
+            width: lineWidth,
+            style: "solid"
+          }
+        },
+        {
+          value: "construction",
+          label: "Construction",
+          symbol: {
+            type: "simple-line",
+            color: lineColor.construction_hex,
+            width: lineWidth,
+            style: "solid"
+          }
+        },
+      ]
+    }
+
+    // Line symbol for overView
+    const lineSymbolRenderer = {
+      type: "simple",  // autocasts as new SimpleLineSymbol()
+      symbol: {
+        type: "simple-line",
+        color: "blue",
+        width: "2.5px",
+        style: "solid"
+      }
+    };
+
+    // Centerline
+    var mmspCenterlineLayer = new FeatureLayer({
+      portalItem: {
+            id: "71dfd84340024822859586922ced59d7",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        title: "MMSP Centerline",
+        renderer: centerLineSymbol,
+        outFields: ["*"],
+        popupEnabled: false,
+    });
+    map.add(mmspCenterlineLayer);
+
+    var mmspCenterlineOverView = new FeatureLayer({
+      portalItem: {
+            id: "71dfd84340024822859586922ced59d7",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        renderer: lineSymbolRenderer,
+        labelingInfo: false,
+        popupEnabled: false,
+    });
+    overViewMap.add(mmspCenterlineOverView);
+
+    var n2CenterlineLayer = new FeatureLayer({
+        portalItem: {
+            id: "590680d19f2e48fdbd8bcddce3aaedb5",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 7,
+        title: "N2 Centerline",
+        renderer: centerLineSymbol,
+        outFields: ["*"],
+        popupEnabled: false,
+    });
+    map.add(n2CenterlineLayer);
+
+    var n2CenterlineOverView = new FeatureLayer({
+        portalItem: {
+            id: "590680d19f2e48fdbd8bcddce3aaedb5",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        renderer: lineSymbolRenderer,
+        layerId: 7,
+        labelingInfo: false,
+        popupEnabled: false,
+    });
+    overViewMap.add(n2CenterlineOverView);
+
+    var scCenterlineLayer = new FeatureLayer({
+        portalItem: {
+            id: "d3926383cf3548569372216edb808996",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 7,
+        title: "SC Centerline",
+        renderer: centerLineSymbol,
+        outFields: ["*"],
+        popupEnabled: false,
+    });
+    map.add(scCenterlineLayer);
+
+    var scCenterlineOverView = new FeatureLayer({
+        portalItem: {
+            id: "d3926383cf3548569372216edb808996",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        renderer: lineSymbolRenderer,
+        layerId: 7,
+        popupEnabled: false,
+    });
+    overViewMap.add(scCenterlineOverView);
+
+
+    // Beak points between individua CPs
+    var n2BreakPointsCP = new FeatureLayer({
+        portalItem: {
+            id: "95bd8e4739af45189f2238faf626e5a0",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        title: "N2 Break Points",
+        definitionExpression: "Extension = 'N2'" + " AND " + "Id >= 1",
+        outFields: ["*"],
+        popupEnabled: false
+    });
+    n2BreakPointsCP.listMode = "hide";
+    map.add(n2BreakPointsCP);
+
+    var scBreakPointsCP = new FeatureLayer({
+        portalItem: {
+            id: "95bd8e4739af45189f2238faf626e5a0",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        title: "SC Break Points",
+        definitionExpression: "Extension = 'SC'" + " AND " + "Id >= 1",
+        outFields: ["*"],
+        popupEnabled: false
+    });
+    scBreakPointsCP.listMode = "hide";
+    map.add(scBreakPointsCP);
+
+    // Station point feature
+    var labelStation = new LabelClass({
+        symbol: {
+            type: "text",
+            color: "blue",
+            haloColor: "black",
+            haloSize: 0.1,
+            font: {
+                size: 12,
+                //weight: "bold"
+            }
+        },
+        labelPlacement: "center-left",
+        labelExpressionInfo: {
+            expression: "$feature.Station"
+        }
+    });
+
+    var n2StationLayer = new FeatureLayer({
+        portalItem: {
+            id: "590680d19f2e48fdbd8bcddce3aaedb5",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 2,
+        title: "Station",
+        outFields: ["*"],
+        popupEnabled: false,
+        definitionExpression: "Station <> 'NCC'",
+        labelingInfo: [labelStation]
+    });
+    n2StationLayer.listMode = "hide";
+    map.add(n2StationLayer);
+
+    var scStationLayer = new FeatureLayer({
+        portalItem: {
+            id: "d3926383cf3548569372216edb808996",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 2,
+        title: "SC Station",
+        outFields: ["*"],
+        popupEnabled: false,
+        labelingInfo: [labelStation]
+    });
+    scStationLayer.listMode = "hide";
+    map.add(scStationLayer);
+
+    // MMSP Station
+    var mmspLabelStation = new LabelClass({
+        symbol: {
+            type: "text",
+            color: "blue",
+            haloColor: "black",
+            haloSize: 0.1,
+            font: {
+                size: 12,
+                //weight: "bold"
+            }
+        },
+        labelPlacement: "center-left",
+        labelExpressionInfo: {
+            expression: "$feature.Station1"
+        }
+    });
+
+    var mmspStationLayer = new FeatureLayer({
+      portalItem: {
+            id: "b0cf28b499a54de7b085725bca08deee",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 1,
+        title: "MMSP Station",
+        outFields: ["*"],
+        popupEnabled: false,
+        labelingInfo: [mmspLabelStation]
+    });
+    mmspStationLayer.listMode = "hide";
+    map.add(mmspStationLayer);
+
+
+    /////////////////// END Of LAYER IMPORT ////////////////////////////
+// Zoom
+function zoomToLayer(layer) {
+  return layer.queryExtent().then(function(response) {
+    view.goTo(response.extent, { //response.extent
+      speedFactor: 2
+    }).catch(function(error) {
+      if (error.name != "AbortError") {
+        console.error(error);
+      }
+    });
+  });
+}
+    function defaultDisplay() {
+      n2StationLayer.visible = true;
+        scStationLayer.visible = false;
+        mmspStationLayer.visible = false;
+
+        n2BreakPointsCP.visible = true;
+        scBreakPointsCP.visible = false;
+
+        n2GraphicsLayer.visible = true;
+        scGraphicsLayer.visible = false;
+
+        n2CenterlineLayer.visible = true;
+        scCenterlineLayer.visible = false;
+        mmspCenterlineLayer.visible = false;
+
+        zoomToLayer(n2CenterlineLayer);
+    }
+
+    const legend = new Legend({
+        view,
+        container: "legend-container",
+        layerInfos: [
+          {
+            layer: mmspCenterlineLayer,
+            title: "MMSP"
+          },
+          {
+            layer: n2CenterlineLayer,
+            title: "NSCR-Ex (Malolos-Clark)"
+          },
+          {
+            layer: scCenterlineLayer,
+            title: "NSCR-Ex (Solis-Calamba)"
+          }
+        ]
+      });
+      view.ui.add(legend, "bottom-right");
+
+
+    // Project list
+    // Open general progress of pre-constructions
+    const mapSource = [
+                  "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/others/MMSP_General_Progress/index3.html",
+                  "https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/others/N2_General_Progress/index3.html",
+
+                  ]
+
+    var selectedLink = document.getElementById("myLink");
+    view.ui.add("myLink", "bottom-right");
+
+    // Project List selection
+    var projectList = document.getElementById("projectList");
+    var ttt = projectList.getElementsByClassName("test");
+
+    for(var i = 0; i < ttt.length; i ++) {
+      ttt[i].addEventListener("click", filterByP);
+    }
+
+      function filterByP(event) {
+        var current = document.getElementsByClassName("active");
+        current[0].className = current[0].className.replace(" active","");
+        this.className += " active";
+
+        const selectedID = event.target.id;
+
+        if(selectedID === 'N2') {
+          n2StationLayer.visible = true;
+          scStationLayer.visible = false;
+          mmspStationLayer.visible = false;
+
+          n2BreakPointsCP.visible = true;
+          scBreakPointsCP.visible = false;
+
+          n2GraphicsLayer.visible = true;
+          scGraphicsLayer.visible = false;
+          mmspGraphicsLayer.visible = false;
+  
+          n2CenterlineLayer.visible = true;
+          scCenterlineLayer.visible = false;
+          mmspCenterlineLayer.visible = false;
+
+          zoomToLayer(n2CenterlineLayer);
+
+          selectedLink.style.display = 'block';
+          selectedLink.setAttribute('href', mapSource[1])
+
+          //document.getElementById("chart-progress-button").style.display = 'block';
+          document.getElementById("myLink").style.display = 'block';
+
+        } else if(selectedID === 'SC'){
+          n2StationLayer.visible = false;
+          scStationLayer.visible = true;
+          mmspStationLayer.visible = false;
+
+          n2BreakPointsCP.visible = false;
+          scBreakPointsCP.visible = true;
+  
+          n2CenterlineLayer.visible = false;
+          scCenterlineLayer.visible = true;
+          mmspCenterlineLayer.visible = false;
+
+          n2GraphicsLayer.visible = false;
+          scGraphicsLayer.visible = true;
+          mmspGraphicsLayer.visible = false;
+
+          zoomToLayer(scStationLayer);
+
+          selectedLink.style.display = 'none';
+          selectedLink.setAttribute('href', mapSource[0])
+
+          //document.getElementById("chart-progress-button").style.display = 'none';
+          document.getElementById("myLink").style.display = 'none';
+
+        } else if (selectedID == 'MMSP') {
+          n2StationLayer.visible = false;
+          scStationLayer.visible = false;
+          mmspStationLayer.visible = true;
+
+          n2BreakPointsCP.visible = false;
+          scBreakPointsCP.visible = false;
+
+          n2GraphicsLayer.visible = false;
+          scGraphicsLayer.visible = false;
+          mmspGraphicsLayer.visible = true;
+  
+          n2CenterlineLayer.visible = false;
+          scCenterlineLayer.visible = false;
+          mmspCenterlineLayer.visible = true;
+
+          zoomToLayer(mmspStationLayer);
+
+          selectedLink.style.display = 'block';
+          selectedLink.setAttribute('href', mapSource[0])
+
+          
+          //document.getElementById("chart-progress-button").style.display = 'block';
+          document.getElementById("myLink").style.display = 'block';
+
+        }
+
+      }
+
+    // Draw CP break line on the map
+    // Point and Line feature
+    const cpLineColor = [128,128,128];
+    const cpLabelColor = [0, 0, 0];
+
+    const cpLineWidth = 1;
+    const cpFontSize = 15;
+
+    // MMSP
+    
+    const mmspGraphicsLayer = new GraphicsLayer();
+    mmspGraphicsLayer.listMode = "hide";
+    map.add(mmspGraphicsLayer);
+
+    var query = mmspStationLayer.createQuery();
+    query.orderByFields = ["Id"];
+    query.where = "Id >= 1";
+
+    mmspStationLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features;
+        const paths = [];
+        const points = [];
+        const CPs = [];
+
+        stats.forEach((result, index) => {
+            const attributes = result.attributes;
+            const cp = attributes.CPs;
+            CPs.push(cp);
+
+            // Collect geometry of each break point
+            const pointX0 = result.geometry.longitude;
+            const pointY0 = result.geometry.latitude;
+
+            // Calculate end poins and store it in a path for line generation
+            const pointX1 = pointX0 + 0.04;
+            const path = [
+                [pointX0, pointY0],
+                [pointX1, pointY0]
+            ]
+
+            // Append each path to paths
+            paths.push(path);
+
+            // Calculate a point for text symbol
+            const point = [pointX1, pointY0];
+            points.push(point);
+        });
+
+        // 1. Draw a horizontal line at break points of individual CPs
+        // Define polyline paths and type
+        const polyline = {
+            type: "polyline",
+            paths: paths
+        };
+
+        // Set line properties
+        const simpleLineSymbol = {
+            type: "simple-line",
+            color: cpLineColor,
+            width: cpLineWidth
+        };
+
+        // Add to Graphic
+        const mmspPolylineGraphic = new Graphic({
+            geometry: polyline,
+            symbol: simpleLineSymbol
+        });
+
+
+        // 2. Add text symbol
+        for(var i=0; i < points.length; i++){
+            if(i <= points.length-2){
+                const pointTextX = points[i][0] + 0.01;
+                const pointTextY0 = points[i][1];
+                const pointTextY1 = points[i+1][1];
+                const pointTextY = (pointTextY0 + pointTextY1) / 2;
+
+                const point = {
+                    type: "point",
+                    longitude: pointTextX,
+                    latitude: pointTextY
+                };
+
+                let textSymbol = {
+                    type: "text",  // autocasts as new TextSymbol()
+                    color: cpLabelColor,
+                    //haloColor: "black",
+                    //haloSize: "1px",
+                    text: CPs[i],
+                    //xoffset: 3,
+                    //yoffset: -5,
+                    font: {  // autocasts as new Font()
+                        size: cpFontSize,
+                        //family: "Josefin Slab",
+                        weight: "bold"
+                    }
+                };
+
+                const simpleMarkerSymbol = {
+                    type: "simple-marker",
+                    color: [226, 119, 40],
+                    size: 12,
+                    style: "circle",
+                    outline: {
+                        width: 1,
+                        color: [255, 255, 255, 1]
+                    }
+                };
+
+                const mmspPointGraphic = new Graphic({
+                    geometry: point,
+                    symbol: textSymbol
+                });
+                mmspGraphicsLayer.addMany([mmspPolylineGraphic, mmspPointGraphic]);
+            }
+        }
+    });
+    
+
+    // N2
+    const n2GraphicsLayer = new GraphicsLayer();
+    n2GraphicsLayer.listMode = "hide";
+    map.add(n2GraphicsLayer);
+
+    var query = n2BreakPointsCP.createQuery();
+    query.orderByFields = ["Id"];
+    n2BreakPointsCP.queryFeatures(query).then(function(response) {
+        var stats = response.features;
+        const paths = [];
+        const points = [];
+        const CPs = [];
+
+        stats.forEach((result, index) => {
+            const attributes = result.attributes;
+            const cp = attributes.CP;
+            CPs.push(cp);
+
+            // Collect geometry of each break point
+            const pointX0 = result.geometry.longitude;
+            const pointY0 = result.geometry.latitude;
+
+            // Calculate end poins and store it in a path for line generation
+            const pointX1 = pointX0 + 0.05;
+            const path = [
+                [pointX0, pointY0],
+                [pointX1, pointY0]
+            ]
+
+            // Append each path to paths
+            paths.push(path);
+
+            // Calculate a point for text symbol
+            const point = [pointX1, pointY0];
+            points.push(point);
+        });
+
+        // 1. Draw a horizontal line at break points of individual CPs
+        // Define polyline paths and type
+        const polyline = {
+            type: "polyline",
+            paths: paths
+        };
+
+        // Set line properties
+        const simpleLineSymbol = {
+            type: "simple-line",
+            color: cpLineColor,
+            width: cpLineWidth
+        };
+
+        // Add to Graphic
+        const n2PolylineGraphic = new Graphic({
+            geometry: polyline,
+            symbol: simpleLineSymbol
+        });
+
+
+        // 2. Add text symbol
+        for(var i=0; i < points.length; i++){
+            if(i <= points.length-2){
+                const pointTextX = points[i][0] + 0.03;
+                const pointTextY0 = points[i][1];
+                const pointTextY1 = points[i+1][1];
+                const pointTextY = (pointTextY0 + pointTextY1) / 2;
+
+                const point = {
+                    type: "point",
+                    longitude: pointTextX,
+                    latitude: pointTextY
+                };
+
+                let textSymbol = {
+                    type: "text",  // autocasts as new TextSymbol()
+                    color: cpLabelColor,
+                    //haloColor: "black",
+                    //haloSize: "1px",
+                    text: CPs[i],
+                    //xoffset: 3,
+                    //yoffset: -5,
+                    font: {  // autocasts as new Font()
+                        size: cpFontSize,
+                        //family: "Josefin Slab",
+                        weight: "bold"
+                    }
+                };
+
+                const simpleMarkerSymbol = {
+                    type: "simple-marker",
+                    color: [226, 119, 40],
+                    size: 12,
+                    style: "circle",
+                    outline: {
+                        width: 1,
+                        color: [255, 255, 255, 1]
+                    }
+                };
+
+                const n2PointGraphic = new Graphic({
+                    geometry: point,
+                    symbol: textSymbol
+                });
+                n2GraphicsLayer.addMany([n2PolylineGraphic, n2PointGraphic]);
+            }
+        }
+    });
+
+
+    // SC
+      const scGraphicsLayer = new GraphicsLayer();
+      scGraphicsLayer.listMode = "hide";
+      map.add(scGraphicsLayer);
+
+    var query = scBreakPointsCP.createQuery();
+    query.orderByFields = ["Id"];
+    scBreakPointsCP.queryFeatures(query).then(function(response) {
+        var stats = response.features;
+        const paths = [];
+        const points = [];
+        const CPs = [];
+
+        stats.forEach((result, index) => {
+            // Collect geometry of each break point
+            const attributes = result.attributes;
+            const cp = attributes.CP;
+            CPs.push(cp);
+            const pointX0 = result.geometry.longitude;
+            const pointY0 = result.geometry.latitude;
+
+            // Calculate end poins and store it in a path for line generation
+            const pointX1 = pointX0 + 0.05;
+            const path = [
+                [pointX0, pointY0],
+                [pointX1, pointY0]
+            ]
+
+            // Append each path to paths
+            paths.push(path);
+
+            // Calculate a point for text symbol
+            const point = [pointX1, pointY0];
+            points.push(point);
+        });
+
+        // 1. Draw a horizontal line at break points of individual CPs
+        // Define polyline paths and type
+        const polyline = {
+            type: "polyline",
+            paths: paths
+        };
+
+        // Set line properties
+        const simpleLineSymbol = {
+            type: "simple-line",
+            color: cpLineColor,
+            width: cpLineWidth
+        };
+
+        // Add to Graphic
+        const scPolylineGraphic = new Graphic({
+            geometry: polyline,
+            symbol: simpleLineSymbol
+        });
+
+        // Dispaly grapchicsLayer
+
+
+        // 2. Add text symbol
+        for(var i=0; i < points.length; i++){
+            //console.log(i);
+            if(i <= points.length-2 && i !== 8){
+                const pointTextX = points[i][0] + 0.03;
+                const pointTextY0 = points[i][1];
+                const pointTextY1 = points[i+1][1];
+                const pointTextY = (pointTextY0 + pointTextY1) / 2;
+
+                const point = {
+                    type: "point",
+                    longitude: pointTextX,
+                    latitude: pointTextY
+                };
+
+                let textSymbol = {
+                    type: "text",  // autocasts as new TextSymbol()
+                    color: cpLabelColor,
+                    //haloColor: "black",
+                    //haloSize: "1px",
+                    text: CPs[i],
+                    //xoffset: 3,
+                    //yoffset: -5,
+                    font: {  // autocasts as new Font()
+                        size: cpFontSize,
+                        //family: "Josefin Slab",
+                        weight: "bold"
+                    }
+                };
+
+                const simpleMarkerSymbol = {
+                    type: "simple-marker",
+                    color: [226, 119, 40],
+                    size: 12,
+                    style: "circle",
+                    outline: {
+                        width: 1,
+                        color: [255, 255, 255, 1]
+                    }
+                };
+
+                const scPointGraphic = new Graphic({
+                    geometry: point,
+                    symbol: textSymbol
+                });
+                scGraphicsLayer.addMany([scPolylineGraphic, scPointGraphic]);
+            }
+        }
+    });
+
+    defaultDisplay();
+
+    view.ui.empty("top-left");      
+
+
+    });
+  </script>
+</html>

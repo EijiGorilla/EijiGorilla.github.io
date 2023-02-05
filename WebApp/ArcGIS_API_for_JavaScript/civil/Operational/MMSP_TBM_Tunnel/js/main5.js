@@ -39,14 +39,10 @@ require([
     "esri/geometry/geometryEngine",
     "esri/geometry/Polygon",
     "esri/geometry/support/webMercatorUtils",
-    "esri/layers/GraphicsLayer",
-    "esri/Graphic",
     "esri/geometry/SpatialReference",
     "esri/core/reactiveUtils",
     "esri/widgets/ElevationProfile",
     "esri/widgets/ElevationProfile/ElevationProfileLineQuery",
-    "esri/layers/GraphicsLayer",
-    "esri/Graphic",
     "esri/rest/support/RouteParameters",
     "esri/symbols/SimpleMarkerSymbol",
     "esri/symbols/SimpleLineSymbol",
@@ -68,7 +64,7 @@ require([
               BasemapToggle, geometryEngine, Polygon,
               webMercatorUtils, GraphicsLayer, Graphic, SpatialReference, reactiveUtils,
               ElevationProfile, ElevationProfileLineQuery,
-              GraphicsLayer, Graphic, RouteParameters,
+              RouteParameters,
               SimpleMarkerSymbol, SimpleLineSymbol, Point, Polyline,
               externalRenderers, FeatureSet, Accessor) {
   
