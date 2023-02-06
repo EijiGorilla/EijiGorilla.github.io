@@ -2222,53 +2222,74 @@ async function initialization() {
         const VALUE = attributes.total_count;
   
         // Type = 1 (Bored Piles)
+        // Pile 
         if(TYPE === 1 && YEAR === 2021){
           pile_2021[MONTH].push(VALUE);
   
         } else if (TYPE === 1 && YEAR === 2022){
           pile_2022[MONTH].push(VALUE);
+
+        } else if (TYPE === 1 && YEAR === 2023){
+          pile_2023[MONTH].push(VALUE);
   
+          // Pile Cap
         } else if (TYPE === 2 && YEAR === 2021){
           pileC_2021[MONTH].push(VALUE);
   
         } else if (TYPE === 2 && YEAR === 2022){
           pileC_2022[MONTH].push(VALUE);
-          
+
+        } else if (TYPE === 2 && YEAR === 2023){
+          pileC_2023[MONTH].push(VALUE);
+
+          // Pier
         } else if (TYPE === 3 && YEAR === 2021){
           pier_2021[MONTH].push(VALUE);
           
         } else if (TYPE === 3 && YEAR === 2022){
           pier_2022[MONTH].push(VALUE);
+
+        } else if (TYPE === 3 && YEAR === 2023){
+          pier_2023[MONTH].push(VALUE);
           
+          // Pier head
         } else if (TYPE === 4 && YEAR === 2021){
           pierH_2021[MONTH].push(VALUE);
           
         } else if (TYPE === 4 && YEAR === 2022){
           pierH_2022[MONTH].push(VALUE);
-          
+
+        } else if (TYPE === 4 && YEAR === 2023){
+          pierH_2023[MONTH].push(VALUE);
+
+          // Precast          
         } else if (TYPE === 5 && YEAR === 2021){
           precast_2021[MONTH].push(VALUE);
           
         } else if (TYPE === 5 && YEAR === 2022){
           precast_2022[MONTH].push(VALUE);
-          
-        }
+
+        } else if (TYPE === 5 && YEAR === 2023){
+          precast_2023[MONTH].push(VALUE);
+      }
   
       });
-      return [pile_2021, pile_2022,
-              pileC_2021, pileC_2022,
-              pier_2021, pier_2022,
-              pierH_2021, pierH_2022,
-              precast_2021, precast_2022];
+      
+      return [pile_2021, pile_2022, pile_2023,
+              pileC_2021, pileC_2022, pileC_2023,
+              pier_2021, pier_2022, pier_2023,
+              pierH_2021, pierH_2022, pierH_2023,
+              precast_2021, precast_2022, precast_2023
+            ];
   });
     }
   //*************************************
   
-  function MonthlyProgressChart([pile_2021, pile_2022,
-              pileC_2021, pileC_2022,
-              pier_2021, pier_2022,
-              pierH_2021, pierH_2022,
-              precast_2021, precast_2022]){
+  function MonthlyProgressChart([pile_2021, pile_2022, pile_2023,
+              pileC_2021, pileC_2022, pileC_2023,
+              pier_2021, pier_2022, pier_2023,
+              pierH_2021, pierH_2022, pierH_2023,
+              precast_2021, precast_2022, precast_2023]){
   
   
   var chart = am4core.create("monthlyProgressChartDiv", am4charts.XYChart);
@@ -2281,7 +2302,7 @@ async function initialization() {
     value2: pileC_2021[1],
     value3: pier_2021[1],
     value4: pierH_2021[1],
-    value5: precast_2022[1]
+    value5: precast_2021[1]
   },
   {
     date: new Date(2021, 1),
@@ -2466,7 +2487,31 @@ async function initialization() {
     value3: pier_2022[12],
     value4: pierH_2022[12],
     value5: precast_2022[12]
-  }
+  },
+  {
+    date: new Date(2022, 12),
+    value1: pile_2023[1],
+    value2: pileC_2023[1],
+    value3: pier_2023[1],
+    value4: pierH_2023[1],
+    value5: precast_2023[1]
+  },
+  {
+    date: new Date(2023, 1),
+    value1: pile_2023[2],
+    value2: pileC_2023[2],
+    value3: pier_2023[2],
+    value4: pierH_2023[2],
+    value5: precast_2023[2]
+  },
+  {
+    date: new Date(2023, 2),
+    value1: pile_2023[3],
+    value2: pileC_2023[3],
+    value3: pier_2023[3],
+    value4: pierH_2023[3],
+    value5: precast_2023[3]
+  },
   ];
   
   //** Legend Properties
