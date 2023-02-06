@@ -531,7 +531,7 @@ let abort = false;
 async function startAnimation(slideNo) {
   play.style.display = "none";
   pause.style.display = "block";
-    if (!view.interactingj && !abort) {
+    if (!view.interacting && !abort) {
 
         if (slideNo < comp_pts.length) {
             if (slideNo === 0) {

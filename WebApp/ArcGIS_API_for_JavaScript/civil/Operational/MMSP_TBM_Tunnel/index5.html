@@ -52,14 +52,23 @@
       --calcite-label-margin-bottom: 0px;
     }
 
+    #see-through-label {
+      position: absolute;
+      z-index: 1;
+      bottom: 10px;
+      right: 350px;
+    }
+
+
+
     calcite-tabs {
         width: 24rem;
-
     }
 
     calcite-tab {
         height: 83vh;
     }
+
 
     #header-title {
       margin-left: 1rem;
@@ -212,6 +221,25 @@
     background-color: rgb(0, 0, 0 ,0);
   }
 
+  .overlay {
+    background-color: rgba(80, 80, 80, 0);
+  }
+  
+  .button {
+    cursor: pointer;
+    font-size: 10pt !important;
+    font-weight: bold !important;
+    color: rgb(230, 230, 230);
+  }
+  
+  .button:hover, #label {
+    color: white;
+  }
+  
+  .button, #label {
+    margin: 15px;
+  }
+
 
   br{content:' ';}
   br:after{content:' ';}
@@ -268,6 +296,16 @@
             <select id="tunnelSelect" class="esri-widget"></select>
           </label>
         </div>
+
+        <!-- Train Animation -->
+        <div class="overlay">
+          <div>
+            <span id="play" class="button esri-icon-play" style="display: block;" />
+          </div>
+          <div>
+            <span id="pause" class="button esri-icon-pause" style="display: none;" />
+          </div>
+        </div>  
       </div>
 
       <!-- Icon Panel for Action -->
@@ -317,10 +355,9 @@
                 </calcite-tab>
               </div>
             </calcite-tabs>
-          </div>
-          <div id="menu" class="esri-widget">
-            <input type="checkbox" id="opacityInput" unchecked />
-            <label for="opacityInput">See through ground</label>
+            <calcite-label layout="inline" id="see-through-label">
+              <calcite-checkbox id="myLink"></calcite-checkbox>See-through-Ground
+            </calcite-label>
           </div>
     </calcite-shell>
   </body>
@@ -524,10 +561,12 @@ require([
   
       // Adds a graphic when the user clicks the map. If 2 or more points exist, route is solved.
       //on(view, "click", addStop);
+      /*
       view.on("click", function() {
         addStop();
 
     });
+    */
 
     function addStop(event) {
 
@@ -864,6 +903,32 @@ require([
     })
     externalRenderers.add(view, skeletonRenderer);
     // End of externalRenderers
+
+    // Play animation widget
+    function playButtonDisplay() {
+      play.style.display = "block";
+      pause.style.display = "none";
+    }
+
+    function playButtonHide() {
+      play.style.display = "none";
+      pause.style.display = "none";
+    }
+
+    play.onclick = initialization;
+    pause.onclick = function() {
+      playButtonDisplay();
+      abort = true;
+
+    };
+
+    let abort = false;
+    async function initialization() {
+      //play.style.display = "none";
+      //pause.style.display = "block";
+      abort = false;
+      addStop();
+    }
 
 
     //
@@ -2119,10 +2184,19 @@ const options = {
       tbmTunnelLayer.definitionExpression = "Package = '" + cpValue + "'";
       natmLayer.definitionExpression = "Package = '" + cpValue + "'";
       natmLayer.visible = true;
+      if (cpValue === 'CP101') {
+        playButtonDisplay();
+      } else {
+        playButtonHide();
+      }
   }
   
   function sectionTunnelTypeExpression(cpValue, tunnelValue) {
-  
+    if (cpValue === 'CP101') {
+        playButtonDisplay();
+      } else {
+        playButtonHide();
+      }
     if (cpValue !== 'CP104' && tunnelValue === 'TBM') {
       tbmTunnelLayer.definitionExpression = "Package = '" + cpValue + "'";
       natmLayer.visible = false;
@@ -2883,6 +2957,8 @@ const NEEDLE_LENGTH = am4core.percent(70);
   
   view.ui.empty("top-left");
 
+ // 
+
   // See-through-Ground        
   view.when(function() {
   // allow navigation above and below the ground
@@ -2894,14 +2970,11 @@ const NEEDLE_LENGTH = am4core.percent(70);
   // to see through the ground, set the ground opacity to 0.4
   map.ground.opacity = 0.9; //
   });
-      
-  document
-  .getElementById("opacityInput")
-  .addEventListener("change", function(event) {
-  //map.ground.opacity = event.target.checked ? 0.1 : 0.9;
-  map.ground.opacity = event.target.checked ? 0.1 : 0.6;
-  });
-  view.ui.add("menu", "bottom-right");
+
+  document.getElementById("myLink").addEventListener("click", function(event) {
+      const checked = event.srcElement.checked;
+      map.ground.opacity = event.srcElement.checked ? 0.1 : 0.6;
+    });
 
   });
   </script>
