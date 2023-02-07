@@ -23,10 +23,10 @@
 
     #overviewDiv {
       position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 375px;
-      height: 350px;
+      bottom: 12px;
+      left: 12px;
+      width: 320px;
+      height: 340px;
       border: 1px solid black;
       z-index: 1;
       overflow: hidden;
@@ -36,6 +36,17 @@
         background-color: rgba(0, 0, 0, 0.5);
         position: absolute;
         z-index: 2;
+      }
+
+      calcite-card {
+        position: absolute;
+        z-index: 1;
+        top: 16px;
+        right: 12px;
+      }
+
+      calcite-button {
+        padding: 3;
       }
     
 
@@ -107,7 +118,21 @@
         display: none;
     }
 
-    #legend-container {
+    #legend-container-mmsp {
+      color: black;
+      font-weight: bold;
+      width: 100%;
+      background-color:rgb(255, 255, 255, 1);
+    }
+
+    #legend-container-n2 {
+      color: black;
+      font-weight: bold;
+      width: 100%;
+      background-color:rgb(255, 255, 255, 1);
+    }
+
+    #legend-container-sc {
       color: black;
       font-weight: bold;
       width: 100%;
@@ -138,11 +163,31 @@
     <calcite-shell content-behind>
       <div id="overviewDiv"><div id="extentDiv"></div></div>
       <div id="viewDiv">
+        <calcite-card>
+          <span slot="title">Select Project to zoom in</span>
+          <div id="Project">
+            <calcite-button id="All">
+              All
+            </calcite-button>
+            <calcite-button id="MMSP">
+              MMSP
+            </calcite-button>
+            <calcite-button id="N2">
+              MCRP
+            </calcite-button>
+            <calcite-button id="SC">
+              NSRP
+            </calcite-button>
+          </div>
+        </calcite-card>
+        
         <!-- Title -->
         <!-- Check out this: https://developers.arcgis.com/calcite-design-system/components/button/ -->
         <h2 id="header-title">GENERAL PROGRESS</h2>
         <div id="dateDiv">January 31, 2023</div>
-        <div id="legend-container"></div>
+        <div id="legend-container-mmsp"></div>
+        <div id="legend-container-n2"></div>
+        <div id="legend-container-sc"></div>
       </div>
     </calcite-shell>
   </body>
@@ -190,7 +235,7 @@
                 RelationshipQuery, GraphicsLayer, Graphic, Search, Locate, BasemapToggle, PopupTemplate,
                 LabelClass, CustomContent, TileLayer, Extent, reactiveUtils, promiseUtils, GroupLayer
                  ) {
-      
+  
     const basemap = new Basemap({
       baseLayers: [
           new VectorTileLayer({
@@ -328,12 +373,10 @@ function disableZooming(overView) {
               xmax: ${view.extent.xmax.toFixed(2)}
               ymin: ${view.extent.ymin.toFixed(2)}
               ymax: ${view.extent.ymax.toFixed(2)}`;
-              console.log(info);
             }
 
             if (view.scale) {
               const info = `scale: ${view.scale}`
-              console.log(info);
             }
           }
         );
@@ -620,6 +663,24 @@ function disableZooming(overView) {
     n2StationLayer.listMode = "hide";
     map.add(n2StationLayer);
 
+    // SC Station point layer
+    var labelStationSC = new LabelClass({
+        symbol: {
+            type: "text",
+            color: "blue",
+            haloColor: "black",
+            haloSize: 0.1,
+            font: {
+                size: 12,
+                //weight: "bold"
+            }
+        },
+        labelPlacement: "center-right",
+        labelExpressionInfo: {
+            expression: "$feature.Station"
+        }
+    });
+
     var scStationLayer = new FeatureLayer({
         portalItem: {
             id: "d3926383cf3548569372216edb808996",
@@ -631,7 +692,7 @@ function disableZooming(overView) {
         title: "SC Station",
         outFields: ["*"],
         popupEnabled: false,
-        labelingInfo: [labelStation],
+        labelingInfo: [labelStationSC],
         minScale: minScale,
         maxScale: maxScale,
         opacity: opacity
@@ -639,7 +700,7 @@ function disableZooming(overView) {
     scStationLayer.listMode = "hide";
     map.add(scStationLayer);
 
-    // MMSP Station
+    // MMSP Station point layer
     var mmspLabelStation = new LabelClass({
         symbol: {
             type: "text",
@@ -690,20 +751,8 @@ function zoomToLayer(layer) {
       }
     });
   });
-}
-
-    const legend = new Legend({
-        view,
-        container: "legend-container",
-        layerInfos: [
-          {
-            layer: mmspCenterlineLayer,
-            title: "Legend"
-          }
-        ]
-      });
-      view.ui.add(legend, "bottom-left");
-
+}    
+      //legend.hideLayersNotInCurrentView = true;
 
     // Project list
     // Open general progress of pre-constructions
@@ -711,7 +760,7 @@ function zoomToLayer(layer) {
     // Draw CP break line on the map
     // Project Label properties
     const projectLabelColor = [0, 0, 0, 1]
-    const projectLabelFontSize = 15;
+    const projectLabelFontSize = 13;
 
 
     // Point and Line feature
@@ -719,7 +768,7 @@ function zoomToLayer(layer) {
     const cpLabelColor = [0, 0, 0];
 
     const cpLineWidth = 0.3;
-    const cpFontSize = 6;
+    const cpFontSize = 10;
 
     // MMSP
     
@@ -848,9 +897,9 @@ function zoomToLayer(layer) {
           }
         };
         const j = 0;
-        const pointTextX_pLabel = points[j][0] + 0.1;
+        const pointTextX_pLabel = points[j][0] + 0.01;
         const pointTextY0_pLabel = points[j][1];
-        const pointTextY1_pLabel = points[j+1][1];
+        const pointTextY1_pLabel = points[j+1][1] + 0.06;
         const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
 
         const projectPoint = {
@@ -994,8 +1043,8 @@ function zoomToLayer(layer) {
       }
     };
 
-    const j = 2;
-    const pointTextX_pLabel = points[j][0] - 0.25;
+    const j = 4;
+    const pointTextX_pLabel = points[j][0] - 0.20;
     const pointTextY0_pLabel = points[j][1];
     const pointTextY1_pLabel = points[j+1][1];
     const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
@@ -1143,7 +1192,7 @@ function zoomToLayer(layer) {
           }
         };
         const j = 5;
-        const pointTextX_pLabel = points[j][0] + 0.23;
+        const pointTextX_pLabel = points[j][0] + 0.20;
         const pointTextY0_pLabel = points[j][1];
         const pointTextY1_pLabel = points[j+1][1];
         const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
@@ -1162,7 +1211,145 @@ function zoomToLayer(layer) {
           scGraphicsLayer.add(scProjectLabelGraphic);
     });
 
-    view.ui.empty("top-left");      
+    view.ui.empty("top-left");
+
+      const legendMMSP = new Legend({
+        view,
+        container: "legend-container-mmsp",
+        layerInfos: [
+          {
+            layer: mmspCenterlineLayer,
+            title: "Legend"
+          }
+        ]
+      });
+      view.ui.add(legendMMSP, "bottom-right");
+
+      const legendN2 = new Legend({
+        view,
+        container: "legend-container-n2",
+        layerInfos: [
+          {
+            layer: n2CenterlineLayer,
+            title: "Legend"
+          }
+        ]
+      });
+      view.ui.add(legendN2, "bottom-right");
+
+      const legendSC = new Legend({
+        view,
+        container: "legend-container-sc",
+        layerInfos: [
+          {
+            layer: scCenterlineLayer,
+            title: "Legend"
+          }
+        ]
+      });
+      view.ui.add(legendSC, "bottom-right");
+
+      document.getElementById("legend-container-n2").style.display = 'none';
+      document.getElementById("legend-container-sc").style.display = 'none';
+
+    document.getElementById("Project").addEventListener("click", changeProject);
+    function changeProject(event) {
+      const value = event.srcElement.id;
+      if (value === 'MMSP') {
+        n2StationLayer.visible = false;
+          scStationLayer.visible = false;
+          mmspStationLayer.visible = true;
+
+          n2BreakPointsCP.visible = false;
+          scBreakPointsCP.visible = false;
+
+          n2GraphicsLayer.visible = false;
+          scGraphicsLayer.visible = false;
+          mmspGraphicsLayer.visible = true;
+  
+          n2CenterlineLayer.visible = false;
+          scCenterlineLayer.visible = false;
+          mmspCenterlineLayer.visible = true;
+
+          document.getElementById("legend-container-mmsp").style.display = 'block';
+          document.getElementById("legend-container-n2").style.display = 'none';
+          document.getElementById("legend-container-sc").style.display = 'none';
+
+          zoomToLayer(mmspStationLayer);
+
+      } else if (value === 'N2') {
+        n2StationLayer.visible = true;
+          scStationLayer.visible = false;
+          mmspStationLayer.visible = false;
+
+          n2BreakPointsCP.visible = true;
+          scBreakPointsCP.visible = false;
+
+          n2GraphicsLayer.visible = true;
+          scGraphicsLayer.visible = false;
+          mmspGraphicsLayer.visible = false;
+  
+          n2CenterlineLayer.visible = true;
+          scCenterlineLayer.visible = false;
+          mmspCenterlineLayer.visible = false;
+
+          document.getElementById("legend-container-mmsp").style.display = 'none';
+          document.getElementById("legend-container-n2").style.display = 'block';
+          document.getElementById("legend-container-sc").style.display = 'none';
+
+          zoomToLayer(n2CenterlineLayer);
+
+      } else if (value === 'SC') {
+        n2StationLayer.visible = false;
+        scStationLayer.visible = true;
+        mmspStationLayer.visible = false;
+
+        n2BreakPointsCP.visible = false;
+        scBreakPointsCP.visible = true;
+
+        n2CenterlineLayer.visible = false;
+        scCenterlineLayer.visible = true;
+        mmspCenterlineLayer.visible = false;
+
+        n2GraphicsLayer.visible = false;
+        scGraphicsLayer.visible = true;
+        mmspGraphicsLayer.visible = false;
+
+        document.getElementById("legend-container-mmsp").style.display = 'none';
+        document.getElementById("legend-container-n2").style.display = 'none';
+        document.getElementById("legend-container-sc").style.display = 'block';
+
+        zoomToLayer(scStationLayer);
+
+      } else if (value === 'All') {
+        view.goTo({
+          extent: fixedExtent
+        });
+        
+          //fixedExtent
+        n2StationLayer.visible = true;
+        scStationLayer.visible = true;
+        mmspStationLayer.visible = true;
+
+        n2BreakPointsCP.visible = true;
+        scBreakPointsCP.visible = true;
+
+        n2CenterlineLayer.visible = true;
+        scCenterlineLayer.visible = true;
+        mmspCenterlineLayer.visible = true;
+
+        n2GraphicsLayer.visible = true;
+        scGraphicsLayer.visible = true;
+        mmspGraphicsLayer.visible = true;
+
+        document.getElementById("legend-container-mmsp").style.display = 'block';
+        document.getElementById("legend-container-n2").style.display = 'none';
+        document.getElementById("legend-container-sc").style.display = 'none';
+
+
+
+      }
+    }
 
 
     });
