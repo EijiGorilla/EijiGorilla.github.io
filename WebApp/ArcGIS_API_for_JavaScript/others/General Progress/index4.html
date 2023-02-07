@@ -23,13 +23,13 @@
 
     #overviewDiv {
       position: absolute;
-        bottom: 12px;
-        left: 12px;
-        width: 375px;
-        height: 350px;
-        border: 1px solid black;
-        z-index: 1;
-        overflow: hidden;
+      top: 12px;
+      right: 12px;
+      width: 375px;
+      height: 350px;
+      border: 1px solid black;
+      z-index: 1;
+      overflow: hidden;
     }
 
     #extentDiv {
@@ -53,9 +53,9 @@
 
     #dateDiv {
       position: absolute;
-      z-index: 99;
+      z-index: 1;
       bottom: 0;
-      left: 0;
+      right: 0;
       font-size: 0.7rem;
       text-align: right;
       display: flex;
@@ -111,7 +111,7 @@
       color: black;
       font-weight: bold;
       width: 100%;
-      background-color:rgb(255, 255, 255, 0.7);
+      background-color:rgb(255, 255, 255, 1);
     }
     
     /*  */
@@ -143,13 +143,6 @@
         <h2 id="header-title">GENERAL PROGRESS</h2>
         <div id="dateDiv">January 31, 2023</div>
         <div id="legend-container"></div>
-        <div class="panel">
-          <ul id="projectList">
-            <li class="test" id="MMSP">MMSP</li>
-            <li class="test active" id="N2">NSCR-Ex (Malolos-Clark)</li>
-            <li class="test" id="SC">NSCR-Ex (Solis-Calamba)</li>
-          </ul>
-      </div>
       </div>
     </calcite-shell>
   </body>
@@ -189,12 +182,13 @@
       "esri/layers/TileLayer",
       "esri/geometry/Extent",
       "esri/core/reactiveUtils",
-      "esri/core/promiseUtils"
+      "esri/core/promiseUtils",
+      "esri/layers/GroupLayer",
     ], function(Basemap, VectorTileLayer, WebMap, MapView, Map, FeatureLayer, Bookmarks, BasemapGallery, LayerList, Legend, 
                 Query, Fullscreen, FeatureFilter, TableList, PortalItem, Portal, geometryService,
                 StatisticDefinition, WebStyleSymbol, Expand, UniqueValueRenderer, Ground,
                 RelationshipQuery, GraphicsLayer, Graphic, Search, Locate, BasemapToggle, PopupTemplate,
-                LabelClass, CustomContent, TileLayer, Extent, reactiveUtils, promiseUtils
+                LabelClass, CustomContent, TileLayer, Extent, reactiveUtils, promiseUtils, GroupLayer
                  ) {
       
     const basemap = new Basemap({
@@ -211,12 +205,21 @@
         ground: "world-elevation",
     }); 
 
-    const overViewCenter = [120.9411264, 14.7354620];
-    const zoom = 8;
+
+    const fixedExtent = new Extent({
+      xmin: 13368016.94,
+      xmax: 13552077.31,
+      ymin: 1603544.28,
+      ymax: 1712543.49,
+      spatialReference: {
+        wkid: 3857
+      }
+    });
 
     var view = new MapView({
         map: map,
         container: "viewDiv",
+        extent: fixedExtent,
         environment: {
           background: {
           type: "color", // autocasts as new ColorBackground()
@@ -224,8 +227,7 @@
           },
         }
     });
-view.center = overViewCenter;
-view.zoom = 9;
+
     // Inset maps (overview extent map)
     //https://www.esri.com/arcgis-blog/products/js-api-arcgis/mapping/inset-maps-for-the-web/
     //https://developers.arcgis.com/javascript/latest/sample-code/overview-map/
@@ -233,16 +235,11 @@ view.zoom = 9;
     // sample smart map: https://ekenes.github.io/national-park-visits/?viewType=all&variable=bivariate&year=2021
     // Overview Extent
     var overViewMap = new Map({
-        basemap: "topo-vector", // "streets-night-vector", basemap
+        basemap: "streets-navigation-vector", // "streets-night-vector", basemap
     }); 
 
-    const fixedExtent = new Extent({
-      xmin: 13279655.74,
-      xmax: 13646553.47,
-      ymin: 1536432.57,
-      ymax: 1781031.06
-    });
-
+    const overViewCenter = [120.9411264, 14.7354620];
+    const zoom = 5;
 
     var overView = new MapView({
         map: overViewMap,
@@ -314,25 +311,29 @@ function disableZooming(overView) {
         //*******************************************************************
         // Watch view's stationary property for becoming true.
         reactiveUtils.when(
-          () => overView.stationary === true,
+          () => view.stationary === true,
           () => {
             // Get the new center of the view only when view is stationary.
-            if (overView.center) {
+            if (view.center) {
               const info = `
-              x: ${overView.center.x.toFixed(2)}
-              y: ${overView.center.y.toFixed(2)}`;
+              x: ${view.center.x.toFixed(2)}
+              y: ${view.center.y.toFixed(2)}`;
               
         
             }
             // Get the new extent of the view only when view is stationary.
-            if (overView.extent) {
+            if (view.extent) {
               const info = `
-              xmin: ${overView.extent.xmin.toFixed(2)}
-              xmax: ${overView.extent.xmax.toFixed(2)}
-              ymin: ${overView.extent.ymin.toFixed(2)}
-              ymax: ${overView.extent.ymax.toFixed(2)}`;
+              xmin: ${view.extent.xmin.toFixed(2)}
+              xmax: ${view.extent.xmax.toFixed(2)}
+              ymin: ${view.extent.ymin.toFixed(2)}
+              ymax: ${view.extent.ymax.toFixed(2)}`;
               console.log(info);
-        
+            }
+
+            if (view.scale) {
+              const info = `scale: ${view.scale}`
+              console.log(info);
             }
           }
         );
@@ -532,6 +533,19 @@ function disableZooming(overView) {
 
 
     // Beak points between individua CPs
+    const pointSymbol = {
+      type: "simple",  // autocasts as new SimpleLineSymbol()
+      symbol: {
+        type: "simple-marker",
+        stlye: "circle",
+        color: [0, 0, 0, 0.2],
+        size: "3px",
+        outline: {
+          color: [0, 0, 0, 0],
+          width: 0.5
+        }
+      } 
+    }
     var n2BreakPointsCP = new FeatureLayer({
         portalItem: {
             id: "95bd8e4739af45189f2238faf626e5a0",
@@ -542,7 +556,8 @@ function disableZooming(overView) {
         title: "N2 Break Points",
         definitionExpression: "Extension = 'N2'" + " AND " + "Id >= 1",
         outFields: ["*"],
-        popupEnabled: false
+        popupEnabled: false,
+        renderer: pointSymbol
     });
     n2BreakPointsCP.listMode = "hide";
     map.add(n2BreakPointsCP);
@@ -557,12 +572,17 @@ function disableZooming(overView) {
         title: "SC Break Points",
         definitionExpression: "Extension = 'SC'" + " AND " + "Id >= 1",
         outFields: ["*"],
-        popupEnabled: false
+        popupEnabled: false,
+        renderer: pointSymbol
     });
     scBreakPointsCP.listMode = "hide";
     map.add(scBreakPointsCP);
 
     // Station point feature
+    const minScale = 577790;
+    const maxScale = 0;
+    const opacity = 0.8;
+
     var labelStation = new LabelClass({
         symbol: {
             type: "text",
@@ -592,7 +612,10 @@ function disableZooming(overView) {
         outFields: ["*"],
         popupEnabled: false,
         definitionExpression: "Station <> 'NCC'",
-        labelingInfo: [labelStation]
+        labelingInfo: [labelStation],
+        minScale: minScale,
+        maxScale: maxScale,
+        opacity: opacity
     });
     n2StationLayer.listMode = "hide";
     map.add(n2StationLayer);
@@ -608,7 +631,10 @@ function disableZooming(overView) {
         title: "SC Station",
         outFields: ["*"],
         popupEnabled: false,
-        labelingInfo: [labelStation]
+        labelingInfo: [labelStation],
+        minScale: minScale,
+        maxScale: maxScale,
+        opacity: opacity
     });
     scStationLayer.listMode = "hide";
     map.add(scStationLayer);
@@ -643,7 +669,10 @@ function disableZooming(overView) {
         definitionExpression: "Station1 <> 'FTI'" + " AND " + "Station1 <> 'Bicutan'",
         outFields: ["*"],
         popupEnabled: false,
-        labelingInfo: [mmspLabelStation]
+        labelingInfo: [mmspLabelStation],
+        minScale: minScale,
+        maxScale: maxScale,
+        opacity: opacity
     });
     mmspStationLayer.listMode = "hide";
     map.add(mmspStationLayer);
@@ -662,6 +691,7 @@ function zoomToLayer(layer) {
     });
   });
 }
+
     const legend = new Legend({
         view,
         container: "legend-container",
@@ -669,107 +699,34 @@ function zoomToLayer(layer) {
           {
             layer: mmspCenterlineLayer,
             title: "Legend"
-          },
-          {
-            layer: n2CenterlineLayer,
-            title: "Legend"
-          },
-          {
-            layer: scCenterlineLayer,
-            title: "Legend"
           }
         ]
       });
-      view.ui.add(legend, "bottom-right");
+      view.ui.add(legend, "bottom-left");
 
 
     // Project list
     // Open general progress of pre-constructions
 
-    // Project List selection
-    var projectList = document.getElementById("projectList");
-    var ttt = projectList.getElementsByClassName("test");
-
-    for(var i = 0; i < ttt.length; i ++) {
-      ttt[i].addEventListener("click", filterByP);
-    }
-
-      function filterByP(event) {
-        var current = document.getElementsByClassName("active");
-        current[0].className = current[0].className.replace(" active","");
-        this.className += " active";
-
-        const selectedID = event.target.id;
-
-        if(selectedID === 'N2') {
-          n2StationLayer.visible = true;
-          scStationLayer.visible = false;
-          mmspStationLayer.visible = false;
-
-          n2BreakPointsCP.visible = true;
-          scBreakPointsCP.visible = false;
-
-          n2GraphicsLayer.visible = true;
-          scGraphicsLayer.visible = false;
-          mmspGraphicsLayer.visible = false;
-  
-          n2CenterlineLayer.visible = true;
-          scCenterlineLayer.visible = false;
-          mmspCenterlineLayer.visible = false;
-
-          zoomToLayer(n2CenterlineLayer);
-
-        } else if(selectedID === 'SC'){
-          n2StationLayer.visible = false;
-          scStationLayer.visible = true;
-          mmspStationLayer.visible = false;
-
-          n2BreakPointsCP.visible = false;
-          scBreakPointsCP.visible = true;
-  
-          n2CenterlineLayer.visible = false;
-          scCenterlineLayer.visible = true;
-          mmspCenterlineLayer.visible = false;
-
-          n2GraphicsLayer.visible = false;
-          scGraphicsLayer.visible = true;
-          mmspGraphicsLayer.visible = false;
-
-          zoomToLayer(scStationLayer);
-
-        } else if (selectedID == 'MMSP') {
-          n2StationLayer.visible = false;
-          scStationLayer.visible = false;
-          mmspStationLayer.visible = true;
-
-          n2BreakPointsCP.visible = false;
-          scBreakPointsCP.visible = false;
-
-          n2GraphicsLayer.visible = false;
-          scGraphicsLayer.visible = false;
-          mmspGraphicsLayer.visible = true;
-  
-          n2CenterlineLayer.visible = false;
-          scCenterlineLayer.visible = false;
-          mmspCenterlineLayer.visible = true;
-
-          zoomToLayer(mmspStationLayer);
-
-        }
-
-      }
-
     // Draw CP break line on the map
+    // Project Label properties
+    const projectLabelColor = [0, 0, 0, 1]
+    const projectLabelFontSize = 15;
+
+
     // Point and Line feature
     const cpLineColor = [128,128,128];
     const cpLabelColor = [0, 0, 0];
 
-    const cpLineWidth = 1;
-    const cpFontSize = 15;
+    const cpLineWidth = 0.3;
+    const cpFontSize = 6;
 
     // MMSP
     
-    const mmspGraphicsLayer = new GraphicsLayer();
+    const mmspGraphicsLayer = new GraphicsLayer({
+      //minScale: minScale,
+      //maxScale: maxScale
+    });
     mmspGraphicsLayer.listMode = "hide";
     map.add(mmspGraphicsLayer);
 
@@ -824,7 +781,7 @@ function zoomToLayer(layer) {
         // Add to Graphic
         const mmspPolylineGraphic = new Graphic({
             geometry: polyline,
-            symbol: simpleLineSymbol
+            symbol: simpleLineSymbol,
         });
 
 
@@ -870,16 +827,52 @@ function zoomToLayer(layer) {
 
                 const mmspPointGraphic = new Graphic({
                     geometry: point,
-                    symbol: textSymbol
+                    symbol: textSymbol,
                 });
                 mmspGraphicsLayer.addMany([mmspPolylineGraphic, mmspPointGraphic]);
             }
         }
+        // Add Project label (N2)
+        let mmspProjectLableSymbol = {
+          type: "text",  // autocasts as new TextSymbol()
+          color: projectLabelColor,
+          //haloColor: "black",
+          //haloSize: "1px",
+          text: "MMSP",
+          //xoffset: 3,
+          //yoffset: -5,
+          font: {  // autocasts as new Font()
+              size: projectLabelFontSize,
+              //family: "Josefin Slab",
+              weight: "bold"
+          }
+        };
+        const j = 0;
+        const pointTextX_pLabel = points[j][0] + 0.1;
+        const pointTextY0_pLabel = points[j][1];
+        const pointTextY1_pLabel = points[j+1][1];
+        const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
+
+        const projectPoint = {
+            type: "point",
+            longitude: pointTextX_pLabel,
+            latitude: pointTextY_pLabel
+        };
+
+          const mmspProjectLabelGraphic = new Graphic({
+            geometry: projectPoint,
+            symbol: mmspProjectLableSymbol
+          });
+
+          mmspGraphicsLayer.add(mmspProjectLabelGraphic);
     });
     
 
     // N2
-    const n2GraphicsLayer = new GraphicsLayer();
+    const n2GraphicsLayer = new GraphicsLayer({
+      //minScale: minScale,
+      //maxScale: maxScale
+    });
     n2GraphicsLayer.listMode = "hide";
     map.add(n2GraphicsLayer);
 
@@ -980,14 +973,54 @@ function zoomToLayer(layer) {
                     geometry: point,
                     symbol: textSymbol
                 });
+
                 n2GraphicsLayer.addMany([n2PolylineGraphic, n2PointGraphic]);
             }
         }
+            // Project Label
+    // Add Project label (N2)
+    let n2ProjectLableSymbol = {
+      type: "text",  // autocasts as new TextSymbol()
+      color: projectLabelColor,
+      //haloColor: "black",
+      //haloSize: "1px",
+      text: "NSCR-Ex (Malolos-Clark)",
+      //xoffset: 3,
+      //yoffset: -5,
+      font: {  // autocasts as new Font()
+          size: projectLabelFontSize,
+          //family: "Josefin Slab",
+          weight: "bold"
+      }
+    };
+
+    const j = 2;
+    const pointTextX_pLabel = points[j][0] - 0.25;
+    const pointTextY0_pLabel = points[j][1];
+    const pointTextY1_pLabel = points[j+1][1];
+    const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
+
+    const projectPoint = {
+        type: "point",
+        longitude: pointTextX_pLabel,
+        latitude: pointTextY_pLabel
+    };
+
+      const n2ProjectLabelGraphic = new Graphic({
+        geometry: projectPoint,
+        symbol: n2ProjectLableSymbol
+      });
+
+      n2GraphicsLayer.add(n2ProjectLabelGraphic);
     });
 
 
+
     // SC
-      const scGraphicsLayer = new GraphicsLayer();
+      const scGraphicsLayer = new GraphicsLayer({
+        //minScale: minScale,
+        //maxScale: maxScale
+      });
       scGraphicsLayer.listMode = "hide";
       map.add(scGraphicsLayer);
 
@@ -1008,7 +1041,7 @@ function zoomToLayer(layer) {
             const pointY0 = result.geometry.latitude;
 
             // Calculate end poins and store it in a path for line generation
-            const pointX1 = pointX0 + 0.05;
+            const pointX1 = pointX0 - 0.05;
             const path = [
                 [pointX0, pointY0],
                 [pointX1, pointY0]
@@ -1049,7 +1082,7 @@ function zoomToLayer(layer) {
         for(var i=0; i < points.length; i++){
             //console.log(i);
             if(i <= points.length-2 && i !== 8){
-                const pointTextX = points[i][0] + 0.03;
+                const pointTextX = points[i][0] - 0.03;
                 const pointTextY0 = points[i][1];
                 const pointTextY1 = points[i+1][1];
                 const pointTextY = (pointTextY0 + pointTextY1) / 2;
@@ -1093,9 +1126,41 @@ function zoomToLayer(layer) {
                 scGraphicsLayer.addMany([scPolylineGraphic, scPointGraphic]);
             }
         }
-    });
 
-    defaultDisplay();
+        // Add Project label (SC)
+        let scProjectLableSymbol = {
+          type: "text",  // autocasts as new TextSymbol()
+          color: projectLabelColor,
+          //haloColor: "black",
+          //haloSize: "1px",
+          text: "NSCR-Ex (Solis-Calamba)",
+          //xoffset: 3,
+          //yoffset: -5,
+          font: {  // autocasts as new Font()
+              size: projectLabelFontSize,
+              //family: "Josefin Slab",
+              weight: "bold"
+          }
+        };
+        const j = 5;
+        const pointTextX_pLabel = points[j][0] + 0.23;
+        const pointTextY0_pLabel = points[j][1];
+        const pointTextY1_pLabel = points[j+1][1];
+        const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
+
+        const projectPoint = {
+            type: "point",
+            longitude: pointTextX_pLabel,
+            latitude: pointTextY_pLabel
+        };
+
+          const scProjectLabelGraphic = new Graphic({
+            geometry: projectPoint,
+            symbol: scProjectLableSymbol
+          });
+
+          scGraphicsLayer.add(scProjectLabelGraphic);
+    });
 
     view.ui.empty("top-left");      
 
