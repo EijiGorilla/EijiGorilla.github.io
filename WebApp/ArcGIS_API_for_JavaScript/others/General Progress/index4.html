@@ -124,6 +124,13 @@
         display: none;
     }
 
+    #legend-container-n1 {
+      color: black;
+      font-weight: bold;
+      width: 100%;
+      background-color:rgb(255, 255, 255, 1);
+    }
+
     #legend-container-mmsp {
       color: black;
       font-weight: bold;
@@ -172,6 +179,9 @@
             <calcite-button id="All">
               All
             </calcite-button>
+            <calcite-button id="N1">
+              NSCR
+            </calcite-button>
             <calcite-button id="MMSP">
               MMSP
             </calcite-button>
@@ -188,6 +198,7 @@
         <!-- Check out this: https://developers.arcgis.com/calcite-design-system/components/button/ -->
         <h2 id="header-title">GENERAL PROGRESS</h2>
         <div id="dateDiv">January 31, 2023</div>
+        <div id="legend-container-n1"></div>
         <div id="legend-container-mmsp"></div>
         <div id="legend-container-n2"></div>
         <div id="legend-container-sc"></div>
@@ -494,6 +505,37 @@ function disableZooming(overView) {
     };
 
     // Centerline
+    // NSCR
+    var n1CenterlineLayer = new FeatureLayer({
+      portalItem: {
+            id: "7d9a8e1f56604535a62992999edb8f6b",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 77,
+        title: "NSCR Centerline",
+        renderer: centerLineSymbol,
+        outFields: ["*"],
+        popupEnabled: false,
+  });
+  map.add(n1CenterlineLayer);
+
+  var n1CenterlineOverView = new FeatureLayer({
+      portalItem: {
+            id: "7d9a8e1f56604535a62992999edb8f6b",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 77,
+        renderer: lineSymbolRenderer,
+        labelingInfo: false,
+        popupEnabled: false,
+    });
+    overViewMap.add(n1CenterlineOverView);
+
+    // MMSP
     var mmspCenterlineLayer = new FeatureLayer({
       portalItem: {
             id: "71dfd84340024822859586922ced59d7",
@@ -521,6 +563,7 @@ function disableZooming(overView) {
     });
     overViewMap.add(mmspCenterlineOverView);
 
+    // N2
     var n2CenterlineLayer = new FeatureLayer({
         portalItem: {
             id: "590680d19f2e48fdbd8bcddce3aaedb5",
@@ -742,6 +785,43 @@ function disableZooming(overView) {
     mmspStationLayer.listMode = "hide";
     map.add(mmspStationLayer);
 
+    // NSCR
+    var n1LabelStation = new LabelClass({
+        symbol: {
+            type: "text",
+            color: "blue",
+            haloColor: "black",
+            haloSize: 0.1,
+            font: {
+                size: 12,
+                //weight: "bold"
+            }
+        },
+        labelPlacement: "center-left",
+        labelExpressionInfo: {
+            expression: "$feature.Station"
+        }
+    });
+
+    var n1StationLayer = new FeatureLayer({
+      portalItem: {
+            id: "7d9a8e1f56604535a62992999edb8f6b",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 78,
+        title: "MMSP Station",
+        outFields: ["*"],
+        popupEnabled: false,
+        labelingInfo: [n1LabelStation],
+        minScale: minScale,
+        maxScale: maxScale,
+        opacity: opacity
+    });
+    n1StationLayer.listMode = "hide";
+    map.add(n1StationLayer);
+
 
     /////////////////// END Of LAYER IMPORT ////////////////////////////
 // Zoom
@@ -774,8 +854,151 @@ function zoomToLayer(layer) {
     const cpLineWidth = 0.3;
     const cpFontSize = 10;
 
+
+    // NSCR
+    const n1GraphicsLayer = new GraphicsLayer();
+    n1GraphicsLayer.listMode = 'hide';
+    map.add(n1GraphicsLayer);
+
+    var query = n1StationLayer.createQuery();
+    query.orderByFields = ["Id"];
+    query.where = "Id >= 1";
+
+    n1StationLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features;
+      const paths = [];
+      const points = [];
+      const CPs = [];
+
+      stats.forEach((result, index) => {
+        const attributes = result.attributes;
+        const cp = attributes.CPs;
+        CPs.push(cp);
+
+        // Collect geometry of each break point
+        const pointX0 = result.geometry.longitude;
+        const pointY0 = result.geometry.latitude;
+
+        // Calculate end poins and store it in a path for line generation
+        const pointX1 = pointX0 - 0.04;
+        const path = [
+            [pointX0, pointY0],
+            [pointX1, pointY0]
+        ]
+
+        // Append each path to paths
+        paths.push(path);
+
+        // Calculate a point for text symbol
+        const point = [pointX1, pointY0];
+        points.push(point);
+      });
+              // 1. Draw a horizontal line at break points of individual CPs
+        // Define polyline paths and type
+        const polyline = {
+            type: "polyline",
+            paths: paths
+        };
+
+        // Set line properties
+        const simpleLineSymbol = {
+            type: "simple-line",
+            color: cpLineColor,
+            width: cpLineWidth
+        };
+
+        // Add to Graphic
+        const n1PolylineGraphic = new Graphic({
+            geometry: polyline,
+            symbol: simpleLineSymbol,
+        });
+      
+     
+        // 2. Add text symbol
+        for(var i=0; i < points.length; i++){
+            if(i <= points.length-2){
+                const pointTextX = points[i][0] - 0.1;
+                const pointTextY0 = points[i][1];
+                const pointTextY1 = points[i+1][1];
+                const pointTextY = (pointTextY0 + pointTextY1) / 2;
+
+                const point = {
+                    type: "point",
+                    longitude: pointTextX,
+                    latitude: pointTextY
+                };
+
+                let textSymbol = {
+                    type: "text",  // autocasts as new TextSymbol()
+                    color: cpLabelColor,
+                    //haloColor: "black",
+                    //haloSize: "1px",
+                    text: CPs[i],
+                    //xoffset: 3,
+                    //yoffset: -5,
+                    font: {  // autocasts as new Font()
+                        size: cpFontSize,
+                        //family: "Josefin Slab",
+                        weight: "bold"
+                    }
+                };
+
+                const simpleMarkerSymbol = {
+                    type: "simple-marker",
+                    color: [226, 119, 40],
+                    size: 12,
+                    style: "circle",
+                    outline: {
+                        width: 1,
+                        color: [255, 255, 255, 1]
+                    }
+                };
+
+                const n1PointGraphic = new Graphic({
+                    geometry: point,
+                    symbol: textSymbol,
+                });
+                n1GraphicsLayer.addMany([n1PolylineGraphic, n1PointGraphic]);
+            }
+        }
+        // Add Project label (N2)
+        let n1ProjectLableSymbol = {
+          type: "text",  // autocasts as new TextSymbol()
+          color: projectLabelColor,
+          //haloColor: "black",
+          //haloSize: "1px",
+          text: "NSCR (Malolos-Tutuban)",
+          //xoffset: 3,
+          //yoffset: -5,
+          font: {  // autocasts as new Font()
+              size: projectLabelFontSize,
+              family: "Merriweather",
+              style: "italic",
+              weight: "bold"
+          }
+        };
+        const j = 1;
+        const pointTextX_pLabel = points[j][0] + 0.1;
+        const pointTextY0_pLabel = points[j][1];
+        const pointTextY1_pLabel = points[j+1][1] + 0.06;
+        const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
+
+        const projectPoint = {
+            type: "point",
+            longitude: pointTextX_pLabel,
+            latitude: pointTextY_pLabel
+        };
+
+          const n1ProjectLabelGraphic = new Graphic({
+            geometry: projectPoint,
+            symbol: n1ProjectLableSymbol
+          });
+
+          n1GraphicsLayer.add(n1ProjectLabelGraphic);
+    });
+
+
     // MMSP
-    
     const mmspGraphicsLayer = new GraphicsLayer({
       //minScale: minScale,
       //maxScale: maxScale
@@ -895,8 +1118,9 @@ function zoomToLayer(layer) {
           //xoffset: 3,
           //yoffset: -5,
           font: {  // autocasts as new Font()
-              size: projectLabelFontSize,
-              //family: "Josefin Slab",
+            size: projectLabelFontSize,
+              family: "Merriweather",
+              style: "italic",
               weight: "bold"
           }
         };
@@ -918,7 +1142,6 @@ function zoomToLayer(layer) {
           });
 
           mmspGraphicsLayer.add(mmspProjectLabelGraphic);
-
     });
     
 
@@ -1042,9 +1265,10 @@ function zoomToLayer(layer) {
       //xoffset: 3,
       //yoffset: -5,
       font: {  // autocasts as new Font()
-          size: projectLabelFontSize,
-          //family: "Josefin Slab",
-          weight: "bold"
+        size: projectLabelFontSize,
+        family: "Merriweather",
+        style: "italic",
+        weight: "bold"
       }
     };
 
@@ -1192,7 +1416,8 @@ function zoomToLayer(layer) {
           //yoffset: -5,
           font: {  // autocasts as new Font()
               size: projectLabelFontSize,
-              //family: "Josefin Slab",
+              family: "Merriweather",
+              style: "italic",
               weight: "bold"
           }
         };
@@ -1217,6 +1442,18 @@ function zoomToLayer(layer) {
     });
 
     view.ui.empty("top-left");
+
+    const legendN1 = new Legend({
+        view,
+        container: "legend-container-n1",
+        layerInfos: [
+          {
+            layer: n1CenterlineLayer,
+            title: "Legend"
+          }
+        ]
+      });
+      view.ui.add(legendN1, "bottom-right");
 
       const legendMMSP = new Legend({
         view,
@@ -1254,13 +1491,42 @@ function zoomToLayer(layer) {
       });
       view.ui.add(legendSC, "bottom-right");
 
+      document.getElementById("legend-container-n1").style.display = 'none';
       document.getElementById("legend-container-n2").style.display = 'none';
       document.getElementById("legend-container-sc").style.display = 'none';
 
     document.getElementById("Project").addEventListener("click", changeProject);
     function changeProject(event) {
       const value = event.srcElement.id;
-      if (value === 'MMSP') {
+      console.log(value);
+
+      if (value === 'N1') {
+        n2StationLayer.visible = false;
+        scStationLayer.visible = false;
+        mmspStationLayer.visible = false;
+        n1StationLayer.visible = true;
+
+        n2BreakPointsCP.visible = false;
+        scBreakPointsCP.visible = false;
+
+        n2GraphicsLayer.visible = false;
+        scGraphicsLayer.visible = false;
+        mmspGraphicsLayer.visible = false;
+        n1GraphicsLayer.visible = true;
+
+        n2CenterlineLayer.visible = false;
+        scCenterlineLayer.visible = false;
+        mmspCenterlineLayer.visible = false;
+        n1CenterlineLayer.visible = true;
+
+        document.getElementById("legend-container-n1").style.display = 'block';
+        document.getElementById("legend-container-mmsp").style.display = 'none';
+        document.getElementById("legend-container-n2").style.display = 'none';
+        document.getElementById("legend-container-sc").style.display = 'none';
+
+        zoomToLayer(n1StationLayer);
+
+      } else if (value === 'MMSP') {
         n2StationLayer.visible = false;
           scStationLayer.visible = false;
           mmspStationLayer.visible = true;
@@ -1276,6 +1542,7 @@ function zoomToLayer(layer) {
           scCenterlineLayer.visible = false;
           mmspCenterlineLayer.visible = true;
 
+          document.getElementById("legend-container-n1").style.display = 'none';
           document.getElementById("legend-container-mmsp").style.display = 'block';
           document.getElementById("legend-container-n2").style.display = 'none';
           document.getElementById("legend-container-sc").style.display = 'none';
@@ -1298,6 +1565,7 @@ function zoomToLayer(layer) {
           scCenterlineLayer.visible = false;
           mmspCenterlineLayer.visible = false;
 
+          document.getElementById("legend-container-n1").style.display = 'none';
           document.getElementById("legend-container-mmsp").style.display = 'none';
           document.getElementById("legend-container-n2").style.display = 'block';
           document.getElementById("legend-container-sc").style.display = 'none';
@@ -1320,6 +1588,7 @@ function zoomToLayer(layer) {
         scGraphicsLayer.visible = true;
         mmspGraphicsLayer.visible = false;
 
+        document.getElementById("legend-container-n1").style.display = 'none';
         document.getElementById("legend-container-mmsp").style.display = 'none';
         document.getElementById("legend-container-n2").style.display = 'none';
         document.getElementById("legend-container-sc").style.display = 'block';
@@ -1347,12 +1616,10 @@ function zoomToLayer(layer) {
         scGraphicsLayer.visible = true;
         mmspGraphicsLayer.visible = true;
 
+        document.getElementById("legend-container-n1").style.display = 'none';
         document.getElementById("legend-container-mmsp").style.display = 'block';
         document.getElementById("legend-container-n2").style.display = 'none';
         document.getElementById("legend-container-sc").style.display = 'none';
-
-
-
       }
     }
 
