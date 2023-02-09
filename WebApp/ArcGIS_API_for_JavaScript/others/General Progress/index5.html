@@ -253,11 +253,12 @@
       "esri/core/reactiveUtils",
       "esri/core/promiseUtils",
       "esri/layers/GroupLayer",
+      "esri/widgets/Home"
     ], function(Basemap, VectorTileLayer, WebMap, MapView, Map, FeatureLayer, Bookmarks, BasemapGallery, LayerList, Legend, 
                 Query, Fullscreen, FeatureFilter, TableList, PortalItem, Portal, geometryService,
                 StatisticDefinition, WebStyleSymbol, Expand, UniqueValueRenderer, Ground,
                 RelationshipQuery, GraphicsLayer, Graphic, Search, Locate, BasemapToggle, PopupTemplate,
-                LabelClass, CustomContent, TileLayer, Extent, reactiveUtils, promiseUtils, GroupLayer
+                LabelClass, CustomContent, TileLayer, Extent, reactiveUtils, promiseUtils, GroupLayer, Home
                  ) {
 
     const calciteAction = document.querySelector("calcite-action");
@@ -529,6 +530,20 @@ function disableZooming(overView) {
       }
     };
 
+    const pointSymbol = {
+      type: "simple",  // autocasts as new SimpleLineSymbol()
+      symbol: {
+        type: "simple-marker",
+        stlye: "circle",
+        color: [0, 0, 0, 0.2],
+        size: "3px",
+        outline: {
+          color: [0, 0, 0, 0],
+          width: 0.5
+        }
+      } 
+    }
+
     // Centerline
     // NSCR
     var n1CenterlineLayer = new FeatureLayer({
@@ -559,6 +574,23 @@ function disableZooming(overView) {
         popupEnabled: false,
     });
     overViewMap.add(n1CenterlineOverView);
+
+    var n1BreakPointsCP = new FeatureLayer({
+        portalItem: {
+            id: "7d9a8e1f56604535a62992999edb8f6b",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        title: "N1 Break Points",
+        layerId: 79,
+        definitionExpression: "Id >= 1",
+        outFields: ["*"],
+        popupEnabled: false,
+        renderer: pointSymbol
+    });
+    n1BreakPointsCP.listMode = "hide";
+    map.add(n1BreakPointsCP);
 
     // MMSP
     var mmspCenterlineLayer = new FeatureLayer({
@@ -648,19 +680,6 @@ function disableZooming(overView) {
 
 
     // Beak points between individua CPs
-    const pointSymbol = {
-      type: "simple",  // autocasts as new SimpleLineSymbol()
-      symbol: {
-        type: "simple-marker",
-        stlye: "circle",
-        color: [0, 0, 0, 0.2],
-        size: "3px",
-        outline: {
-          color: [0, 0, 0, 0],
-          width: 0.5
-        }
-      } 
-    }
     var n2BreakPointsCP = new FeatureLayer({
         portalItem: {
             id: "95bd8e4739af45189f2238faf626e5a0",
@@ -885,11 +904,11 @@ function zoomToLayer(layer) {
     n1GraphicsLayer.listMode = 'hide';
     map.add(n1GraphicsLayer);
 
-    var query = n1StationLayer.createQuery();
+    var query = n1BreakPointsCP.createQuery();
     query.orderByFields = ["Id"];
     query.where = "Id >= 1";
 
-    n1StationLayer.queryFeatures(query).then(function(response) {
+    n1BreakPointsCP.queryFeatures(query).then(function(response) {
       var stats = response.features;
       const paths = [];
       const points = [];
@@ -897,7 +916,7 @@ function zoomToLayer(layer) {
 
       stats.forEach((result, index) => {
         const attributes = result.attributes;
-        const cp = attributes.CPs;
+        const cp = attributes.CP;
         CPs.push(cp);
 
         // Collect geometry of each break point
@@ -942,9 +961,9 @@ function zoomToLayer(layer) {
         // 2. Add text symbol
         for(var i=0; i < points.length; i++){
             if(i <= points.length-2){
-                const pointTextX = points[i][0] - 0.07;
-                const pointTextY0 = points[i][1];
-                const pointTextY1 = points[i+1][1];
+                const pointTextX = CPs[i] == 'CP101' ? points[i][0] - 0.1 : points[i][0] - 0.07;
+                const pointTextY0 = CPs[i] == 'CP101' ? points[i][1] : points[i][1];
+                const pointTextY1 = CPs[i] == 'CP101' || CPs[i] == 'CP105' ? points[i+1][1] - 0.03 : points[i+1][1];
                 const pointTextY = (pointTextY0 + pointTextY1) / 2;
 
                 const point = {
@@ -1002,7 +1021,7 @@ function zoomToLayer(layer) {
               weight: "bold"
           }
         };
-        const j = 1;
+        const j = 2;
         const pointTextX_pLabel = points[j][0] + 0.1;
         const pointTextY0_pLabel = points[j][1];
         const pointTextY1_pLabel = points[j+1][1] + 0.06;
@@ -1463,10 +1482,8 @@ function zoomToLayer(layer) {
             symbol: scProjectLableSymbol
           });
 
-          scGraphicsLayer.add(scProjectLabelGraphic);
+          scGraphicsLayer.add(scProjectLabelGraphic); // Do not use graphicslayer.addMany. 
     });
-
-    view.ui.empty("top-left");
 
     const legendN1 = new Legend({
         view,
@@ -1533,6 +1550,7 @@ function zoomToLayer(layer) {
 
         n2BreakPointsCP.visible = false;
         scBreakPointsCP.visible = false;
+        n1BreakPointsCP.visible = true;
 
         n2GraphicsLayer.visible = false;
         scGraphicsLayer.visible = false;
@@ -1559,6 +1577,7 @@ function zoomToLayer(layer) {
 
           n2BreakPointsCP.visible = false;
           scBreakPointsCP.visible = false;
+          n1BreakPointsCP.visible = false;
 
           n2GraphicsLayer.visible = false;
           scGraphicsLayer.visible = false;
@@ -1585,6 +1604,7 @@ function zoomToLayer(layer) {
 
           n2BreakPointsCP.visible = true;
           scBreakPointsCP.visible = false;
+          n1BreakPointsCP.visible = false;
 
           n2GraphicsLayer.visible = true;
           scGraphicsLayer.visible = false;
@@ -1611,6 +1631,7 @@ function zoomToLayer(layer) {
 
         n2BreakPointsCP.visible = false;
         scBreakPointsCP.visible = true;
+        n1BreakPointsCP.visible = false;
 
         n2CenterlineLayer.visible = false;
         scCenterlineLayer.visible = true;
@@ -1642,6 +1663,7 @@ function zoomToLayer(layer) {
 
         n2BreakPointsCP.visible = true;
         scBreakPointsCP.visible = true;
+        n1BreakPointsCP.visible = true;
 
         n2CenterlineLayer.visible = true;
         scCenterlineLayer.visible = true;
@@ -1659,8 +1681,7 @@ function zoomToLayer(layer) {
         document.getElementById("legend-container-sc").style.display = 'none';
       }
     }
-
-
+        
     });
   </script>
 </html>
