@@ -307,7 +307,7 @@
                   <div id="handedOverLotNumberDiv"></div>
               </calcite-tab>
               <calcite-tab>
-                <div id="pieChartStructureDiv"></div>
+                <div class="boxStructure" id="pieChartStructureDiv"></div>
                 <div id="structureNumberDiv"></div>
                 <div id="chartMoaStructureDiv"></div>
                 <div id="isfNumberDiv"></calcite-label>
@@ -530,6 +530,8 @@
         }
     });
     map.add(lotLayer);
+
+    
       
     // Zoom
     function zoomToLayer(layer) {
@@ -1830,13 +1832,12 @@
           })
         );
 
-
-
         // Set data
         // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/#Setting_data
         //https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/pie-series/
 
         // To set slice color, you need to add this before data.setAll
+        /*
         pieSeries.get("colors").set("colors", [
           am5.color("#70ad47"),
           am5.color("#0070FF"),
@@ -1845,13 +1846,15 @@
           am5.color("#FF0000"),
           am5.color("#00734C"),
         ]);
+        */
 
         // Set slice opacity and stroke color
         pieSeries.slices.template.setAll({
           fillOpacity: 0.9,
-          stroke: am5.color(0xffffff),
+          stroke: dark.disabled ? am5.color(lightThemeColor) : am5.color(darkThemeColor),
           strokeWidth: 1,
           strokeOpacity: 1,
+          templateField: "sliceSettings"
         });
 
 
@@ -1924,27 +1927,45 @@
           [
             {
               category: Status_Name_Lot()[1],
-              value: PAID
+              value: PAID,
+              sliceSettings: {
+                fill: am5.color("#70ad47")
+              }
             },
             {
               category: Status_Name_Lot()[2],
-              value: PAYP,  
+              value: PAYP,
+              sliceSettings: {
+                fill: am5.color("#0070ff")
+              }
             },
             {
               category: Status_Name_Lot()[3],
               value: LEGALPASS,
+              sliceSettings: {
+                fill: am5.color("#ffff00")
+              }
             },
             {
               category: Status_Name_Lot()[4],
               value: OTB,
+              sliceSettings: {
+                fill: am5.color("#ffaa00")
+              }
             },
             {
             category: Status_Name_Lot()[5],
               value: EXPRO,
+              sliceSettings: {
+                fill: am5.color("#ff0000")
+              }
             },
             {
               category: Status_Name_Lot()[6],
             value: DISMISSAL,
+            sliceSettings: {
+                fill: am5.color("#00734c")
+              }
             }
           ]
         );
@@ -1965,7 +1986,7 @@
           height: 18,
           strokeWidth: 1,
           strokeOpacity: 1,
-          stroke: am5.color("#ccc"),
+          stroke: dark.disabled ? am5.color(lightThemeColor) : am5.color(darkThemeColor),
 
         });
 
@@ -1983,10 +2004,9 @@
         // https://www.amcharts.com/docs/v5/tutorials/pie-chart-with-a-legend-with-dynamically-sized-labels/
         chart.onPrivate("width", function(width) {
           let box = document.querySelector('.box');
-        const boxWidth = box.offsetWidth;
+          const boxWidth = box.offsetWidth;
           //var availableSpace = Math.max(width - chart.width() - 100, 100);
           var availableSpace = (boxWidth - valueLabelsWidth) * 0.7
-          console.log(width + " - " + chart.width());
           legend.labels.template.setAll({
             width: availableSpace,
             maxWidth: availableSpace
@@ -1996,7 +2016,8 @@
         // Change legend labelling properties
         // To have responsive font size, do not set font size
         legend.labels.template.setAll({
-          oversizedBehavior: "truncate"
+          oversizedBehavior: "truncate",
+          fill: dark.disabled ? am5.color(lightThemeColor) : am5.color(darkThemeColor)
           //textDecoration: "underline"
           //width: am5.percent(200)
           //fontWeight: "300"
@@ -2005,6 +2026,7 @@
         legend.valueLabels.template.setAll({
           textAlign: "right",
           width: valueLabelsWidth,
+          fill: dark.disabled ? am5.color(lightThemeColor) : am5.color(darkThemeColor)
           //fontSize: LEGEND_FONT_SIZE,
         })
 
@@ -2022,6 +2044,388 @@
         }); // End of queryFeatures
         } // End of updateChartLot()
 updateChartLot();
+
+        // ------------------ PIE CHART FOR STRUCTURE ----------------------//
+        var root2 = am5.Root.new("pieChartStructureDiv");
+        //https://www.amcharts.com/docs/v5/tutorials/using-custom-theme-to-apply-patterns-to-pie-chart-slices/
+        class MyTheme extends am5.Theme {
+          setupDefaultRules() {
+            var theme = this;
+
+            const gap = 5;
+            const rotation = 135;
+            const strokeWidth = 1.2;
+            const fillOpacity = 0;
+            const width = 10;
+            const height = 10;
+
+
+            this.patterns = [
+              am5.LinePattern.new(this._root, {
+                color: am5.color("#70AD47"),
+                gap: gap,
+                rotation: rotation,
+                strokeWidth: strokeWidth,
+                fillOpacity: fillOpacity,
+                width: width,
+                height: height
+              }),
+
+              am5.LinePattern.new(this._root, {
+                color: am5.color("#0070FF"),
+                gap: gap,
+                rotation: rotation,
+                strokeWidth: strokeWidth,
+                fillOpacity: fillOpacity,
+                width: width,
+                height: height
+              }),
+
+              am5.LinePattern.new(this._root, {
+                color: am5.color("#FFFF00"),
+                gap: gap,
+                rotation: rotation,
+                strokeWidth: strokeWidth,
+                fillOpacity: fillOpacity,
+                width: width,
+                height: height
+              }),
+
+              am5.LinePattern.new(this._root, {
+                color: am5.color("#FFAA00"),
+                gap: gap,
+                rotation: rotation,
+                strokeWidth: strokeWidth,
+                fillOpacity: fillOpacity,
+                width: width,
+                height: height
+
+              }),
+              am5.LinePattern.new(this._root, {
+                color: am5.color("#FF0000"),
+                gap: gap,
+                rotation: rotation,
+                strokeWidth: strokeWidth,
+                fillOpacity: fillOpacity,
+                width: width,
+                height: height
+              }),
+
+              am5.LinePattern.new(this._root, {
+                color: am5.color("#00734C"),
+                gap: gap,
+                rotation: rotation,
+                strokeWidth: strokeWidth,
+                fillOpacity: fillOpacity,
+                width: width,
+                height: height
+              })
+            ];
+
+            this.currentPattern = 0;
+            this.rule("Slice").setAll({
+              fillOpacity: 1
+            });
+
+            this.rule("Slice").setup = function(target) {
+              target.set("fillPattern", theme.patterns[theme.currentPattern]);
+              theme.currentPattern++;
+              if (theme.currentPattern == theme.patterns.length) {
+                theme.currentPattern = 0;
+              }
+            };
+          }
+        }
+
+        async function updateChartStructure() {
+
+          root2.container.children.clear();
+
+        function Status_Name_Structure(){
+        return {
+        1: "Paid",
+        2: "For Payment Processing",
+        3: "For Legal Pass",
+        4: "For Appraisal/Offer to Buy",
+        5: "For Expro",
+        6: "Quit Claim"
+        }
+        }
+        var totalPaidStruc = {
+        onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "totalPaidStruc",
+        statisticType: "sum"
+        };
+
+        var totalPaypStruc = {
+        onStatisticField: "CASE WHEN Status = 2 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "totalPaypStruc",
+        statisticType: "sum"
+        };
+
+        var totalLegalpassStruc = {
+        onStatisticField: "CASE WHEN Status = 3 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "totalLegalpassStruc",
+        statisticType: "sum"
+        };
+
+        var totalOtbStruc = {
+        onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "totalOtbStruc",
+        statisticType: "sum"
+        };
+
+        var totalExproStruc = {
+        onStatisticField: "CASE WHEN Status = 5 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "totalExproStruc",
+        statisticType: "sum"
+        };
+
+        var totalQuitcStruc = {
+        onStatisticField: "CASE WHEN Status = 6 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "totalQuitcStruc",
+        statisticType: "sum"
+        };
+
+        var query = structureLayer.createQuery();
+        query.outStatistics = [totalPaidStruc, totalPaypStruc, totalLegalpassStruc,
+                          totalOtbStruc, totalExproStruc, totalQuitcStruc];
+        query.returnGeometry = true;
+
+        structureLayer.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+
+        const PAID = stats.totalPaidStruc;
+        const PAYP = stats.totalPaypStruc;
+        const LEGALPASS = stats.totalLegalpassStruc;
+        const OTB = stats.totalOtbStruc;
+        const EXPRO = stats.totalExproStruc;
+        const QUITC = stats.totalQuitcStruc;
+
+        // Set themes
+        // https://www.amcharts.com/docs/v5/concepts/themes/
+        root2.setThemes([
+          am5themes_Animated.new(root2),
+          am5themes_Responsive.new(root2),
+          MyTheme.new(root2)
+        ]);
+
+
+        // Create chart
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/
+        var chart = root2.container.children.push(
+          am5percent.PieChart.new(root2, {
+
+          //centerY: am5.percent(-2), //-10
+          //y: am5.percent(-30), // -30
+          layout: root2.verticalLayout
+          })
+        );
+
+        // Create series
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/#Series
+        var pieSeries = chart.series.push(
+          am5percent.PieSeries.new(root2, {
+            name: "Series",
+            categoryField: "category",
+            valueField: "value",
+            //legendLabelText: "[{fill}]{category}[/]",
+            legendValueText: "{valuePercentTotal.formatNumber('#.')}% ({value})",
+            radius: am5.percent(90), // outer radius
+            innerRadius: am5.percent(40),
+          })
+        );
+
+       /*
+        pieSeries.slices.template.set("fillPattern", am5.LinePattern.new(root2, {
+          //fill: am5.color("#ffffffff"), // 100% transparent
+          //color: am5.color("#0070FF"),//target.dataItem.dataContext.color,
+          width: 100,
+          height: 200,
+          gap: 6,
+          rotation: 135,
+          strokeWidth: 1.5,
+          //repetition: "repeat-y",
+          //checkered: true,
+          //stroke: target.dataItem.dataContext.color,
+        }));
+*/
+
+        // Set slice opacity and stroke color
+        pieSeries.slices.template.setAll({
+          //fillOpacity: 0.9,
+          stroke: dark.disabled ? am5.color(lightThemeColor) : am5.color(darkThemeColor),
+          strokeWidth: 1,
+          strokeOpacity: 1,
+        });
+
+
+        // Disabling labels and ticks
+        pieSeries.labels.template.set("visible", false);
+        pieSeries.ticks.template.set("visible", false);
+
+        pieSeries.slices.template.events.on("click", function(ev) {
+          const SELECTED = ev.target.dataItem.dataContext.category;
+
+          if (SELECTED == Status_Name_Structure()[1]) {
+          selectedStatus = 1;
+          } else if (SELECTED == Status_Name_Structure()[2]) {
+          selectedStatus = 2;
+          } else if (SELECTED == Status_Name_Structure()[3]) {
+          selectedStatus = 3;
+          } else if (SELECTED == Status_Name_Structure()[4]) {
+          selectedStatus = 4;
+          } else if (SELECTED == Status_Name_Structure()[5]) {
+          selectedStatus = 5;
+          } else if (SELECTED == Status_Name_Structure()[6]) {
+          selectedStatus = 6;
+          } else {
+          selectedStatus = null;
+          }
+
+          // Zoom, filter, and highlight selected chart categories 
+          view.when(function() {
+          view.whenLayerView(structureLayer).then(function (layerView) {
+          chartLayerView = layerView;
+
+          structureLayer.queryFeatures().then(function(results) {
+            const RESULT_LENGTH= results.features;
+            const ROW_N = RESULT_LENGTH.length;
+
+            let objID = [];
+            for (var i=0; i < ROW_N; i++) {
+              var obj = results.features[i].attributes.OBJECTID;
+              objID.push(obj);
+            }
+            
+            var queryExt = new Query({
+              objectIds: objID
+            });
+            
+            structureLayer.queryExtent(queryExt).then(function(result) {
+              if (result.extent) {
+                view.goTo(result.extent)
+              }
+            });
+            
+            if (highlightSelect) {
+              highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+            
+            view.on("click", function() {
+              layerView.filter = null;
+              highlightSelect.remove();
+            });
+          }); // End of queryFeatures
+
+          layerView.filter = {
+            where: "Status = " + selectedStatus
+          }
+          }); // End of view.whenLayerView
+          }); // End of view.when
+        });
+
+        pieSeries.data.setAll(
+          [
+            {
+              category: Status_Name_Structure()[1],
+              value: PAID,
+            },
+            {
+              category: Status_Name_Structure()[2],
+              value: PAYP,
+            },
+            {
+              category: Status_Name_Structure()[3],
+              value: LEGALPASS,
+            },
+            {
+              category: Status_Name_Structure()[4],
+              value: OTB,
+            },
+            {
+              category: Status_Name_Structure()[5],
+              value: EXPRO,
+            },
+            {
+              category: Status_Name_Structure()[6],
+              value: QUITC,
+            }
+          ]
+        );
+
+                // Legend
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/legend-percent-series/
+        var legend = chart.children.push(am5.Legend.new(root2, {
+          centerX: am5.percent(50),
+          x: am5.percent(50),
+          layout: root2.verticalLayout,
+        }));
+        legend.data.setAll(pieSeries.dataItems);
+
+        // Change the size of legend markers
+        legend.markers.template.setAll({
+          width: 18,
+          height: 18,
+          strokeWidth: 1,
+          strokeOpacity: 1,
+          stroke: dark.disabled ? am5.color(lightThemeColor) : am5.color(darkThemeColor),
+
+        });
+
+        // Change the marker shape
+        legend.markerRectangles.template.setAll({
+          cornerRadiusTL: 10,
+          cornerRadiusTR: 10,
+          cornerRadiusBL: 10,
+          cornerRadiusBR: 10,
+        });
+
+        const valueLabelsWidth = 50;
+
+        // Responsive legend 
+        // https://www.amcharts.com/docs/v5/tutorials/pie-chart-with-a-legend-with-dynamically-sized-labels/
+        chart.onPrivate("width", function(width) {
+          let box = document.querySelector('.boxStructure');
+          const boxWidth = box.offsetWidth;
+          //var availableSpace = Math.max(width - chart.width() - 100, 100);
+          var availableSpace = (boxWidth - valueLabelsWidth) * 0.7
+          legend.labels.template.setAll({
+            width: availableSpace,
+            maxWidth: availableSpace
+          });
+        });
+
+        // Change legend labelling properties
+        // To have responsive font size, do not set font size
+        legend.labels.template.setAll({
+          oversizedBehavior: "truncate",
+          fill: dark.disabled ? am5.color(lightThemeColor) : am5.color(darkThemeColor)
+          //textDecoration: "underline"
+          //width: am5.percent(200)
+          //fontWeight: "300"
+        });
+
+        legend.valueLabels.template.setAll({
+          textAlign: "right",
+          width: valueLabelsWidth,
+          fill: dark.disabled ? am5.color(lightThemeColor) : am5.color(darkThemeColor)
+          //fontSize: LEGEND_FONT_SIZE,
+        })
+
+        legend.itemContainers.template.setAll({
+          // set space between legend items
+          paddingTop: 1.1,
+          paddingBottom: 1.1,
+        });
+
+
+        pieSeries.appear(1000, 100);
+
+        });  // End of queryFeature                 
+        } // End of updateChartStructure()
+        updateChartStructure();
 
 
       // view.when
@@ -2093,7 +2497,7 @@ updateChartLot();
           updateChartLot();
           //updateMoaChartLot()
           //handedOverNumberLot();
-          //updateChartStructure();
+          updateChartStructure();
           totalNumberOfStructures().then(totalNumberOfStructureAll);
           //updateMoaChartStructure();
           isfNumber();
