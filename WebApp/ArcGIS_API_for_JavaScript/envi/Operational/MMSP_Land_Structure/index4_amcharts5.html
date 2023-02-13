@@ -53,6 +53,13 @@
         height: 100%;
     }
 
+    calcite-button {
+      position: absolute;
+      z-index: 99;
+      bottom: 50;
+      right: 10;
+    }
+
     #header-title {
       margin-left: 1rem;
       margin-right: 1rem;
@@ -204,7 +211,7 @@
         width: 50%;
         opacity: 1;
         color: white;
-        text-align: right;
+        text-align: center;
         margin: auto;
     }
 
@@ -218,19 +225,33 @@
       display: none;
     }
 
+    #timeSeriesChart {
+      position: absolute;
+      z-index: 1;
+      height: 30%;
+      width: 70%;
+      bottom: 20;
+      left: 150;
+      background-color: rgb(37, 37, 37);
+    }
+
+    #time-series {
+      position: fixed;
+      top: 15;
+      right: 10;
+      width: 12.5vw;
+      height: 3.5vh;
+    }
+
   </style>
   <body class="calcite-theme-dark">
     <calcite-loader></calcite-loader>
     <calcite-shell content-behind>
-      
        <!--  Header slot  -->
       <div slot="header" id="header">
-        
       <!-- Title -->
       <h2 id="header-title" slot="header"></h2>
-
       <div id="dateDiv">February 6, 2023</div>
-
       <!-- Dropdown Lists -->
       <div id="dropdownDiv" class="esri-widget">
         <label id="dropdownContractPackageLabel">
@@ -319,7 +340,15 @@
               </calcite-tab>
           </div>
       </calcite-tabs>
+        <calcite-button
+          icon-end="launch"
+          label="Open Process Flow Chart"
+          id="time-series"
+          >
+          Handed-Overd Chart
+      </calcite-button>
       </div>
+      <div id="timeSeriesChart" hidden></div>
     </calcite-shell>
   </body>
   <script>
@@ -354,7 +383,16 @@
                 Query, Fullscreen, FeatureFilter, TableList, PortalItem, Portal, geometryService,
                 StatisticDefinition, WebStyleSymbol, Expand, UniqueValueRenderer, Ground,
                 RelationshipQuery, GraphicsLayer, Search, Locate, BasemapToggle, Print
-                 ) {
+                 ) {  
+
+    const timeSeries = document.querySelector("calcite-button");
+    timeSeries.addEventListener("click", function(event) {
+      const timeSeriesChart = document.getElementById("timeSeriesChart");
+      timeSeriesChart.hidden = !timeSeriesChart.hidden;
+
+
+
+    })
       
     var map = new Map({
         basemap: "dark-gray-vector", // "streets-night-vector", basemap
@@ -371,7 +409,7 @@
           type: "color", // autocasts as new ColorBackground()
           color: [0, 0, 0, 1]
           },
-        }
+        },
     });
 
     // Default Renderer for Polygon------------
@@ -527,6 +565,20 @@
         }
     });
     map.add(lotLayer);
+
+
+    // Delete this layer later. temporary used to experiment time series chart
+    var testLayerDelete = new FeatureLayer({
+        portalItem: {
+            id: "dca1d785da0f458b8f87638a76918496",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 7,
+        outFields: ["*"],
+        labelsVisible: false,
+    });
 
     
       
@@ -1716,17 +1768,170 @@
 
 
         // Charts for Lot and Structure
-        // Lot Chart
-        const dark = document.querySelector("#arcgis-maps-sdk-theme-dark");
-        const light = document.querySelector("#arcgis-maps-sdk-theme-light");
-
-        // Set color in light theme
-        const lightThemeColor = "#212121";
-        const darkThemeColor = "#FFFFFF";
         const LEGEND_FONT_SIZE = "0.9em";
 
         // Note that we need 'root' for each chart
         // for the second chart, var root2 = am5.Root.new("xxx");
+
+//----------------------------------------------------------------------------------//
+        /// Time series chart EXPERIMENT
+        var root5 = am5.Root.new("timeSeriesChart");
+
+        function timeSeriesChart() {
+          root5.container.children.clear();
+
+          var query = testLayerDelete.createQuery();
+          query.where = "HandOverDate IS NOT NULL";
+          testLayerDelete.queryFeatures(query).then(function(response) {
+            var stats = response.features;
+            const dates = [];
+
+            stats.forEach((result, index) => {
+              const attributes = result.attributes;
+              const date = attributes.HandOverDate;
+              dates.push(date);
+            });
+
+            // Count the number of values per date and store results into
+            // {16809800000: 20, 15600000: 10,....}
+            const datesCount = {};
+            for (let i = 0; i < dates.length; i++) {
+              datesCount[dates[i]] = 1 + (datesCount[dates[i]] || 0);
+            }
+            //console.log(datesCount.length);
+            //console.log(Object.keys(datesCount)[0]);
+            //console.log(datesCount[Object.keys(datesCount)[0]]);
+
+            // Conver array to Object Array: 
+            // [{"date": 167630400000, "value": 20}, {"date": 167730400000, "value": 50}]
+            const dateArray = [];
+            const valueArray = [];
+            for (let i = 0; i < Object.keys(datesCount).length; i++) {
+              const dates = Number(Object.keys(datesCount)[i]);
+              const values = datesCount[Object.keys(datesCount)[i]];
+              dateArray.push(dates);
+              valueArray.push(values)
+            }
+            const datas = dateArray.map((date, index) => {
+              return Object.assign({}, {
+                date,
+                value: valueArray[index]
+              });
+            });
+            console.log(datas);
+
+            // Sort by date
+            const data = datas.sort((a, b) => a.date - b.date);
+
+            // set themes
+            root5.setThemes([
+              am5themes_Animated.new(root5)
+            ]);
+
+            // Create chart
+            // https://www.amcharts.com/docs/v5/charts/xy-chart/
+            var chart = root5.container.children.push(am5xy.XYChart.new(root5, {
+              panX: false,
+              panY: false,
+              wheelX: "panX",
+              wheelY: "zoomX"
+            }));
+
+            // Add cursor
+            // https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
+            var cursor = chart.set("cursor", am5xy.XYCursor.new(root5, {
+              behavior: "zoomX"
+            }));
+            cursor.lineY.set("visible", false);
+
+            // Create axes
+            // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+            var xAxis = chart.xAxes.push(am5xy.DateAxis.new(root5, {
+              maxDeviation: 0,
+              baseInterval: {
+                timeUnit: "month",
+                count: 1
+              },
+              
+              renderer: am5xy.AxisRendererX.new(root5, {
+                minGridDistance: 60,
+              }),
+              tooltip: am5.Tooltip.new(root5, {})
+            }));
+
+            // Label properties for yAxis (category axis)
+            xAxis.get("renderer").labels.template.setAll({
+              //oversizedBehavior: "wrap",
+              textAlign: "center",
+              fill: am5.color("#ffffff"),
+              //maxWidth: 150,
+              fontSize: 12
+            });
+
+            var yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root5, {
+              renderer: am5xy.AxisRendererY.new(root5, {})
+            }));
+
+            yAxis.get("renderer").labels.template.setAll({
+              //oversizedBehavior: "wrap",
+              textAlign: "center",
+              fill: am5.color("#ffffff"),
+              //maxWidth: 150,
+              fontSize: 12
+            });
+
+            // Add yaxix title
+            yAxis.children.unshift(
+              am5.Label.new(root5, {
+                rotation: -90,
+                text: "No. of handed-over lots",
+                y: am5.p50,
+                centerX: am5.p50,
+                fill: am5.color("#ffffff"),
+                fontSize: 11
+              })
+            );
+
+            // Add series
+            // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+            var series = chart.series.push(am5xy.ColumnSeries.new(root5, {
+              name: "Series",
+              xAxis: xAxis,
+              yAxis: yAxis,
+              valueYField: "value",
+              valueXField: "date",
+              tooltip: am5.Tooltip.new(root5, {
+                labelText: "{valueY}"
+              })
+            }));
+
+            series.columns.template.setAll({ strokeOpacity: 0 })
+
+            // Add scrollbar
+            // https://www.amcharts.com/docs/v5/charts/xy-chart/scrollbars/
+            chart.set("scrollbarX", am5.Scrollbar.new(root5, {
+              orientation: "horizontal",
+              height: 10
+            }));
+
+            series.data.setAll(data);
+
+            // Make stuff animate on load
+            // https://www.amcharts.com/docs/v5/concepts/animations/
+            series.appear(1000);
+            chart.appear(1000, 100);
+          }); 
+        }
+        timeSeriesChart();
+
+
+
+
+
+        /// Time series chart EXPERIMENT
+ //----------------------------------------------------------------------------------//
+
+
 
         var root = am5.Root.new("pieChartLotDiv");
         function updateChartLot() {
