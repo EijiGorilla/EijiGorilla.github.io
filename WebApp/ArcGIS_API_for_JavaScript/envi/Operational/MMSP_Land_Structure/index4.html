@@ -3,18 +3,19 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
     <title>MMSP Land Acquisition</title>
-    
-    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
-    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
-    <script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
-    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-    
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"/>
     <script type="module" src="https://js.arcgis.com/calcite-components/1.0.3/calcite.esm.js"></script>
     <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.0.3/calcite.css" />
 
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Micro.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Responsive.js"></script>
+
     <script src="https://js.arcgis.com/4.25/"></script>
-    <link disabled id="arcgis-maps-sdk-theme-dark" rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css" />
-    <link id="arcgis-maps-sdk-theme-light" rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css" />
 
   </head>
   <style>
@@ -40,8 +41,27 @@
       --calcite-label-margin-bottom: 0px;
     }
 
+    /*NOTE: If you add padding to calcite-tab, width of 'calcite-tabs' */
+    /* must be greater than that of 'calcite-tab'. Otherwise, */
+    /* You will not see any space after padding. */
+    calcite-tabs {
+      width: 18vw;
+      margin-right: 3.3rem;
+      height: 100%;
+    }
+
     calcite-tab {
-        height: 83vh;
+      width: 17vw;
+        height: 100%;
+        padding-left: 5;
+        padding-right: 5;
+    }
+
+    calcite-button {
+      position: absolute;
+      z-index: 99;
+      bottom: 50;
+      right: 10;
     }
 
     #header-title {
@@ -81,18 +101,15 @@
       margin: 0 0.5rem;
     }
 
-    
     #chartPanel {
         background-color: rgb(0, 0, 0, 0);
-        padding: 10;
     }
     
+
     #pieChartLotDiv,
     #pieChartStructureDiv {
-      width: 100%;
       height: 45%;
-      align-items: center;
-      padding: 1%;
+      margin-bottom: 5;
     }
 
     /* Radio Button for handed-over lots */
@@ -113,6 +130,7 @@
       border: solid 0.5px gray;
       padding-top: 1%;
       padding-bottom: 4%;
+
     }
 
     #lotNumberDiv b,
@@ -186,9 +204,10 @@
     #chartMoaLotDiv,
     #chartMoaStructureDiv {
         width: 100%;
-        height: 35%;
+        height: 30%;
         align-items: center;
         padding: 1%;
+        margin-bottom: 5;
     }
 
     /* Dropdown list */
@@ -196,8 +215,8 @@
       background-color: rgb(0, 0, 0, 0);
         width: 50%;
         opacity: 1;
-        color: black;
-        text-align: right;
+        color: white;
+        text-align: center;
         margin: auto;
     }
 
@@ -211,19 +230,33 @@
       display: none;
     }
 
+    #timeSeriesChart {
+      position: absolute;
+      z-index: 1;
+      height: 30%;
+      width: 70%;
+      bottom: 20;
+      left: 150;
+      background-color: rgb(37, 37, 37);
+    }
+
+    #time-series {
+      position: fixed;
+      top: 15;
+      right: 10;
+      width: 12.5vw;
+      height: 3.5vh;
+    }
+
   </style>
-  <body class="sassy-theme">
+  <body class="calcite-theme-dark">
     <calcite-loader></calcite-loader>
     <calcite-shell content-behind>
-      
        <!--  Header slot  -->
       <div slot="header" id="header">
-        
       <!-- Title -->
       <h2 id="header-title" slot="header"></h2>
-
       <div id="dateDiv">February 6, 2023</div>
-
       <!-- Dropdown Lists -->
       <div id="dropdownDiv" class="esri-widget">
         <label id="dropdownContractPackageLabel">
@@ -239,16 +272,6 @@
           <select id="stationSelect" class="esri-widget"></select>
         </label>
       </div>
-
-      <!-- Controls -->
-        <div id="header-controls">
-          <!-- Dark Mode Switch -->
-          <calcite-label layout="inline" class="label-wrapper">
-            <calcite-icon icon="brightness" scale="s" class="switch-icon"></calcite-icon>
-            <calcite-switch></calcite-switch>
-            <calcite-icon icon="moon" scale="s" class="switch-icon"></calcite-icon>
-          </calcite-label>
-        </div>
       </div>
 
       <!-- Icon -->
@@ -289,41 +312,48 @@
       </calcite-shell-panel>
 
       <div id="viewDiv">
-        <!-- Chart Panel -->
+                <!-- Chart Panel -->
         <!-- Tabs "https://esri.github.io/calcite-web/documentation/patterns/#tabs" -->
         <!-- Tabs "https://developers.arcgis.com/calcite-design-system/components/tabs/" -->
         <calcite-tabs>
-            <div id="chartPanel">
-                <calcite-tab-nav slot="tab-nav">
-                    <calcite-tab-title selected>Land</calcite-tab-title>
-                    <calcite-tab-title>Structure</calcite-tab-title>
-                    <calcite-tab-title>Expro List</calcite-tab-title>
-                </calcite-tab-nav>
-                <calcite-tab>
-                    <div id="pieChartLotDiv"></div>
-                    <div id="lotNumberDiv"></div>
-                    <div id="chartMoaLotDiv"></div>
-                    <input id="handedOverButton" type="checkbox" id="opacityInput" unchecked />
-                    <div id="handedOverLotNumberDiv"></div>
-                </calcite-tab>
-                <calcite-tab>
-                  <div id="pieChartStructureDiv"></div>
-                  <div id="structureNumberDiv"></div>
-                  <div id="chartMoaStructureDiv"></div>
-                  <div id="isfNumberDiv"></calcite-label>
-                  </div>
-                </calcite-tab>
-                <calcite-tab>
-                  <div class="panel-side esri-widget">
-                    <ul id="expropriationListDiv">
-                      <li>Loading&hellip;</li>
-                    </ul>
-                  </div>
-                </calcite-tab>
-            </div>
-        </calcite-tabs>
-       </div>
-
+          <div id="chartPanel">
+              <calcite-tab-nav slot="tab-nav">
+                  <calcite-tab-title selected>Land</calcite-tab-title>
+                  <calcite-tab-title>Structure</calcite-tab-title>
+                  <calcite-tab-title>Expro List</calcite-tab-title>
+              </calcite-tab-nav>
+              <calcite-tab>
+                  <div class="box" id="pieChartLotDiv"></div>
+                  <div id="lotNumberDiv"></div>
+                  <div id="chartMoaLotDiv"></div>
+                  <input id="handedOverButton" type="checkbox" id="opacityInput" unchecked />
+                  <div id="handedOverLotNumberDiv"></div>
+              </calcite-tab>
+              <calcite-tab>
+                <div class="boxStructure" id="pieChartStructureDiv"></div>
+                <div id="structureNumberDiv"></div>
+                <div id="chartMoaStructureDiv"></div>
+                <div id="isfNumberDiv"></calcite-label>
+                </div>
+              </calcite-tab>
+              <calcite-tab>
+                <div class="panel-side esri-widget">
+                  <ul id="expropriationListDiv">
+                    <li>Loading&hellip;</li>
+                  </ul>
+                </div>
+              </calcite-tab>
+          </div>
+      </calcite-tabs>
+        <calcite-button
+          icon-end="launch"
+          label="Open Process Flow Chart"
+          id="time-series"
+          >
+          Handed-Overd Chart
+      </calcite-button>
+      </div>
+      <div id="timeSeriesChart" hidden></div>
     </calcite-shell>
   </body>
   <script>
@@ -358,10 +388,19 @@
                 Query, Fullscreen, FeatureFilter, TableList, PortalItem, Portal, geometryService,
                 StatisticDefinition, WebStyleSymbol, Expand, UniqueValueRenderer, Ground,
                 RelationshipQuery, GraphicsLayer, Search, Locate, BasemapToggle, Print
-                 ) {
+                 ) {  
+
+    const timeSeries = document.querySelector("calcite-button");
+    timeSeries.addEventListener("click", function(event) {
+      const timeSeriesChart = document.getElementById("timeSeriesChart");
+      timeSeriesChart.hidden = !timeSeriesChart.hidden;
+
+
+
+    })
       
     var map = new Map({
-        basemap: "gray-vector", // "streets-night-vector", basemap
+        basemap: "dark-gray-vector", // "streets-night-vector", basemap
         ground: "world-elevation",
     }); 
 
@@ -375,7 +414,7 @@
           type: "color", // autocasts as new ColorBackground()
           color: [0, 0, 0, 1]
           },
-        }
+        },
     });
 
     // Default Renderer for Polygon------------
@@ -531,6 +570,22 @@
         }
     });
     map.add(lotLayer);
+
+
+    // Delete this layer later. temporary used to experiment time series chart
+    var testLayerDelete = new FeatureLayer({
+        portalItem: {
+            id: "dca1d785da0f458b8f87638a76918496",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 7,
+        outFields: ["*"],
+        labelsVisible: false,
+    });
+
+    
       
     // Zoom
     function zoomToLayer(layer) {
@@ -1040,8 +1095,10 @@
       var landTypeSelect = document.getElementById("landTypeSelect");
       var packageSelect = document.getElementById("packageSelect");
       
-      am4core.ready(function() {
-        am4core.useTheme(am4themes_animated);
+      am5.ready(function() {
+        
+
+
         // Expropriation List----------------------------------
         
         view.when(function() {
@@ -1165,13 +1222,13 @@
            var stats = response.features[0].attributes;
            const LOT_TOTAL = stats.totalLot;
            const totalValue = thousands_separators(LOT_TOTAL) + " (" + totalLotValue + ")";
-           lotNumberDiv.innerHTML = dark.disabled ? `<b style="color:black">Number of Lots</b><br>${totalValue}` : `<b>Number of Lots</b><br>${totalValue}`;
+           lotNumberDiv.innerHTML =  `<b>Number of Lots</b><br>${totalValue}`;
          });
        }
         totalNumberOfLots().then(totalNumberOfLotsAll);
 
         // Total number of handed-over lots
-        function handedOverNumberLot(){
+        function handedOverNumberLot(totalLot){
             var totalHandedOverLot = {
                 onStatisticField: "CASE WHEN HandedOver = 1 THEN 1 ELSE 0 END",
                 outStatisticFieldName: "totalHandedOverLot",
@@ -1183,12 +1240,12 @@
 
             lotLayer.queryFeatures(query).then(function(response){
                 var stats = response.features[0].attributes;
-
                 const HAND_OVER_TOTAL = thousands_separators(stats.totalHandedOverLot);
-                handedOverLotNumberDiv.innerHTML = dark.disabled ? `<b style="color:black">Number of Handed-Over</b><br><br>${HAND_OVER_TOTAL}` : `<b>Number of Handed-Over</b><br><br>${HAND_OVER_TOTAL}`;
+                const remaining = totalLot - HAND_OVER_TOTAL;
+                handedOverLotNumberDiv.innerHTML = `<b>Handed-Over (Remaining)</b><br><br>${HAND_OVER_TOTAL} (${remaining})`;
             });
         }
-        handedOverNumberLot();
+        totalNumberOfLots().then(handedOverNumberLot);
 
         // Total number of structures
         function totalNumberOfStructures(){
@@ -1214,13 +1271,14 @@
 
         function totalNumberOfStructureAll(structureValue) {
           var totalStructureAll = {
-            onStatisticField: "Id",
+            onStatisticField: "CASE WHEN Id IS NOT NULL THEN 1 ELSE 0 END",
             outStatisticFieldName: "totalStructureAll",
-            statisticType: "count"
+            statisticType: "sum"
           }
 
           var query = structureLayer.createQuery();
           query.outStatistics = [totalStructureAll];
+          query.outFields = ["*"];
           query.returnGeometry = true;
 
           structureLayer.queryFeatures(query).then(function(response) {
@@ -1228,7 +1286,7 @@
 
             const total = thousands_separators(stats.totalStructureAll);
             const totalValue = thousands_separators(total) + " (" + structureValue + ")";
-            structureNumberDiv.innerHTML = dark.disabled ? `<b style="color:black">Number of Structures</b><br>${totalValue}` : `<b>Number of Structures</b><br>${totalValue}`;
+            structureNumberDiv.innerHTML = `<b>Number of Structures</b><br>${totalValue}`;
             //structureNumberDiv.innerHTML = dark.disabled ? `<b style="color:black">Number of Structures</b><br><br>${STRUCTURE_TOTAL}` : `<b>Number of Structures</b><br><br>${STRUCTURE_TOTAL}`;
 
           })
@@ -1250,6 +1308,7 @@
 
           var query = isfLayer.createQuery();
           query.outStatistics = [totalRelo, totalIsf];
+          query.outFields = ["*"];
           query.returnGeometry = true;
 
           isfLayer.queryFeatures(query).then(function(response) {
@@ -1260,10 +1319,10 @@
 
             if (ISF_RELO == null) {
               const isf_null = 0 + " (" + 0 + " %" + ")";
-              isfNumberDiv.innerHTML = dark.disabled ? `<b style="color:black">Relocated ISF</b><br><br>${isf_null}` : `<b>Relocated ISF</b><br><br>${isf_null}`;
+              isfNumberDiv.innerHTML = `<b>Relocated ISF</b><br><br>${isf_null}`;
             } else {
               const isf_total = ISF_RELO + " (" + PERCENT + "%" + ")";
-              isfNumberDiv.innerHTML = dark.disabled ? `<b style="color:black">Relocated ISF</b><br><br>${isf_total}` : `<b>Relocated ISF</b><br><br>${isf_total}`;
+              isfNumberDiv.innerHTML =  `<b>Relocated ISF</b><br><br>${isf_total}`;
             }
 
           });
@@ -1329,16 +1388,6 @@
         }
 
         // 2. Land Type:--------------------------------
-        function filterLotLandType() {
-          var query2 = lotLayer.createQuery();
-          query2.where = lotLayer.definitionExpression; // use filtered municipality. is this correct?
-
-          lotLayer.queryFeatures(query2)
-          .then(getQuery2Values)
-          .then(getUniqueValues2)
-          .then(addToSelectQuery2);
-        }
-
         // 3. Get values and return to list
         /// 3.1. Land Type
         function landTypeFilterList(cpValue) {
@@ -1444,7 +1493,6 @@
         // 4.1. Only for Contract Package
         function setContractPackageExpression(cpValue) {
           const definitionExpression = "Package = '" + cpValue + "'";
-
           if (cpValue === 'None') {
             lotLayer.definitionExpression = null;
             structureLayer.definitionExpression = null;
@@ -1556,7 +1604,7 @@
           updateChartLot();
           totalNumberOfLots().then(totalNumberOfLotsAll);
           updateMoaChartLot();
-          handedOverNumberLot();
+          totalNumberOfLots().then(handedOverNumberLot);
           updateChartStructure();
           totalNumberOfStructures().then(totalNumberOfStructureAll);
           updateMoaChartStructure();
@@ -1589,7 +1637,7 @@
           updateChartLot();
           totalNumberOfLots().then(totalNumberOfLotsAll);
           updateMoaChartLot();
-          handedOverNumberLot();
+          totalNumberOfLots().then(handedOverNumberLot);
           updateChartStructure();
           totalNumberOfStructures().then(totalNumberOfStructureAll);
           updateMoaChartStructure();
@@ -1610,14 +1658,14 @@
           updateChartLot();
           totalNumberOfLots().then(totalNumberOfLotsAll);
           updateMoaChartLot();
-          handedOverNumberLot();
+          totalNumberOfLots().then(handedOverNumberLot);
           updateChartStructure();
           totalNumberOfStructures().then(totalNumberOfStructureAll);
           updateMoaChartStructure();
           isfNumber();
 
-                    // Filter each layer
-                    filterLot();
+          // Filter each layer
+          filterLot();
           filterStructure();
           filterIsf();
 
@@ -1717,16 +1765,186 @@
 
 
         // Charts for Lot and Structure
-        // Lot Chart
-        const dark = document.querySelector("#arcgis-maps-sdk-theme-dark");
-        const light = document.querySelector("#arcgis-maps-sdk-theme-light");
-
-        // Set color in light theme
-        const lightThemeColor = "#212121";
-        const darkThemeColor = "#FFFFFF";
         const LEGEND_FONT_SIZE = "0.9em";
 
+        // Note that we need 'root' for each chart
+        // for the second chart, var root2 = am5.Root.new("xxx");
+
+//----------------------------------------------------------------------------------//
+        /// Time series chart EXPERIMENT
+        var root5 = am5.Root.new("timeSeriesChart");
+
+        function timeSeriesChart() {
+          root5.container.children.clear();
+
+          var query = testLayerDelete.createQuery();
+          query.where = "HandOverDate IS NOT NULL";
+          testLayerDelete.queryFeatures(query).then(function(response) {
+            var stats = response.features;
+            const dates = [];
+
+            stats.forEach((result, index) => {
+              const attributes = result.attributes;
+              const date = attributes.HandOverDate;
+              dates.push(date);
+            });
+
+            // Count the number of values per date and store results into
+            // {16809800000: 20, 15600000: 10,....}
+            const datesCount = {};
+            for (let i = 0; i < dates.length; i++) {
+              datesCount[dates[i]] = 1 + (datesCount[dates[i]] || 0);
+            }
+
+            // Conver array to Object Array: 
+            // [{"date": 167630400000, "value": 20}, {"date": 167730400000, "value": 50}]
+            const dateArray = [];
+            const valueArray = [];
+            for (let i = 0; i < Object.keys(datesCount).length; i++) {
+              const dates = Number(Object.keys(datesCount)[i]);
+              const values = datesCount[Object.keys(datesCount)[i]];
+              dateArray.push(dates);
+              valueArray.push(values)
+            }
+            const datas = dateArray.map((date, index) => {
+              return Object.assign({}, {
+                date,
+                value: valueArray[index]
+              });
+            });
+
+            // Sort by date: make sure to sort; otherwise, it fails.
+            const data = datas.sort((a, b) => a.date - b.date);
+
+            // set themes
+            root5.setThemes([
+              am5themes_Animated.new(root5)
+            ]);
+
+            // Create chart
+            // https://www.amcharts.com/docs/v5/charts/xy-chart/
+            var chart = root5.container.children.push(am5xy.XYChart.new(root5, {
+              panX: false,
+              panY: false,
+              wheelX: "panX",
+              wheelY: "zoomX"
+            }));
+
+            // Chart title
+            chart.children.unshift(am5.Label.new(root5, {
+              text: "Progress of Handed-Over Lots",
+              fontSize: 14,
+              fontWeight: "bold",
+              textAlign: "center",
+              fill: am5.color("#ffffff"),
+              x: am5.percent(50),
+              centerX: am5.percent(50),
+              paddingTop: 0,
+              paddingBottom: 0,
+            }));
+
+            // Add cursor
+            // https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
+            var cursor = chart.set("cursor", am5xy.XYCursor.new(root5, {
+              behavior: "zoomX"
+            }));
+            cursor.lineY.set("visible", false);
+
+            // Create axes
+            // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+            var xAxis = chart.xAxes.push(am5xy.DateAxis.new(root5, {
+              maxDeviation: 0,
+              baseInterval: {
+                timeUnit: "month",
+                count: 1
+              },
+              renderer: am5xy.AxisRendererX.new(root5, {
+                minGridDistance: 60,
+                strokeOpacity: 1,
+                strokeWidth: 1,
+                stroke: am5.color("#ffffff"),
+              }),
+              tooltip: am5.Tooltip.new(root5, {})
+            }));
+
+            // Label properties for yAxis (category axis)
+            xAxis.get("renderer").labels.template.setAll({
+              //oversizedBehavior: "wrap",
+              textAlign: "center",
+              fill: am5.color("#ffffff"),
+              //maxWidth: 150,
+              fontSize: 12
+            });
+
+            var yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root5, {
+              renderer: am5xy.AxisRendererY.new(root5, {
+                minGridDistance: 60,
+                strokeOpacity: 1,
+                strokeWidth: 1,
+                stroke: am5.color("#ffffff"),
+              })
+            }));
+
+            yAxis.get("renderer").labels.template.setAll({
+              //oversizedBehavior: "wrap",
+              textAlign: "center",
+              fill: am5.color("#ffffff"),
+              //maxWidth: 150,
+              fontSize: 12
+            });
+
+            // Add yaxix title
+            yAxis.children.unshift(
+              am5.Label.new(root5, {
+                rotation: -90,
+                text: "No. of handed-over lots",
+                y: am5.p50,
+                centerX: am5.p50,
+                fill: am5.color("#ffffff"),
+                fontSize: 11
+              })
+            );
+
+            // Add series
+            // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+            var series = chart.series.push(am5xy.ColumnSeries.new(root5, {
+              name: "Series",
+              xAxis: xAxis,
+              yAxis: yAxis,
+              valueYField: "value",
+              valueXField: "date",
+              tooltip: am5.Tooltip.new(root5, {
+                labelText: "{valueY}"
+              })
+            }));
+
+            series.columns.template.setAll({ strokeOpacity: 0 })
+
+            // Add scrollbar
+            /*
+            // https://www.amcharts.com/docs/v5/charts/xy-chart/scrollbars/
+            chart.set("scrollbarX", am5.Scrollbar.new(root5, {
+              orientation: "horizontal",
+              fillOpacity: 0.5
+            }));
+*/
+            series.data.setAll(data);
+
+            // Make stuff animate on load
+            // https://www.amcharts.com/docs/v5/concepts/animations/
+            series.appear(1000);
+            chart.appear(1000, 100);
+          }); 
+        }
+        timeSeriesChart();
+
+        /// Time series chart EXPERIMENT
+ //----------------------------------------------------------------------------------//
+        var root = am5.Root.new("pieChartLotDiv");
         function updateChartLot() {
+          // Root element needs to be empty (as newly created) and can be used to add any other charts to it
+          root.container.children.clear();
+
         // First, define statuses
         function Status_Name_Lot(){
           return {
@@ -1788,141 +2006,75 @@
         const LEGALPASS = stats.totalLegalpassLot;
         const OTB = stats.totalOtbLot;
         const EXPRO = stats.totalExproLot;
-        const DISMISSAL = stats.totalDismissalLot;
+        const DISMISSAL = stats.totalDismissalLot;        
 
-        var chart = am4core.create("pieChartLotDiv", am4charts.PieChart);
-          console.log(PAID);
-        // Add data
-        chart.data = [
-        {
-          "StatusNVS3": Status_Name_Lot()[1],
-          "status": PAID,
-          "color": am4core.color("#70AD47")
-        },
-        {
-          "StatusNVS3": Status_Name_Lot()[2],
-          "status": PAYP,
-          "color": am4core.color("#0070FF")   
-        },
-        {
-          "StatusNVS3": Status_Name_Lot()[3],
-          "status": LEGALPASS,
-          "color": am4core.color("#FFFF00") 
-        },
-        {
-          "StatusNVS3": Status_Name_Lot()[4],
-          "status": OTB,
-          "color": am4core.color("#FFAA00")
-        },
-        {
-         "StatusNVS3": Status_Name_Lot()[5],
-          "status": EXPRO,
-          "color": am4core.color("#FF0000")    
-        },
-        {
-          "StatusNVS3": Status_Name_Lot()[6],
-         "status": DISMISSAL,
-         "color": am4core.color("#00734C")    
-        }
-        ];
+        // Set themes
+        // https://www.amcharts.com/docs/v5/concepts/themes/
+        root.setThemes([
+          am5themes_Animated.new(root),
+          am5themes_Responsive.new(root)
+        ]);
 
-        // Set inner radius
-        chart.innerRadius = am4core.percent(30);
 
-        // Add and configure Series
-        function createSlices(field, status){
-        var pieSeries = chart.series.push(new am4charts.PieSeries());
-        pieSeries.dataFields.value = field;
-        pieSeries.dataFields.category = status;
+        // Create chart
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/
+        var chart = root.container.children.push(
+          am5percent.PieChart.new(root, {
 
-        pieSeries.slices.template.propertyFields.fill = "color";
-        pieSeries.slices.template.stroke = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor);
-        pieSeries.slices.template.strokeWidth = 1;
-        pieSeries.slices.template.strokeOpacity = 1;
-        pieSeries.slices.template
-        // change the cursor on hover to make it apparent the object can be interacted with
-        .cursorOverStyle = [
-          {
-            "property": "cursor",
-            "value": "pointer"
-          }
-        ];
+          //centerY: am5.percent(-2), //-10
+          //y: am5.percent(-30), // -30
+          layout: root.verticalLayout
+          })
+        );
 
-        // Hover setting
-        pieSeries.tooltip.label.fontSize = 12;
-        pieSeries.tooltip.label.fill = dark.disabled ? lightThemeColor: darkThemeColor;
+        // Create series
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/#Series
+        var pieSeries = chart.series.push(
+          am5percent.PieSeries.new(root, {
+            name: "Series",
+            categoryField: "category",
+            valueField: "value",
+            //legendLabelText: "[{fill}]{category}[/]",
+            legendValueText: "{valuePercentTotal.formatNumber('#.')}% ({value})",
+            radius: am5.percent(85), // outer radius
+            innerRadius: am5.percent(40),
+          })
+        );
 
-        // Pie
-        //pieSeries.alignLabels = false;
-        //pieSeries.labels.template.bent = false;
-        pieSeries.labels.template.disabled = true;
-        pieSeries.labels.template.radius = 3;
-        pieSeries.labels.template.padding(0,0,0,0);
-        pieSeries.labels.template.fontSize = 9;
-        pieSeries.labels.template.fill = "#ffffff";
+        // Set data
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/#Setting_data
+        //https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/pie-series/
 
-        // Ticks (a straight line)
-        //pieSeries.ticks.template.disabled = true;
-        pieSeries.ticks.template.fill = "#ffff00";
-
-        // Create a base filter effect (as if it's not there) for the hover to return to
-        var shadow = pieSeries.slices.template.filters.push(new am4core.DropShadowFilter);
-        shadow.opacity = 0;
-
-        // Chart Title
+        // To set slice color, you need to add this before data.setAll
         /*
-        let title = chart.titles.create();
-        title.text = "Land Acquisition";
-        title.fontSize = "1.2em";
-        title.fontWeight = "bold";
-        title.fill = am4core.color("#ffffff");
-        title.marginTop = 7;
+        pieSeries.get("colors").set("colors", [
+          am5.color("#70ad47"),
+          am5.color("#0070FF"),
+          am5.color("#FFFF00"),
+          am5.color("#FFAA00"),
+          am5.color("#FF0000"),
+          am5.color("#00734C"),
+        ]);
         */
-        // Create hover state
-        var hoverState = pieSeries.slices.template.states.getKey("hover"); // normally we have to create the hover state, in this case it already exists
 
-        // Slightly shift the shadow and make it more prominent on hover
-        var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
-        hoverShadow.opacity = 0.7;
-        hoverShadow.blur = 5;
+        // Set slice opacity and stroke color
+        pieSeries.slices.template.setAll({
+          fillOpacity: 0.9,
+          stroke: am5.color("#ffffff"),
+          strokeWidth: 1,
+          strokeOpacity: 1,
+          templateField: "sliceSettings"
+        });
 
-        // Add a legend
-        chart.legend = new am4charts.Legend();
-        chart.legend.valueLabels.template.align = "right"
-        chart.legend.valueLabels.template.textAlign = "end";
 
-        //chart.legend.position = "bottom";
-        chart.legend.labels.template.fontSize = LEGEND_FONT_SIZE;
-        chart.legend.labels.template.fill = dark.disabled ? lightThemeColor : darkThemeColor;
-        chart.legend.valueLabels.template.fill = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor); 
-        chart.legend.valueLabels.template.fontSize = LEGEND_FONT_SIZE; 
-        pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
-        //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
-        chart.legend.itemContainers.template.paddingTop = "2em";
-        chart.legend.itemContainers.template.paddingBottom = "2em";
+        // Disabling labels and ticks
+        pieSeries.labels.template.set("visible", false);
+        pieSeries.ticks.template.set("visible", false);
 
-        // Responsive code for chart
-        chart.responsive.enabled = true;
- 
-        /// Define marker symbols properties
-        var marker = chart.legend.markers.template.children.getIndex(0);
-        var markerTemplate = chart.legend.markers.template;
-        marker.cornerRadius(12, 12, 12, 12);
-        marker.strokeWidth = 1;
-        marker.strokeOpacity = 1;
-        marker.stroke = am4core.color("#ccc");
-        markerTemplate.width = 18;
-        markerTemplate.height = 18;
 
-        // This creates initial animation
-        //pieSeries.hiddenState.properties.opacity = 1;
-        //pieSeries.hiddenState.properties.endAngle = -90;
-        //pieSeries.hiddenState.properties.startAngle = -90;
-
-        // Click chart and filter, update maps
-        pieSeries.slices.template.events.on("hit", filterByChart, this);
-        function filterByChart(ev) {
-          const SELECTED = ev.target.dataItem.category;
+        //pieSeries.appear(1000, 100)
+        pieSeries.slices.template.events.on("click", function(ev) {
+          const SELECTED = ev.target.dataItem.dataContext.category;
           if (SELECTED == Status_Name_Lot()[1]) {
             selectedStatus = 1;
           } else if (SELECTED == Status_Name_Lot()[2]) {
@@ -1941,7 +2093,7 @@
 
           view.when(function() {
             view.whenLayerView(lotLayer).then(function (layerView) {
-              chartLayerView = layerView;
+              //chartLayerView = layerView;
 
               lotLayer.queryFeatures().then(function(results) {
                 const RESULT_LENGTH = results.features;
@@ -1978,184 +2130,228 @@
               }
             }); // End of view.whenLayerView
           }); // End of view.when
-        } // End of filterByChart
-        } // End of createSlices function
+        });
 
-        createSlices("status", "StatusNVS3");
+        pieSeries.data.setAll(
+          [
+            {
+              category: Status_Name_Lot()[1],
+              value: PAID,
+              sliceSettings: {
+                fill: am5.color("#70ad47")
+              }
+            },
+            {
+              category: Status_Name_Lot()[2],
+              value: PAYP,
+              sliceSettings: {
+                fill: am5.color("#0070ff")
+              }
+            },
+            {
+              category: Status_Name_Lot()[3],
+              value: LEGALPASS,
+              sliceSettings: {
+                fill: am5.color("#ffff00")
+              }
+            },
+            {
+              category: Status_Name_Lot()[4],
+              value: OTB,
+              sliceSettings: {
+                fill: am5.color("#ffaa00")
+              }
+            },
+            {
+            category: Status_Name_Lot()[5],
+              value: EXPRO,
+              sliceSettings: {
+                fill: am5.color("#ff0000")
+              }
+            },
+            {
+              category: Status_Name_Lot()[6],
+            value: DISMISSAL,
+            sliceSettings: {
+                fill: am5.color("#00734c")
+              }
+            }
+          ]
+        );
 
-        //return TOTAL_NUMBER_LOTS;
+
+        // Legend
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/legend-percent-series/
+        var legend = chart.children.push(am5.Legend.new(root, {
+          centerX: am5.percent(50),
+          x: am5.percent(50),
+          layout: root.verticalLayout,
+          marginBottom: 10
+        }));
+        legend.data.setAll(pieSeries.dataItems);
+
+        // Change the size of legend markers
+        legend.markers.template.setAll({
+          width: 18,
+          height: 18,
+          strokeWidth: 1,
+          strokeOpacity: 1,
+          stroke: am5.color("#ffffff")
+
+        });
+
+        // Change the marker shape
+        legend.markerRectangles.template.setAll({
+          cornerRadiusTL: 10,
+          cornerRadiusTR: 10,
+          cornerRadiusBL: 10,
+          cornerRadiusBR: 10,
+        });
+
+        // To align legend items: valueLabels right, labels to left
+        // 1. fix width of valueLabels
+        // 2. dynamically change width of labels by screen size
+
+        const valueLabelsWidth = 50;
+
+        // Responsive legend 
+        // https://www.amcharts.com/docs/v5/tutorials/pie-chart-with-a-legend-with-dynamically-sized-labels/
+        chart.onPrivate("width", function(width) {
+          let box = document.querySelector('.box');
+          const boxWidth = box.offsetWidth;
+          var availableSpace = Math.max(width - chart.width() - 150, 180);
+          //var availableSpace = (boxWidth - valueLabelsWidth) * 0.7
+          legend.labels.template.setAll({
+            width: availableSpace,
+            maxWidth: availableSpace
+          });
+        });
+
+        // Change legend labelling properties
+        // To have responsive font size, do not set font size
+        legend.labels.template.setAll({
+          oversizedBehavior: "truncate",
+          fill: am5.color("#ffffff")
+          //textDecoration: "underline"
+          //width: am5.percent(200)
+          //fontWeight: "300"
+        });
+
+        legend.valueLabels.template.setAll({
+          textAlign: "right",
+          width: valueLabelsWidth,
+          fill: am5.color("#ffffff")
+          //fontSize: LEGEND_FONT_SIZE,
+        })
+
+        legend.itemContainers.template.setAll({
+          // set space between legend items
+          paddingTop: 1.1,
+          paddingBottom: 2,
+        });
+        
+        pieSeries.appear(1000, 100);
+        
         }); // End of queryFeatures
         } // End of updateChartLot()
-        updateChartLot();
-
-        // ----------------- BAR CHART FOR MOA LOT ----------------- //
-        function updateMoaChartLot() {
-        var totalNVSLot = {
-        onStatisticField: "CASE WHEN MOA = 1 THEN 1 ELSE 0 END",
-        outStatisticFieldName: "totalNVSLot",
-        statisticType: "sum"
-        };
-
-        var totalExproLot = {
-        onStatisticField: "CASE WHEN MOA = 2 THEN 1 ELSE 0 END",
-        outStatisticFieldName: "totalExproLot",
-        statisticType: "sum"
-        };
-
-        var totalRowuaLot = {
-        onStatisticField: "CASE WHEN MOA = 3 THEN 1 ELSE 0 END",
-        outStatisticFieldName: "totalRowuaLot",
-        statisticType: "sum"
-        };
-
-        var query = lotLayer.createQuery();
-        query.outStatistics = [totalNVSLot, totalExproLot, totalRowuaLot];
-        query.returnGeometry = true;
-
-        lotLayer.queryFeatures(query).then(function(response) {
-        var stats = response.features[0].attributes;
-
-        const NVS = stats.totalNVSLot;
-        const EXPRO = stats.totalExproLot;
-        const ROWUA = stats.totalRowuaLot;
-
-        var chart = am4core.create("chartMoaLotDiv", am4charts.XYChart);
-        chart.hiddenState.properties.opacity = 0;
-        chart.padding(10, 10, 10, 10);
-
-        var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-        categoryAxis.renderer.grid.template.location = 0;
-        categoryAxis.dataFields.category = "category";
-        categoryAxis.renderer.minGridDistance = 1;
-        categoryAxis.renderer.inversed = true;
-        categoryAxis.renderer.grid.template.disabled = true;
-        categoryAxis.renderer.labels.template.fontSize = "0.85em";
-        categoryAxis.renderer.labels.template.fill = dark.disabled ? lightThemeColor : darkThemeColor;
-        categoryAxis.renderer.minGridDistance = 5; //can change label
-        categoryAxis.renderer.grid.template.strokeOpacity = 1;
-        categoryAxis.renderer.grid.template.stroke = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor);
-        categoryAxis.renderer.grid.template.strokeWidth = 1.5;
-
-        //categoryAxis.renderer.cellStartLocation = 0;
-        //categoryAxis.renderer.cellEndLocation = 0.7;
-
-        categoryAxis.renderer.line.strokeOpacity = 1;
-        categoryAxis.renderer.line.strokeWidth = 1.5;
-        categoryAxis.renderer.line.stroke = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor);
-
-        // Create value axis
-        var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
-        valueAxis.min = 0;
-        valueAxis.strictMinMax = true;
-        valueAxis.calculateTotals = true;
-        valueAxis.renderer.minWidth = 50;
-        valueAxis.renderer.labels.template.fontSize = 12;
-        valueAxis.renderer.labels.template.fill = dark.disabled ? lightThemeColor : darkThemeColor;
-        valueAxis.renderer.line.strokeOpacity = 1;
-        valueAxis.renderer.line.strokeWidth = 1.5;
-        valueAxis.renderer.line.stroke = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor);
-
-        var series = chart.series.push(new am4charts.ColumnSeries());
-        series.dataFields.categoryY = "category";
-        series.dataFields.valueX = "value";
-        series.tooltipText = "{valueX.value}"
-        series.columns.template.strokeOpacity = 0;
-
-        // Responsive code: 
-        chart.responsive.enabled = true;
-
-        // if useDefault is false, category axis stays outside the chart
-        chart.responsive.useDefault = false
-
-        // Click chart and filer 
-        //const CHART_ELEMENT = document.getElementById("chartPanel");
-        series.columns.template.events.on("hit", filterByChart, this);
-        function filterByChart(ev) {
-        const SELECTED = ev.target.dataItem.categoryY;
-
-        if (SELECTED == "1-NVS") {
-        selectedStatus = 1;
-        } else if (SELECTED == "2-Expropriation") {
-        selectedStatus = 2;
-        } else if (SELECTED == "3-ROWUA") {
-        selectedStatus = 3;
-        }
-        view.whenLayerView(lotLayer).then(function (layerView) {
-        chartLayerView = layerView;
-        //CHART_ELEMENT.style.visibility = "visible";
-
-        lotLayer.queryFeatures().then(function(results) {
-            const RESULT_LENGTH= results.features;
-            const ROW_N= RESULT_LENGTH.length;
-
-            let objID = [];
-            for (var i=0; i< ROW_N; i++) {
-            var obj = results.features[i].attributes.OBJECTID;
-            objID.push(obj);
-            }
-            
-            var queryExt = new Query({
-            objectIds: objID
-            });
-
-            if (highlightSelect) {
-            highlightSelect.remove();
-            }
-            highlightSelect = layerView.highlight(objID);
-
-            view.on("click", function() {
-            layerView.filter = null;
-            highlightSelect.remove();
-            });
-        });
-        }); // End of whenLayerView
-
-        chartLayerView.filter = {
-        where: "MOA = " + selectedStatus
-        //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
-        };
-        }; // End of filterByChart
-
-        var labelBullet = series.bullets.push(new am4charts.LabelBullet())
-        labelBullet.label.horizontalCenter = "left";
-        labelBullet.label.text = "{values.valueX.workingValue.formatNumber('#')}"; //#.0as for 17k
-        labelBullet.locationX = 0.5;
-        labelBullet.label.fill = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor);
-        labelBullet.interactionsEnabled = false;
-        labelBullet.label.fontSize = 14;
-
-        // Add chart title
-        var title = chart.titles.create();
-        title.text = "Mode of Acquisition"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
-        title.fontWeight = "bold";
-        title.fontSize = "1em";
-        title.fill = "#3ce00a";
-
-        series.columns.template.adapter.add("fill", function(fill, target){
-        return chart.colors.getIndex(target.dataItem.index);
-        });
-
-        chart.data = [
-        {
-        category: "1-NVS",
-        value: NVS
-        },
-        {
-        category: "2-Expropriation",
-        value: EXPRO
-        },
-        {
-        category: "3-ROWUA",
-        value: ROWUA
-        }
-        ]; // End of chart
-        }); // End of queryFeatures
-        } // End of updateMOAChartLot
-
-        updateMoaChartLot();
+updateChartLot();
 
         // ------------------ PIE CHART FOR STRUCTURE ----------------------//
+        var root2 = am5.Root.new("pieChartStructureDiv");
+        //https://www.amcharts.com/docs/v5/tutorials/using-custom-theme-to-apply-patterns-to-pie-chart-slices/
+        // This user-defined theme allows different line patterns in slices
+        class MyTheme extends am5.Theme {
+          setupDefaultRules() {
+            var theme = this;
+
+            const gap = 4;
+            const rotation = 135;
+            const strokeWidth = 1.1;
+            const fillOpacity = 0;
+            const width = 10;
+            const height = 10;
+
+
+            this.patterns = [
+              am5.LinePattern.new(this._root, {
+                color: am5.color("#70AD47"),
+                gap: gap,
+                rotation: rotation,
+                strokeWidth: strokeWidth,
+                fillOpacity: fillOpacity,
+                width: width,
+                height: height
+              }),
+
+              am5.LinePattern.new(this._root, {
+                color: am5.color("#0070FF"),
+                gap: gap,
+                rotation: rotation,
+                strokeWidth: strokeWidth,
+                fillOpacity: fillOpacity,
+                width: width,
+                height: height
+              }),
+
+              am5.LinePattern.new(this._root, {
+                color: am5.color("#FFFF00"),
+                gap: gap,
+                rotation: rotation,
+                strokeWidth: strokeWidth,
+                fillOpacity: fillOpacity,
+                width: width,
+                height: height
+              }),
+
+              am5.LinePattern.new(this._root, {
+                color: am5.color("#FFAA00"),
+                gap: gap,
+                rotation: rotation,
+                strokeWidth: strokeWidth,
+                fillOpacity: fillOpacity,
+                width: width,
+                height: height
+
+              }),
+              am5.LinePattern.new(this._root, {
+                color: am5.color("#FF0000"),
+                gap: gap,
+                rotation: rotation,
+                strokeWidth: strokeWidth,
+                fillOpacity: fillOpacity,
+                width: width,
+                height: height
+              }),
+
+              am5.LinePattern.new(this._root, {
+                color: am5.color("#00734C"),
+                gap: gap,
+                rotation: rotation,
+                strokeWidth: strokeWidth,
+                fillOpacity: fillOpacity,
+                width: width,
+                height: height
+              })
+            ];
+
+            this.currentPattern = 0;
+            this.rule("Slice").setAll({
+              fillOpacity: 1
+            });
+
+            this.rule("Slice").setup = function(target) {
+              target.set("fillPattern", theme.patterns[theme.currentPattern]);
+              theme.currentPattern++;
+              if (theme.currentPattern == theme.patterns.length) {
+                theme.currentPattern = 0;
+              }
+            };
+          }
+        }
+
         async function updateChartStructure() {
+          root2.container.children.clear();
+
         function Status_Name_Structure(){
         return {
         1: "Paid",
@@ -2217,234 +2413,505 @@
         const EXPRO = stats.totalExproStruc;
         const QUITC = stats.totalQuitcStruc;
 
-        var chart = am4core.create("pieChartStructureDiv", am4charts.PieChart);
+        // Set themes
+        // https://www.amcharts.com/docs/v5/concepts/themes/
+        root2.setThemes([
+          am5themes_Animated.new(root2),
+          am5themes_Responsive.new(root2),
+          MyTheme.new(root2)
+        ]);
 
 
-        // Add data
-        chart.data = [
-        {
-          "StrucStatus": Status_Name_Structure()[1],
-          "status": PAID,
-          "color": am4core.color("#70AD47")   
-        },
-        {
-        "StrucStatus": Status_Name_Structure()[2],
-        "status": PAYP,
-        "color": am4core.color("#0070FF")   
-        },
-        {
-        "StrucStatus": Status_Name_Structure()[3],
-        "status": LEGALPASS,
-        "color": am4core.color("#FFFF00")   
-        },
-        {
-        "StrucStatus": Status_Name_Structure()[4],
-        "status": OTB,
-        "color": am4core.color("#FFAA00")   
-        },
-        {
-        "StrucStatus": Status_Name_Structure()[5],
-        "status": EXPRO,
-        "color": am4core.color("#FF0000") 
-        },
-        {
-        "StrucStatus": Status_Name_Structure()[6],
-        "status": QUITC,
-        "color": am4core.color("#00734C")
-        },
-        ];
+        // Create chart
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/
+        var chart = root2.container.children.push(
+          am5percent.PieChart.new(root2, {
 
-        // Set inner radius
-        chart.innerRadius = am4core.percent(30);
+          //centerY: am5.percent(-2), //-10
+          //y: am5.percent(-30), // -30
+          layout: root2.verticalLayout
+          })
+        );
 
-        // Add and configure Series
-        function createSlices(field, status) {
-        var pieSeries = chart.series.push(new am4charts.PieSeries());
-        pieSeries.dataFields.value = field;
-        pieSeries.dataFields.category = status;
+        // Create series
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/#Series
+        var pieSeries = chart.series.push(
+          am5percent.PieSeries.new(root2, {
+            name: "Series",
+            categoryField: "category",
+            valueField: "value",
+            //legendLabelText: "[{fill}]{category}[/]",
+            legendValueText: "{valuePercentTotal.formatNumber('#.')}% ({value})",
+            radius: am5.percent(90), // outer radius
+            innerRadius: am5.percent(40),
+          })
+        );
 
-        pieSeries.slices.template.propertyFields.fill = "color";
-        pieSeries.slices.template.stroke = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor);
-        pieSeries.slices.template.strokeWidth = 1;
-        pieSeries.slices.template.strokeOpacity = 1;
+       /*
+        pieSeries.slices.template.set("fillPattern", am5.LinePattern.new(root2, {
+          //fill: am5.color("#ffffffff"), // 100% transparent
+          //color: am5.color("#0070FF"),//target.dataItem.dataContext.color,
+          width: 100,
+          height: 200,
+          gap: 6,
+          rotation: 135,
+          strokeWidth: 1.5,
+          //repetition: "repeat-y",
+          //checkered: true,
+          //stroke: target.dataItem.dataContext.color,
+        }));
+*/
 
-        pieSeries.slices.template.adapter.add("fill", function(fill, target) {
-        var pattern = new am4core.LinePattern();
-        pattern.width = 7;
-        pattern.height = 7;
-        pattern.strokeWidth = 1.5;
-        pattern.stroke = target.dataItem.dataContext.color;
-        pattern.rotation = 135;
-        return pattern;
+        // Set slice opacity and stroke color
+        pieSeries.slices.template.setAll({
+          //fillOpacity: 0.9,
+          stroke: am5.color("#ffffff"),
+          strokeWidth: 1,
+          strokeOpacity: 1,
         });
 
-        pieSeries.slices.template.background.adapter.add("fill", function(fill, target) {
-        return target.dataItem ? target.dataItem.dataContext.color : fill;
-        });
 
-        pieSeries.slices.template
-        // change the cursor on hover to make it apparent the object can be interacted with
-        .cursorOverStyle = [
-        {
-        "property": "cursor",
-        "value": "pointer"
-        }
-        ];
+        // Disabling labels and ticks
+        pieSeries.labels.template.set("visible", false);
+        pieSeries.ticks.template.set("visible", false);
 
-        // Hover setting
-        pieSeries.tooltip.label.fontSize = 12;
-        pieSeries.tooltip.label.fill = dark.disabled ? lightThemeColor: darkThemeColor;
+        pieSeries.slices.template.events.on("click", function(ev) {
+          const SELECTED = ev.target.dataItem.dataContext.category;
 
-        // Pie
-        //pieSeries.alignLabels = false;
-        //pieSeries.labels.template.bent = false;
-        pieSeries.labels.template.disabled = true;
-        pieSeries.labels.template.radius = 3;
-        pieSeries.labels.template.padding(0,0,0,0);
-        pieSeries.labels.template.fontSize = 9;
-        pieSeries.labels.template.fill = "#ffffff";
-
-        // Ticks (a straight line)
-        //pieSeries.ticks.template.disabled = true;
-        pieSeries.ticks.template.fill = "#ffff00";
-
-        // Create a base filter effect (as if it's not there) for the hover to return to
-        var shadow = pieSeries.slices.template.filters.push(new am4core.DropShadowFilter);
-        shadow.opacity = 0;
-
-        // Create hover state
-        var hoverState = pieSeries.slices.template.states.getKey("hover"); // normally we have to create the hover state, in this case it already exists
-
-        // Slightly shift the shadow and make it more prominent on hover
-        var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
-        hoverShadow.opacity = 0.7;
-        hoverShadow.blur = 5;
-
-        // Chart Title
-        /*
-        let title = chart.titles.create();
-        title.text = "Strucure";
-        title.fontSize = 20;
-        title.fontWeight = "bold";
-        title.fill = am4core.color("#ffffff");
-        title.marginTop = 7;
-        */
-
-
-        // Add a legend
-        chart.legend = new am4charts.Legend();
-
-        chart.legend.valueLabels.template.align = "right"
-        chart.legend.valueLabels.template.textAlign = "end";  
-
-        //chart.legend.position = "bottom";
-        chart.legend.labels.template.fontSize = LEGEND_FONT_SIZE;
-        chart.legend.labels.template.fill = dark.disabled ? lightThemeColor: darkThemeColor;
-        chart.legend.valueLabels.template.fill = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor);
-        chart.legend.valueLabels.template.fontSize = LEGEND_FONT_SIZE; 
-        pieSeries.legendSettings.valueText = "{value.percent.formatNumber('#.')}% ({value})";
-        //pieSeries.legendSettings.labelText = "Series: [bold {color}]{category}[/]";
-        chart.legend.itemContainers.template.paddingTop = "2em";
-        chart.legend.itemContainers.template.paddingBottom = "2em";
-
-        chart.legend.horizontalGap = 0;
-        chart.legend.marginLeft = 0;
-        chart.legend.marginRight = 0;
-
-
-        var marker = chart.legend.markers.template.children.getIndex(0);
-        var markerTemplate = chart.legend.markers.template;
-        marker.cornerRadius(12, 12, 12, 12);
-        marker.strokeWidth = 1;
-        marker.strokeOpacity = 1;
-        marker.stroke = am4core.color("#ccc");
-
-        // Change size of legend marker
-        markerTemplate.width = 18;
-        markerTemplate.height = 18;
-        // This creates initial animation
-        //pieSeries.hiddenState.properties.opacity = 1;
-        //pieSeries.hiddenState.properties.endAngle = -90;
-        //pieSeries.hiddenState.properties.startAngle = -90;
-
-        // Responsive code for chart
-        chart.responsive.enabled = true;
-
-
-        // Click chart and filter, update maps
-        pieSeries.slices.template.events.on("hit", filterByChart, this);
-        function filterByChart(ev) {
-        const SELECTED = ev.target.dataItem.category;
-
-        if (SELECTED == Status_Name_Structure()[1]) {
-        selectedStatus = 1;
-        } else if (SELECTED == Status_Name_Structure()[2]) {
-        selectedStatus = 2;
-        } else if (SELECTED == Status_Name_Structure()[3]) {
-        selectedStatus = 3;
-        } else if (SELECTED == Status_Name_Structure()[4]) {
-        selectedStatus = 4;
-        } else if (SELECTED == Status_Name_Structure()[5]) {
-        selectedStatus = 5;
-        } else if (SELECTED == Status_Name_Structure()[6]) {
-        selectedStatus = 6;
-        } else {
-        selectedStatus = null;
-        }
-
-        // Zoom, filter, and highlight selected chart categories 
-        view.when(function() {
-        view.whenLayerView(structureLayer).then(function (layerView) {
-        chartLayerView = layerView;
-
-        structureLayer.queryFeatures().then(function(results) {
-          const RESULT_LENGTH= results.features;
-          const ROW_N = RESULT_LENGTH.length;
-
-          let objID = [];
-          for (var i=0; i < ROW_N; i++) {
-            var obj = results.features[i].attributes.OBJECTID;
-            objID.push(obj);
+          if (SELECTED == Status_Name_Structure()[1]) {
+          selectedStatus = 1;
+          } else if (SELECTED == Status_Name_Structure()[2]) {
+          selectedStatus = 2;
+          } else if (SELECTED == Status_Name_Structure()[3]) {
+          selectedStatus = 3;
+          } else if (SELECTED == Status_Name_Structure()[4]) {
+          selectedStatus = 4;
+          } else if (SELECTED == Status_Name_Structure()[5]) {
+          selectedStatus = 5;
+          } else if (SELECTED == Status_Name_Structure()[6]) {
+          selectedStatus = 6;
+          } else {
+          selectedStatus = null;
           }
-          
-          var queryExt = new Query({
-            objectIds: objID
-          });
-          
-          structureLayer.queryExtent(queryExt).then(function(result) {
-            if (result.extent) {
-              view.goTo(result.extent)
+
+          // Zoom, filter, and highlight selected chart categories 
+          view.when(function() {
+          view.whenLayerView(structureLayer).then(function (layerView) {
+          chartLayerView = layerView;
+
+          structureLayer.queryFeatures().then(function(results) {
+            const RESULT_LENGTH= results.features;
+            const ROW_N = RESULT_LENGTH.length;
+
+            let objID = [];
+            for (var i=0; i < ROW_N; i++) {
+              var obj = results.features[i].attributes.OBJECTID;
+              objID.push(obj);
             }
-          });
-          
-          if (highlightSelect) {
-            highlightSelect.remove();
+            
+            var queryExt = new Query({
+              objectIds: objID
+            });
+            
+            structureLayer.queryExtent(queryExt).then(function(result) {
+              if (result.extent) {
+                view.goTo(result.extent)
+              }
+            });
+            
+            if (highlightSelect) {
+              highlightSelect.remove();
+            }
+            highlightSelect = layerView.highlight(objID);
+            
+            view.on("click", function() {
+              layerView.filter = null;
+              highlightSelect.remove();
+            });
+          }); // End of queryFeatures
+
+          layerView.filter = {
+            where: "Status = " + selectedStatus
           }
-          highlightSelect = layerView.highlight(objID);
-          
-          view.on("click", function() {
-            layerView.filter = null;
-            highlightSelect.remove();
+          }); // End of view.whenLayerView
+          }); // End of view.when
+        });
+
+        pieSeries.data.setAll(
+          [
+            {
+              category: Status_Name_Structure()[1],
+              value: PAID,
+            },
+            {
+              category: Status_Name_Structure()[2],
+              value: PAYP,
+            },
+            {
+              category: Status_Name_Structure()[3],
+              value: LEGALPASS,
+            },
+            {
+              category: Status_Name_Structure()[4],
+              value: OTB,
+            },
+            {
+              category: Status_Name_Structure()[5],
+              value: EXPRO,
+            },
+            {
+              category: Status_Name_Structure()[6],
+              value: QUITC,
+            }
+          ]
+        );
+
+                // Legend
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/legend-percent-series/
+        var legend = chart.children.push(am5.Legend.new(root2, {
+          centerX: am5.percent(50),
+          x: am5.percent(50),
+          layout: root2.verticalLayout,
+          marginBottom: 10
+        }));
+        legend.data.setAll(pieSeries.dataItems);
+
+        // Change the size of legend markers
+        legend.markers.template.setAll({
+          width: 18,
+          height: 18,
+          strokeWidth: 1,
+          strokeOpacity: 1,
+          stroke: am5.color("#ffffff"),
+
+        });
+
+        // Change the marker shape
+        legend.markerRectangles.template.setAll({
+          cornerRadiusTL: 10,
+          cornerRadiusTR: 10,
+          cornerRadiusBL: 10,
+          cornerRadiusBR: 10,
+        });
+
+        const valueLabelsWidth = 50;
+
+        // Responsive legend 
+        // https://www.amcharts.com/docs/v5/tutorials/pie-chart-with-a-legend-with-dynamically-sized-labels/
+        chart.onPrivate("width", function(width) {
+          let box = document.querySelector('.boxStructure');
+          const boxWidth = box.offsetWidth;
+          var availableSpace = Math.max(width - chart.width() - 150, 180);
+          //var availableSpace = (boxWidth - valueLabelsWidth) * 0.7
+          legend.labels.template.setAll({
+            width: availableSpace,
+            maxWidth: availableSpace
           });
-        }); // End of queryFeatures
+        });
 
-        layerView.filter = {
-          where: "Status = " + selectedStatus
-        }
-        }); // End of view.whenLayerView
-        }); // End of view.when
-        } // End of filterByChart
-        } // End of createSlices function
+        // Change legend labelling properties
+        // To have responsive font size, do not set font size
+        legend.labels.template.setAll({
+          oversizedBehavior: "truncate",
+          fill: am5.color("#ffffff")
+          //textDecoration: "underline"
+          //width: am5.percent(200)
+          //fontWeight: "300"
+        });
 
-        createSlices("status", "StrucStatus");
+        legend.valueLabels.template.setAll({
+          textAlign: "right",
+          width: valueLabelsWidth,
+          fill: am5.color("#ffffff")
+          //fontSize: LEGEND_FONT_SIZE,
+        })
+
+        legend.itemContainers.template.setAll({
+          // set space between legend items
+          paddingTop: 1.1,
+          paddingBottom: 1.1,
+        });
+
+        pieSeries.appear(1000, 100);
 
         });  // End of queryFeature                 
         } // End of updateChartStructure()
         updateChartStructure();
+        
+
+        // ----------------- BAR CHART FOR MOA LOT ----------------- //
+        var root3 = am5.Root.new("chartMoaLotDiv");
+        var myTheme = am5.Theme.new(root3);
+
+        myTheme.rule("Grid", ["base"]).setAll({
+          strokeOpacity: 0,
+        });
+
+        function updateMoaChartLot() {
+          root3.container.children.clear();
+
+        var totalNVSLot = {
+        onStatisticField: "CASE WHEN MOA = 1 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "totalNVSLot",
+        statisticType: "sum"
+        };
+
+        var totalExproLot = {
+        onStatisticField: "CASE WHEN MOA = 2 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "totalExproLot",
+        statisticType: "sum"
+        };
+
+        var totalRowuaLot = {
+        onStatisticField: "CASE WHEN MOA = 3 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "totalRowuaLot",
+        statisticType: "sum"
+        };
+
+        var query = lotLayer.createQuery();
+        query.outStatistics = [totalNVSLot, totalExproLot, totalRowuaLot];
+        query.returnGeometry = true;
+
+        lotLayer.queryFeatures(query).then(function(response) {
+          var stats = response.features[0].attributes;
+
+          const NVS = stats.totalNVSLot;
+          const EXPRO = stats.totalExproLot;
+          const ROWUA = stats.totalRowuaLot;
+
+                  // Set themes
+        // https://www.amcharts.com/docs/v5/concepts/themes/
+        root3.setThemes([
+          am5themes_Animated.new(root3),
+          myTheme
+        ]);
+
+
+        // Create chart
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/
+        var chart = root3.container.children.push(
+          am5xy.XYChart.new(root3, {
+            panX: false,
+            panY: false,
+            wheelX: "none",
+            wheelY: "none",
+            paddingLeft: 0,
+          })
+        );
+
+
+        // Create axes
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+        var yRenderer = am5xy.AxisRendererY.new(root3, {
+          minGridDistance: 5,
+          strokeOpacity: 1,
+          strokeWidth: 1,
+          inversed: true,
+          stroke: am5.color("#ffffff")
+        });
+        yRenderer.grid.template.set("location", 1);
+
+        var yAxis = chart.yAxes.push(
+          am5xy.CategoryAxis.new(root3, {
+            maxDeviation: 0,
+            categoryField: "country",
+            renderer: yRenderer,
+          })
+        );
+
+        // Remove grid lines
+        yAxis.get("renderer").grid.template.set("forceHidden", true);
+
+        var xAxis = chart.xAxes.push(
+          am5xy.ValueAxis.new(root3, {
+            maxDeviation: 0,
+            min: 0,
+            renderer: am5xy.AxisRendererX.new(root3, {
+              visible: true,
+              strokeOpacity: 1,
+              strictMinMax: true,
+              calculateTotals: true,
+              strokeWidth: 1,
+              stroke: am5.color("#ffffff"),
+            })
+          })
+        );
+        // Remove grid lines
+        xAxis.get("renderer").grid.template.set("forceHidden", true);
+
+
+        // Label properties for yAxis (category axis)
+        yAxis.get("renderer").labels.template.setAll({
+          //oversizedBehavior: "wrap",
+          textAlign: "center",
+          fill: am5.color("#ffffff"),
+          //maxWidth: 150,
+          fontSize: 12
+        });
+
+        xAxis.get("renderer").labels.template.setAll({
+          fill: am5.color("#ffffff"),
+        });
+
+
+
+        // Create series
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+        var series = chart.series.push(
+          am5xy.ColumnSeries.new(root3, {
+            name: "Series 1",
+            xAxis: xAxis,
+            yAxis: yAxis,
+            valueXField: "value",
+            sequencedInterpolation: true,
+            categoryYField: "country",
+          })
+        );
+
+        var columnTemplate = series.columns.template;
+
+        columnTemplate.setAll({
+          draggable: true,
+          cursorOverStyle: "pointer",
+          tooltipText: "{value}",
+          cornerRadiusBR: 10,
+          cornerRadiusTR: 10,
+          strokeOpacity: 0
+        });
+
+        // Add Label bullet
+        series.bullets.push(function () {
+          return am5.Bullet.new(root3, {
+            locationY: 1,
+            sprite: am5.Label.new(root3, {
+              text: "{value}",
+              fill: root3.interfaceColors.get("alternativeText"),
+              centerY: -3,
+              centerX: am5.p50,
+              fontSize: 14,
+              populateText: true
+            })
+          });
+        });
+
+        // Use different color by column
+        columnTemplate.adapters.add("fill", (fill, target) => {
+          return chart.get("colors").getIndex(series.columns.indexOf(target));
+        });
+
+        columnTemplate.adapters.add("stroke", (stroke, target) => {
+          return chart.get("colors").getIndex(series.columns.indexOf(target));
+        });
+
+
+        series.columns.template.events.on("click", function(ev) {
+          const SELECTED = ev.target.dataItem.dataContext.country;
+          console.log(SELECTED);
+
+          if (SELECTED == "1-NVS") {
+            selectedStatus = 1;
+          } else if (SELECTED == "2-Expropriation") {
+            selectedStatus = 2;
+          } else if (SELECTED == "3-ROWUA") {
+            selectedStatus = 3;
+          }
+          
+          view.whenLayerView(lotLayer).then(function (layerView) {
+          //CHART_ELEMENT.style.visibility = "visible";
+
+          lotLayer.queryFeatures().then(function(results) {
+              const RESULT_LENGTH= results.features;
+              const ROW_N= RESULT_LENGTH.length;
+
+              let objID = [];
+              for (var i=0; i< ROW_N; i++) {
+              var obj = results.features[i].attributes.OBJECTID;
+              objID.push(obj);
+              }
+              
+              var queryExt = new Query({
+              objectIds: objID
+              });
+
+              lotLayer.queryExtent(queryExt).then(function(result) {
+                    if (result.extent) {
+                        view.goTo(result.extent)
+                    }
+                });
+
+              if (highlightSelect) {
+              highlightSelect.remove();
+              }
+              highlightSelect = layerView.highlight(objID);
+
+              view.on("click", function() {
+              layerView.filter = null;
+              highlightSelect.remove();
+              });
+          });
+          layerView.filter = {
+          where: "MOA = " + selectedStatus
+          //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+          };
+          }); // End of whenLayerView
+
+
+        });
+
+
+        // Chart title
+        chart.children.unshift(am5.Label.new(root3, {
+          text: "Mode of Acquisition",
+          fontSize: 14,
+          fontWeight: "bold",
+          textAlign: "center",
+          fill: am5.color("#3ce00a"),
+          x: am5.percent(50),
+          centerX: am5.percent(50),
+          paddingTop: -10,
+          paddingBottom: 0,
+        }));
+        // Set data
+        var data = [
+          {
+            country: "1-NVS",
+            value: NVS
+          },
+          {
+            country: "2-Expropriation",
+            value: EXPRO
+          },
+          {
+            country: "3-ROWUA",
+            value: ROWUA
+          },
+      ];
+
+        yAxis.data.setAll(data);
+        series.data.setAll(data);
+
+
+        // Make stuff animate on load
+        // https://www.amcharts.com/docs/v5/concepts/animations/
+        series.appear(1000);
+        chart.appear(1000, 100);
+        }); // End of queryFeatures
+        } // End of updateMOAChartLot
+
+        updateMoaChartLot();
 
         // ----------------- BAR CHART FOR MOA STRUCTURE ----------------- //
-        async function updateMoaChartStructure() {
-        var totalNVSLot = {
+        var root6 = am5.Root.new("chartMoaStructureDiv");
+        var myTheme = am5.Theme.new(root6);
+
+        myTheme.rule("Grid", ["base"]).setAll({
+          strokeOpacity: 0,
+        });
+
+        function updateMoaChartStructure() {
+          root6.container.children.clear();
+
+          var totalNVSLot = {
         onStatisticField: "CASE WHEN S_MOA = 1 THEN 1 ELSE 0 END",
         outStatisticFieldName: "totalNVSLot",
         statisticType: "sum"
@@ -2467,136 +2934,224 @@
         query.returnGeometry = true;
 
         lotLayer.queryFeatures(query).then(function(response) {
-        var stats = response.features[0].attributes;
-        const NVS = stats.totalNVSLot;
-        const EXPRO = stats.totalExproLot;
-        const ROWUA = stats.totalRowuaLot;
+          var stats = response.features[0].attributes;
+          const NVS = stats.totalNVSLot;
+          const EXPRO = stats.totalExproLot;
+          const ROWUA = stats.totalRowuaLot;
 
-        var chart = am4core.create("chartMoaStructureDiv", am4charts.XYChart);
-        chart.hiddenState.properties.opacity = 0;
-        chart.padding(10, 10, 10, 10);
+                  // Set themes
+        // https://www.amcharts.com/docs/v5/concepts/themes/
+        root6.setThemes([
+          am5themes_Animated.new(root6),
+          myTheme
+        ]);
 
-        var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-        categoryAxis.renderer.grid.template.location = 0;
-        categoryAxis.dataFields.category = "category";
-        categoryAxis.renderer.minGridDistance = 1;
-        categoryAxis.renderer.inversed = true;
-        categoryAxis.renderer.grid.template.disabled = true;
-        categoryAxis.renderer.labels.template.fontSize = 11;
-        categoryAxis.renderer.labels.template.fill = dark.disabled ? lightThemeColor : darkThemeColor;
-        categoryAxis.renderer.minGridDistance = 5; //can change label
-        categoryAxis.renderer.grid.template.strokeOpacity = 1;
-        categoryAxis.renderer.grid.template.stroke = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor);
-        categoryAxis.renderer.grid.template.strokeWidth = 1.5;
-        //categoryAxis.renderer.cellStartLocation = 0;
-        //categoryAxis.renderer.cellEndLocation = 0.7;
 
-        categoryAxis.renderer.line.strokeOpacity = 1;
-        categoryAxis.renderer.line.strokeWidth = 1.5;
-        categoryAxis.renderer.line.stroke = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor);
+        // Create chart
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/
+        var chart = root6.container.children.push(
+          am5xy.XYChart.new(root6, {
+            panX: false,
+            panY: false,
+            wheelX: "none",
+            wheelY: "none",
+            paddingLeft: 0,
+          })
+        );
 
-        // Create value axis
+        // Create axes
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+        var yRenderer = am5xy.AxisRendererY.new(root6, {
+          minGridDistance: 5,
+          strokeOpacity: 1,
+          strokeWidth: 1,
+          inversed: true,
+          stroke: am5.color("#ffffff")
+        });
+        yRenderer.grid.template.set("location", 1);
 
-        var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
-        valueAxis.min = 0;
-        valueAxis.strictMinMax = true;
-        valueAxis.calculateTotals = true;
-        valueAxis.renderer.minWidth = 50;
-        valueAxis.renderer.labels.template.fontSize = 12;
-        valueAxis.renderer.labels.template.fill = "#ffffff";
-        valueAxis.renderer.line.strokeOpacity = 1;
-        valueAxis.renderer.line.strokeWidth = 1.5;
-        valueAxis.renderer.line.stroke = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor);
+        var yAxis = chart.yAxes.push(
+          am5xy.CategoryAxis.new(root6, {
+            maxDeviation: 0,
+            categoryField: "country",
+            renderer: yRenderer,
+          })
+        );
 
-        var series = chart.series.push(new am4charts.ColumnSeries());
-        series.dataFields.categoryY = "category";
-        series.dataFields.valueX = "value";
-        series.tooltipText = "{valueX.value}"
-        series.columns.template.strokeOpacity = 0;
+        // Remove grid lines
+        yAxis.get("renderer").grid.template.set("forceHidden", true);
 
-        // Responsive code: 
-        chart.responsive.enabled = true;
+        var xAxis = chart.xAxes.push(
+          am5xy.ValueAxis.new(root6, {
+            maxDeviation: 0,
+            min: 0,
+            renderer: am5xy.AxisRendererX.new(root6, {
+              visible: true,
+              strokeOpacity: 1,
+              strictMinMax: true,
+              calculateTotals: true,
+              strokeWidth: 1,
+              stroke: am5.color("#ffffff"),
+            })
+          })
+        );
+        // Remove grid lines
+        xAxis.get("renderer").grid.template.set("forceHidden", true);
 
-        // if useDefault is false, category axis stays outside the chart
-        chart.responsive.useDefault = false
 
-        // Click chart and filer 
-        const CHART_ELEMENT = document.getElementById("chartPanel");
-        series.columns.template.events.on("hit", filterByChart, this);
-        function filterByChart(ev) {
-        const SELECTED = ev.target.dataItem.categoryY;
-        if (SELECTED == "1-NVS") {
-          selectedStatus = 1;
-        } else if (SELECTED == "2-Expropriation") {
-          selectedStatus = 2;
-        }
+        // Label properties for yAxis (category axis)
+        yAxis.get("renderer").labels.template.setAll({
+          //oversizedBehavior: "wrap",
+          textAlign: "center",
+          fill: am5.color("#ffffff"),
+          //maxWidth: 150,
+          fontSize: 12
+        });
 
-        view.whenLayerView(lotLayer).then(function (layerView) {
-          chartLayerView = layerView;
+        xAxis.get("renderer").labels.template.setAll({
+          fill: am5.color("#ffffff"),
+        });
+
+        // Create series
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+        var series = chart.series.push(
+          am5xy.ColumnSeries.new(root6, {
+            name: "Series 1",
+            xAxis: xAxis,
+            yAxis: yAxis,
+            valueXField: "value",
+            sequencedInterpolation: true,
+            categoryYField: "country",
+          })
+        );
+
+        var columnTemplate = series.columns.template;
+
+        columnTemplate.setAll({
+          draggable: true,
+          cursorOverStyle: "pointer",
+          tooltipText: "{value}",
+          cornerRadiusBR: 10,
+          cornerRadiusTR: 10,
+          strokeOpacity: 0
+        });
+
+        // Add Label bullet
+        series.bullets.push(function () {
+          return am5.Bullet.new(root6, {
+            locationY: 1,
+            sprite: am5.Label.new(root6, {
+              text: "{value}",
+              fill: root6.interfaceColors.get("alternativeText"),
+              centerY: -3,
+              centerX: am5.p50,
+              fontSize: 14,
+              populateText: true
+            })
+          });
+        });
+
+        // Use different color by column
+        columnTemplate.adapters.add("fill", (fill, target) => {
+          return chart.get("colors").getIndex(series.columns.indexOf(target));
+        });
+
+        columnTemplate.adapters.add("stroke", (stroke, target) => {
+          return chart.get("colors").getIndex(series.columns.indexOf(target));
+        });
+
+
+        series.columns.template.events.on("click", function(ev) {
+          const SELECTED = ev.target.dataItem.dataContext.country;
+          console.log(SELECTED);
+
+          if (SELECTED == "1-NVS") {
+            selectedStatus = 1;
+          } else if (SELECTED == "2-Expropriation") {
+            selectedStatus = 2;
+          } else if (SELECTED == "3-ROWUA") {
+            selectedStatus = 3;
+          }
+          
+          view.whenLayerView(lotLayer).then(function (layerView) {
+          //CHART_ELEMENT.style.visibility = "visible";
 
           lotLayer.queryFeatures().then(function(results) {
-            const RESULT_LENGTH= results.features;
-            const ROW_N= RESULT_LENGTH.length;
+              const RESULT_LENGTH= results.features;
+              const ROW_N= RESULT_LENGTH.length;
 
-            let objID = [];
-            for (var i=0; i< ROW_N; i++) {
-                var obj = results.features[i].attributes.OBJECTID;
-                objID.push(obj);
+              let objID = [];
+              for (var i=0; i< ROW_N; i++) {
+              var obj = results.features[i].attributes.OBJECTID;
+              objID.push(obj);
               }
               
               var queryExt = new Query({
-                objectIds: objID
+              objectIds: objID
               });
-              
+
+              lotLayer.queryExtent(queryExt).then(function(result) {
+                    if (result.extent) {
+                        view.goTo(result.extent)
+                    }
+                });
+
               if (highlightSelect) {
-                highlightSelect.remove();
+              highlightSelect.remove();
               }
-              
               highlightSelect = layerView.highlight(objID);
-              
+
               view.on("click", function() {
-                layerView.filter = null;
-                highlightSelect.remove();
+              layerView.filter = null;
+              highlightSelect.remove();
               });
-            });
-          }); // End of whenLayerView
-          
-          chartLayerView.filter = {
-            where: "S_MOA = " + selectedStatus
-            //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+          });
+          layerView.filter = {
+          where: "MOA = " + selectedStatus
+          //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
           };
-        }; // End of filterByChart
-
-        var labelBullet = series.bullets.push(new am4charts.LabelBullet())
-        labelBullet.label.horizontalCenter = "left";
-        labelBullet.label.text = "{values.valueX.workingValue.formatNumber('#')}"; //#.0as for 17k
-        labelBullet.locationX = 0.5;
-        labelBullet.label.fill = dark.disabled ? am4core.color(lightThemeColor) : am4core.color(darkThemeColor);
-        labelBullet.interactionsEnabled = false;
-        labelBullet.label.fontSize = 14;
-
-        // Add chart title
-        var title = chart.titles.create();
-        title.text = "Mode of Acquisition"; // [#00ff00]world[/], Hello [font-size: 30px]world[/]
-        title.fontWeight = "bold";
-        title.fill = "#3ce00a";
-
-        series.columns.template.adapter.add("fill", function(fill, target){
-          return chart.colors.getIndex(target.dataItem.index);
+          }); // End of whenLayerVie
         });
 
-        chart.data = [
+        // Chart title
+        chart.children.unshift(am5.Label.new(root6, {
+          text: "Mode of Acquisition",
+          fontSize: 14,
+          fontWeight: "bold",
+          textAlign: "center",
+          fill: am5.color("#3ce00a"),
+          x: am5.percent(50),
+          centerX: am5.percent(50),
+          paddingTop: -10,
+          paddingBottom: 0,
+        }));
+        // Set data
+        var data = [
           {
-            category: "1-NVS",
+            country: "1-NVS",
             value: NVS
           },
           {
-            category: "2-Expropriation",
+            country: "2-Expropriation",
             value: EXPRO
-          }
-        ]; // End of chart
+          },
+          {
+            country: "3-ROWUA",
+            value: ROWUA
+          },
+      ];
+
+        yAxis.data.setAll(data);
+        series.data.setAll(data);
+
+
+        // Make stuff animate on load
+        // https://www.amcharts.com/docs/v5/concepts/animations/
+        series.appear(1000);
+        chart.appear(1000, 100);
         }); // End of queryFeatures
-        } // End of updateS_MOAChartStructure
+        } // End of updateMOAChartLot
+
         updateMoaChartStructure();
 
       // view.when
@@ -2650,42 +3205,10 @@
         document.querySelector("calcite-shell").hidden = false;
         document.querySelector("calcite-loader").hidden = true;
 
-        const toggleThemes = () => {
-          // Calcite theme
-          document.body.classList.toggle("calcite-theme-dark");
-          // ArcGIS Maps SDK theme
-          const dark = document.querySelector("#arcgis-maps-sdk-theme-dark");
-          const light = document.querySelector("#arcgis-maps-sdk-theme-light");
 
-          // Negate the 'disabled' attribute on both stylesheets to toggle their boolean values
-          dark.disabled = !dark.disabled;
-          light.disabled = !light.disabled;
-          // ArcGIS Maps SDK basemap
-          map.basemap = dark.disabled ? "gray-vector" : "dark-gray-vector";
-
-          // Change the title color by theme
-          totalNumberOfLots().then(totalNumberOfLotsAll);
-          updateChartLot();
-          updateMoaChartLot()
-          handedOverNumberLot();
-          updateChartStructure();
-          totalNumberOfStructures().then(totalNumberOfStructureAll);
-          updateMoaChartStructure();
-          isfNumber();
-
-          const dropdownContractPackageLabel = document.getElementById("dropdownContractPackageLabel");
-          const dropdownLandTypeLabel = document.getElementById("dropdownLandTypeLabel");
-          const dropdownStationTypeLabel = document.getElementById("dropdownStationTypeLabel");
-
-          dropdownLandTypeLabel.style.color = dark.disabled ? "black" : "white";
-          dropdownStationTypeLabel.style.color = dark.disabled ? "black" : "white";
-          dropdownContractPackageLabel.style.color = dark.disabled ? "black" : "white";
-        };
-
-        document.querySelector("calcite-switch").addEventListener("calciteSwitchChange", toggleThemes);
       }); // end of view.when
 
-      });// End of am4chart
+    });
 
       
       // Widgets
