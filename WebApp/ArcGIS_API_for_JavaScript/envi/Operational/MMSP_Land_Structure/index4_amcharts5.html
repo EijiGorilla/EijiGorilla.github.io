@@ -1271,13 +1271,14 @@
 
         function totalNumberOfStructureAll(structureValue) {
           var totalStructureAll = {
-            onStatisticField: "Id",
+            onStatisticField: "CASE WHEN Id IS NOT NULL THEN 1 ELSE 0 END",
             outStatisticFieldName: "totalStructureAll",
-            statisticType: "count"
+            statisticType: "sum"
           }
 
           var query = structureLayer.createQuery();
           query.outStatistics = [totalStructureAll];
+          query.outFields = ["*"];
           query.returnGeometry = true;
 
           structureLayer.queryFeatures(query).then(function(response) {
@@ -1307,6 +1308,7 @@
 
           var query = isfLayer.createQuery();
           query.outStatistics = [totalRelo, totalIsf];
+          query.outFields = ["*"];
           query.returnGeometry = true;
 
           isfLayer.queryFeatures(query).then(function(response) {
@@ -1386,16 +1388,6 @@
         }
 
         // 2. Land Type:--------------------------------
-        function filterLotLandType() {
-          var query2 = lotLayer.createQuery();
-          query2.where = lotLayer.definitionExpression; // use filtered municipality. is this correct?
-
-          lotLayer.queryFeatures(query2)
-          .then(getQuery2Values)
-          .then(getUniqueValues2)
-          .then(addToSelectQuery2);
-        }
-
         // 3. Get values and return to list
         /// 3.1. Land Type
         function landTypeFilterList(cpValue) {
@@ -1612,10 +1604,10 @@
           updateChartLot();
           totalNumberOfLots().then(totalNumberOfLotsAll);
           updateMoaChartLot();
-          handedOverNumberLot();
+          totalNumberOfLots().then(handedOverNumberLot);
           updateChartStructure();
           totalNumberOfStructures().then(totalNumberOfStructureAll);
-          //updateMoaChartStructure();
+          updateMoaChartStructure();
           isfNumber();
 
         });
@@ -1645,10 +1637,10 @@
           updateChartLot();
           totalNumberOfLots().then(totalNumberOfLotsAll);
           updateMoaChartLot();
-          handedOverNumberLot();
+          totalNumberOfLots().then(handedOverNumberLot);
           updateChartStructure();
           totalNumberOfStructures().then(totalNumberOfStructureAll);
-          //updateMoaChartStructure();
+          updateMoaChartStructure();
           isfNumber();
 
         });
@@ -1666,10 +1658,10 @@
           updateChartLot();
           totalNumberOfLots().then(totalNumberOfLotsAll);
           updateMoaChartLot();
-          handedOverNumberLot();
+          totalNumberOfLots().then(handedOverNumberLot);
           updateChartStructure();
           totalNumberOfStructures().then(totalNumberOfStructureAll);
-          //updateMoaChartStructure();
+          updateMoaChartStructure();
           isfNumber();
 
           // Filter each layer
@@ -2216,6 +2208,10 @@
           cornerRadiusBR: 10,
         });
 
+        // To align legend items: valueLabels right, labels to left
+        // 1. fix width of valueLabels
+        // 2. dynamically change width of labels by screen size
+
         const valueLabelsWidth = 50;
 
         // Responsive legend 
@@ -2223,8 +2219,8 @@
         chart.onPrivate("width", function(width) {
           let box = document.querySelector('.box');
           const boxWidth = box.offsetWidth;
-          //var availableSpace = Math.max(width - chart.width() - 100, 100);
-          var availableSpace = (boxWidth - valueLabelsWidth) * 0.7
+          var availableSpace = Math.max(width - chart.width() - 150, 180);
+          //var availableSpace = (boxWidth - valueLabelsWidth) * 0.7
           legend.labels.template.setAll({
             width: availableSpace,
             maxWidth: availableSpace
@@ -2605,8 +2601,8 @@ updateChartLot();
         chart.onPrivate("width", function(width) {
           let box = document.querySelector('.boxStructure');
           const boxWidth = box.offsetWidth;
-          //var availableSpace = Math.max(width - chart.width() - 100, 100);
-          var availableSpace = (boxWidth - valueLabelsWidth) * 0.7
+          var availableSpace = Math.max(width - chart.width() - 150, 180);
+          //var availableSpace = (boxWidth - valueLabelsWidth) * 0.7
           legend.labels.template.setAll({
             width: availableSpace,
             maxWidth: availableSpace
