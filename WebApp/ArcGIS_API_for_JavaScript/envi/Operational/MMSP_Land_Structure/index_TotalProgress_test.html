@@ -961,15 +961,35 @@ function stackedBarChart2() {
       }
     });
 
+
     // count the number of values per Package for each status
     //e.g., for Paid,  {"CP101": 56, .....}
-    const countCP101 = {};
-    const countCP102 = {};
-    const countCP103 = {};
-    const countCP104 = {};
-    const countCP105 = {};
-    const countCP108 = {};
-    const countCP109 = {};
+    // Create empty objects based on the number of seires (in this case 6 statuses)
+    const objectX1 = {};
+    const objectX2 = {};
+    const objectX3 = {};
+    const objectX4 = {};
+    const objectX5 = {};
+    const objectX8 = {};
+    const objectX9 = {};
+
+    for (let i=1; i <= statusNames.length; i++){
+      objectX1[i] = 0;
+      objectX2[i] = 0;
+      objectX3[i] = 0;
+      objectX4[i] = 0;
+      objectX5[i] = 0;
+      objectX8[i] = 0;
+      objectX9[i] = 0;
+    }
+
+    const countCP101 = objectX1;
+    const countCP102 = objectX2;
+    const countCP103 = objectX3;
+    const countCP104 = objectX4;
+    const countCP105 = objectX5;
+    const countCP108 = objectX8;
+    const countCP109 = objectX9;
 
     for (let i = 0; i < cp101.length; i++) {
       countCP101[cp101[i]] = 1 + (countCP101[cp101[i]] || 0);
@@ -1039,7 +1059,6 @@ function stackedBarChart2() {
         wop: valueCP102[index + 5] == undefined ? 0 : valueCP102[index + 5],
       });
     });
-   //console.log(categoriesCP102[[0]]);
 
    // 3. CP103
    const categoryCP103 = [];
@@ -1223,8 +1242,7 @@ function stackedBarChart2() {
    const data = [];
    data.push(categoriesCP101[[0]], categoriesCP102[[0]], categoriesCP103[[0]],
              categoriesCP104[[0]], categoriesCP105[[0]], categoriesCP108[[0]], categoriesCP109[[0]]);
-  console.log(data);
-
+ 
   // set themes
   root2.setThemes([
     am5themes_Animated.new(root2)
@@ -1282,6 +1300,10 @@ chart.get("colors").set("colors", [
 
   var yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root2, {
     min: 0,
+  max: 100,
+  numberFormat: "#'%'",
+  strictMinMax: true,
+  calculateTotals: true,
     renderer: am5xy.AxisRendererY.new(root2, {
       strokeOpacity: 1,
       strokeWidth: 1,
@@ -1319,15 +1341,13 @@ chart.get("colors").set("colors", [
 
   // Esri color ramps - Candy Shop
 // #1e8553,#c44296,#d9bf0d,#d97f00,#00b6f1,#9933cc,#3abf66
-const colors = ["#1e8553", "#c44296", "#d9bf0d", "#d97f00", "#00b6f1", "#9933cc", "#3abf66"];
 chart.get("colors").set("colors", [
-  am5.color(colors[0]),
-  am5.color(colors[1]),
-  am5.color(colors[2]),
-  am5.color(colors[3]),
-  am5.color(colors[4]),
-  am5.color(colors[5]),
-  am5.color(colors[6]),
+  am5.color("#70ad47"),
+  am5.color("#0070ff"),
+  am5.color("#ffff00"),
+  am5.color("#ffaa00"),
+  am5.color("#ff0000"),
+  am5.color("#00734c"),
 ]);
 
   // Add series
@@ -1339,6 +1359,7 @@ chart.get("colors").set("colors", [
       xAxis: xAxis,
       yAxis: yAxis,
       valueYField: fieldName,
+      valueYShow: "valueYTotalPercent",
       categoryXField: "category"
     }));
 
@@ -1356,7 +1377,7 @@ chart.get("colors").set("colors", [
     series.bullets.push(function() {
       return am5.Bullet.new(root2, {
         sprite: am5.Label.new(root2, {
-          text: "{valueY}",
+          text: "{valueYTotalPercent.formatNumber('#.')}%", //{valueY}
           fill: root2.interfaceColors.get("alternativeText"),
           centerY: am5.p50,
           centerX: am5.p50,
