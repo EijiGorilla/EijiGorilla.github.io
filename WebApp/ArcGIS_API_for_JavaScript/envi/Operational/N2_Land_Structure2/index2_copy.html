@@ -759,83 +759,6 @@
         }
     });
 
-    function colorPriority() {
-        return {
-            1: [255, 0, 0], // Red
-            2: [255, 127, 80], // Orange
-            3: [255, 255, 0], // Yellow
-            4: [0, 112, 255], // Blue
-            5: [112, 173, 71] // Green
-        }
-    }
-
-    // How to automatically update symbology for hand over dates?
-    // 1. Get unique values
-    // 2. Automate to extract uniqueValuesInfos format (i.e., [{value: '12/31/2022', label: .....}]) by compiling informatino in object array
-
-    const priorityDates = ["December 2022", "February 2023", "April 2023", "July 2023"];
-    const uniqueValuesPriority = [
-            {
-                value: "0",
-                label: priorityDates[0],
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: [0,0,0,0],
-                    outline: {
-                        width: 4,
-                        color: colorPriority()[1]
-                    }
-                }
-            },
-            {
-                value: "1",
-                label: priorityDates[1],
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: [0,0,0,0],
-                    outline: {
-                        width: 4,
-                        color: colorPriority()[2]
-                    }
-                }
-            },
-            {
-                value: "2",
-                label: priorityDates[2],
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: [0,0,0,0],
-                    outline: {
-                        width: 4,
-                        color: colorPriority()[3]
-                    }
-                }
-            },
-            {
-                value: "3",
-                label: priorityDates[3],
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: [0,0,0,0],
-                    outline: {
-                        width: 4,
-                        color: colorPriority()[4]
-                    }
-                }
-            },
-        ]
-
-    let lotPriorityRenderer = {
-        type: "unique-value",
-        //field: "HandOverDate1", // For 3D, including this works, but for 2D we need to remove this 
-        defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
-        valueExpression: "When($feature.HandOverDate1 == 'December 2022', '0', \
-                               $feature.HandOverDate1 == 'February 2023', '1', \
-                               $feature.HandOverDate1 == 'April 2023', '2', \
-                               $feature.HandOverDate1 == 'July 2023', '3', $feature.HandOverDate1)",
-        uniqueValueInfos: uniqueValuesPriority
-    }
-
     var priorityLayer = new FeatureLayer ({
         portalItem: {
             id: "dca1d785da0f458b8f87638a76918496",
@@ -844,15 +767,89 @@
             }
         },
         layerId: 1,
-        renderer: lotPriorityRenderer,
+        //renderer: lotPriorityRenderer,
         labelingInfo: [priorityLabel],
         definitionExpression: "HandOverDate IS NOT NULL",
-        title: "Land with Hand-Over Dates",
+        title: "Expected Hand-Over Dates of Land",
         popupEnabled: false,
         minScale: 150000,
         maxScale: 0
     });
     map.add(priorityLayer,2);
+        // How to automatically update symbology for hand over dates?
+    // 1. Get unique values
+    // 2. Automate to extract uniqueValuesInfos format (i.e., [{value: '12/31/2022', label: .....}]) by compiling informatino in object array
+
+    const handOverDateColor = {
+        0: [255, 0, 0],
+        1: [255, 127, 80],
+        2: [255, 255, 0],
+        3: [0, 112, 255],
+        4: [112, 173, 71]
+    }
+    // Define cut date properties for dates
+    const cutDateValue = '2022-12-31';
+    const numberDate = new Date(cutDateValue);
+    const cutDate = numberDate.toLocaleDateString('en-US');
+    const queryDate = "HandOverDate IS NOT NULL" + " AND " + "HandOverDate >= date'" + cutDate + "'";
+
+    function DateValues() {
+        const dates = [];
+        var query = lotLayer.createQuery();
+
+        query.where = queryDate;
+        return lotLayer.queryFeatures(query).then(function(response) {
+            var stats = response.features;
+            stats.forEach((result, index) => {
+                const attributes = result.attributes;
+                const date = attributes.HandOverDate;
+                dates.push(date);
+            });
+            return dates;
+        });
+    }
+
+    function uniqueDateValues(values) {
+        var uniqueValues = [];
+
+        values.forEach((item, index) => {
+            if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
+                uniqueValues.push(item);
+            }
+        });
+        const sortedDates = uniqueValues.sort();
+        return sortedDates;
+    }
+
+    // Conver to object array: [{value:}]
+    function uniqueValuesInfos(sortedDates) {
+        const dates = sortedDates.map((date, index) => {
+            const temp = new Date(date);
+            const labelDate = temp.toLocaleDateString('en-US');
+            return Object.assign({}, {
+                value: labelDate,
+                label: labelDate,
+                symbol: {
+                    type: "simple-fill",
+                    color: [0,0,0,0],
+                    outline: {
+                        width: 4,
+                        color: handOverDateColor[index]
+                    }
+                }
+            });
+        });
+        var lotPriorityRenderer = {
+            type: "unique-value",
+            field: "HandOverDate", // For 3D, including this works, but for 2D we need to remove this 
+            defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
+            uniqueValueInfos: dates
+        }
+        priorityLayer.renderer = lotPriorityRenderer;
+
+    }
+ 
+DateValues().then(uniqueDateValues).then(uniqueValuesInfos);
 
     // ISF
     const isfSymbolColor = {
@@ -1773,23 +1770,23 @@ zoomToLayer(stationLayer);
         function priorityQuery() {
             var query = lotLayer.createQuery();
             if (municipalValue === undefined && barangayValue === undefined) {
-                query.where = "1=1";
+                query.where = "1=1" + " AND " + queryDate;
             
             // Municipality: None, barangayValue: !None
             } else if (municipalValue === 'None' && barangayValue !== 'None') {
-                query.where = barangayExpression;
+                query.where = barangayExpression + " AND " + queryDate;
             
             // Municipality: None, barangayValue: None
             } else if (municipalValue === 'None' && barangayValue === 'None') {
-                query.where = "1=1";
+                query.where = "1=1" + " AND " + queryDate;
             
             // Municipality: !None, barangayValue: None
             } else if (municipalValue !== 'None' && barangayValue === 'None') {
-                query.where = municipalityExpression;
+                query.where = municipalityExpression + " AND " + queryDate;
             
             // Municipality: !None, barangayValue: !None
             } else if (municipalValue !== 'None' && barangayValue !== 'None') {
-                query.where = municipalityExpression + " AND " + barangayExpression;
+                query.where = municipalityExpression + " AND " + barangayExpression + " AND " + queryDate;
             }
         
             return lotLayer.queryFeatures(query).then(function(response) {
@@ -1811,10 +1808,11 @@ zoomToLayer(stationLayer);
             var uniqueValues2 = [];
             values2.forEach(function(item, i) {
                 if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
-                uniqueValues2.push(item);
+                    uniqueValues2.push(item);
                 }
             });
-            return uniqueValues2;
+            const sortedDates = uniqueValues2.sort();
+            return sortedDates;
         }
     
         function addToSelectQuery3(query2Values) {
