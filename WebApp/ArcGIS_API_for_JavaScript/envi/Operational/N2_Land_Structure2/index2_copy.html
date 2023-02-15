@@ -98,6 +98,7 @@
     }
     
     #pieChartLotDiv,
+    #pieChartLotDiv2,
     #pieChartStructureDiv,
     #pieChartIsfDiv {
         height: 45%;
@@ -296,6 +297,7 @@
                 <calcite-tab>
                     <calcite-switch class="chartChange"></calcite-switch>
                     <div class="box" id="pieChartLotDiv"></div>
+                    <div class="box2" id="pieChartLotDiv2" hidden></div>
                     <div id="lotNumberDiv"></div>
                     <div id="chartMoaLotDiv"></div>
                     <div id="pteLotNumberDiv"></div>
@@ -2429,14 +2431,15 @@ zoomToLayer(stationLayer);
     } // End of updateChartLot()
     updateChartLot();
 
-    
+    /*
     am5.array.each(am5.registry.rootElements, function(root) {
-    if (root) {
-      if (root.dom.id == "pieChartLotDiv") {
-        root.dispose();
-      }
-    }
-});
+        if (root) {
+        if (root.dom.id == "pieChartLotDiv") {
+            root.dispose();
+        }
+        }
+    });
+    */
 
     // ----------------- BAR CHART FOR MOA LOT ----------------- //
     var root2 = am5.Root.new("chartMoaLotDiv");
@@ -2514,6 +2517,7 @@ zoomToLayer(stationLayer);
             wheelX: "none",
             wheelY: "none",
             paddingLeft: 0,
+
           })
         );
 
@@ -2603,7 +2607,7 @@ zoomToLayer(stationLayer);
               fill: root2.interfaceColors.get("alternativeText"),
               centerY: 3.7,
               centerX: am5.p50,
-              fontSize: 12,
+              fontSize: 14,
               populateText: true
             })
           });
@@ -3242,7 +3246,7 @@ zoomToLayer(stationLayer);
               fill: root4.interfaceColors.get("alternativeText"),
               centerY: 2.6,
               centerX: am5.p50,
-              fontSize: 12,
+              fontSize: 14,
               populateText: true
             })
           });
@@ -3822,15 +3826,13 @@ zoomToLayer(stationLayer);
     
     
     // Now use the above compiled values
-    var root6 = am5.Root.new("pieChartLotDiv");
+    var root6 = am5.Root.new("pieChartLotDiv2");
     var myTheme = am5.Theme.new(root6);
 
     myTheme.rule("Grid", ["base"]).setAll({
           strokeOpacity: 0,
         });
 
-    
-    
     function percentHandedOverLotByCPChart(compileArray5) {
         root6.container.children.clear();
         var myTheme = am5.Theme.new(root6);
@@ -3876,144 +3878,133 @@ zoomToLayer(stationLayer);
         layout: root6.verticalLayout
         }));
 
-var data = [
-    {
-        category: "N-05",
-        "value": n05_perc,
-    },
-    {
-        category: "N-04",
-        "value": n04_perc,
-    },
-    {
-        category: "N-03",
-        "value": n03_perc,
-    },
-    {
-        category: "N-02",
-        "value": n02_perc,
-    },
-    {
-        category: "N-01",
-        "value": n01_perc,
-    }
-];
+        var data = [
+            {
+                category: "N-05",
+                "value": n05_perc,
+            },
+            {
+                category: "N-04",
+                "value": n04_perc,
+            },
+            {
+                category: "N-03",
+                "value": n03_perc,
+            },
+            {
+                category: "N-02",
+                "value": n02_perc,
+            },
+            {
+                category: "N-01",
+                "value": n01_perc,
+            }
+        ];
 
 
 
-// Create axes
-// https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
-var yRenderer = am5xy.AxisRendererY.new(root6, {
-    strokeOpacity: 1,
-    strokeWidth: 1,
-    stroke: am5.color("#ffffff"),
-});
+        // Create axes
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+        var yRenderer = am5xy.AxisRendererY.new(root6, {
+            strokeOpacity: 1,
+            strokeWidth: 1,
+            stroke: am5.color("#ffffff"),
+        });
 
-var yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root6, {
-  categoryField: "category",
-  renderer: yRenderer,
-  tooltip: am5.Tooltip.new(root6, {})
-}));
+        var yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root6, {
+        categoryField: "category",
+        renderer: yRenderer,
+        tooltip: am5.Tooltip.new(root6, {})
+        }));
 
-  // Label properties Y axis
-  yAxis.get("renderer").labels.template.setAll({
-    //oversizedBehavior: "wrap",
-    textAlign: "center",
-    fill: am5.color("#ffffff"),
-    //maxWidth: 150,
-    fontSize: 14
-  });
+        // Label properties Y axis
+        yAxis.get("renderer").labels.template.setAll({
+            //oversizedBehavior: "wrap",
+            textAlign: "center",
+            fill: am5.color("#ffffff"),
+            //maxWidth: 150,
+            fontSize: 14
+        });
 
-yRenderer.grid.template.setAll({
-  location: 1
-})
+        yRenderer.grid.template.setAll({
+        location: 1
+        })
 
-yAxis.data.setAll(data);
+        yAxis.data.setAll(data);
 
-// Set xaxis
-var xRenderer = am5xy.AxisRendererX.new(root6, {
-    strokeOpacity: 1,
-    strokeWidth: 1,
-    stroke: am5.color("#ffffff"),
-});
+        // Set xaxis
+        var xRenderer = am5xy.AxisRendererX.new(root6, {
+            strokeOpacity: 1,
+            strokeWidth: 1,
+            stroke: am5.color("#ffffff"),
+        });
 
-// Remove xaxis labels
-xRenderer.labels.template.set('visible', false);
+        // Remove xaxis labels
+        xRenderer.labels.template.set('visible', false);
 
-var xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root6, {
-  min: 0,
-  max: 100,
-  strictMinMax: true,
-  calculateTotals: true,
-  renderer: xRenderer
-}));
+        var xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root6, {
+        min: 0,
+        max: 100,
+        strictMinMax: true,
+        calculateTotals: true,
+        renderer: xRenderer
+        }));
 
-// Chart title
-chart.children.unshift(am5.Label.new(root6, {
-    text: "Handed-Over Area",
-    fontSize: 15,
-    fontWeight: "bold",
-    textAlign: "center",
-    fill: am5.color("#3ce00a"),
-    x: am5.percent(50),
-    centerX: am5.percent(50),
-    paddingTop: -5,
-    paddingBottom: 0,
-}));
+        // Chart title
+        chart.children.unshift(am5.Label.new(root6, {
+            text: "Handed-Over Area",
+            fontSize: 15,
+            fontWeight: "bold",
+            textAlign: "center",
+            fill: am5.color("#ffffff"),
+            x: am5.percent(50),
+            centerX: am5.percent(50),
+            paddingTop: -5,
+            paddingBottom: 0,
+        }));
 
-// Add series
-// https://www.amcharts.com/docs/v5/charts/xy-chart/series/
-function makeSeries(name, fieldName) {
-  var series = chart.series.push(am5xy.ColumnSeries.new(root6, {
-    name: name,
-    stacked: true,
-    xAxis: xAxis,
-    yAxis: yAxis,
-    baseAxis: yAxis,
-    valueXShow: "valueXTotalPercent",
-    valueXField: fieldName,
-    categoryYField: "category",
-    fill: am5.color("#0070ff")
-  }));
+        // Add series
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+        function makeSeries(name, fieldName) {
+        var series = chart.series.push(am5xy.ColumnSeries.new(root6, {
+            name: name,
+            stacked: true,
+            xAxis: xAxis,
+            yAxis: yAxis,
+            baseAxis: yAxis,
+            valueXShow: "valueXTotalPercent",
+            valueXField: fieldName,
+            categoryYField: "category",
+            fill: am5.color("#0070ff")
+        }));
 
-  series.columns.template.setAll({
-    //tooltipText: "{name}, {categoryY}: {valueX}%",
-    //tooltipY: am5.percent(90)
-  });
-  series.data.setAll(data);
+        series.columns.template.setAll({
+            //tooltipText: "{name}, {categoryY}: {valueX}%",
+            //tooltipY: am5.percent(90)
+        });
+        series.data.setAll(data);
 
-  // Make stuff animate on load
-  // https://www.amcharts.com/docs/v5/concepts/animations/
-  series.appear();
+        // Make stuff animate on load
+        // https://www.amcharts.com/docs/v5/concepts/animations/
+        series.appear();
 
-  series.bullets.push(function() {
-    return am5.Bullet.new(root6, {
-      sprite: am5.Label.new(root6, {
-        text: "{valueX}%",
-        fill: am5.color("#ffffff"),//root6.interfaceColors.get("alternativeText"),
-        centerY: am5.p50,
-        centerX: am5.p50,
-        populateText: true,
-        fontSize: 17
-      })
-    });
-  });
-
-
-}
-
-makeSeries("Value", "value");
-//makeSeries("North America", "namerica");
-
-
-
-// Make stuff animate on load
-// https://www.amcharts.com/docs/v5/concepts/animations/
-chart.appear(1000, 100);
-
+        series.bullets.push(function() {
+            return am5.Bullet.new(root6, {
+            sprite: am5.Label.new(root6, {
+                text: "{valueX}%",
+                fill: am5.color("#ffffff"),//root6.interfaceColors.get("alternativeText"),
+                centerY: am5.p50,
+                centerX: am5.p50,
+                populateText: true,
+                fontSize: 17
+            })
+            });
+        });
+        }
+        makeSeries("Value", "value");
+        chart.appear(1000, 100);
     } // end of updateChart()  
-
-   
+    combinedAffectedHandedOverAreaChart();
         async function combinedAffectedHandedOverAreaChart() {
             n01AffectedHandedOverArea()
             .then(n02AffectedHandedOverArea)
@@ -4072,16 +4063,12 @@ chart.appear(1000, 100);
      
     // chart switch between land acquisition pie chart and handed-over area bar graph
     let CountButtonHomeClicks = 0;
+    const pieChartLotDiv = document.getElementById("pieChartLotDiv");
+    const pieChartLotDiv2 = document.getElementById("pieChartLotDiv2");
     const toggleChart = () => {
-        CountButtonHomeClicks += 1;
-        //console.log(CountButtonHomeClicks);
+        pieChartLotDiv.hidden = !pieChartLotDiv.hidden;
+        pieChartLotDiv2.hidden = !pieChartLotDiv2.hidden;
 
-        if (CountButtonHomeClicks === 1) {
-            combinedAffectedHandedOverAreaChart();
-        } else {
-            const result = (CountButtonHomeClicks % 2  == 0) ? "even" : "odd";
-            result == "even" ? updateChartLot() : combinedAffectedHandedOverAreaChart();
-        }       
     };
     document.querySelector(".chartChange").addEventListener("calciteSwitchChange", toggleChart);
 
