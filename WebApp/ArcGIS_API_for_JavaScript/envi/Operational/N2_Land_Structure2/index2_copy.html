@@ -2429,6 +2429,15 @@ zoomToLayer(stationLayer);
     } // End of updateChartLot()
     updateChartLot();
 
+    
+    am5.array.each(am5.registry.rootElements, function(root) {
+    if (root) {
+      if (root.dom.id == "pieChartLotDiv") {
+        root.dispose();
+      }
+    }
+});
+
     // ----------------- BAR CHART FOR MOA LOT ----------------- //
     var root2 = am5.Root.new("chartMoaLotDiv");
         var myTheme = am5.Theme.new(root2);
@@ -2436,7 +2445,12 @@ zoomToLayer(stationLayer);
         myTheme.rule("Grid", ["base"]).setAll({
           strokeOpacity: 0,
         });
-        const statusMOA = ["No Need to Acquire", "CA 141", "Donation", "Expropriation", "For Negotiation"];
+        const statusMOA = ["For Negotiation",
+                            "Expropriation",
+                            "Donation",
+                            "CA 141",
+                            "No Need to Acquire"
+                          ];
 
     function updateMoaChartLot() {
         root2.container.children.clear();
@@ -2675,27 +2689,27 @@ zoomToLayer(stationLayer);
         }));
         // Set data
         var data = [
-                {
-                    category: statusMOA[0],
-                    value: noneed
-                },
-                {
-                    category: statusMOA[1],
-                    value: ca141
-                },
-                {
-                    category: statusMOA[2],
-                    value: donate
-                },
-                {
-                    category: statusMOA[3],
-                    value: expro
-                },
-                {
-                    category: statusMOA[4],
-                    value: nego
-                }
-            ]; // End of chart
+            {
+                category: statusMOA[0],
+                value: nego
+            },
+            {
+                category: statusMOA[1],
+                value: expro
+            },
+            {
+                category: statusMOA[2],
+                value: donate
+            },
+            {
+                category: statusMOA[3],
+                value: ca141
+            },
+            {
+                category: statusMOA[4],
+                value: noneed
+            },
+        ]; // End of chart
 
         yAxis.data.setAll(data);
         series.data.setAll(data);
@@ -2707,6 +2721,7 @@ zoomToLayer(stationLayer);
 
 
         }); // End of queryFeatures
+        return () => {root.dispose()};
     } // End of updateMOAChartLot
     updateMoaChartLot();
 
@@ -2898,6 +2913,9 @@ zoomToLayer(stationLayer);
           stroke: am5.color("#ffffff"),
           strokeWidth: 1,
           strokeOpacity: 1,
+          tooltipText: "{category}: {value}",
+          tooltipY: am5.percent(10),
+          //fill: am5.color("#1e8553")//root3.interfaceColors.get("alternativeText"),
         });
 
 
@@ -3063,8 +3081,6 @@ zoomToLayer(stationLayer);
 
         pieSeries.appear(1000, 100);
 
-
-
         });  // End of queryFeature       
     } // End of updateChartStructure()
     updateChartStructure();
@@ -3076,8 +3092,11 @@ zoomToLayer(stationLayer);
           strokeOpacity: 0,
         });
 
-    const statusMoaStructure = ["No Need to Acquire", "CA 141", "Donation",
-                                "Expropriation", "For Negotiation"];
+    const statusMoaStructure = ["For Negotiation",
+                                "Expropriation",
+                                "Donation",
+                                "No Need to Acquire"
+                                ];
 
     async function updateMoaChartStructure() {
         root4.container.children.clear();
@@ -3100,20 +3119,14 @@ zoomToLayer(stationLayer);
             statisticType: "sum"
         };
 
-        var total_ca141_lot = {
-            onStatisticField: "CASE WHEN MoA = 4 THEN 1 ELSE 0 END",
-            outStatisticFieldName: "total_ca141_lot",
-            statisticType: "sum"
-        };
-
         var total_noneed_lot = {
-            onStatisticField: "CASE WHEN MoA = 5 THEN 1 ELSE 0 END",
+            onStatisticField: "CASE WHEN MoA = 4 THEN 1 ELSE 0 END",
             outStatisticFieldName: "total_noneed_lot",
             statisticType: "sum"
         };
 
         var query = structureLayer.createQuery();
-        query.outStatistics = [total_nego_lot, total_expro_lot, total_donate_lot, total_ca141_lot, total_noneed_lot];
+        query.outStatistics = [total_nego_lot, total_expro_lot, total_donate_lot, total_noneed_lot];
         query.returnGeometry = true;
 
         structureLayer.queryFeatures(query).then(function(response) {
@@ -3122,7 +3135,6 @@ zoomToLayer(stationLayer);
             const nego = stats.total_nego_lot;
             const expro = stats.total_expro_lot;
             const donate = stats.total_donate_lot;
-            const ca141 = stats.total_ca141_lot;
             const noneed = stats.total_noneed_lot;
 
                               // Set themes
@@ -3131,7 +3143,6 @@ zoomToLayer(stationLayer);
           am5themes_Animated.new(root4),
           myTheme
         ]);
-
 
         // Create chart
         // https://www.amcharts.com/docs/v5/charts/xy-chart/
@@ -3159,7 +3170,7 @@ zoomToLayer(stationLayer);
         var yAxis = chart.yAxes.push(
           am5xy.CategoryAxis.new(root4, {
             maxDeviation: 0,
-            categoryField: "country",
+            categoryField: "category",
             renderer: yRenderer,
           })
         );
@@ -3207,7 +3218,7 @@ zoomToLayer(stationLayer);
             yAxis: yAxis,
             valueXField: "value",
             sequencedInterpolation: true,
-            categoryYField: "country",
+            categoryYField: "category",
           })
         );
 
@@ -3229,9 +3240,9 @@ zoomToLayer(stationLayer);
             sprite: am5.Label.new(root4, {
               text: "{value}",
               fill: root4.interfaceColors.get("alternativeText"),
-              centerY: -3,
+              centerY: 2.6,
               centerX: am5.p50,
-              fontSize: 14,
+              fontSize: 12,
               populateText: true
             })
           });
@@ -3248,7 +3259,7 @@ zoomToLayer(stationLayer);
 
 
         series.columns.template.events.on("click", function(ev) {
-          const SELECTED = ev.target.dataItem.dataContext.country;
+          const SELECTED = ev.target.dataItem.dataContext.category;
 
           if (SELECTED == statusMoaStructure[0]) {
                 selectedStatus = 1;
@@ -3258,8 +3269,6 @@ zoomToLayer(stationLayer);
                 selectedStatus = 3;
             } else if (SELECTED == statusMoaStructure[3]) {
                 selectedStatus = 4;
-            } else if (SELECTED == statusMoaStructure[4]) {
-                selectedStatus = 5;
             } else {
                 selectedStatus = null;
             }
@@ -3320,11 +3329,11 @@ zoomToLayer(stationLayer);
         var data = [
                 {
                     category: statusMoaStructure[0],
-                    value: noneed
+                    value: nego
                 },
                 {
                     category: statusMoaStructure[1],
-                    value: ca141
+                    value: expro
                 },
                 {
                     category: statusMoaStructure[2],
@@ -3332,11 +3341,7 @@ zoomToLayer(stationLayer);
                 },
                 {
                     category: statusMoaStructure[3],
-                    value: expro
-                },
-                {
-                    category: statusMoaStructure[4],
-                    value: nego
+                    value: noneed
                 }
       ];
 
@@ -3815,7 +3820,7 @@ zoomToLayer(stationLayer);
         });
     }
     
-    /*
+    
     // Now use the above compiled values
     var root6 = am5.Root.new("pieChartLotDiv");
     var myTheme = am5.Theme.new(root6);
@@ -3824,8 +3829,12 @@ zoomToLayer(stationLayer);
           strokeOpacity: 0,
         });
 
+    
+    
     function percentHandedOverLotByCPChart(compileArray5) {
         root6.container.children.clear();
+        var myTheme = am5.Theme.new(root6);
+
         // N-01
         const n01_perc = compileArray5[0];
         const n01_other = 0;
@@ -3846,178 +3855,161 @@ zoomToLayer(stationLayer);
         const n05_perc = compileArray5[4];
         const n05_other = 0;
 
-                  // Set themes
+        myTheme.rule("Grid", ["base"]).setAll({
+        strokeOpacity: 0.1
+        });
+
+        // Set themes
         // https://www.amcharts.com/docs/v5/concepts/themes/
         root6.setThemes([
-          am5themes_Animated.new(root6),
-          myTheme
+        am5themes_Animated.new(root6),
+        myTheme
         ]);
-
 
         // Create chart
         // https://www.amcharts.com/docs/v5/charts/xy-chart/
-        var chart = root6.container.children.push(
-          am5xy.XYChart.new(root6, {
-            panX: false,
-            panY: false,
-            wheelX: "none",
-            wheelY: "none",
-            paddingLeft: 0,
-            layout: root6.verticalLayout
-          })
-        );
-
-
-        // Create axes
-        // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
-        var yRenderer = am5xy.AxisRendererY.new(root6, {
-          minGridDistance: 5,
-          strokeOpacity: 1,
-          strokeWidth: 1,
-          inversed: true,
-          stroke: am5.color("#ffffff")
-        });
-        yRenderer.grid.template.set("location", 1);
-
-        var yAxis = chart.yAxes.push(
-          am5xy.CategoryAxis.new(root6, {
-            maxDeviation: 0,
-            categoryField: "category",
-            renderer: yRenderer,
-          })
-        );
-
-        // Remove grid lines
-        yAxis.get("renderer").grid.template.set("forceHidden", true);
-
-        var xAxis = chart.xAxes.push(
-          am5xy.ValueAxis.new(root6, {
-            maxDeviation: 0,
-            min: 0,
-            renderer: am5xy.AxisRendererX.new(root6, {
-              visible: true,
-              strokeOpacity: 1,
-              strictMinMax: true,
-              calculateTotals: true,
-              strokeWidth: 1,
-              stroke: am5.color("#ffffff"),
-            })
-          })
-        );
-        // Remove grid lines
-        xAxis.get("renderer").grid.template.set("forceHidden", true);
-
-
-        // Label properties for yAxis (category axis)
-        yAxis.get("renderer").labels.template.setAll({
-          //oversizedBehavior: "wrap",
-          textAlign: "center",
-          fill: am5.color("#ffffff"),
-          //maxWidth: 150,
-          fontSize: 12
-        });
-
-        xAxis.get("renderer").labels.template.setAll({
-          fill: am5.color("#ffffff"),
-        });
-
-
-
-        // Create series
-        // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
-        var series = chart.series.push(
-          am5xy.ColumnSeries.new(root6, {
-            name: "Series 1",
-            stacked: true,
-            xAxis: xAxis,
-            yAxis: yAxis,
-            valueXField: "value",
-            valueXShow: "valueYTotalPercent",
-            sequencedInterpolation: true,
-            categoryYField: "category",
-          })
-        );
-
-        var columnTemplate = series.columns.template;
-
-        columnTemplate.setAll({
-          draggable: true,
-          cursorOverStyle: "pointer",
-          tooltipText: "{value}",
-          cornerRadiusBR: 10,
-          cornerRadiusTR: 10,
-          strokeOpacity: 0
-        });
-
-        // Add Label bullet
-        series.bullets.push(function () {
-          return am5.Bullet.new(root6, {
-            locationY: 1,
-            sprite: am5.Label.new(root6, {
-              text: "{value}",
-              fill: root6.interfaceColors.get("alternativeText"),
-              centerY: -3,
-              centerX: am5.p50,
-              fontSize: 14,
-              populateText: true
-            })
-          });
-        });
-
-        chart.get("colors").set("colors", [
-            am5.color("#0070ff"),
-            am5.color("#0070ff"),
-        ]);
-
-        // Chart title
-        chart.children.unshift(am5.Label.new(root6, {
-          text: "Handed-Over Area",
-          fontSize: 14,
-          fontWeight: "bold",
-          textAlign: "center",
-          fill: am5.color("#3ce00a"),
-          x: am5.percent(50),
-          centerX: am5.percent(50),
-          paddingTop: -10,
-          paddingBottom: 0,
+        var chart = root6.container.children.push(am5xy.XYChart.new(root6, {
+        panX: false,
+        panY: false,
+        wheelX: "panY",
+        wheelY: "zoomY",
+        layout: root6.verticalLayout
         }));
-        // Set data
-        var data = [
-          {
-            category: "N-05",
-            value: n05_perc,
-            value1: 0,
-          },
-          {
-            category: "N-04",
-            value: n04_perc,
-            value1: 0,
-          },
-          {
-            category: "N-03",
-            value: n03_perc,
-            value1: 0,
-          },
-          {
-            category: "N-02",
-            value: n02_perc,
-            value1: 0,
-          },
-          {
-            category: "N-01",
-            value: n01_perc,
-            value1: 0,
-          },
-      ];
 
-        yAxis.data.setAll(data);
-        series.data.setAll(data);
+var data = [
+    {
+        category: "N-05",
+        "value": n05_perc,
+    },
+    {
+        category: "N-04",
+        "value": n04_perc,
+    },
+    {
+        category: "N-03",
+        "value": n03_perc,
+    },
+    {
+        category: "N-02",
+        "value": n02_perc,
+    },
+    {
+        category: "N-01",
+        "value": n01_perc,
+    }
+];
 
 
-        // Make stuff animate on load
-        // https://www.amcharts.com/docs/v5/concepts/animations/
-        series.appear(1000);
-        chart.appear(1000, 100);
+
+// Create axes
+// https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+var yRenderer = am5xy.AxisRendererY.new(root6, {
+    strokeOpacity: 1,
+    strokeWidth: 1,
+    stroke: am5.color("#ffffff"),
+});
+
+var yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root6, {
+  categoryField: "category",
+  renderer: yRenderer,
+  tooltip: am5.Tooltip.new(root6, {})
+}));
+
+  // Label properties Y axis
+  yAxis.get("renderer").labels.template.setAll({
+    //oversizedBehavior: "wrap",
+    textAlign: "center",
+    fill: am5.color("#ffffff"),
+    //maxWidth: 150,
+    fontSize: 14
+  });
+
+yRenderer.grid.template.setAll({
+  location: 1
+})
+
+yAxis.data.setAll(data);
+
+// Set xaxis
+var xRenderer = am5xy.AxisRendererX.new(root6, {
+    strokeOpacity: 1,
+    strokeWidth: 1,
+    stroke: am5.color("#ffffff"),
+});
+
+// Remove xaxis labels
+xRenderer.labels.template.set('visible', false);
+
+var xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root6, {
+  min: 0,
+  max: 100,
+  strictMinMax: true,
+  calculateTotals: true,
+  renderer: xRenderer
+}));
+
+// Chart title
+chart.children.unshift(am5.Label.new(root6, {
+    text: "Handed-Over Area",
+    fontSize: 15,
+    fontWeight: "bold",
+    textAlign: "center",
+    fill: am5.color("#3ce00a"),
+    x: am5.percent(50),
+    centerX: am5.percent(50),
+    paddingTop: -5,
+    paddingBottom: 0,
+}));
+
+// Add series
+// https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+function makeSeries(name, fieldName) {
+  var series = chart.series.push(am5xy.ColumnSeries.new(root6, {
+    name: name,
+    stacked: true,
+    xAxis: xAxis,
+    yAxis: yAxis,
+    baseAxis: yAxis,
+    valueXShow: "valueXTotalPercent",
+    valueXField: fieldName,
+    categoryYField: "category",
+    fill: am5.color("#0070ff")
+  }));
+
+  series.columns.template.setAll({
+    //tooltipText: "{name}, {categoryY}: {valueX}%",
+    //tooltipY: am5.percent(90)
+  });
+  series.data.setAll(data);
+
+  // Make stuff animate on load
+  // https://www.amcharts.com/docs/v5/concepts/animations/
+  series.appear();
+
+  series.bullets.push(function() {
+    return am5.Bullet.new(root6, {
+      sprite: am5.Label.new(root6, {
+        text: "{valueX}%",
+        fill: am5.color("#ffffff"),//root6.interfaceColors.get("alternativeText"),
+        centerY: am5.p50,
+        centerX: am5.p50,
+        populateText: true,
+        fontSize: 17
+      })
+    });
+  });
+
+
+}
+
+makeSeries("Value", "value");
+//makeSeries("North America", "namerica");
+
+
+
+// Make stuff animate on load
+// https://www.amcharts.com/docs/v5/concepts/animations/
+chart.appear(1000, 100);
 
     } // end of updateChart()  
 
@@ -4030,7 +4022,6 @@ zoomToLayer(stationLayer);
             .then(n05AffectedHandedOverArea)
             .then(percentHandedOverLotByCPChart)
         }
-*/
 
       // view.when
       view.when(() => {
@@ -4083,7 +4074,7 @@ zoomToLayer(stationLayer);
     let CountButtonHomeClicks = 0;
     const toggleChart = () => {
         CountButtonHomeClicks += 1;
-        console.log(CountButtonHomeClicks);
+        //console.log(CountButtonHomeClicks);
 
         if (CountButtonHomeClicks === 1) {
             combinedAffectedHandedOverAreaChart();
