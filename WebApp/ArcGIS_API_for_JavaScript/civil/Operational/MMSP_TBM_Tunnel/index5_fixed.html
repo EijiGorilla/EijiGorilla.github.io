@@ -2015,127 +2015,73 @@ const options = {
   
   // Find current position of TBM
   // The current position refers to the spot of minimum segment No.
-  var graphicsLayer = new GraphicsLayer();
-  map.add(graphicsLayer);
-
-  function tbmPositionSymbol(cpValue, tbmValue) {
-    graphicsLayer.removeAll();
-    var query = tbmTunnelLayer.createQuery();
-    query.returnGeometry = true;
-
-    const packageExpression = "Package = '" + cpValue + "'";
-    const tbmExpression = "line = '" + tbmValue + "'";
-
-    if (tbmValue === undefined) {
-      query.where = "tbmSpot = 1" + " AND " + packageExpression; // to be constructed
-    } else {
-      query.where = "tbmSpot = 1" + " AND " + packageExpression + " AND " + tbmExpression;
-    }
-    
-    query.groupByFieldsForStatistics = ["line"];
-    
-    tbmTunnelLayer.queryFeatures(query).then(function(response) {
-    const stats = response.features;   
-    
-    stats.forEach((result, index) => {
-      const attributes = result.attributes;
-      const lineType = attributes.line;
-      const segmentNo = attributes.segmentno;
-      const vertex = result.geometry.paths[0];
-      
-      const long = (vertex[0][0] + vertex[1][0]) / 2;
-      const lat = (vertex[0][1] + vertex[1][1]) / 2;
-      // longitude: vertex[0][0]
-      // latitude: vertex[0][1]
-
-      const point = {
-        spatialReference: spatialReference,
-        type: "point",
-        x: long,
-        y: lat,
-        z: 15
-      }
-
-      const symbol = {
-        type: "point-3d",
-              symbolLayers: [
-                  {
-                      type: "icon",
-                      resource: {
-                        href: "https://EijiGorilla.github.io/Symbols/TBM_LOGO2.png"
-                      },
-                      size: 30
-                      //resource: {primitive: "circle"},
-                      //material: {color: "green"}
-                  }
-              ],
-              verticalOffset: {
-                  screenLength: 100,
-                  maxWorldLength: 500,
-                  minWorldLength: 40
-              },
-              callout: {
-                  type: "line",
-                  size: 1.5,
-                  color: "#E83618",
-                  border: {
-                      color: "#E83618"
-                  }
-              },
-              maxScale: 1000,
-              minScale: 25000000
-      }
-
-      const myGraphic = new Graphic({
-        geometry: point,
-        symbol: symbol
-      });
-
-      graphicsLayer.add(myGraphic);
-    /*
-          view.graphics.add({
-              geometry: {
-                  spatialReference: spatialReference,
-                  type: "point",
-                  x: long,
-                  y: lat,
-                  z: 15
-              },
-              symbol: {
-              type: "point-3d",
-              symbolLayers: [
-                  {
-                      type: "icon",
-                      resource: {
-                        href: "https://EijiGorilla.github.io/Symbols/TBM_LOGO2.png"
-                      },
-                      size: 30
-                      //resource: {primitive: "circle"},
-                      //material: {color: "green"}
-                  }
-              ],
-              verticalOffset: {
-                  screenLength: 100,
-                  maxWorldLength: 500,
-                  minWorldLength: 40
-              },
-              callout: {
-                  type: "line",
-                  size: 1.5,
-                  color: "#E83618",
-                  border: {
-                      color: "#E83618"
-                  }
-              },
-              maxScale: 1000,
-              minScale: 25000000
-          }
-          });
-    */
-    });
-    });
-  }
   
+  function tbmPositionSymbol() {
+    var query = tbmTunnelLayer.createQuery();
+  query.returnGeometry = true;
+  query.where = "tbmSpot = 1"; // to be constructed
+  query.groupByFieldsForStatistics = ["line"];
+  
+  tbmTunnelLayer.queryFeatures(query).then(function(response) {
+  const stats = response.features;   
+  
+  stats.forEach((result, index) => {
+    const attributes = result.attributes;
+    const lineType = attributes.line;
+    const segmentNo = attributes.segmentno;
+    const vertex = result.geometry.paths[0];
+    
+    const long = (vertex[0][0] + vertex[1][0]) / 2;
+    const lat = (vertex[0][1] + vertex[1][1]) / 2;
+    // longitude: vertex[0][0]
+    // latitude: vertex[0][1]
+  
+        view.graphics.add({
+            geometry: {
+                spatialReference: spatialReference,
+                type: "point",
+                x: long,
+                y: lat,
+                z: 15
+            },
+            symbol: {
+            type: "point-3d",
+            symbolLayers: [
+                {
+                    type: "icon",
+                    resource: {
+                      href: "https://EijiGorilla.github.io/Symbols/TBM_LOGO2.png"
+                    },
+                    size: 30
+                    //resource: {primitive: "circle"},
+                    //material: {color: "green"}
+                }
+            ],
+            verticalOffset: {
+                screenLength: 100,
+                maxWorldLength: 500,
+                minWorldLength: 40
+            },
+            callout: {
+                type: "line",
+                size: 1.5,
+                color: "#E83618",
+                border: {
+                    color: "#E83618"
+                }
+            },
+            maxScale: 1000,
+            minScale: 25000000
+        }
+        });
+  
+  
+  });
+  
+  });
+  
+  }
+  tbmPositionSymbol();
   /////////////////////////////////////
   
   
@@ -2421,9 +2367,6 @@ function tbmChart(tbmValue) {
       tbmTunnelLayer.visible = true;
       natmLayer.visible = false;
       tbmChart("TBM");
-
-      // cutter head position symbol
-      tbmPositionSymbol("CP101");
       //surveyChart();
       cutterHeadPositionDiv.innerHTML = `<p>Cutter Head Position</p>
                                       -----
@@ -2605,12 +2548,7 @@ function tbmChart(tbmValue) {
     changeSelected();
     tbmFilterList(cpValue);
     sectionOnlyExpression(cpValue);
-
-    // char title 
     tbmChart("TBM");
-
-    // Cutter head position 3D point symbol
-    tbmPositionSymbol(cpValue);
 
     cutterHeadPositionDiv.innerHTML = `<p>Cutter Head Position</p>
                                       -----
@@ -2627,9 +2565,6 @@ function tbmChart(tbmValue) {
     const tbmno = tbmValue == 'None' ? "TBM" : tbmValue; 
     tbmChart(tbmno);
     cutterHeadPosition(tbmValue);
-
-    // Cutter head position 3D point symbol
-    tbmPositionSymbol(cpValue, tbmValue);
 
   });
 
