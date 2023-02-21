@@ -56,10 +56,10 @@
     }
 
     #see-through-label {
-      position: absolute;
+      position: fixed;
       z-index: 1;
-      bottom: 10px;
-      right: 320px;
+      bottom: 10;
+      right: 20%;
     }
 
     calcite-tabs {
@@ -79,6 +79,8 @@
     #header-title {
       margin-left: 1rem;
       margin-right: 1rem;
+      margin-top: 1rem;
+      
     }
 
     #info-content {
@@ -129,6 +131,21 @@
     height: auto;
   }
 
+  #filterValuesDiv {
+    position: fixed;
+    z-index: 1;
+    padding: 5;
+      top: 10%;
+      right: 50%;
+
+  
+  }
+    #filterValuesDiv b {
+    color: #d4ff33;
+    margin: auto;
+    font-size: 1.9rem;
+  }
+
   #chartTbmDiv,
   #chartNatmDiv {
     width: 100%;
@@ -160,7 +177,7 @@
   #cutterHeadPositionDiv {
       border: 1px solid var(--calcite-ui-border-1);
       margin: auto;
-      height: 11vh;
+      height: 10vh;
       text-align: center;
       font-weight: normal;
       font-size: 1.5vw;
@@ -182,7 +199,7 @@
     margin-top: 5;
     text-align: center;
     font-size: 1.5rem;
-    font-weight: normal;
+    font-weight: bold;
     color: white;
   }
 
@@ -312,7 +329,7 @@
     color: #fff;
   }
 
-  .sassy-theme .esri-legend__layer-caption {
+  .esri-legend__layer-caption {
     display: none;
   }
 
@@ -351,7 +368,7 @@
           </div>
         </div>  
       </div>
-
+      <div id="filterValuesDiv"></div>
       <!-- Icon Panel for Action -->
       <!-- https://developers.arcgis.com/calcite-design-system/icons/?icon=list&library=Calcite%20UI -->
       <calcite-shell-panel slot="panel-start" detached>
@@ -1148,14 +1165,6 @@ require([
     };
 
   
-    /* The colors used for the each transit line */
-    /* The colors used for the each transit line */
-    const colors = {
-      1: [225, 225, 225, 0.1], // To be Constructed (white)
-      2: [255, 255, 0, 1], // Under Construction
-      3: [0, 112, 255, 0.8], // Completed
-    };
-  
   // Bridge: -----------
   const colorsBridge = {
       'Minor': [112, 168, 0, 0.4], // To be Constructed (white)
@@ -1644,6 +1653,86 @@ const options = {
     profileRotation: "all"
 };
 
+/* The colors used for the each transit line */
+const colors = {
+  1: [225, 225, 225, 0.1], // To be Constructed (white)
+  2: [232, 54, 24, 1], // Excavated
+  3: [0, 112, 255, 0.8], // Completed
+};
+
+let tbmStatusRenderer = {
+  type: "unique-value",
+  field: "status",
+  uniqueValueInfos: [
+    {
+      value: 1,
+      label: 'To be Constructed',
+      symbol: {
+              type: "line-3d",
+              symbolLayers: [
+                {
+                  type: "path",
+                  profile: options.profile,
+                  material: {
+                    color: colors[1]
+                  },
+                  width: options.width,
+                  height: options.height,
+                  join: options.join,
+                  cap: options.cap,
+                  anchor: "bottom",
+                  profileRotation: options.profileRotation
+                }
+              ]
+            }
+    },
+    {
+      value: 2,
+      label: 'Excavating (Cutter Head)',
+      symbol: {
+              type: "line-3d",
+              symbolLayers: [
+                {
+                  type: "path",
+                  profile: options.profile,
+                  material: {
+                    color: colors[2]
+                  },
+                  width: options.width,
+                  height: options.height,
+                  join: options.join,
+                  cap: options.cap,
+                  anchor: "bottom",
+                  profileRotation: options.profileRotation
+                }
+              ]
+            }
+    },
+    {
+      value: 3,
+      label: 'Segmented',
+      symbol: {
+              type: "line-3d",
+              symbolLayers: [
+                {
+                  type: "path",
+                  profile: options.profile,
+                  material: {
+                    color: colors[3]
+                  },
+                  width: options.width,
+                  height: options.height,
+                  join: options.join,
+                  cap: options.cap,
+                  anchor: "bottom",
+                  profileRotation: options.profileRotation
+                }
+              ]
+            }
+    }
+  ]
+}
+
   var tbmTunnelLayer = new FeatureLayer({
     portalItem: {
       id: "af9539f5e41e4bd8b694973972e3faf4",
@@ -1657,48 +1746,14 @@ const options = {
     },
     hasZ: true,
     layerId: 2,
+    renderer: tbmStatusRenderer,
     //labelingInfo: [tbmSpotLabel2],
      title: "TBM Segment",
      outFields: ["*"]
     });
     map.add(tbmTunnelLayer);
   
-    function renderTransitLayer() {
-      const renderer = new UniqueValueRenderer({
-        field: "status"
-      });
-  
-      for (let property in colors) {
-        if (colors.hasOwnProperty(property)) {
-          renderer.addUniqueValueInfo({
-            value: property,
-            symbol: {
-              type: "line-3d",
-              symbolLayers: [
-                {
-                  type: "path",
-                  profile: options.profile,
-                  material: {
-                    color: colors[property]
-                  },
-                  width: options.width,
-                  height: options.height,
-                  join: options.join,
-                  cap: options.cap,
-                  anchor: "bottom",
-                  profileRotation: options.profileRotation
-                }
-              ]
-            }
-          });
-        }
-      }
-  
-      tbmTunnelLayer.renderer = renderer;
-    }
-  
-    renderTransitLayer();
-  
+
   // River Layer:-------------------
     const riverLayer = new FeatureLayer({
       portalItem: {
@@ -2235,26 +2290,30 @@ function tbmChart(tbmValue) {
       endAngle: 0,
       radius: am5.percent(90), // size of overall chart
       innerRadius: -20, // expand inward
+
     })
   );
 
   // Chart title
+ 
   chart.children.unshift(am5.Label.new(root, {
-    text: tbmValue,
-    fontSize: "1.6em",
-    fontWeight: "bold",
+    text: "SEGMENTATION",
+    fontSize: "1.9em",
+    //fontWeight: "bold",
     textAlign: "center",
-    fill: chartTitleColor,
+    fill: percentProgressLabelColor,
     x: am5.percent(50),
     centerX: am5.percent(50),
-    paddingTop: -10,
-    paddingBottom: 0,
-    marginBottom: -40
+    y: am5.percent(5),
+    centerY: am5.percent(50),
+    paddingBottom: 20
+    //marginBottom: 20
   }));
 
+/*
   chart.children.unshift(am5.Label.new(root, {
     text: "Segmented",
-    fontSize: "1.2em",
+    fontSize: "1.5em",
     textAlign: "center",
     fill: percentProgressLabelColor,
     x: am5.percent(50),
@@ -2265,7 +2324,7 @@ function tbmChart(tbmValue) {
     paddingBottom: 0,
     marginBottom: -40
   }));
-
+*/
   //chart.getNumberFormatter().set("numberFormat", "#'%'");
 
   // Create axis and its renderer
@@ -2350,7 +2409,7 @@ function tbmChart(tbmValue) {
       centerX: am5.percent(50),
       textAlign: "center",
       centerY: am5.percent(90),
-      fontSize: "2.5em",
+      fontSize: "2.8em",
       fill: percentProgressLabelColor
     })
   );
@@ -2413,6 +2472,24 @@ function tbmChart(tbmValue) {
 }
 
   tbmTunnelLayer.definitionExpression = "Package = 'CP101'";
+  
+  // When CP is selected, reset tbm value is 'None'
+  const changeSelected = (e) => {
+    const $select = document.querySelector('#tbmSelect');
+    $select.value = 'None'
+    };
+
+  // Selected Value Labels above gauge
+  const filterValuesDiv = document.getElementById("filterValuesDiv");
+  function selectedValuesLabel(cpValue, tbmValue) {
+    console.log(cpValue);
+    if (tbmValue === 'None' || tbmValue === undefined) {
+      filterValuesDiv.innerHTML = `<b>${cpValue} - All TBMs</b>`;
+    } else {
+      filterValuesDiv.innerHTML = `<b>${cpValue} - ${tbmValue}</b>`;
+    }
+  }
+
     // Default
     function defaultRender(){
       
@@ -2422,6 +2499,13 @@ function tbmChart(tbmValue) {
 
       // cutter head position symbol
       tbmPositionSymbol("CP101");
+
+      // As default, change tbm No = 'None'
+      tbmFilterList("CP101")
+      changeSelected();
+
+      //selectedValuesLabel("CP101")
+      selectedValuesLabel("CP101")
       //surveyChart();
       cutterHeadPositionDiv.innerHTML = `<p>Cutter Head Position</p>
                                       -----
@@ -2463,6 +2547,8 @@ function tbmChart(tbmValue) {
                                       `;
     });
   }
+
+  
 
   // Define 
   var cpSelect = document.getElementById("cpSelect");
@@ -2556,7 +2642,7 @@ function tbmChart(tbmValue) {
     .then(getUniqueValueTBM)
     .then(addToSelectTBM)
   }
-  tbmFilterList();
+  //tbmFilterList();
 
 
   ////////////////// Expression based on the selected from dropdown list
@@ -2569,6 +2655,7 @@ function tbmChart(tbmValue) {
       } else {
         playButtonHide();
       }
+      zoomToLayer(tbmTunnelLayer);
   }
   
   function sectionTbmExpression(cpValue, tbmValue) {
@@ -2591,10 +2678,7 @@ function tbmChart(tbmValue) {
 
   // Dropdown List
   // When section is changed, tunnel type is reset to 'None'
-  const changeSelected = (e) => {
-    const $select = document.querySelector('#tbmSelect');
-    $select.value = 'None'
-    };
+
   
   /// 1. Section dropdown list ('PO', 'Remaining')
   cpSelect.addEventListener("change", function(event) {
@@ -2602,6 +2686,8 @@ function tbmChart(tbmValue) {
     changeSelected();
     tbmFilterList(cpValue);
     sectionOnlyExpression(cpValue);
+
+    selectedValuesLabel(cpValue);
 
     // char title 
     tbmChart("TBM");
@@ -2627,6 +2713,9 @@ function tbmChart(tbmValue) {
 
     // Cutter head position 3D point symbol
     tbmPositionSymbol(cpValue, tbmValue);
+
+    // selected value lable above gauge
+    selectedValuesLabel(cpValue, tbmValue);
 
   });
 
