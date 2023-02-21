@@ -166,7 +166,7 @@ img {
     text-align: center;
     width: 14vw;
     height: 4vh;
-    padding-top: 3;  
+    padding-top: 3;
 }
 
 #labelTotalDiv {
@@ -300,7 +300,7 @@ img {
   z-index: 1;
   background-color: rgb(0,0,0,0);
   width: 9.5vw;
-  height: 12vh;
+  height: 11vh;
 }
 
 #totalProgressDiv {
@@ -1465,66 +1465,16 @@ async function initialization() {
    // Create a Bar chart to calculate % completion for each viaduct sample
    am5.ready(function() {
   
-  // Default label
-  if (document.getElementById("N-01").checked = true) {
-      viaductLayer.definitionExpression = "CP = 'N-01'";
-      PierNoLayer.definitionExpression = "CP = 'N-01'";
-      zoomToLayer(viaductLayer);
-      //chartAllViaduct();
-      
-      perCpProgress();
-  }
-  
-  // click event handler for contract packages
-  cpButtonElement.addEventListener("click", filterByTest);
-  function filterByTest(event) {
-    const selectedID = event.target.id;
-  
-    if(selectedID === "N-01") {
-      viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
-      PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
-   
-      zoomToLayer(viaductLayer);
-      //chartAllViaduct();
-      perCpProgress();
-  
-    } else if (selectedID === "N-02") {
-      viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
-      PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
-  
-      zoomToLayer(viaductLayer);
-      //chartAllViaduct();
-      perCpProgress();
-  
-    } else if (selectedID === "N-03") {
-      viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
-      PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
-  
-      zoomToLayer(viaductLayer);
-      //chartAllViaduct();
-      perCpProgress();
-  
-    } else if (selectedID === "N-04") {
-      viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
-      PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
-   
-      zoomToLayer(viaductLayer);
-      //chartAllViaduct();
-      perCpProgress();
-  }
-  }
-  
-  
   // CHART
   // various properties setting
   const marginTop = 0;
   const marginLeft = 0;
   const marginRight = 0;
   const marginBottom = 0;
-  const paddingTop = 3;
+  const paddingTop = 0;
   const paddingLeft = 5;
   const paddingRight = 5;
-  const paddingBottom = 12;
+  const paddingBottom = 15;
 
   const xAxisNumberFormat = "#'%'";
   const seriesBulletLabelFontSize = "0.5em";
@@ -1775,7 +1725,7 @@ async function initialization() {
 
       });
   }
-  chartBoredPile();
+ 
 
   // 2. Pile Cap
   var root2 = am5.Root.new("chartPileCapDiv"); //testChartDiv
@@ -1815,9 +1765,6 @@ async function initialization() {
           const pileCap_incomp = stats.total_pilecap_incomp;
           const pileCap_comp = stats.total_pilecap_comp;
           const pileCap_delay = stats.total_pilecap_delay;
-
-          console.log("pile cap: " + pileCap_comp);
-          console.log("pile cap: " + pileCap_incomp);
 
                   // Set themes
         // https://www.amcharts.com/docs/v5/concepts/themes/
@@ -1986,7 +1933,6 @@ async function initialization() {
   }); // end of queryFeatures
   } // end of chartPileCap
   
-  chartPileCap();
 
   // 3. Pier (Column)
   var root3 = am5.Root.new("chartPierDiv"); //testChartDiv
@@ -2194,8 +2140,6 @@ async function initialization() {
   }); // end of queryFeatures
   } // end of chartPileCap
 
-  chartPier();
-
     // 4. Pier Head
     var root4 = am5.Root.new("chartPierHeadDiv"); //testChartDiv
 
@@ -2402,7 +2346,6 @@ async function initialization() {
   }); // end of queryFeatures
   } // end of chartPileCap
 
-  chartPierHead();
 
   // 5. Precast
   var root5 = am5.Root.new("chartPrecastDiv"); //testChartDiv
@@ -2609,7 +2552,13 @@ async function initialization() {
   }); // end of queryFeatures
   } // end of chartPileCap
 
-  chartPrecast();
+  function chartAllViaduct() {
+    chartBoredPile();
+    chartPileCap();
+    chartPier();
+    chartPierHead();
+    chartPrecast();
+  }
 
   // Time series chart for progress monitoring of viaduct components
   var root6 = am5.Root.new("timeSeriesChart");
@@ -2617,14 +2566,45 @@ async function initialization() {
   function timeSeriesChart() {
     root6.container.children.clear();
 
+    var total_complete_pile = {
+      onStatisticField: "CASE WHEN (Status1 = 4 and Type = 1) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete_pile",
+      statisticType: "sum"
+    };
+  
+    var total_complete_pilecap = {
+      onStatisticField: "CASE WHEN (Status1 = 4 and Type = 2) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete_pilecap",
+      statisticType: "sum"
+    };
+
+    var total_complete_pier = {
+      onStatisticField: "CASE WHEN (Status1 = 4 and Type = 3) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete_pier",
+      statisticType: "sum"
+    };
+
+    var total_complete_pierhead = {
+      onStatisticField: "CASE WHEN (Status1 = 4 and Type = 4) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete_pierhead",
+      statisticType: "sum"
+    };
+
+    var total_complete_precast = {
+      onStatisticField: "CASE WHEN (Status1 = 4 and Type = 5) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete_precast",
+      statisticType: "sum"
+    };
+
     var query = viaductLayer.createQuery();
     query.where = "end_date IS NOT NULL";
-    //query.outStatistics = [total_count];
-    query.outFields = ["end_date", "Type"];
+    query.outStatistics = [total_complete_pile, total_complete_pilecap,
+                           total_complete_pier, total_complete_pierhead, total_complete_precast];
+    query.outFields = ["end_date"];
     query.orderByFields = ["end_date"];
     query.groupByFieldsForStatistics = ["end_date"];
 
-    const pile = [];
+      const pile = [];
       const pilecap = [];
       const pier = [];
       const pierhead = [];
@@ -2634,224 +2614,24 @@ async function initialization() {
       var stats = response.features;
 
       // collect all dates for each viaduct type
-      stats.forEach((result, index) => {
+      const data = stats.map((result, index) => {
         const attributes = result.attributes;
-        const type = attributes.Type;
         const date = attributes.end_date;
+        
+        const pileCount = attributes.total_complete_pile;
+        const pilecapCount = attributes.total_complete_pilecap;
+        const pierCount = attributes.total_complete_pier;
+        const pierheadCount = attributes.total_complete_pierhead;
+        const precastCount = attributes.total_complete_precast;
 
-        if (type === 1) {
-          pile.push(date);
-        } else if (type === 2) {
-          pilecap.push(date);
-        } else if (type === 3) {
-          pier.push(date);
-        } else if (type === 4) {
-          pierhead.push(date);
-        } else if (type === 5) {
-          precast.push(date);
-        }
-      });
-
-      // Count the number of values per date per viaduct type
-      const datesCount_pile = {};
-      const datesCount_pilecap = {};
-      const datesCount_pier = {};
-      const datesCount_pierhead = {};
-      const datesCount_precast = {};
-
-      for (let i = 0; i < pile.length; i++) {
-        datesCount_pile[pile[i]] = 1 + (datesCount_pile[pile[i]] || 0);
-      }
-      for (let i = 0; i < pilecap.length; i++) {
-        datesCount_pilecap[pilecap[i]] = 1 + (datesCount_pilecap[pilecap[i]] || 0);
-      }
-      for (let i = 0; i < pier.length; i++) {
-        datesCount_pier[pier[i]] = 1 + (datesCount_pier[pier[i]] || 0);
-      }
-      for (let i = 0; i < pierhead.length; i++) {
-        datesCount_pierhead[pierhead[i]] = 1 + (datesCount_pierhead[pierhead[i]] || 0);
-      }
-      for (let i = 0; i < precast.length; i++) {
-        datesCount_precast[precast[i]] = 1 + (datesCount_precast[precast[i]] || 0);
-      }
-
-      // Convert array to Object Array
-      const date_pile = [];
-      const date_pilecap = [];
-      const date_pier = [];
-      const date_pierhead = [];
-      const date_precast = [];
-
-      const value_pile = [];
-      const value_pilecap = [];
-      const value_pier = [];
-      const value_pierhead = [];
-      const value_precast = [];
-
-      // Piles
-      for (let i = 0; i < Object.keys(datesCount_pile).length; i++) {
-        const dates = Number(Object.keys(datesCount_pile)[i]);
-        const values = datesCount_pile[Object.keys(datesCount_pile)[i]];
-        date_pile.push(dates);
-        value_pile.push(values);
-      }
-      const datas_pile = date_pile.map((date, index) => {
+        // compile in object
         return Object.assign({}, {
           date,
-          value: value_pile[index]
-        });
-      });
-      // Sort by date: make sure to sort; otherwise, it fails.
-      const data_pile = datas_pile.sort((a, b) => a.date - b.date);
-      console.log(data_pile);
-
-      // Pile cap
-      for (let i = 0; i < Object.keys(datesCount_pilecap).length; i++) {
-        const dates = Number(Object.keys(datesCount_pilecap)[i]);
-        const values = datesCount_pilecap[Object.keys(datesCount_pilecap)[i]];
-        date_pilecap.push(dates);
-        value_pilecap.push(values);
-      }
-      const datas_pilecap = date_pilecap.map((date, index) => {
-        return Object.assign({}, {
-          date,
-          value: value_pilecap[index]
-        });
-      });
-      // Sort by date: make sure to sort; otherwise, it fails.
-      const data_pilecap = datas_pilecap.sort((a, b) => a.date - b.date);
-
-      // Pier
-      for (let i = 0; i < Object.keys(datesCount_pier).length; i++) {
-        const dates = Number(Object.keys(datesCount_pier)[i]);
-        const values = datesCount_pier[Object.keys(datesCount_pier)[i]];
-        date_pier.push(dates);
-        value_pier.push(values);
-      }
-      const datas_pier = date_pier.map((date, index) => {
-        return Object.assign({}, {
-          date,
-          value: value_pier[index]
-        });
-      });
-      // Sort by date: make sure to sort; otherwise, it fails.
-      const data_pier = datas_pier.sort((a, b) => a.date - b.date);
-
-      // Pier head
-      for (let i = 0; i < Object.keys(datesCount_pierhead).length; i++) {
-        const dates = Number(Object.keys(datesCount_pierhead)[i]);
-        const values = datesCount_pierhead[Object.keys(datesCount_pierhead)[i]];
-        date_pierhead.push(dates);
-        value_pierhead.push(values);
-      }
-      const datas_pierhead = date_pierhead.map((date, index) => {
-        return Object.assign({}, {
-          date,
-          value: value_pierhead[index]
-        });
-      });
-      // Sort by date: make sure to sort; otherwise, it fails.
-      const data_pierhead = datas_pierhead.sort((a, b) => a.date - b.date);
-
-      // Precast
-      for (let i = 0; i < Object.keys(datesCount_precast).length; i++) {
-        const dates = Number(Object.keys(datesCount_precast)[i]);
-        const values = datesCount_precast[Object.keys(datesCount_precast)[i]];
-        date_precast.push(dates);
-        value_precast.push(values);
-      }
-      const datas_precast = date_precast.map((date, index) => {
-        return Object.assign({}, {
-          date,
-          value: value_precast[index]
-        });
-      });
-      // Sort by date: make sure to sort; otherwise, it fails.
-      const data_precast = datas_precast.sort((a, b) => a.date - b.date);
-
-      // final format: [{date: 18900000, pile: 20, pilecap: 30, ..}]
-      // 1. Collect all dates from all the viaduct component
-        const allDates = pile.concat(pilecap, pier, pierhead, precast);
- 
-      // 2. Get unique date values
-        var uniqueValues = [];
-        allDates.forEach(function(item, i) {
-        if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
-          uniqueValues.push(item);
-            }
-      });
-
-      // 3. sorted array [178000,....]
-      const sortedDates = uniqueValues.sort();
-
-      // 4. Get values for each date for each viaduct tyype
-      const pile_a = [];
-      const pilecap_a = [];
-      const pier_a = [];
-      const pierhead_a = [];
-      const precast_a = [];
-
-      for (let i=0; i < sortedDates.length; i++) {
-        // pile
-        var result_pile = data_pile.filter(obj => {
-          return obj.date === sortedDates[i]
-        });
-        if (result_pile.length === 0) {
-          pile_a.push(0);
-        } else {
-          pile_a.push(Object.values(result_pile[0])[1]);
-        }
-
-        // pile cap
-        var result_pilecap = data_pilecap.filter(obj => {
-          return obj.date === sortedDates[i]
-        });
-        if (result_pilecap.length === 0) {
-          pilecap_a.push(0);
-        } else {
-          pilecap_a.push(Object.values(result_pilecap[0])[1]);
-        }
-
-        // pier
-        var result_pier = data_pier.filter(obj => {
-          return obj.date === sortedDates[i]
-        });
-        if (result_pier.length === 0) {
-          pier_a.push(0);
-        } else {
-          pier_a.push(Object.values(result_pier[0])[1]);
-        }
-
-        // pier head
-        var result_pierhead = data_pierhead.filter(obj => {
-          return obj.date === sortedDates[i]
-        });
-        if (result_pierhead.length === 0) {
-          pierhead_a.push(0);
-        } else {
-          pierhead_a.push(Object.values(result_pierhead[0])[1]);
-        }
-
-        // precast
-        var result_precast = data_precast.filter(obj => {
-          return obj.date === sortedDates[i]
-        });
-        if (result_precast.length === 0) {
-          precast_a.push(0);
-        } else {
-          precast_a.push(Object.values(result_precast[0])[1]);
-        }
-      }
-
-      // 5. Compiel in object
-const data = sortedDates.map((date, index) => {
-        return Object.assign({}, {
-          date,
-          pile: pile_a[index],
-          pilecap: pilecap_a[index],
-          pier: pier_a[index],
-          pierhead: pierhead_a[index],
-          precast: precast_a[index]
+          pile: pileCount,
+          pilecap: pilecapCount,
+          pier: pierCount,
+          piearhead: pierheadCount,
+          precast: precastCount
         });
       });
 
@@ -3012,7 +2792,54 @@ const data = sortedDates.map((date, index) => {
   }
   timeSeriesChart();
 
-
+// Default label
+if (document.getElementById("N-01").checked = true) {
+      viaductLayer.definitionExpression = "CP = 'N-01'";
+      PierNoLayer.definitionExpression = "CP = 'N-01'";
+      zoomToLayer(viaductLayer);
+      chartAllViaduct();
+      
+      perCpProgress();
+  }
+  
+  // click event handler for contract packages
+  cpButtonElement.addEventListener("click", filterByTest);
+  function filterByTest(event) {
+    const selectedID = event.target.id;
+  
+    if(selectedID === "N-01") {
+      viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
+      PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
+   
+      zoomToLayer(viaductLayer);
+      chartAllViaduct();
+      perCpProgress();
+  
+    } else if (selectedID === "N-02") {
+      viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
+      PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
+  
+      zoomToLayer(viaductLayer);
+      chartAllViaduct();
+      perCpProgress();
+  
+    } else if (selectedID === "N-03") {
+      viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
+      PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
+  
+      zoomToLayer(viaductLayer);
+      chartAllViaduct();
+      perCpProgress();
+  
+    } else if (selectedID === "N-04") {
+      viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
+      PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
+   
+      zoomToLayer(viaductLayer);
+      chartAllViaduct();
+      perCpProgress();
+  }
+  }
 
   }); // end am5 chart
   
