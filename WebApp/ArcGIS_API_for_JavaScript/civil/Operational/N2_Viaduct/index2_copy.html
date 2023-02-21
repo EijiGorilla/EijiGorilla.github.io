@@ -45,20 +45,40 @@ body,
 }
 
 calcite-button {
-      position: absolute;
-      z-index: 99;
-      bottom: 50;
-      left: 10;
+      position: fixed;
+      z-index: 1;
+      bottom: 5%;
+      right: 1%;
     }
 
+    calcite-label {
+      position: fixed;
+      z-index: 1;
+      bottom: 10%;
+      right: 1%;
+      vertical-align: middle;
+      background-color: rgb(52, 52, 52);
+      text-align: center;
+      padding: 7;
+    }
+
+    #see-through-label {
+      padding-top: 10;
+      padding-bottom: 0;
+      display: flex;
+      align-self: center;
+    }
+
+
+
 #headerTitleDiv {
-    font-size: 2rem;
+    font-size: 2.2rem;
     vertical-align: middle;
     padding-top: 3px;
     z-index: 99;
-    position: absolute;
-    left: 17;
-    top: 18;
+    position: fixed;
+    left: 1.5%;
+    top: 2%;
     color: white;
 }
 
@@ -88,30 +108,6 @@ calcite-button {
   color: white;
 }
 
-#menu1 {
-  position: absolute;
-  z-index: 99;
-  bottom: 60;
-  right: 15;
-  padding: 3px 3px 3px 3px;
-  background-color: rgb(0,0,0,0.3);
-  color: white;
-}
-
-#monthlyProgressChartDiv {
-  display: none;
-    position: absolute;
-    width: 60vw;
-    height: 20vh;
-    z-index: 99;
-    bottom: 70%;
-    left:31vw;
-    background-image: linear-gradient(rgb(0,0,0,0), rgb(0,185,242,0.4));
-    border-color: white;
-    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-    background-color: rgb(0,0,0,0.5);
-}
-
 #timeSeriesChart {
       position: absolute;
       z-index: 99;
@@ -127,13 +123,13 @@ calcite-button {
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     text-align: left;
     font-weight: normal;
-    font-size: 1.1vw;
+    font-size: 0.9rem;
     padding-top: 2%;
     margin: 0;
-    z-index:99;
-    top: 55;
-    left: 30;
-    position: absolute;
+    z-index:1;
+    top: 4%;
+    left: 4%;
+    position: fixed;
 }
 
 .img {
@@ -423,9 +419,6 @@ br:after{content:' ';}
       outline: none !important;
   }
 
-
-  
-
 </style>
 <body class="calcite-theme-dark">
   <calcite-loader></calcite-loader>
@@ -504,21 +497,16 @@ br:after{content:' ';}
         <div id="totalProgressDiv"></div>
       </div>
     </div>
-    <div id="menu" class="esri-widget">
-      <input type="checkbox" id="opacityInput" unchecked />
-      <label for="opacityInput">See through ground</label>
-    </div>
-    <div id="menu1" class="esri-widget">
-      <input type="checkbox" id="monthlyProgressInput" unchecked />
-      <label for="monthlyProgressInput">Monthly Progress</label>
-    </div>
-    <calcite-button hidden
+    <calcite-label layout="inline" id="see-through-label">
+      <calcite-checkbox id="myLink"></calcite-checkbox>See-through-Ground
+    </calcite-label>
+    <calcite-button
       icon-end="launch"
       id="time-series"
       >
       Progress Chart
     </calcite-button>
-    <div id="timeSeriesChart"></div>
+    <div id="timeSeriesChart" hidden></div>
     <div class="overlay">
       <div>
         <span id="play" class="button esri-icon-play" style="display: block;" />
@@ -1582,7 +1570,7 @@ async function initialization() {
             };
           }
         }
-/*
+
   // 1. Bored pile
   var root = am5.Root.new("chartBoredPileDiv");
 
@@ -2622,7 +2610,7 @@ async function initialization() {
   } // end of chartPileCap
 
   chartPrecast();
-*/
+
   // Time series chart for progress monitoring of viaduct components
   var root6 = am5.Root.new("timeSeriesChart");
 
@@ -2893,6 +2881,9 @@ const data = sortedDates.map((date, index) => {
           stroke: am5.color("#ffffff"),
       });
       var xAxis = chart.xAxes.push(am5xy.DateAxis.new(root6, {
+        // When you group data for series 
+        // Note you need to baseInterval timeUnit is 'day'
+        // and groupIntervals timeUnit is 'month'
         maxDeviation: 0,
         groupData: true,
         baseInterval: {
@@ -2932,6 +2923,18 @@ const data = sortedDates.map((date, index) => {
           stroke: am5.color("#ffffff"),
         })
       }));
+
+    // Add yaxix title
+    yAxis.children.unshift(
+      am5.Label.new(root6, {
+        rotation: -90,
+        text: "Count",
+        y: am5.p50,
+        centerX: am5.p50,
+        fill: am5.color("#ffffff"),
+        fontSize: 11
+      })
+    );
 
       yAxis.get("renderer").labels.template.setAll({
         //oversizedBehavior: "wrap",
@@ -3114,11 +3117,10 @@ const data = sortedDates.map((date, index) => {
     map.ground.opacity = 0.9;
   });
             
-  document.getElementById("opacityInput")
-          .addEventListener("change", function(event) {
-            map.ground.opacity = event.target.checked ? 0.1 : 0.6;
-          });
-  view.ui.add("menu", "bottom-right");
+  document.getElementById("myLink").addEventListener("click", function(event) {
+      const checked = event.srcElement.checked;
+      map.ground.opacity = event.srcElement.checked ? 0.1 : 0.6;
+    });
   
   
   
