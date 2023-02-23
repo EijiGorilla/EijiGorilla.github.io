@@ -2043,16 +2043,16 @@
 
   // Total progress for both points and lines combined
   function totalProgressPt() {
-  var total_util_number = {
-  onStatisticField: "Status",
-  outStatisticFieldName: "total_util_number",
-  statisticType: "count"
+    var total_util_number = {
+    onStatisticField: "Status",
+    outStatisticFieldName: "total_util_number",
+    statisticType: "count"
   };
 
   var total_prog_util = {
-  onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
-  outStatisticFieldName: "total_prog_util",
-  statisticType: "sum"
+    onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_prog_util",
+    statisticType: "sum"
   };
 
   var query = utilPointLayer.createQuery();
@@ -2060,28 +2060,28 @@
   query.returnGeometry = true;
 
   return utilPointLayer.queryFeatures(query).then(function(response) {
-  var stats = response.features[0].attributes;
-  const progress = stats.total_prog_util;
-  const total = stats.total_util_number;
-  const perc = (progress/total)*100;
+    var stats = response.features[0].attributes;
+    const progress = stats.total_prog_util;
+    const total = stats.total_util_number;
+    const perc = (progress/total)*100;
 
-  const compileArray = [total, progress];
-  return compileArray;
+    const compileArray = [total, progress];
+    return compileArray;
   });
 
   }
 
   function totalProgressLine(compileArray) {
-  var total_util_number = {
-  onStatisticField: "Status",
-  outStatisticFieldName: "total_util_number",
-  statisticType: "count"
+    var total_util_number = {
+    onStatisticField: "Status",
+    outStatisticFieldName: "total_util_number",
+    statisticType: "count"
   };
 
   var total_prog_util = {
-  onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
-  outStatisticFieldName: "total_prog_util",
-  statisticType: "sum"
+    onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_prog_util",
+    statisticType: "sum"
   };
 
   var query = utilLineLayer.createQuery();
@@ -2089,21 +2089,21 @@
   query.returnGeometry = true;
 
   utilLineLayer.queryFeatures(query).then(function(response) {
-  var stats = response.features[0].attributes;
-  const progress = stats.total_prog_util;
-  const total = stats.total_util_number;
-  const perc = (progress/total)*100;
+    var stats = response.features[0].attributes;
+    const progress = stats.total_prog_util;
+    const total = stats.total_util_number;
+    const perc = (progress/total)*100;
 
-  const totalAll = total + compileArray[0];
-  const progressAll = progress + compileArray[1];
+    const totalAll = total + compileArray[0];
+    const progressAll = progress + compileArray[1];
 
-  const totalperc = (progressAll/totalAll)*100;
-  totalProgressDiv.innerHTML = totalperc.toFixed(0) + " %";
-  });
+    const totalperc = (progressAll/totalAll)*100;
+    totalProgressDiv.innerHTML = totalperc.toFixed(0) + " %";
+    });
   }
 
   function totalProgressAll(){
-  totalProgressPt().then(totalProgressLine)
+    totalProgressPt().then(totalProgressLine)
   };
   totalProgressAll();
 
@@ -2117,10 +2117,10 @@
   var typeSelect = document.getElementById("typeSelect");
 
   view.when(function() {
-  return constBoundary.when(function() {
-    var query = constBoundary.createQuery();
-    return constBoundary.queryFeatures(query);
-  });
+    return constBoundary.when(function() {
+      var query = constBoundary.createQuery();
+      return constBoundary.queryFeatures(query);
+    });
   })
   .then(getValues)
   .then(getUniqueValues)
@@ -2143,121 +2143,120 @@
   //Return an array of all the values in the 'Station1' field'
   /// 2.1. CP
   function getValues(response) {
-  var features = response.features;
-  var values = features.map(function(feature) {
-    return feature.attributes.Station1;
-  });
-  return values;
-  }
+    var features = response.features;
+      var values = features.map(function(feature) {
+        return feature.attributes.Station1;
+      });
+      return values;
+    }
 
   // Return an array of unique values in the 'Municipality' field of the lot Layer
   function getUniqueValues(values) {
-  var uniqueValues = [];
+    var uniqueValues = [];
 
-  values.forEach(function(item, i) {
-    if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
-        uniqueValues.push(item);
-    }
-  });
-  return uniqueValues;
+    values.forEach(function(item, i) {
+      if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
+          uniqueValues.push(item);
+      }
+    });
+    return uniqueValues;
   }
 
   // Add stations to the station list as element
   function addToSelect(values) {
-  values.sort();
-  values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
-  values.forEach(function(value) {
-    var option = document.createElement("option");
-    option.text = value;
-    stationSelect.add(option);
-  });
+    values.sort();
+    values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
+    values.forEach(function(value) {
+      var option = document.createElement("option");
+      option.text = value;
+      stationSelect.add(option);
+    });
   }
 
   // 2.2. Company
   // Filter Company List when station list changes
   function filterUtilPointLineCP(stationValue) {
-  var compArray = [];
-  var compArray1 = [];
+    var compArray = [];
+    var compArray1 = [];
 
-  // Query for Utility Point
-  function utilPointQuery() {
-  var query = utilPointLayer.createQuery();
-  // CP: All, Type: All, Provider: All
-  if (stationValue === undefined || stationValue === 'None') {
-  query.where = "1=1";
+    // Query for Utility Point
+    function utilPointQuery() {
+      var query = utilPointLayer.createQuery();
+      // CP: All, Type: All, Provider: All
 
-  // CP: !None, Type: All
-  } else if (stationValue !== 'None') {
-  query.where = "Station1 = '" + stationValue + "'";
-  }
+      if (stationValue === undefined || stationValue === 'None') {
+        query.where = "1=1";
 
-  return utilPointLayer.queryFeatures(query).then(function(response) {
-  stats = response.features;
-  stats.forEach((result, index) => {
-    const attributes = result.attributes;
-    const COMPANY = attributes.Company;
-    compArray.push(COMPANY);
-  });
-  return compArray;
-  }); // end of query features 
-  } // end of utility point query
+      // CP: !None, Type: All
+      } else if (stationValue !== 'None') {
+        query.where = "Station1 = '" + stationValue + "'";
+      }
 
-  // Query for Utility Line
-  function utilLineQuery(compArray){
-  var query2 = utilLineLayer.createQuery();
+      return utilPointLayer.queryFeatures(query).then(function(response) {
+        stats = response.features;
+        stats.forEach((result, index) => {
+          const attributes = result.attributes;
+          const COMPANY = attributes.Company;
+          compArray.push(COMPANY);
+        });
+        return compArray;
+      }); // end of query features 
+   } // end of utility point query
 
-  // CP: All, Type: All, Provider: All
-  if (stationValue === undefined || stationValue === 'None') {
-  query2.where = "1=1";
+    // Query for Utility Line
+    function utilLineQuery(compArray){
+      var query2 = utilLineLayer.createQuery();
 
-  // CP: !None, Type: All
-  } else if (stationValue !== 'None') {
-  query2.where = "Station1 = '" + stationValue + "'";
-  }
+      // CP: All, Type: All, Provider: All
+      if (stationValue === undefined || stationValue === 'None') {
+        query2.where = "1=1";
+
+      // CP: !None, Type: All
+      } else if (stationValue !== 'None') {
+        query2.where = "Station1 = '" + stationValue + "'";
+      }
 
 
-  return utilLineLayer.queryFeatures(query2).then(function(response) {
-  stats = response.features;
-  stats.forEach(result => {
-    const attributes = result.attributes;
-    const COMPANY = attributes.Company;
-    compArray1.push(COMPANY);
-  });
-  const allArray = compArray.concat(compArray1);
-  return allArray;
-  });
-  } // end of Utility line query
+      return utilLineLayer.queryFeatures(query2).then(function(response) {
+        stats = response.features;
+        stats.forEach(result => {
+          const attributes = result.attributes;
+          const COMPANY = attributes.Company;
+          compArray1.push(COMPANY);
+        });
+        const allArray = compArray.concat(compArray1);
+        return allArray;
+      });
+    } // end of Utility line query
 
-  function getUniqueValues2(values2) {
-  var uniqueValues2 = [];
-  values2.forEach(function(item, i) {
-    if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
-        uniqueValues2.push(item);
+    function getUniqueValues2(values2) {
+      var uniqueValues2 = [];
+      values2.forEach(function(item, i) {
+        if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
+            uniqueValues2.push(item);
+        }
+      });
+      return uniqueValues2;
     }
-  });
-  return uniqueValues2;
-  }
 
-  // Add the unique values to the second select element (Company)
-  function addToSelectQuery2(query2Values) {
-  companySelect.options.length = 0;
-  query2Values.sort();
-  query2Values.unshift('None');
-  query2Values.forEach(function(value) {
-  var option = document.createElement("option");
-  option.text = value;
-  companySelect.add(option);
-  });
-
-  //return setLotBarangayExpression(barangaySelect.value);
-  }
-  utilPointQuery()
-  .then(utilLineQuery)
-  .then(getUniqueValues)
-  .then(addToSelectQuery2)
-  .then(totalProgressAll);
-  } // end of filterUtilPointLineCP
-  filterUtilPointLineCP();
+    // Add the unique values to the second select element (Company)
+    function addToSelectQuery2(query2Values) {
+      companySelect.options.length = 0;
+      query2Values.sort();
+      query2Values.unshift('None');
+      query2Values.forEach(function(value) {
+        var option = document.createElement("option");
+        option.text = value;
+        companySelect.add(option);
+      });
+    }
+      utilPointQuery()
+      .then(utilLineQuery)
+      .then(getUniqueValues)
+      .then(addToSelectQuery2)
+      .then(totalProgressAll);
+    } // end of filterUtilPointLineCP
+    filterUtilPointLineCP();
 
   // 2.3. Type (Point, Line)
   function filterUtilPointLineType(stationValue, companyValue) {
@@ -2869,15 +2868,11 @@
 
           var tooltip = am5.Tooltip.new(root, {
             getFillFromSprite: true,
-            height: am5.percent(40),
+            scale: 0.7,
             fontSize: "0.5em",
-            dx: 50,
-            dy: -10,
-            labelText: "[bold][fontSize:12px]{name}: {valueX} ({valueXTotalPercent.formatNumber('#.')}%)"
-          });
-
-          tooltip.get("background").setAll({
-            
+            dx: 0,
+            dy: -20,
+            labelText: "[bold][fontSize:18.5px]{name}: {valueX} ({valueXTotalPercent.formatNumber('#.')}%)"
           });
 
           series.set("tooltip", tooltip);
@@ -3068,21 +3063,19 @@
             }));
 
             series.columns.template.setAll({
-              tooltipText: "{name}, {categoryX}: {valueY}",
-              width: am5.percent(30),
-              tooltipY: 0
-            });
+            tooltipText: "{name}, {categoryX}: {valueY}",
+            width: am5.percent(90),
+            tooltipY: 0
+          });
 
-            var tooltip = am5.Tooltip.new(root2, {
-              getFillFromSprite: true,
-              labelText: "[bold][fontSize:16px]{name}: {valueX}"
-            });
-
-            tooltip.get("background").setAll({
-              fillOpacity: 0.8,
-              strokeOpacity: 0,
-              //width: am5.percent(10)
-            });
+          var tooltip = am5.Tooltip.new(root2, {
+            getFillFromSprite: true,
+            scale: 0.7,
+            fontSize: "0.5em",
+            dx: 0,
+            dy: -20,
+            labelText: "[bold][fontSize:18.5px]{name}: {valueX} ({valueXTotalPercent.formatNumber('#.')}%)"
+          });
 
             series.set("tooltip", tooltip);
             series.data.setAll(data);
@@ -3321,15 +3314,19 @@
         tooltipY: 0
       });
 
-      var tooltip = am5.Tooltip.new(root3, {
-        getFillFromSprite: true,
-        labelText: "[bold][fontSize:16px]{name}: {valueX}"
+      series.columns.template.setAll({
+            tooltipText: "{name}, {categoryX}: {valueY}",
+            width: am5.percent(90),
+            tooltipY: 0
       });
 
-      tooltip.get("background").setAll({
-        fillOpacity: 0.8,
-        strokeOpacity: 0,
-        //width: am5.percent(10)
+      var tooltip = am5.Tooltip.new(root3, {
+        getFillFromSprite: true,
+        scale: 0.7,
+        fontSize: "0.5em",
+        dx: 0,
+        dy: -20,
+        labelText: "[bold][fontSize:18.5px]{name}: {valueX} ({valueXTotalPercent.formatNumber('#.')}%)"
       });
 
       series.set("tooltip", tooltip);
