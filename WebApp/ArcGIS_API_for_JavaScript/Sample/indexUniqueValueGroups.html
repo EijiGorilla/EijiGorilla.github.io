@@ -1,0 +1,764 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>
+      Unique value groups with headings | Sample | ArcGIS Maps SDK for
+      JavaScript 4.25
+    </title>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"
+    />
+    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+
+    <script src="https://js.arcgis.com/calcite-components/1.0.0-beta.99/calcite.esm.js" type="module"></script>
+    <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/1.0.0-beta.99/calcite.css" />
+
+    <script src="https://js.arcgis.com/4.25/"></script>
+
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+      #viewDiv {
+        float: left;
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 75%;
+      }
+      #legend-node {
+        float: left;
+        width: 25%;
+        height: 100%;
+        padding: 1em;
+        overflow: scroll;
+        max-height: 100%;
+        border-width: 2px;
+        border-color: #323232;
+        border-style: solid;
+      }
+
+      #chartPanel {
+        width: 50vw;
+      }
+
+
+    </style>
+
+    <script>
+      require([
+        "esri/views/MapView",
+        "esri/WebMap",
+        "esri/Map",
+        "esri/layers/FeatureLayer",
+        "esri/widgets/Legend"
+      ], (MapView, WebMap, Map, FeatureLayer, Legend) => {
+
+    var map = new Map({
+        basemap: "osm", // "streets-night-vector"
+        ground: "world-elevation" // ground: "no"
+  }); 
+
+        const view = new MapView({
+          container: "viewDiv",
+          map: map,
+          center: [-123.12645, 44.06416],
+          scale: 72223,
+          constraints: {
+            snapToZoom: false
+          }
+        });
+
+        
+        view.when().then(async () => {
+          const osmBaseLayer = view.map.basemap.baseLayers.getItemAt(0);
+          osmBaseLayer.effect = "grayscale(100%)";
+        });
+
+        function createSymbol(color) {
+          return {
+            type: "simple-fill",
+            style: "solid",
+            color,
+            outline: null
+          };
+        }
+
+        const renderer = {
+          type: "unique-value",
+          field: "zonecode",
+          uniqueValueGroups: [
+            {
+              heading: "Commercial",
+              classes: [
+                {
+                  label: "C-1 | Neighborhood Commercial",
+                  symbol: createSymbol([189, 145, 145]),
+                  values: "C-1"
+                },
+                {
+                  label: "C-2 | Community Commercial",
+                  symbol: createSymbol([255, 179, 219]),
+                  values: "C-2"
+                },
+                {
+                  label: "C-3 | Major Commercial",
+                  symbol: createSymbol([255, 0, 0]),
+                  values: "C-3"
+                }
+              ]
+            },
+            {
+              heading: "Office",
+              classes: [
+                {
+                  label: "GO | General Office",
+                  symbol: createSymbol([176, 196, 222]),
+                  values: "GO"
+                },
+                {
+                  label: "E-1 | Campus Employment",
+                  symbol: createSymbol([230, 230, 230]),
+                  values: "E-1"
+                },
+                {
+                  label: "E-2 | Mixed Use Employment",
+                  symbol: createSymbol([255, 20, 255]),
+                  values: "E-2"
+                }
+              ]
+            },
+            {
+              heading: "Residential",
+              classes: [
+                {
+                  label: "R-1 | Low-Density Residential",
+                  symbol: createSymbol([255, 255, 224]),
+                  values: "R-1"
+                },
+                {
+                  label: "R-1.5 | Rowhouse",
+                  symbol: createSymbol([255, 255, 0]),
+                  values: "R-1.5"
+                },
+                {
+                  label: "R-2 | Medium-Density Residential",
+                  symbol: createSymbol([240, 230, 140]),
+                  values: "R-2"
+                },
+                {
+                  label: "R-3 | Limited High-Density Residential",
+                  symbol: createSymbol([255, 214, 0]),
+                  values: "R-3"
+                },
+                {
+                  label: "R-4 | High-Density Residential",
+                  symbol: createSymbol([255, 166, 0]),
+                  values: "R-4"
+                }
+              ]
+            },
+            {
+              heading: "Industrial",
+              classes: [
+                {
+                  label: "I-2 | Light-Medium Industrial",
+                  symbol: createSymbol([219, 112, 214]),
+                  values: "I-2"
+                },
+                {
+                  label: "I-3 | Heavy Industrial",
+                  symbol: createSymbol([148, 112, 219]),
+                  values: "I-3"
+                }
+              ]
+            },
+            {
+              heading: "Open Space",
+              classes: [
+                {
+                  label: "NR | Natural Resource",
+                  symbol: createSymbol([125, 252, 0]),
+                  values: "NR"
+                },
+                {
+                  label: "PRO | Park, Recreation & Open Space",
+                  symbol: createSymbol([0, 255, 128]),
+                  values: "PRO"
+                }
+              ]
+            },
+            {
+              heading: "Other",
+              classes: [
+                {
+                  label: "AG | Agricultural",
+                  symbol: createSymbol([219, 166, 33]),
+                  values: "AG"
+                },
+                {
+                  label: "PL | Public Land",
+                  symbol: createSymbol([0, 191, 255]),
+                  values: "PL"
+                },
+                {
+                  label: "S | Special Area",
+                  symbol: createSymbol([161, 237, 237]),
+                  values: [
+                    "S-DW",
+                    "S-DR",
+                    "S-RP",
+                    "S-JW",
+                    "S-RN",
+                    "S-WS",
+                    "S-CN",
+                    "S-HB",
+                    "S-F",
+                    "S-W",
+                    "S-E",
+                    "S-C"
+                  ]
+                },
+                {
+                  label: "S-H | Historic",
+                  symbol: createSymbol([0, 0, 204]),
+                  values: "S-H"
+                }
+              ]
+            }
+          ]
+        };
+
+        // Prepare two renderers for layer: main and sub
+        let defaultSymbol = {
+        type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+        color: [0,0,0,0],
+        style: "solid",
+        outline: {  // autocasts as new SimpleLineSymbol()
+            color: [110, 110, 110],
+            width: 0.7
+        }
+    };
+
+    /*
+    const zoneCode = [
+            "AG", // [1]
+            "C-1", "C-2", "C-3", //[2-4]
+            "GO", // 5
+            "PL", // 6
+            "E-1", "E-2", // 7,8
+            "I-2", "I-3", // 9,10
+            "R-1", "R-2", "R-3", "R-4", // 11-14
+            "NR", // 15
+            "PRO", // 16
+            "S-DW", "S-DR", "S-RP", "S-JW", "S-RN", "S-WS", "S-CN", "S-HB", "S-F", "S-W", "S-E", "S-C", //17-28
+            "S-H" // 29
+        ]
+*/
+        let mainRenderer = {
+          type: "unique-value",
+          defaultSymbol: defaultSymbol,
+          valueExpression: "When($feature.zonecode == 'AG', 'AG', \
+                                 $feature.zonecode == 'C-1' || $feature.zonecode == 'C-2' || $feature.zonecode == 'C-3', 'C',\
+                                 $feature.zonecode == 'GO', 'GO',\
+                                 $feature.zonecode == 'PL', 'PL',\
+                                 $feature.zonecode == 'E-1' || $feature.zonecode == 'E-2', 'E',\
+                                 $feature.zonecode == 'I-2' || $feature.zonecode == 'I-3', 'I',\
+                                 $feature.zonecode == 'R-1' || $feature.zonecode == 'R-2' || $feature.zonecode == 'R-3' || $feature.zonecode == 'R-4', 'R',\
+                                 $feature.zonecode == 'NR', 'NR',\
+                                 $feature.zonecode == 'PRO', 'PRO',\
+                                 $feature.zonecode == 'S-DW' || $feature.zonecode == 'S-DR' || \
+                                 $feature.zonecode == 'S-RP' || $feature.zonecode == 'S-JW' || \
+                                 $feature.zonecode == 'S-RN' || $feature.zonecode == 'S-WS' || \
+                                 $feature.zonecode == 'S-CN' || $feature.zonecode == 'S-HB' || \
+                                 $feature.zonecode == 'S-F' || $feature.zonecode == 'S-W' || \
+                                 $feature.zonecode == 'S-E' || $feature.zonecode == 'S-C', 'S', \
+                                 $feature.zonecode == 'S-H', 'S-H', $feature.zonecode)",
+            uniqueValueInfos: [
+              {
+                // All features with value of "North" will be blue
+                value: "AG",
+                symbol: {
+                  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                  color: [78, 78, 78],
+                }
+              },
+              {
+                // All features with value of "North" will be blue
+                value: "C",
+                symbol: {
+                  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                  color: [176, 196, 222],
+                }
+              },
+              {
+                // All features with value of "North" will be blue
+                value: "GO",
+                symbol: {
+                  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                  color: [189, 145, 145],
+                }
+              },
+              {
+                // All features with value of "North" will be blue
+                value: "PL",
+                symbol: {
+                  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                  color: [189, 145, 145],
+                }
+              },
+              {
+                // All features with value of "North" will be blue
+                value: "E",
+                symbol: {
+                  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                  color: [189, 145, 145],
+                }
+              },
+              {
+                // All features with value of "North" will be blue
+                value: "I",
+                symbol: {
+                  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                  color: [78, 78, 78, 0.5],
+                }
+              },
+              {
+                // All features with value of "North" will be blue
+                value: "R",
+                symbol: {
+                  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                  color: [78, 78, 78, 0.5],
+                }
+              },
+              {
+                // All features with value of "North" will be blue
+                value: "NR",
+                symbol: {
+                  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                  color: [255, 179, 219],
+                }
+              },
+              {
+                // All features with value of "North" will be blue
+                value: "PRO",
+                symbol: {
+                  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                  color: [255, 179, 219],
+                }
+              },
+              {
+                // All features with value of "North" will be blue
+                value: "S",
+                symbol: {
+                  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                  color: [255, 179, 219],
+                }
+              },
+              {
+                // All features with value of "North" will be blue
+                value: "S-H",
+                symbol: {
+                  type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                  color: [255, 179, 219],
+                }
+              },
+            ]
+        }
+
+        /*
+        view.on("click", function() {
+              layer.renderer = mainRenderer;
+              layer.renderer.valueExpressionTitle = "Classification (Type)";
+            });
+*/
+
+        //
+
+        const layer = new FeatureLayer({
+          minScale: 0,
+          maxScale: 0,
+          portalItem: {
+            id: "ebb2e1f38f274f2dbbe4cba16c6c66af"
+          },
+          renderer,
+          blendMode: "multiply"
+        });
+        map.add(layer);
+
+        // Chart
+
+        var query = layer.createQuery();
+        query.returnGeometry = true;
+        query.where = "zonecode IS NOT NULL";
+        query.groupByFieldsForStatistics = ["zonecode"];
+
+        const zoneCode = [
+            "AG", // [1]
+            "C-1", "C-2", "C-3", //[2-4]
+            "GO", // 5
+            "PL", // 6
+            "E-1", "E-2", // 7,8
+            "I-2", "I-3", // 9,10
+            "R-1", "R-2", "R-3", "R-4", // 11-14
+            "NR", // 15
+            "PRO", // 16
+            "S-DW", "S-DR", "S-RP", "S-JW", "S-RN", "S-WS", "S-CN", "S-HB", "S-F", "S-W", "S-E", "S-C", //17-28
+            "S-H" // 29
+        ]
+
+        const zoneSummaryCode = [
+          "AG",
+          "C",
+          "GO",
+          "PL",
+          "E",
+          "I",
+          "R",
+          "NR",
+          "PRO",
+          "S",
+          "S-H"
+        ]
+
+        am4core.ready(function() {
+          am4core.useTheme(am4themes_animated);
+
+          function originalFunction() {
+            return layer.queryFeatures(query).then(function(response) {
+            stats = response.features;
+            const codeValues = [];
+            stats.forEach((result, index) => {
+                const attributes = result.attributes;
+                const code = attributes.zonecode;
+                const INDEX = zoneCode.indexOf(code) + 1;
+                codeValues.push(INDEX);
+            });
+            return codeValues;
+         });
+        }
+
+        function getCountEachCode(codeValues) {
+            const codeValueCount = {};
+            for (let i = 0; i < codeValues.length; i++) {
+                codeValueCount[codeValues[i]] = 1 + (codeValueCount[codeValues[i]] || 0);
+            }
+            const AG = codeValueCount[1];
+            const C = codeValueCount[2] + codeValueCount[3] + codeValueCount[4];
+            const GO = codeValueCount[5];
+            const PL = codeValueCount[6];
+            const E = codeValueCount[7] + codeValueCount[8];
+            const I = codeValueCount[9] + codeValueCount[10];
+            const R = codeValueCount[11] + codeValueCount[12] + codeValueCount[13] + codeValueCount[14];
+            const NR = codeValueCount[15];
+            const PRO = codeValueCount[16];
+            const S = codeValueCount[17] + codeValueCount[18] + codeValueCount[19] + codeValueCount[20] +
+                      codeValueCount[21] + codeValueCount[22] + codeValueCount[23] + codeValueCount[24] +
+                      codeValueCount[25] + codeValueCount[26] + codeValueCount[27] + codeValueCount[28];
+            const SH = codeValueCount[29];
+
+            const codeValueCountSum = {1: AG, 2: C, 3: GO, 4: PL, 5: E, 6: I, 7: R, 8: NR, 9: PRO, 10: S, 11: SH};
+            
+            return [codeValueCount, codeValueCountSum];
+        }
+
+        function codeChart2([codeValueCount, codeValueCountSum]) {
+          var chart = am4core.create("chartdiv", am4charts.PieChart);
+          // Add data
+          chart.data = [ {
+            "category": zoneSummaryCode[0],
+            "value": codeValueCountSum[1],
+            "color": am4core.color("#dc4534"),
+          }, {
+            "category": zoneSummaryCode[1],
+            "value": codeValueCountSum[2],
+            "color": am4core.color("#d7a700"),
+          }, {
+            "category": zoneSummaryCode[2],
+            "value": codeValueCountSum[3],
+            "color": am4core.color("#68ad5c"),
+          }
+          ];
+
+          // Add and configure Series
+          var pieSeries = chart.series.push(new am4charts.PieSeries());
+          pieSeries.dataFields.value = "value";
+          pieSeries.dataFields.category = "category";
+          pieSeries.slices.template.stroke = am4core.color("#fff");
+          pieSeries.slices.template.strokeOpacity = 1;
+          pieSeries.slices.template.propertyFields.fill = "color";
+          // This creates initial animation
+          pieSeries.hiddenState.properties.opacity = 1;
+          pieSeries.hiddenState.properties.endAngle = -90;
+          pieSeries.hiddenState.properties.startAngle = -90;
+
+          chart.hiddenState.properties.radius = am4core.percent(0);
+          pieSeries.innerRadius = am4core.percent(50);
+
+        }
+
+        function typeChart() {
+          originalFunction().then(getCountEachCode).then(codeChart2);
+          layer.renderer = mainRenderer;
+          layer.renderer.valueExpressionTitle = "Classification (Type)";
+        }
+///////////////////////////////////////////////////////////////////////////////
+
+        function codeChart([codeValueCount, codeValueCountSum]) {
+          var data = [{
+            "category": zoneSummaryCode[0],
+            "value": codeValueCountSum[1],
+            "color": am4core.color("#dc4534"),
+
+          }, {
+            "category": zoneSummaryCode[1],
+            "value": codeValueCountSum[2],
+            "color": am4core.color("#d7a700"),
+            "breakdown": [{
+              "category": zoneCode[1],
+              "value": codeValueCount[2],
+              "color": am4core.color("#F5B88F"),
+            }, {
+              "category": zoneCode[2],
+              "value": codeValueCount[3],
+              "color": am4core.color("#FF7575"),
+            }, {
+              "category": zoneCode[3],
+              "value": codeValueCount[4],
+              "color": am4core.color("#FF0000"),
+            }]
+          }, {
+            "category": zoneSummaryCode[2],
+            "value": codeValueCountSum[3],
+            "color": am4core.color("#68ad5c"),
+          }]
+
+          /**
+           * Chart container
+           */
+
+          // Create chart instance
+          var chart = am4core.create("chartdiv", am4core.Container);
+          chart.width = am4core.percent(100);
+          chart.height = am4core.percent(100);
+          chart.layout = "horizontal";
+
+          /**
+           * Column chart
+           */
+
+          // Create chart instance
+          var columnChart = chart.createChild(am4charts.XYChart);
+
+          // Create axes
+          var categoryAxis = columnChart.yAxes.push(new am4charts.CategoryAxis());
+          categoryAxis.dataFields.category = "category";
+          categoryAxis.renderer.grid.template.location = 0;
+          categoryAxis.renderer.inversed = true;
+
+          var valueAxis = columnChart.xAxes.push(new am4charts.ValueAxis());
+
+          // Create series
+          var columnSeries = columnChart.series.push(new am4charts.ColumnSeries());
+          columnSeries.dataFields.valueX = "value";
+          columnSeries.dataFields.categoryY = "category";
+          columnSeries.columns.template.strokeWidth = 0;
+
+          var labelBullet = columnSeries.bullets.push(new am4charts.LabelBullet());
+          labelBullet.label.text = "{valueX.formatNumber('#.')}";
+          columnSeries.columns.template.tooltipText = "{valueX.formatNumber('#.')}";
+
+          // Click chart and filter, update maps
+          const chartElement = document.getElementById("chartPanel");
+          columnSeries.columns.template.events.on("hit", filterByChart, this);
+
+          function filterByChart(ev) {
+            const subTypeName = ev.target.dataItem.categories.categoryY;
+
+            var highlight = null;
+
+            view.whenLayerView(layer).then(function(layerView) {
+              layerView.filter = {
+                where: "zonecode = '" + subTypeName + "'"
+              }
+
+              layerView.queryFeatures().then(function(results) {
+                const ggg = results.features;
+                const rowN = ggg.length;
+
+                let objID = [];
+                for (var i=0; i < rowN; i++) {
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
+                }
+
+                view.on("click", function() {
+                  layerView.filter = null;
+                });
+
+
+
+
+              }); // end of layerView.queryFeatures
+
+            }); // end of whenLayerView
+
+           
+
+
+          }
+          
+          /**
+           * Pie chart
+           */
+
+          // Create chart instance
+          var pieChart = chart.createChild(am4charts.PieChart);
+          pieChart.data = data;
+          pieChart.innerRadius = am4core.percent(50);
+
+          // Add and configure Series
+          var pieSeries = pieChart.series.push(new am4charts.PieSeries());
+          pieSeries.dataFields.value = "value";
+          pieSeries.dataFields.category = "category";
+          pieSeries.slices.template.propertyFields.fill = "color";
+          pieSeries.labels.template.disabled = true;
+
+          // Set up labels
+          var label1 = pieChart.seriesContainer.createChild(am4core.Label);
+          label1.text = "";
+          label1.horizontalCenter = "middle";
+          label1.fontSize = 35;
+          label1.fontWeight = 600;
+          label1.dy = -30;
+
+          var label2 = pieChart.seriesContainer.createChild(am4core.Label);
+          label2.text = "";
+          label2.horizontalCenter = "middle";
+          label2.fontSize = 12;
+          label2.dy = 20;
+
+          // Auto-select first slice on load
+          pieChart.events.on("ready", function(ev) {
+            pieSeries.slices.getIndex(0).isActive = true;
+          });
+
+          // Set up toggling events
+          pieSeries.slices.template.events.on("toggled", function(ev) {
+            if (ev.target.isActive) {
+              
+              // Untoggle other slices
+              pieSeries.slices.each(function(slice) {
+                if (slice != ev.target) {
+                  slice.isActive = false;
+                }
+              });
+              
+              // Update column chart
+              columnSeries.appeared = false;
+              columnChart.data = ev.target.dataItem.dataContext.breakdown;
+              //columnSeries.fill = ev.target.fill;
+              columnSeries.reinit();
+
+
+              columnSeries.columns.template.propertyFields.fill = "color";
+              // Update labels
+              label1.text = pieChart.numberFormatter.format(ev.target.dataItem.values.value.percent, "#.'%'");
+              label1.fill = ev.target.fill;
+              
+              label2.text = ev.target.dataItem.category;
+              //console.log(columnChart.data[0].category);
+            }
+          });
+
+        }
+
+        function subTypeChart() {
+          originalFunction().then(getCountEachCode).then(codeChart);
+          layer.renderer = renderer;
+          layer.renderer.valueExpressionTitle = "Classification (SubType)";
+        }
+
+        typeChart();
+
+        view.when(() => {
+                  // Switch
+            // chart switch between land acquisition pie chart and handed-over area bar graph
+            
+            let CountButtonHomeClicks = 0;
+            const toggleChart = () => {
+                CountButtonHomeClicks += 1;
+                if (CountButtonHomeClicks === 1) {
+                  subTypeChart();
+                } else {
+                    const result = (CountButtonHomeClicks % 2  == 0) ? "even" : "odd";
+                    result == "even" ? typeChart() : subTypeChart();
+
+                }       
+            };
+            document.querySelector(".chartChange").addEventListener("calciteSwitchChange", toggleChart);
+        }); // end of view.when
+        
+
+        });
+
+
+
+
+      
+
+        // we need to convert {1: , 2: , 3:}. 1 = zoneCode[1]
+        
+
+        /*
+        function getCountEachCode(codeValues) {
+            const codeValueCount = {};
+            for (let i = 0; i < codeValues.length; i++) {
+                codeValueCount[codeValues[i]] = 1 + (codeValueCount[codeValues[i]] || 0);
+            }
+            
+        }
+*/
+        
+
+        new Legend({
+          view,
+          container: "legend-node"
+        });
+
+      });
+    </script>
+  </head>
+
+  <body>
+    <calcite-loader></calcite-loader>
+      <calcite-shell content-behind>
+        <div id="legend-node" class="esri-widget"></div>
+            <div id="viewDiv">
+              <calcite-tabs>
+                <div id="chartPanel">
+                  <calcite-tab-nav slot="tab-nav">
+                    <calcite-tab-title selected>TEST</calcite-tab-title>
+                  </calcite-tab-nav>
+                  <calcite-tab>
+                    <calcite-switch class="chartChange"></calcite-switch>
+                    <div id="chartdiv"></div>
+                  </calcite-tab>
+                </div>
+              </calcite-tabs>
+            </div>
+      </calcite-shell>
+  </body>
+</html>
