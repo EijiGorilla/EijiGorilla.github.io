@@ -1669,7 +1669,7 @@ var query2 = testLine.createQuery();
 
 // CP: undefined, Company: undefined
 if (cpValue === undefined && companyValue === undefined) {
-query.where = "1=1";
+query2.where = "1=1";
 
 // CP: None, Company: !None
 } else if (cpValue === 'None' && companyValue !== 'None') {
