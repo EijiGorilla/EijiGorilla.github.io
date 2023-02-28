@@ -123,6 +123,7 @@ function filterByGeometry(event) {
   // Polgyon
   if (event.target.id === 'polygon-geometry-button') {
     const geometryType = event.target.value;
+    console.log(geometryType);
     clearFilter();
     sketchViewModel.create(geometryType);
     // Remove circle sketch
