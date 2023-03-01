@@ -515,7 +515,9 @@ var informationDiv = document.getElementById("informationDiv");
 //informationDiv.innerHTML =  "<br>" + "<b>" + "Note:" + "</b>" + "<br>" + "<br>" + "* Each gauge shows percent progress of each CP in the sliced chart.";
 informationDiv.innerHTML =  `<b>Note:</b><br>
                              <p>1. The sliced areas in gauges show percent progress of individual CPs.</p>
-                             2. <b>Click</b> the title of gauges to access individual web mapping applications for more detailed information.`
+                             <p>2. <b>Click</b> the title of gauges to access individual web mapping applications for more detailed information.
+                             <p>3. <b>The values in parentheses represent total numbers</b> except the LAND gauge which indicates total area in m2.
+                             `
 
 // Thousand separators function
 function thousands_separators(num)
@@ -530,7 +532,6 @@ am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 
 // Color Definition
-
 const color_101  = "#ffa500";
 const color_102  = "#00ff00";
 const color_103 = "#70ad47";
@@ -548,6 +549,14 @@ const NEEDLE_LENGTH = am4core.percent(70);
 const bottomLabelFontSize = "1.3em";
 const titleFontSize = "1.4em";
 const labelMarginTop = -5;
+
+// Total percent and total number label properties
+const totalPercentLabel_y = -15;
+const totalPercentLabel_fontSize = "3.5em";
+
+const totalNumberLabel_y = 5;
+const totalNumberLabel_fontSize = "1.5em";
+
 // Themes begin
 
 // Legend
@@ -848,14 +857,14 @@ if (cpPackage === 'N-01') {
 
 
 });
-return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a];
+return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a, totalAffected];
 });
 
 } // End of lotSummary function
 
 var axis1TickColor = "#C5C5C5";
 
-function laFigureLot([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a]) {
+function laFigureLot([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a, totalAffected]) {
 var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
 var N01 = Number(cpN01);
@@ -1040,9 +1049,9 @@ var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
 var label = chart.radarContainer.createChild(am4core.Label);
 label.isMeasured = false;
-label.fontSize = "3.5em";
+label.fontSize = totalPercentLabel_fontSize;
 label.x = am4core.percent(50);
-label.y = am4core.percent(100);
+label.y = totalPercentLabel_y;
 label.paddingBottom = -5;
 label.horizontalCenter = "middle";
 label.verticalCenter = "bottom";
@@ -1056,16 +1065,17 @@ label.fill =  am4core.color("#00C3FF");
 * Label 2
 */
 
-/*
+
 var label2 = chart.radarContainer.createChild(am4core.Label);
 label2.isMeasured = false;
-label2.fontSize = "2em";
+label2.fontSize = totalNumberLabel_fontSize;
 label2.horizontalCenter = "middle";
 label2.verticalCenter = "bottom";
-label2.text = matchingGrade.title.toUpperCase();
-//label2.fill = am4core.color(matchingGrade.color);
+label2.y = totalNumberLabel_y;
+label2.text = "(" + thousands_separators(totalAffected.toFixed(0)) + ")";
 label2.fill =  am4core.color("#00C3FF");
-*/
+
+
 /**
 * Hand
 */
@@ -1190,12 +1200,12 @@ if (cpPackage === 'N-01') {
   cpN05_a.push(dismantled_struc);
 }
 });
-return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a];
+return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a, totalNumberStruc];
 });
 
 } // End of strucSummary function
 
-function laFigureStruc([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a]) {
+function laFigureStruc([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a, totalNumberStruc]) {
 var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
 var N01 = Number(cpN01);
@@ -1373,9 +1383,9 @@ var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
 var label = chart.radarContainer.createChild(am4core.Label);
 label.isMeasured = false;
-label.fontSize = "3.5em";
+label.fontSize = totalPercentLabel_fontSize;
 label.x = am4core.percent(50);
-label.y = am4core.percent(100);
+label.y = totalPercentLabel_y;
 label.paddingBottom = -5;
 label.horizontalCenter = "middle";
 label.verticalCenter = "bottom";
@@ -1389,16 +1399,15 @@ label.fill =  am4core.color("#00C3FF");
 * Label 2
 */
 
-/*
 var label2 = chart.radarContainer.createChild(am4core.Label);
 label2.isMeasured = false;
-label2.fontSize = "2em";
+label2.fontSize = totalNumberLabel_fontSize;
 label2.horizontalCenter = "middle";
 label2.verticalCenter = "bottom";
-label2.text = matchingGrade.title.toUpperCase();
-//label2.fill = am4core.color(matchingGrade.color);
+label2.y = totalNumberLabel_y;
+label2.text = "(" + thousands_separators(totalNumberStruc) + ")";
 label2.fill =  am4core.color("#00C3FF");
-*/
+
 /**
 * Hand
 */
@@ -1525,12 +1534,12 @@ if (cpPackage === 'N-01') {
   cpN05_a.push(isf_relocated);
 }
 });
-return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a];
+return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a, totalNumberISF];
 });
 
 } // End of isfSummary function
 
-function laFigureIsf([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a]) {
+function laFigureIsf([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a, totalNumberISF]) {
 var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
 var N01 = Number(cpN01);
@@ -1708,13 +1717,15 @@ var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
 var label = chart.radarContainer.createChild(am4core.Label);
 label.isMeasured = false;
-label.fontSize = "3.5em";
+label.fontSize = totalPercentLabel_fontSize;
 label.x = am4core.percent(50);
-label.y = am4core.percent(100);
+label.y = totalPercentLabel_y;
 label.paddingBottom = -5;
 label.horizontalCenter = "middle";
 label.verticalCenter = "bottom";
+
 //label.dataItem = data;
+label.wrap = true;
 label.text = data.score.toFixed(0).toString() + "%";
 //label.text = "{score}";
 //label.fill = am4core.color(matchingGrade.color);
@@ -1724,16 +1735,17 @@ label.fill =  am4core.color("#00C3FF");
 * Label 2
 */
 
-/*
+
 var label2 = chart.radarContainer.createChild(am4core.Label);
 label2.isMeasured = false;
-label2.fontSize = "2em";
+label2.fontSize = totalNumberLabel_fontSize;
 label2.horizontalCenter = "middle";
 label2.verticalCenter = "bottom";
-label2.text = matchingGrade.title.toUpperCase();
-//label2.fill = am4core.color(matchingGrade.color);
+label2.y = totalNumberLabel_y;
+label2.text = "(" + thousands_separators(totalNumberISF) + ")";
 label2.fill =  am4core.color("#00C3FF");
-*/
+
+
 /**
 * Hand
 */
@@ -1859,12 +1871,12 @@ if (cpPackage === 'N-01') {
   cpN05_a.push(tree_cutEarth);
 }
 });
-return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a];
+return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a, totalNumber];
 });
 
 } // End of treeCutSummary function
 
-function treeCuttingFigure([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a]) {
+function treeCuttingFigure([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a, totalNumber]) {
 var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
 var N01 = Number(cpN01);
@@ -2042,9 +2054,9 @@ var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
 var label = chart.radarContainer.createChild(am4core.Label);
 label.isMeasured = false;
-label.fontSize = "3.5em";
+label.fontSize = totalPercentLabel_fontSize;
 label.x = am4core.percent(50);
-label.y = am4core.percent(100);
+label.y = totalPercentLabel_y;
 label.paddingBottom = -5;
 label.horizontalCenter = "middle";
 label.verticalCenter = "bottom";
@@ -2058,16 +2070,15 @@ label.fill =  am4core.color("#00C3FF");
 * Label 2
 */
 
-/*
 var label2 = chart.radarContainer.createChild(am4core.Label);
 label2.isMeasured = false;
-label2.fontSize = "2em";
+label2.fontSize = totalNumberLabel_fontSize;
 label2.horizontalCenter = "middle";
 label2.verticalCenter = "bottom";
-label2.text = matchingGrade.title.toUpperCase();
-//label2.fill = am4core.color(matchingGrade.color);
+label2.y = totalNumberLabel_y;
+label2.text = "(" + thousands_separators(totalNumber) + ")";
 label2.fill =  am4core.color("#00C3FF");
-*/
+
 /**
 * Hand
 */
@@ -2190,12 +2201,12 @@ if (cpPackage === 'N-01') {
   cpN05_a.push(tree_compen);
 }
 });
-return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a];
+return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a, totalNumber];
 });
 
 } // End of treeCompenSummary function
 
-function treeCompenFigure([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a]) {
+function treeCompenFigure([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a, totalNumber]) {
 var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + 
                  Number(cpN04) + Number(cpN05);
 
@@ -2374,9 +2385,9 @@ var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
 var label = chart.radarContainer.createChild(am4core.Label);
 label.isMeasured = false;
-label.fontSize = "3.5em";
+label.fontSize = totalPercentLabel_fontSize;
 label.x = am4core.percent(50);
-label.y = am4core.percent(100);
+label.y = totalPercentLabel_y;
 label.paddingBottom = -5;
 label.horizontalCenter = "middle";
 label.verticalCenter = "bottom";
@@ -2390,16 +2401,16 @@ label.fill =  am4core.color("#00C3FF");
 * Label 2
 */
 
-/*
 var label2 = chart.radarContainer.createChild(am4core.Label);
 label2.isMeasured = false;
-label2.fontSize = "2em";
+label2.fontSize = totalNumberLabel_fontSize;
 label2.horizontalCenter = "middle";
 label2.verticalCenter = "bottom";
-label2.text = matchingGrade.title.toUpperCase();
-//label2.fill = am4core.color(matchingGrade.color);
+label2.y = totalNumberLabel_y;
+label2.text = "(" + thousands_separators(totalNumber) + ")";
 label2.fill =  am4core.color("#00C3FF");
-*/
+
+
 /**
 * Hand
 */
@@ -2644,12 +2655,12 @@ const cpN05_a = (totalCompleted_cpN05/totalUtil_cpN05)*100;
 
 
 
-return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a];
+return [cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a, grandTotal];
 });
 }
 
 // Utility Progress Chart
-function utilityChart([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a]) {
+function utilityChart([cpN01, cpN02, cpN03, cpN04, cpN05, cpN01_a, cpN02_a, cpN03_a, cpN04_a, cpN05_a, grandTotal]) {
 var totalScore = Number(cpN01) + Number(cpN02) + Number(cpN03) + Number(cpN04) + Number(cpN05);
 
 var N01 = Number(cpN01);
@@ -2827,9 +2838,9 @@ var matchingGrade = lookUpGrade(data.score, data.gradingData);
 
 var label = chart.radarContainer.createChild(am4core.Label);
 label.isMeasured = false;
-label.fontSize = "3.5em";
+label.fontSize = totalPercentLabel_fontSize;
 label.x = am4core.percent(50);
-label.y = am4core.percent(100);
+label.y = totalPercentLabel_y;
 label.paddingBottom = -5;
 label.horizontalCenter = "middle";
 label.verticalCenter = "bottom";
@@ -2843,16 +2854,15 @@ label.fill =  am4core.color("#00C3FF");
 * Label 2
 */
 
-/*
 var label2 = chart.radarContainer.createChild(am4core.Label);
 label2.isMeasured = false;
-label2.fontSize = "2em";
+label2.fontSize = totalNumberLabel_fontSize;
 label2.horizontalCenter = "middle";
 label2.verticalCenter = "bottom";
-label2.text = matchingGrade.title.toUpperCase();
-//label2.fill = am4core.color(matchingGrade.color);
+label2.y = totalNumberLabel_y;
+label2.text = "(" + thousands_separators(grandTotal) + ")";
 label2.fill =  am4core.color("#00C3FF");
-*/
+
 /**
 * Hand
 */
