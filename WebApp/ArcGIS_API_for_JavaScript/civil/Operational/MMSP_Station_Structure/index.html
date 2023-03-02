@@ -228,8 +228,7 @@
       height: 30%;
       width: 70%;
       bottom: 20;
-      left: 150;
-
+      left: 5%;
     }
 
     #time-series {
@@ -389,14 +388,6 @@ const worldElevation = new ElevationLayer({
               atmosphereEnabled: false
               }
   });
-
-  const toggle = new BasemapToggle({
-    view: view,
-    nextBaseMap: "hybrid"
-  });
-
-  view.ui.add(toggle, "top-right");
-  
 
   // OpenStreetMap 3D Buildings
   let osmSymbol = {
@@ -810,7 +801,7 @@ var sitePhotoLabelClass = new LabelClass({
 
 
 // TBM Tunnel used as a reference
-  var transitLayer = new FeatureLayer({
+  var tbmTunnelLayer = new FeatureLayer({
     portalItem: {
       id: "af9539f5e41e4bd8b694973972e3faf4",
       portal: {
@@ -828,7 +819,7 @@ var sitePhotoLabelClass = new LabelClass({
    outFields: ["*"],
    popupEnabled: false
   });
-  map.add(transitLayer);
+  map.add(tbmTunnelLayer);
 
   const options = {
     profile: "circle",
@@ -878,7 +869,7 @@ var sitePhotoLabelClass = new LabelClass({
       }
     }
 
-    transitLayer.renderer = renderer;
+    tbmTunnelLayer.renderer = renderer;
   }
 
   renderTransitLayer();
@@ -1245,183 +1236,190 @@ var sitePhotoLabelClass = new LabelClass({
             },
           ];
 
-// Create axes
-// https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
-var yRenderer = am5xy.AxisRendererY.new(root, {
-  inversed: true
-});
-var yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root, {
-  categoryField: "category",
-  renderer: yRenderer,
-  tooltip: am5.Tooltip.new(root, {})
-}));
+          // Create axes
+          // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+          var yRenderer = am5xy.AxisRendererY.new(root, {
+            inversed: true
+          });
+          var yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root, {
+            categoryField: "category",
+            renderer: yRenderer,
+            tooltip: am5.Tooltip.new(root, {})
+          }));
 
-yRenderer.grid.template.setAll({
-  location: 1
-})
+          yRenderer.grid.template.setAll({
+            location: 1
+          })
 
-  // Label properties Y axis
-  yAxis.get("renderer").labels.template.setAll({
-    //oversizedBehavior: "wrap",
-    textAlign: "center",
-    fill: am5.color("#ffffff"),
-    //maxWidth: 150,
-    fontSize: yAxisLabelFontSize
-  });
-
-yAxis.data.setAll(data);
-
-var xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root, {
-  min: 0,
-  max: 100,
-  strictMax: true,
-  numberFormat: xAxisNumberFormat,
-  calculateTotals: true,
-  renderer: am5xy.AxisRendererX.new(root, {
-    strokeOpacity: 0,
-    strokeWidth: 1,
-    stroke: am5.color("#ffffff"),
-  })
-}));
-
-  // Label properties for yAxis (category axis)
-  xAxis.get("renderer").labels.template.setAll({
-    //oversizedBehavior: "wrap",
-    textAlign: "center",
-    fill: am5.color("#ffffff"),
-    //maxWidth: 150,
-    fontSize: xAxisLabelFontSize
-});
-
-// Add legend
-// https://www.amcharts.com/docs/v5/charts/xy-chart/legend-xy-series/
-var legend = chart.children.push(am5.Legend.new(root, {
-  centerX: am5.p50,
-  x: am5.percent(70),
-  y: am5.percent(100)
-}));
-
-legend.labels.template.setAll({
-    oversizedBehavior: "truncate",
-    fill: am5.color("#ffffff"),
-    fontSize: legendFontSize,
-    //scale: 0.8,
-    //textDecoration: "underline"
-    //width: am5.percent(200)
-    //fontWeight: "300"
-  });
-
-  // Chart title
-  /*
-  chart.children.unshift(am5.Label.new(root, {
-    text: "Construction Progress",
-    fontSize: "1.5vw",
-    fontWeight: "bold",
-    textAlign: "center",
-    fill: am5.color("#ffffff"),
-    x: am5.percent(50),
-    centerX: am5.percent(50),
-    paddingTop: 5,
-    paddingBottom: 8,
-}));
-*/
-
-chart.get("colors").set("colors", [
-  am5.color("#0070ff"), //
-  am5.color("#000000"),
-]);
-
-// Add series
-// https://www.amcharts.com/docs/v5/charts/xy-chart/series/
-function makeSeries(name, fieldName) {
-  var series = chart.series.push(am5xy.ColumnSeries.new(root, {
-    name: name,
-    stacked: true,
-    xAxis: xAxis,
-    yAxis: yAxis,
-    baseAxis: yAxis,
-    valueXField: fieldName,
-    valueXShow: "valueXTotalPercent",
-    categoryYField: "category"
-  }));
-
-  series.columns.template.setAll({
-    tooltipText: "{name}: {valueX}",// "{categoryY}: {valueX}",
-    tooltipY: am5.percent(90),
-    //fill: am5.color("#ffffff")
-    // 100% transparent for incomplete
-    fillOpacity: fieldName == "incomp" ? 0 : 1
-  });
-  series.data.setAll(data);
-
-  // Make stuff animate on load
-  // https://www.amcharts.com/docs/v5/concepts/animations/
-  series.appear();
-
-  series.bullets.push(function() {
-    return am5.Bullet.new(root, {
-      sprite: am5.Label.new(root, {
-        text:  "{valueX}"== 0 ? "" : "{valueXTotalPercent.formatNumber('#.')}%", //"{valueX}",
-        fill: root.interfaceColors.get("alternativeText"),
-        opacity: fieldName == "incomp" ? 0 : 1,
-        fontSize: seriesBulletLabelFontSize,
-        centerY: am5.p50,
-        centerX: am5.p50,
-        populateText: true
-      })
-    });
-  });
-
-  series.columns.template.events.on("click", function(ev) {
-    // Layer
-    const SELECTED = ev.target.dataItem.dataContext.category;
-    const find = type.find((emp) => emp.type === SELECTED);
-    const typeSelect = find.value;
- 
-    if (fieldName === "incomp") {
-        selectedStatus = 1;
-    } else if (fieldName === "comp") {
-        selectedStatus = 4;
-    } else {
-        selectedLayer = null;
-    }
-    
-    var highlight = null;
-    // Update layerView based on viaduct components being selected
-    view.whenLayerView(structureLayer).then(function (structureLayerView) {
-      structureLayerView.filter = {
-            where: "Type = " + typeSelect + " AND " +  "Status = " + selectedStatus
-            //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
-        };
-        
-        structureLayerView.queryFeatures().then(function(results) {
-            const ggg = results.features;
-            const rowN = ggg.length;
-            
-            // Extract and obtain OBJECTID
-            let objID = [];
-            for (var i=0; i< rowN; i++) {
-                var obj = results.features[i].attributes.OBJECTID;
-                objID.push(obj);
-            }
-            highlightSelect = structureLayerView.highlight([objID]);
-            if (highlightSelect) {
-              highlightSelect.remove();
-            }
-            // Reset selection by clicking anywhere on the map
-            view.on("click", function() {
-              structureLayerView.filter = null;
-                highlightSelect.remove();
+            // Label properties Y axis
+            yAxis.get("renderer").labels.template.setAll({
+              //oversizedBehavior: "wrap",
+              textAlign: "center",
+              fill: am5.color("#ffffff"),
+              //maxWidth: 150,
+              fontSize: yAxisLabelFontSize
             });
-        });
-    }); // whenLayerView
-  });// End of filterByChart
 
-  legend.data.push(series);
-}
+          yAxis.data.setAll(data);
 
-makeSeries("Complete", "comp");
-makeSeries("Incomplete", "incomp");
+          var xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root, {
+            min: 0,
+            max: 100,
+            strictMax: true,
+            numberFormat: xAxisNumberFormat,
+            calculateTotals: true,
+            renderer: am5xy.AxisRendererX.new(root, {
+              strokeOpacity: 0,
+              strokeWidth: 1,
+              stroke: am5.color("#ffffff"),
+            })
+          }));
+
+            // Label properties for yAxis (category axis)
+            xAxis.get("renderer").labels.template.setAll({
+              //oversizedBehavior: "wrap",
+              textAlign: "center",
+              fill: am5.color("#ffffff"),
+              //maxWidth: 150,
+              fontSize: xAxisLabelFontSize
+          });
+
+          // Add legend
+          // https://www.amcharts.com/docs/v5/charts/xy-chart/legend-xy-series/
+          var legend = chart.children.push(am5.Legend.new(root, {
+            centerX: am5.p50,
+            x: am5.percent(70),
+            y: am5.percent(100)
+          }));
+
+          legend.labels.template.setAll({
+              oversizedBehavior: "truncate",
+              fill: am5.color("#ffffff"),
+              fontSize: legendFontSize,
+              //scale: 0.8,
+              //textDecoration: "underline"
+              //width: am5.percent(200)
+              //fontWeight: "300"
+            });
+
+            // Chart title
+            /*
+            chart.children.unshift(am5.Label.new(root, {
+              text: "Construction Progress",
+              fontSize: "1.5vw",
+              fontWeight: "bold",
+              textAlign: "center",
+              fill: am5.color("#ffffff"),
+              x: am5.percent(50),
+              centerX: am5.percent(50),
+              paddingTop: 5,
+              paddingBottom: 8,
+          }));
+          */
+
+          chart.get("colors").set("colors", [
+            am5.color("#0070ff"), //
+            am5.color("#000000"),
+          ]);
+
+          // Add series
+          // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+          function makeSeries(name, fieldName) {
+            var series = chart.series.push(am5xy.ColumnSeries.new(root, {
+              name: name,
+              stacked: true,
+              xAxis: xAxis,
+              yAxis: yAxis,
+              baseAxis: yAxis,
+              valueXField: fieldName,
+              valueXShow: "valueXTotalPercent",
+              categoryYField: "category"
+            }));
+
+            series.columns.template.setAll({
+              tooltipText: "{name}: {valueX}",// "{categoryY}: {valueX}",
+              tooltipY: am5.percent(90),
+              //fill: am5.color("#ffffff")
+              // 100% transparent for incomplete
+              fillOpacity: fieldName == "incomp" ? 0 : 1
+            });
+            series.data.setAll(data);
+
+            // Make stuff animate on load
+            // https://www.amcharts.com/docs/v5/concepts/animations/
+            series.appear();
+
+            series.bullets.push(function() {
+              return am5.Bullet.new(root, {
+                sprite: am5.Label.new(root, {
+                  text:  "{valueX}"== 0 ? "" : "{valueXTotalPercent.formatNumber('#.')}%", //"{valueX}",
+                  fill: root.interfaceColors.get("alternativeText"),
+                  opacity: fieldName == "incomp" ? 0 : 1,
+                  fontSize: seriesBulletLabelFontSize,
+                  centerY: am5.p50,
+                  centerX: am5.p50,
+                  populateText: true
+                })
+              });
+            });
+
+            series.columns.template.events.on("click", function(ev) {
+              // Layer
+              const SELECTED = ev.target.dataItem.dataContext.category;
+              const find = type.find((emp) => emp.type === SELECTED);
+              const typeSelect = find.value;
+          
+              if (fieldName === "incomp") {
+                  selectedStatus = 1;
+              } else if (fieldName === "comp") {
+                  selectedStatus = 4;
+              } else {
+                  selectedLayer = null;
+              }
+              
+              var highlight = null;
+              // Update layerView based on viaduct components being selected
+              view.whenLayerView(structureLayer).then(function (structureLayerView) {
+                structureLayerView.filter = {
+                      where: "Type = " + typeSelect + " AND " +  "Status = " + selectedStatus
+                      //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+                  };
+                  
+                  structureLayerView.queryFeatures().then(function(results) {
+                      const ggg = results.features;
+                      const rowN = ggg.length;
+                      
+                      // Extract and obtain OBJECTID
+                      let objID = [];
+                      for (var i=0; i< rowN; i++) {
+                          var obj = results.features[i].attributes.OBJECTID;
+                          objID.push(obj);
+                      }
+                      highlightSelect = structureLayerView.highlight([objID]);
+                      if (highlightSelect) {
+                        highlightSelect.remove();
+                      }
+                      // Reset selection by clicking anywhere on the map
+                      view.on("click", function() {
+                        structureLayerView.filter = null;
+                          highlightSelect.remove();
+                      });
+                  });
+              }); // whenLayerView
+            });// End of filterByChart
+
+            legend.data.push(series);
+          }// end of makeSeries
+          makeSeries("Complete", "comp");
+          makeSeries("Incomplete", "incomp");
+          // Make stuff animate on load
+          // https://www.amcharts.com/docs/v5/concepts/animations/
+          chart.appear(1000, 100);
+
+                
+        }); // End of queryFeatures function
+      } // End of updateChart
+      updateChart();
 
  // Time series chart for progress monitoring of viaduct components
  var root2 = am5.Root.new("timeSeriesChart");
@@ -1664,19 +1662,10 @@ function timeSeriesChart() {
     makeSeries("Secant Pile", "secant");
     makeSeries("Column Head", "columnhead");
     chart.appear(1000, 100);
-  });
+  }); // end of queryFeatures
 }
 timeSeriesChart();
 
-
-// Make stuff animate on load
-// https://www.amcharts.com/docs/v5/concepts/animations/
-chart.appear(1000, 100);
-
-      
-      }); // End of queryFeatures function
-    } // End of updateChart
-    updateChart();
 
   // Default selection = 'None'
   function defaultRenderer() {
@@ -1795,7 +1784,6 @@ chart.appear(1000, 100);
     container: "basemaps-container"
   });
 
-
   // LayerList and Add legend to the LayerList
     // On-off feature layer tab
   var layerList = new LayerList({
@@ -1803,7 +1791,7 @@ chart.appear(1000, 100);
     container: "layers-container",
     listItemCreatedFunction: function(event) {
       const item = event.item;
-      if (item.title === "Chainage" || item.title === "ROW" || item.title === "OpenStreetMap 3D Buildings"){
+      if (item.title === "Chainage" || item.title === "ROW" || item.title === "OpenStreetMap 3D Buildings" || item.title === "TBM Segment"){
         item.visible = false
       }
     }
