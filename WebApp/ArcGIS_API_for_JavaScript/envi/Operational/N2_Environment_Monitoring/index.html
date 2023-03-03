@@ -388,17 +388,6 @@ body,
   <calcite-loader></calcite-loader>
   <calcite-shell content-behind>
   <div id="viewDiv">
-    <div id="infoIcon">
-      <calcite-action class="inforClass" data-action-id="information" icon="information" text="Information" scale="m"></calcite-action>
-      <calcite-panel heading="Description" data-panel-id="information" hidden>
-        <div id="info-content">
-          <!-- <img id="item-thumbnail" alt="webmap thumbnail" /> -->
-          <div id="item-description">
-            <!-- Dynamically populated -->
-          </div>
-        </div>
-      </calcite-panel>
-    </div>
       <div class="dateDiv">As of August 1, 2022</div>
       <div id="headerTitleDiv">N2 ENVIRONMENT MONITORING</div>
       <div id="boxSurfaceWater">
@@ -520,21 +509,6 @@ require([
               StatisticDefinition, WebStyleSymbol, Expand, Editor,
               UniqueValueRenderer, Sublayer, Search, Compass) {
 
-  const calciteAction = document.querySelector("calcite-action");
-  calciteAction.addEventListener("click", openCloseCalciteCard);
-  function openCloseCalciteCard(event) {
-    const calcitePanel = document.querySelector("calcite-panel");
-    calcitePanel.hidden = !calcitePanel.hidden;
-    //calciteCard.style.display = calciteCard.hidden ? "none" : "block";  
-  }
-
-  document.querySelector("#item-description").innerHTML = 
-                            `
-                            <p>1. Each environment monitoring variable was inspected at one or more stations and evaluated as <b>'Normal' or 'Exceeded'</b> relative to the allowable threshold values</p>
-                            <p>2. If a station is <b>'Exceeded'</b>, the number of 'Exceeded' stations is displayed in red.</p>
-                            <p>3. If a station is <b>'Normal'</b>, '0' is displayed in green instead of the number of 'Normal' stations.</P>
-                            <p>4. The total number of stations can be seen when a mouse is hovered over the displayed numbers.</p>
-                            `;
 
   let chartLayerView;
   const features = [];
@@ -2579,43 +2553,58 @@ require([
       map.ground.opacity = 0.9; //
     });
       
+  // Instruction widget
+  const instructionsExpand = new Expand({
+    expandIconClass: "esri-icon-question",
+    expandTooltip: "How to use this web app",
+    view: view,
+    expanded: true,
+    content: `
+    <div class="esri-widget" style='width:200px; padding:10px;'>
+      <b>Click</b> the callout depot names to zoom and update the progress chart.
+    
+    
+    </div>
+    `
+  });
+  view.ui.add(instructionsExpand, "top-right");
 
 
   //*****************************//
   //      Search Widget          //
   //*****************************//
   var searchWidget = new Search({
-  view: view,
-  locationEnabled: false,
-  allPlaceholder: "Chainage",
-  includeDefaultSources: false,
-  sources: [
-  {
-  layer: chainageLayer,
-  searchFields: ["KmSpot"],
-  displayField: "KmSpot",
-  exactMatch: false,
-  outFields: ["*"],
-  zoomScale: 1000,
-  name: "Main KM",
-  placeholder: "example: 80 + 400"
-  }
-  ]
+    view: view,
+    locationEnabled: false,
+    allPlaceholder: "Chainage",
+    includeDefaultSources: false,
+    sources: [
+      {
+      layer: chainageLayer,
+      searchFields: ["KmSpot"],
+      displayField: "KmSpot",
+      exactMatch: false,
+      outFields: ["*"],
+      zoomScale: 1000,
+      name: "Main KM",
+      placeholder: "example: 80 + 400"
+      }
+    ]
   });
 
   const searchExpand = new Expand({
-  view: view,
-  content: searchWidget,
-  expandIconClass: "esri-icon-search",
-  group: "top-right"
+    view: view,
+    content: searchWidget,
+    expandIconClass: "esri-icon-search",
+    group: "top-right"
   });
     view.ui.add(searchExpand, {
       position: "top-right"
     });
   searchExpand.watch("expanded", function() {
-  if(!searchExpand.expanded) {
-  searchWidget.searchTerm = null;
-  }
+    if(!searchExpand.expanded) {
+    searchWidget.searchTerm = null;
+    }
   });
 
   });
