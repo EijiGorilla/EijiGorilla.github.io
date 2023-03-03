@@ -2791,7 +2791,7 @@ var layerListExpand = new Expand ({
     view: view,
     expanded: true,
     content: `
-    <div style='width:200px; padding:10px; background-color:black; color:white'>
+    <div class="esri-widget" style='width:200px; padding:10px;'>
     <b>Click</b> the callout depot names to zoom and update the progress chart.</div>
     `
   });
