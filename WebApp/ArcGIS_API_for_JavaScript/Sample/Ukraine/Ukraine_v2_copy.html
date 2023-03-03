@@ -33,6 +33,12 @@
       display: flex;
     }
 
+
+    calcite-card {
+      width: 100%;
+      margin-right: 4vw;
+    }
+
     calcite-loader {
       align-self: center;
       justify-self: center;
@@ -46,12 +52,6 @@
     /* must be greater than that of 'calcite-tab'. Otherwise, */
     /* You will not see any space after padding. */
 
-    calcite-button {
-      position: absolute;
-      z-index: 99;
-      bottom: 50;
-      right: 10;
-    }
 
     #header-title {
       margin-left: 1rem;
@@ -103,32 +103,12 @@
       padding-right: 10px;
     }
 
-    #chartPanel {
-      width: 25vw;
-    
-    }
 
     #chartHospitalDiv {
       width: 21vw;
       height: 47vh;
     }
 
-    .panel {
-      position: fixed;
-      z-index: 1;
-      padding: 0px;
-      box-sizing: border-box;
-      width: 30vw;
-      height: 10vh;
-      position: absolute;
-      top: 1.8%;
-      right: 10%;
-      font-size: 1.5vw;
-      color: white;
-      background-color: rgb(0, 0, 0, 0);
-      overflow: auto;
-      transition: 3;
-    }
 
     h6 {
       color: rgb(0, 197, 255);
@@ -224,16 +204,17 @@
         </calcite-panel>
       </calcite-shell-panel>
         <div id="viewDiv">
-          <div class="panel">
-            <ul id="damageFactorList">
-              <li style="display:inline" class="test active" id="Hospital">Hospital / </li>
-                <li style="display:inline" class="test" id="Bridge">Bridge</li>
-            </ul>
-          </div>
-          <div id="chartPanel">
+          <calcite-card>
+            <span id="cardTitle" slot="title">Select Monitoring Indicator:</span>
+            <div id="selection-item">
+              <calcite-segmented-control>
+                <calcite-segmented-control-item id="hospitals" value="hospital" checked>Hospital</calcite-segmented-control-item>
+                <calcite-segmented-control-item id="bridges" value="bridge">Bridge</calcite-segmented-control-item>
+              </calcite-segmented-control>
+            </div>
             <div class="boxHospital" id="chartHospitalDiv"></div>
             <div class="boxBridge" id="chartBridgeDiv"></div>
-          </div>
+          </calcite-card>
         </div>
     </calcite-shell>
   </body>
@@ -617,15 +598,7 @@
   let chartLayerView;
   var highlightSelect;
 
-  var titleDiv = document.getElementById("titleDiv");
-  const chartPanel = document.getElementById("chartPanel");
-
-  // Damage List
-  var damageFactorList = document.getElementById("damageFactorList");
-  var ttt = damageFactorList.getElementsByClassName("test");
-
-
-  /* Function for zooming to selected layers */
+   /* Function for zooming to selected layers */
   function zoomToLayer(layer) {
     return layer.queryExtent().then((response) => {
       view.goTo(response.extent).catch((error) => {
@@ -722,7 +695,9 @@
 
           //centerY: am5.percent(-2), //-10
           //y: am5.percent(-30), // -30
-          layout: root.verticalLayout
+          layout: root.verticalLayout,
+          paddingTop: 10,
+          paddingBottom: 20
           })
         );
 
@@ -897,7 +872,7 @@
         chart.onPrivate("width", function(width) {
           let box = document.querySelector('.boxHospital');
           const boxWidth = box.offsetWidth;
-          var availableSpace = Math.max(width - chart.width() - 150, 180);
+          var availableSpace = Math.max(width - chart.width() - 150, 190);
           //var availableSpace = (boxWidth - valueLabelsWidth) * 0.7
           legend.labels.template.setAll({
             width: availableSpace,
@@ -909,7 +884,8 @@
         // To have responsive font size, do not set font size
         legend.labels.template.setAll({
           oversizedBehavior: "truncate",
-          fill: am5.color("#ffffff")
+          fill: am5.color("#ffffff"),
+          fontSize: "0.9vw"
           //textDecoration: "underline"
           //width: am5.percent(200)
           //fontWeight: "300"
@@ -918,14 +894,14 @@
         legend.valueLabels.template.setAll({
           textAlign: "right",
           width: valueLabelsWidth,
-          fill: am5.color("#ffffff")
-          //fontSize: LEGEND_FONT_SIZE,
+          fill: am5.color("#ffffff"),
+          fontSize: "0.9vw",
         })
 
         legend.itemContainers.template.setAll({
           // set space between legend items
-          paddingTop: 1.1,
-          paddingBottom: 2,
+          paddingTop: 3,
+          paddingBottom: 3,
         });
         
         pieSeries.appear(1000, 100);
@@ -940,36 +916,33 @@
       bridgeLayer.visible = false;
       updateChart();
     }
-    defaultRenderer();
+    //defaultRenderer();
 
 
+    const bridge = document.getElementById("bridges");
+    const hospital = document.getElementById("hospitals");
+    const calciteSegmentItem = document.getElementById("selection-item");
+    
+    calciteSegmentItem.addEventListener("click", changeButtonItem);
+    function changeButtonItem(event) {
+      const value = event.srcElement.id;
 
-for(var i = 0; i < ttt.length; i ++) {
-  ttt[i].addEventListener("click", filterByP);
-}
+      if (value === 'hospitals') {
+        hospitalLayer.visible = true;
+          hospitalCostLayer.visible = true;
+          bridgeLayer.visible = false;
+          zoomToLayer(ukrainBoundary);
+          updateChart();
 
-function filterByP(event) {
-  var current = document.getElementsByClassName("active");
-  current[0].className = current[0].className.replace(" active","");
-  this.className += " active";
-
-  const selectedID = event.target.id;
-    if(selectedID == "Hospital") {
-      hospitalLayer.visible = true;
-      hospitalCostLayer.visible = true;
-      bridgeLayer.visible = false;
-      zoomToLayer(ukrainBoundary);
-      updateChart();
-
-    } else if (selectedID == "Bridge") {
-      hospitalLayer.visible = false;
-      hospitalCostLayer.visible = false;
-      bridgeLayer.visible = true;
-      zoomToLayer(ukrainBoundary);
-      updateChartBridge();
-      
-    } 
-}
+      } else if (value === 'bridges') {
+          hospitalLayer.visible = false;
+          hospitalCostLayer.visible = false;
+          bridgeLayer.visible = true;
+          zoomToLayer(ukrainBoundary);
+          updateChartBridge();
+      }
+    }
+  
       // view.when
       view.when(() => {
         document.querySelector("#header-title").textContent = "DAMAGE ASSESSMENT MAP";
