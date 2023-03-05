@@ -314,6 +314,11 @@ body,
     margin-top: 0;
   }
 
+  b {
+    color: orange;
+    font-size: "1vw";
+  }
+
   h2 {
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     font-style: normal;
@@ -1240,15 +1245,18 @@ require([
 
           series.columns.template.events.on("click", function(ev) {
             const selectedStatus = 3;
-
+            const sqlExpression = "Type = 6" + " AND " +  "Status = " + selectedStatus;
             var highlight = null;
             // Point 1:
             view.when(function() {
               view.whenLayerView(monitorPt1).then(function (layerView) {
                   arrLviews.push(layerView);
-                  
+
+                  var query = monitorPt1.createQuery();
+                  query.where = sqlExpression;
+
                   //testUtilPt1.definitionExpression = sqlExpression;
-                  monitorPt1.queryFeatures().then(function(results) {
+                  monitorPt1.queryFeatures(query).then(function(results) {
                     const ggg = results.features;
                     const rowN = ggg.length;
                     
@@ -1295,7 +1303,7 @@ require([
               // Query view using exceediled arrays
               for(var i = 0; i < arrLviews.length; i++) {
                   arrLviews[i].filter = {
-                    where: "Type = 6" + " AND " +  "Status = " + selectedStatus
+                    where: sqlExpression
                   }
               }
             });
@@ -2561,9 +2569,8 @@ require([
     expanded: true,
     content: `
     <div class="esri-widget" style='width:200px; padding:10px;'>
-      <b>Click</b> the callout depot names to zoom and update the progress chart.
-    
-    
+      <p>1. <b>Chart</b> shows the number of monitoring stations where a measurement exceeded the allowable threshold value</p>
+      <p>2. <b>Click</b> the value in the chart to zoom in the corresponding stations. 
     </div>
     `
   });
