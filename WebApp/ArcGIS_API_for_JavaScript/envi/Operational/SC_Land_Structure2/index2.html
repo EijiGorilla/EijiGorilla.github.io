@@ -1937,28 +1937,6 @@ zoomToLayer(stationLayer);
         return queryForLotGeometries();
     }
 
-    ///
-    function filterLot() {
-        var query2 = lotLayer.createQuery();
-        query2.where = lotLayer.definitionExpression; // use filtered municipality. is this correct?
-    }
-    
-    function filterStructure() {
-        var query2 = structureLayer.createQuery();
-        query2.where = structureLayer.definitionExpression; // use filtered municipality. is this correct?
-    }
-    
-    function filterPriority() {
-        var query2 = pnrLayer.createQuery();
-        query2.where = pnrLayer.definitionExpression; // use filtered municipality. is this correct?
-    
-    }
-    
-    function filterPNR() {
-        var query2 = pnrLayer.createQuery();
-        query2.where = pnrLayer.definitionExpression; // use filtered municipality. is this correct?
-    }
-    
     // When CP is changed, Type is reset to 'None'
     const changeSelected = (e) => {
         const $select = document.querySelector('#prioritySelect');
@@ -1978,20 +1956,14 @@ zoomToLayer(stationLayer);
         barangayFilterList(municipal);
         priorityFilterList(municipal, barangay);
 
-        filterLot();
-        filterStructure();
-        filterPriority();
-        filterPNR();
-
-
         totalNumberOfLots();
         pteNumberLot();
         totalNumberOfStructures();
         pteNumberStructure();
-        updateChartLot();
-        updateMoaChartLot();
-        updateChartStructure();
-        updateMoaChartStructure();
+        updateChartLot(municipal, barangay);
+        updateMoaChartLot(municipal, barangay);
+        updateChartStructure(municipal, barangay);
+        updateMoaChartStructure(municipal, barangay);
         //updateChartISF();
 
         zoomToLayer(lotLayer);
@@ -2007,19 +1979,14 @@ zoomToLayer(stationLayer);
 
             priorityFilterList(municipal, barangay);
 
-            filterLot();
-            filterStructure();
-            filterPriority();
-            filterPNR();
-
             totalNumberOfLots();
             pteNumberLot();
             totalNumberOfStructures();
             pteNumberStructure();
-            updateChartLot();
-            updateMoaChartLot();
-            updateChartStructure();
-            updateMoaChartStructure();
+            updateChartLot(municipal, barangay);
+            updateMoaChartLot(municipal, barangay);
+            updateChartStructure(municipal, barangay);
+            updateMoaChartStructure(municipal, barangay);
             //updateChartISF();
 
             zoomToLayer(lotLayer);
@@ -2038,10 +2005,10 @@ zoomToLayer(stationLayer);
         pteNumberLot();
         totalNumberOfStructures();
         pteNumberStructure();
-        updateChartLot();
-        updateMoaChartLot();
-        updateChartStructure();
-        updateMoaChartStructure();
+        updateChartLot(municipal, barangay, priority);
+        updateMoaChartLot(municipal, barangay, priority);
+        updateChartStructure(municipal, barangay);
+        updateMoaChartStructure(municipal, barangay);
         //updateChartISF();
 
         //zoomToLayer(lotLayer);
@@ -2136,7 +2103,7 @@ zoomToLayer(stationLayer);
                        "For Legal Pass", "For Appraisal/Offer to Buy",
                        "For Expro"];
 
-    function updateChartLot() {
+    function updateChartLot(municipal, barangay, priority) {
         root.container.children.clear();
         // First, define statuses
         var total_handedover_lot = {
@@ -2260,11 +2227,35 @@ zoomToLayer(stationLayer);
             selectedStatus = null;
           }
 
+          var query = lotLayer.createQuery();
+          const municipalExpression = "Municipality = '" + municipal + "'";
+          const barangayExpression = "Barangay ='" + barangay + "'";
+          const priorityExpression = "HandOverDate = date'" + priority + "'";
+          const statusExpression = "StatusLA = " + selectedStatus;
+
+          if (municipal === undefined && barangay === undefined && (priority === undefined || priority === 'None')) {
+            query.where = statusExpression;
+          } else if (municipal !== 'None' && barangay === 'None' && (priority === undefined || priority === 'None')) {
+            query.where = municipalExpression + " AND " + statusExpression;
+          } else if (municipal === 'None' && barangay !== 'None' && (priority === undefined || priority === 'None')) {
+            query.where = barangayExpression + " AND " + statusExpression;
+          } else if (municipal === 'None' && barangay === 'None' && (priority !== 'None' || priority !== undefined)) {
+            query.where = priorityExpression + " AND " + statusExpression;
+
+          } else if (municipal !== 'None' && barangay !== 'None' && (priority === undefined || priority === 'None')) {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
+          } else if (municipal !== 'None' && barangay === 'None' && (priority !== 'None' || priority !== undefined)) {
+            query.where = municipalExpression + " AND " + priorityExpression + " AND " + statusExpression;
+          } else if (municipal !== 'None' && barangay !== 'None' && (priority !== 'None' || priority !== undefined)) {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + priorityExpression + " AND " + statusExpression;
+          }
+          
+
           view.when(function() {
             view.whenLayerView(lotLayer).then(function (layerView) {
               //chartLayerView = layerView;
 
-              lotLayer.queryFeatures().then(function(results) {
+              lotLayer.queryFeatures(query).then(function(results) {
                 const RESULT_LENGTH = results.features;
                 const ROW_N = RESULT_LENGTH.length;
 
@@ -2437,7 +2428,7 @@ zoomToLayer(stationLayer);
                             "No Need to Acquire"
                           ];
 
-    function updateMoaChartLot() {
+    function updateMoaChartLot(municipal, barangay, priority) {
         root2.container.children.clear();
 
         var total_nego_lot = {
@@ -2620,11 +2611,34 @@ zoomToLayer(stationLayer);
           }  else if (SELECTED == statusMOA[4]) {
             selectedStatus = 5;
           }
+
+          var query = lotLayer.createQuery();
+          const municipalExpression = "Municipality = '" + municipal + "'";
+          const barangayExpression = "Barangay ='" + barangay + "'";
+          const priorityExpression = "HandOverDate = date'" + priority + "'";
+          const statusExpression = "MoA = " + selectedStatus;
+
+          if (municipal === undefined && barangay === undefined && (priority === undefined || priority === 'None')) {
+            query.where = statusExpression;
+          } else if (municipal !== 'None' && barangay === 'None' && (priority === undefined || priority === 'None')) {
+            query.where = municipalExpression + " AND " + statusExpression;
+          } else if (municipal === 'None' && barangay !== 'None' && (priority === undefined || priority === 'None')) {
+            query.where = barangayExpression + " AND " + statusExpression;
+          } else if (municipal === 'None' && barangay === 'None' && (priority !== 'None' || priority !== undefined)) {
+            query.where = priorityExpression + " AND " + statusExpression;
+
+          } else if (municipal !== 'None' && barangay !== 'None' && (priority === undefined || priority === 'None')) {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
+          } else if (municipal !== 'None' && barangay === 'None' && (priority !== 'None' || priority !== undefined)) {
+            query.where = municipalExpression + " AND " + priorityExpression + " AND " + statusExpression;
+          } else if (municipal !== 'None' && barangay !== 'None' && (priority !== 'None' || priority !== undefined)) {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + priorityExpression + " AND " + statusExpression;
+          }
           
           view.whenLayerView(lotLayer).then(function (layerView) {
           //CHART_ELEMENT.style.visibility = "visible";
 
-          lotLayer.queryFeatures().then(function(results) {
+          lotLayer.queryFeatures(query).then(function(results) {
               const RESULT_LENGTH= results.features;
               const ROW_N= RESULT_LENGTH.length;
 
@@ -2806,7 +2820,7 @@ zoomToLayer(stationLayer);
                                  "For Legal Pass", "For Appraisal/Offer to Compensate",
                                 "LBP Account Opening"];
 
-    async function updateChartStructure() {
+    async function updateChartStructure(municipal, barangay) {
         root3.container.children.clear();
 
         var total_clear_lot = {
@@ -2928,11 +2942,31 @@ zoomToLayer(stationLayer);
           selectedStatus = null;
           }
 
+          var query = structureLayer.createQuery();
+          const municipalExpression = "Municipality = '" + municipal + "'";
+          const barangayExpression = "Barangay ='" + barangay + "'";
+          const statusExpression = "StatusStruc = " + selectedStatus;
+
+          if (municipal === undefined && barangay === undefined) {
+            query.where = statusExpression;
+          } else if (municipal !== 'None' && barangay === 'None') {
+            query.where = municipalExpression + " AND " + statusExpression;
+          } else if (municipal === 'None' && barangay !== 'None') {
+            query.where = barangayExpression + " AND " + statusExpression;
+          } else if (municipal === 'None' && barangay === 'None') {
+            query.where = statusExpression;
+
+          } else if (municipal !== 'None' && barangay !== 'None') {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
+          } else if (municipal !== 'None' && barangay !== 'None') {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
+          }
+
           // Zoom, filter, and highlight selected chart categories 
           view.when(function() {
           view.whenLayerView(structureLayer).then(function (layerView) {
 
-          structureLayer.queryFeatures().then(function(results) {
+          structureLayer.queryFeatures(query).then(function(results) {
             const RESULT_LENGTH= results.features;
             const ROW_N = RESULT_LENGTH.length;
 
@@ -3084,7 +3118,7 @@ zoomToLayer(stationLayer);
                                 "No Need to Acquire"
                                 ];
 
-    async function updateMoaChartStructure() {
+    async function updateMoaChartStructure(municipal, barangay) {
         root4.container.children.clear();
 
         var total_nego_lot = {
@@ -3259,10 +3293,30 @@ zoomToLayer(stationLayer);
                 selectedStatus = null;
             }
           
+            var query = structureLayer.createQuery();
+          const municipalExpression = "Municipality = '" + municipal + "'";
+          const barangayExpression = "Barangay ='" + barangay + "'";
+          const statusExpression = "MoA = " + selectedStatus;
+
+          if (municipal === undefined && barangay === undefined) {
+            query.where = statusExpression;
+          } else if (municipal !== 'None' && barangay === 'None') {
+            query.where = municipalExpression + " AND " + statusExpression;
+          } else if (municipal === 'None' && barangay !== 'None') {
+            query.where = barangayExpression + " AND " + statusExpression;
+          } else if (municipal === 'None' && barangay === 'None') {
+            query.where = statusExpression;
+
+          } else if (municipal !== 'None' && barangay !== 'None') {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
+          } else if (municipal !== 'None' && barangay !== 'None') {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
+          }
+
           view.whenLayerView(structureLayer).then(function (layerView) {
           //CHART_ELEMENT.style.visibility = "visible";
 
-          structureLayer.queryFeatures().then(function(results) {
+          structureLayer.queryFeatures(query).then(function(results) {
               const RESULT_LENGTH= results.features;
               const ROW_N= RESULT_LENGTH.length;
 
