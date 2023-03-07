@@ -41,7 +41,8 @@ require([
   "esri/symbols/edges/SolidEdges3D",
   "esri/layers/GroupLayer",
   "esri/geometry/Point",
-  "esri/Camera"
+  "esri/Camera",
+  "esri/core/reactiveUtils"
 ], function(Basemap, Map, MapView, SceneView, 
             FeatureLayer, FeatureFilter,
             SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -53,7 +54,7 @@ require([
             TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
             FeatureTable, Compass, ElevationLayer, Ground,
             BuildingSceneLayer, BuildingExplorer, Slice, SlicePlane,
-            SimpleRenderer, MeshSymbol3D, SolidEdges3D, GroupLayer, Point, Camera) {
+            SimpleRenderer, MeshSymbol3D, SolidEdges3D, GroupLayer, Point, Camera, reactiveUtils) {
 
 
 ////////////////////////////////////////////////////
@@ -329,15 +330,15 @@ case "FullModel":
 
 /* Function for zooming to selected layers */
 function zoomToLayer(layer) {
-return layer.queryExtent().then(function(response) {
-view.goTo(response.extent, { //response.extent
-speedFactor: 2
-}).catch(function(error) {
-if (error.name != "AbortError") {
-  console.error(error);
-}
-});
-});
+  return layer.queryExtent().then(function(response) {
+    view.goTo(response.extent, { //response.extent
+      speedFactor: 2
+    }).catch(function(error) {
+      if (error.name != "AbortError") {
+        console.error(error);
+      }
+    });
+  });
 }
 
 
@@ -575,31 +576,31 @@ var ttt = stationList.getElementsByClassName("test");
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
 // Total progress //
+  buildingLayer.when(() => {
+    const defaultStation = "Station = 8";
+    columnsLayer.definitionExpression = defaultStation;
+    floorsLayer.definitionExpression = defaultStation;
+    wallsLayer.definitionExpression = defaultStation;
+  
+    stFramingLayer.definitionExpression = defaultStation;
+    stColumnLayer.definitionExpression = defaultStation;
+    stFoundationLayer.definitionExpression = defaultStation;
+  
+    columnsLayer.visible = true;
+    floorsLayer.visible = true;
+    wallsLayer.visible = true;
+    //windowsLayer.visible = true;
+  
+    stFramingLayer.visible = true;
+    stColumnLayer.visible = true;
+    stFoundationLayer.visible = true;
+  
+    totalProgressStation();
+    combineCharts();
+    zoomToLayer(stFramingLayer);
+  });
+  
 
-buildingLayer.when(() => {
-  const defaultStation = "Station = 8";
-  columnsLayer.definitionExpression = defaultStation;
-  floorsLayer.definitionExpression = defaultStation;
-  wallsLayer.definitionExpression = defaultStation;
-
-  stFramingLayer.definitionExpression = defaultStation;
-  stColumnLayer.definitionExpression = defaultStation;
-  stFoundationLayer.definitionExpression = defaultStation;
-
-  columnsLayer.visible = true;
-  floorsLayer.visible = true;
-  wallsLayer.visible = true;
-  //windowsLayer.visible = true;
-
-  stFramingLayer.visible = true;
-  stColumnLayer.visible = true;
-  stFoundationLayer.visible = true;
-
-  totalProgressStation();
-  combineCharts();
-  zoomToLayer(stFramingLayer);
-});
-//
 
 
 // Default selection = 'None'
