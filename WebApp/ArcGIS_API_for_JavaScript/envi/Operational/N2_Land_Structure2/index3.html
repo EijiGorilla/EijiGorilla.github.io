@@ -239,10 +239,6 @@
             Barangay:
             <select  style="width: 10vw" id="barangaySelect" class="esri-widget"></select>
         </label>
-        <label id="dropdownHandOverDateLabel">
-            Hand-Over Date:
-            <select id="prioritySelect" class="esri-widget"></select>
-        </label>
       </div>
       </div>
 
@@ -254,7 +250,6 @@
           <calcite-action data-action-id="basemaps" icon="basemap" text="Basemaps"></calcite-action>
           <calcite-action data-action-id="legend" icon="legend" text="Legend"></calcite-action>
           <calcite-action data-action-id="information" icon="information" text="Information"></calcite-action>
-          <calcite-action data-action-id="locate" icon="gps-on-f" text="My Location"></calcite-action>
         </calcite-action-bar>
         
         <!-- Map-specific panels (each one provides a div for ArcGIS Maps SDK for JavaScript widgets) -->
@@ -266,9 +261,6 @@
         </calcite-panel>
         <calcite-panel heading="Legend" height-scale="l" data-panel-id="legend" hidden>
           <div id="legend-container"></div>
-        </calcite-panel>
-        <calcite-panel heading="Click the icon below" width-scale="w" data-panel-id="locate" hidden>
-          <div id="locate-container"></div>
         </calcite-panel>
 
         <!-- Info panel (populates with info from the web map) -->
@@ -967,107 +959,6 @@
             }
         }
     });
-
-    var priorityLayer = new FeatureLayer ({
-        portalItem: {
-            id: "dca1d785da0f458b8f87638a76918496",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
-        },
-        layerId: 1,
-        //renderer: handOverRenderer,
-        //labelingInfo: [priorityLabel],
-        labelsVisible: false,
-        definitionExpression: "HandOverDate IS NOT NULL",
-        title: "Expected Hand-Over Date for Land",
-        popupEnabled: false,
-        minScale: 150000,
-        maxScale: 0,
-        elevationInfo: {
-          model: "relative-to-ground"
-        }
-    });
-    //map.add(priorityLayer,2);
-    
-
-        // How to automatically update symbology for hand over dates?
-    // 1. Get unique values
-    // 2. Automate to extract uniqueValuesInfos format (i.e., [{value: '12/31/2022', label: .....}]) by compiling informatino in object array
-
-    const handOverDateColor = {
-      0: [255, 0, 0],// Red
-        1: [255, 127, 80],// Orange
-        2: [255, 255, 0],// Yellow
-        3: [0, 112, 255],// Blue
-        4: [112, 173, 71], // Green
-        5: [0, 255, 0], // Lime
-        6: [143, 0, 255], // violet
-    }
-    // Define cut date properties for dates
-    const cutDateValue = '2022-12-31';
-    const numberDate = new Date(cutDateValue);
-    const cutDate = numberDate.toLocaleDateString('en-US');
-    const queryDate = "HandOverDate IS NOT NULL" + " AND " + "HandOverDate >= date'" + cutDate + "'";
-
-    function DateValues() {
-        const dates = [];
-        var query = priorityLayer.createQuery();
-
-        query.where = queryDate;
-        return priorityLayer.queryFeatures(query).then(function(response) {
-            var stats = response.features;
-            stats.forEach((result, index) => {
-                const attributes = result.attributes;
-                const date = attributes.HandOverDate;
-                dates.push(date);
-            });
-            return dates;
-        });
-    }
-
-    function uniqueDateValues(values) {
-        var uniqueValues = [];
-
-        values.forEach((item, index) => {
-            if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
-                uniqueValues.push(item);
-            }
-        });
-        const sortedDates = uniqueValues.sort();
-        return sortedDates;
-    }
-
-    // Conver to object array: [{value:}]
-    function uniqueValuesInfos(sortedDates) {
-        const dates = sortedDates.map((date, index) => {
-          console.log(date);
-            const temp = new Date(date);
-            const labelDate = temp.toLocaleDateString('en-US');
-            return Object.assign({}, {
-                value: date, // make sure to use 'number'. you cannot add 'date'
-                label: labelDate,
-                symbol: {
-                    type: "simple-fill",
-                    color: [0,0,0,0],
-                    outline: {
-                        width: 4,
-                        color: handOverDateColor[index]
-                    }
-                }
-            });
-        });
-
-        var lotPriorityRenderer = {
-            type: "unique-value",
-            field: "HandOverDate", // For 3D, including this works, but for 2D we need to remove this 
-            defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
-            uniqueValueInfos: dates
-        }
-        priorityLayer.renderer = lotPriorityRenderer;
-    }
-
-    DateValues().then(uniqueDateValues).then(uniqueValuesInfos);
 
     // ISF
     const isfSymbolColor = {
@@ -1938,7 +1829,6 @@ zoomToLayer(stationLayer);
 
       var municipalSelect = document.getElementById("municipalSelect");
       var barangaySelect = document.getElementById("barangaySelect");
-      var prioritySelect = document.getElementById("prioritySelect");
       
       am5.ready(function() {
         // Default
@@ -2231,79 +2121,6 @@ zoomToLayer(stationLayer);
     }
     barangayFilterList();
 
-    // 1.3. Handover date
-    function priorityFilterList(municipalValue, barangayValue) {
-        var priorityArray = [];
-        const barangayExpression = "Barangay = '" + barangayValue + "'";
-        const municipalityExpression = "Municipality = '" + municipalValue + "'";
-
-        function priorityQuery() {
-            var query = lotLayer.createQuery();
-            query.orderByFields = ["HandOverDate"];
-
-            if (municipalValue === undefined && barangayValue === undefined) {
-                query.where = "1=1" + " AND " + queryDate;
-            
-            // Municipality: None, barangayValue: !None
-            } else if (municipalValue === 'None' && barangayValue !== 'None') {
-                query.where = barangayExpression + " AND " + queryDate;
-            
-            // Municipality: None, barangayValue: None
-            } else if (municipalValue === 'None' && barangayValue === 'None') {
-                query.where = "1=1" + " AND " + queryDate;
-            
-            // Municipality: !None, barangayValue: None
-            } else if (municipalValue !== 'None' && barangayValue === 'None') {
-                query.where = municipalityExpression + " AND " + queryDate;
-            
-            // Municipality: !None, barangayValue: !None
-            } else if (municipalValue !== 'None' && barangayValue !== 'None') {
-                query.where = municipalityExpression + " AND " + barangayExpression + " AND " + queryDate;
-            }
-        
-            return lotLayer.queryFeatures(query).then(function(response) {
-                stats = response.features;
-                stats.forEach((result, index) => {
-                    const attributes = result.attributes;
-                    const handedOver = attributes.HandOverDate;
-                    const date = new Date(handedOver);
-                    const finalDate = date.toLocaleDateString('en-US');
-
-                    priorityArray.push(finalDate);
-                });
-                return priorityArray;
-            });
-        }
-
-
-        function getUniqueValues3(values2) {
-            var uniqueValues2 = [];
-            values2.forEach(function(item, i) {
-                if ((uniqueValues2.length < 1 || uniqueValues2.indexOf(item) === -1) && item !== "") {
-                    uniqueValues2.push(item);
-                }
-            });
-            //const sortedDates = uniqueValues2.sort();
-            return uniqueValues2;
-        }
-    
-        function addToSelectQuery3(query2Values) {
-            prioritySelect.options.length = 0;
-            //query2Values.sort();
-            query2Values.unshift('None');
-            query2Values.forEach(function(value) {
-                var option = document.createElement("option");
-                option.text = value;
-                prioritySelect.add(option);
-            });
-            return query2Values;
-        }
-
-        priorityQuery()
-        .then(getUniqueValues3)
-        .then(addToSelectQuery3);
-    }
-    priorityFilterList();
 
     // Set the definition expression on the lot layer
     // to reflect the selecction of the user
@@ -2313,7 +2130,6 @@ zoomToLayer(stationLayer);
         if (municipal == 'None') {
             lotLayer.definitionExpression = null;
             structureLayer.definitionExpression = null;
-            priorityLayer.definitionExpression = null;
             reloISFLayer.definitionExpression = null;
             pnrLayer.definitionExpression = null;
             relocationPtLayer.definitionExpression = null;
@@ -2321,7 +2137,6 @@ zoomToLayer(stationLayer);
         } else {
             lotLayer.definitionExpression = municipalityExpression;
             structureLayer.definitionExpression = municipalityExpression;
-            priorityLayer.definitionExpression = municipalityExpression;
             reloISFLayer.definitionExpression = municipalityExpression;
             pnrLayer.definitionExpression = municipalityExpression;
             relocationPtLayer.definitionExpression = municipalityExpression;
@@ -2338,76 +2153,42 @@ zoomToLayer(stationLayer);
 
  
     // for Municipcality + Barangay + Priority
-    function setMunicipalBarangayPriorityExpression(municipal, barangay, priority) {
+    function setMunicipalBarangayPriorityExpression(municipal, barangay) {
         //var municipal = municipalSelect.options[municipalSelect.selectedIndex].value;
         //var barang = barangaySelect.options[barangaySelect.selectedIndex].value;
-        //var priori = prioritySelect.options[prioritySelect.selectedIndex].value;
-        const handOverDateExpression = "HandOverDate = date'" + priority + "'";
         const barangayExpression = "Barangay = '" + barangay + "'";
         const municipalityExpression = "Municipality = '" + municipal + "'";
 
         // all = 'None'
-        if (municipal == 'None' && barangay == 'None' && priority == 'None') {
+        if (municipal == 'None' && barangay == 'None') {
             lotLayer.definitionExpression = null;
             structureLayer.definitionExpression = null;
-            priorityLayer.definitionExpression = null;
             reloISFLayer.definitionExpression = null;
             pnrLayer.definitionExpression = null;
             relocationPtLayer.definitionExpression = null;
 
-        } else if (municipal == 'None' && barangay == 'None' && priority !== 'None') {
-            lotLayer.definitionExpression = handOverDateExpression;
-            //structureLayer.definitionExpression = handOverDateExpression;
-            priorityLayer.definitionExpression = handOverDateExpression;
-            pnrLayer.definitionExpression = handOverDateExpression;
-
-        } else if (municipal == 'None' && barangay !== 'None' && priority == 'None') {
+        } else if (municipal == 'None' && barangay !== 'None') {
             lotLayer.definitionExpression = barangayExpression;
             structureLayer.definitionExpression = barangayExpression;
-            priorityLayer.definitionExpression = barangayExpression; 
             reloISFLayer.definitionExpression = barangayExpression;
             pnrLayer.definitionExpression = barangayExpression;
             relocationPtLayer.definitionExpression = barangayExpression;
 
-        } else if (municipal == 'None' && barangay !== 'None' && priority !== 'None') {
-            lotLayer.definitionExpression = barangayExpression + " AND " + handOverDateExpression;
-            structureLayer.definitionExpression = barangayExpression;
-            priorityLayer.definitionExpression = barangayExpression + " AND " + handOverDateExpression;
-            pnrLayer.definitionExpression = barangayExpression + " AND " + handOverDateExpression; 
-            relocationPtLayer.definitionExpression = barangayExpression;
-
-        } else if (municipal !== 'None' && barangay == 'None' && priority == 'None') {
+        } else if (municipal !== 'None' && barangay == 'None') {
             lotLayer.definitionExpression = municipalityExpression;
             structureLayer.definitionExpression = municipalityExpression;
-            priorityLayer.definitionExpression = municipalityExpression;
             reloISFLayer.definitionExpression = municipalityExpression;
             pnrLayer.definitionExpression = municipalityExpression;
             relocationPtLayer.definitionExpression = municipalityExpression;
 
-        } else if (municipal !== 'None' && barangay == 'None' && priority !== 'None') {
-            lotLayer.definitionExpression = municipalityExpression + " AND " + handOverDateExpression;
-            structureLayer.definitionExpression = municipalityExpression;
-            priorityLayer.definitionExpression = municipalityExpression + " AND " + handOverDateExpression;
-            pnrLayer.definitionExpression = municipalityExpression + " AND " + handOverDateExpression;
-            relocationPtLayer.definitionExpression = municipalityExpression;
-
-        } else if (municipal !== 'None' && barangay !== 'None' && priority == 'None') {
+        } else if (municipal !== 'None' && barangay !== 'None') {
             lotLayer.definitionExpression = municipalityExpression + " AND " + barangayExpression;
             structureLayer.definitionExpression = municipalityExpression + " AND " + barangayExpression;
-            priorityLayer.definitionExpression = municipalityExpression + " AND " + barangayExpression; 
             reloISFLayer.definitionExpression = municipalityExpression + " AND " + barangayExpression;
             pnrLayer.definitionExpression = municipalityExpression + " AND " + barangayExpression;
             relocationPtLayer.definitionExpression = municipalityExpression + " AND " + barangayExpression;
 
-        } else {
-            lotLayer.definitionExpression = municipalityExpression + " AND " + barangayExpression + " AND " + handOverDateExpression;
-            structureLayer.definitionExpression = municipalityExpression + " AND " + barangayExpression;
-            priorityLayer.definitionExpression = municipalityExpression + " AND " + barangayExpression + " AND " + handOverDateExpression;
-            pnrLayer.definitionExpression = municipalityExpression + " AND " + barangayExpression + " AND " + handOverDateExpression;
-            relocationPtLayer.definitionExpression = municipalityExpression + " AND " + barangayExpression;
-            reloISFLayer.definitionExpression = municipalityExpression + " AND " + barangayExpression;
         }
-
 
         //var barang = barangaySelect.options[barangaySelect.selectedIndex].value;
         if (!lotLayer.visible) {
@@ -2418,7 +2199,7 @@ zoomToLayer(stationLayer);
 
     // When CP is changed, Type is reset to 'None'
     const changeSelected = (e) => {
-        const $select = document.querySelector('#prioritySelect');
+        const $select = document.querySelector('#barangaySelect');
         $select.value = 'None'
     };
 
@@ -2433,17 +2214,16 @@ zoomToLayer(stationLayer);
         changeSelected();
 
         barangayFilterList(municipal);
-        priorityFilterList(municipal, barangay);
 
         totalNumberOfLots();
         pteNumberLot();
         totalNumberOfStructures();
         pteNumberStructure();
-        updateChartLot();
-        updateMoaChartLot();
-        updateChartStructure();
-        updateMoaChartStructure();
-        updateChartISF();
+        updateChartLot(municipal, barangay);
+        updateMoaChartLot(municipal, barangay);
+        updateChartStructure(municipal, barangay);
+        updateMoaChartStructure(municipal, barangay);
+        updateChartISF(municipal, barangay);
 
         zoomToLayer(lotLayer);
     });
@@ -2451,126 +2231,24 @@ zoomToLayer(stationLayer);
         barangaySelect.addEventListener("change", function() {
             var municipal = municipalSelect.value;
             var barangay = event.target.value;
-            var priority = prioritySelect.value;
 
-            setMunicipalBarangayPriorityExpression(municipal, barangay, priority);
-            changeSelected();
+            setMunicipalBarangayPriorityExpression(municipal, barangay);
 
-            priorityFilterList(municipal, barangay);
+            //barangayFilterList(municipal);
 
             totalNumberOfLots();
             pteNumberLot();
             totalNumberOfStructures();
             pteNumberStructure();
-            updateChartLot();
-            updateMoaChartLot();
-            updateChartStructure();
-            updateMoaChartStructure();
-            updateChartISF();
+            updateChartLot(municipal, barangay);
+            updateMoaChartLot(municipal, barangay);
+            updateChartStructure(municipal, barangay);
+            updateMoaChartStructure(municipal, barangay);
+            updateChartISF(municipal, barangay);
 
             zoomToLayer(lotLayer);
         //relocationObjectID(reloStatusLayer);
     });
-
-
-    prioritySelect.addEventListener("change", function() {
-        var municipal = municipalSelect.value;
-        var barangay = barangaySelect.value;
-        var priority = event.target.value;
-
-        setMunicipalBarangayPriorityExpression(municipal, barangay, priority);
-
-        totalNumberOfLots();
-        pteNumberLot();
-        totalNumberOfStructures();
-        pteNumberStructure();
-        updateChartLot();
-        updateMoaChartLot();
-        updateChartStructure();
-        updateMoaChartStructure();
-        updateChartISF();
-
-        //zoomToLayer(lotLayer);
-        //relocationObjectID(reloStatusLayer);
-
-        let arrLviews = [];
-
-        view.whenLayerView(lotLayer).then(function (layerView) {
-            arrLviews.push(layerView);
-            lotLayer.queryFeatures().then(function(results) {
-                const ggg = results.features;
-                const rowN = ggg.length;
-
-                let objID = [];
-                for (var i=0; i < rowN; i++) {
-                    var obj = results.features[i].attributes.OBJECTID;
-                    objID.push(obj);
-                }
-
-                var queryExt = new Query({
-                    objectIds: objID
-                });
-
-                lotLayer.queryExtent(queryExt).then(function(result) {
-                    if (result.extent) {
-                        view.goTo(result.extent)
-                    }
-                });
-
-                if (highlightSelect) {
-                    highlightSelect.remove();
-                }
-                highlightSelect = layerView.highlight(objID);
-
-                view.on("click", function() {
-                    layerView.filter = null;
-                    highlightSelect.remove();
-                });
-            }); // End of queryFeatures
-        }); // End of view.whenLayerView
-
-        view.whenLayerView(pnrLayer).then(function (layerView) {
-            arrLviews.push(layerView);
-            pnrLayer.queryFeatures().then(function(results) {
-                const ggg = results.features;
-                const rowN = ggg.length;
-
-                let objID = [];
-                for (var i=0; i < rowN; i++) {
-                    var obj = results.features[i].attributes.OBJECTID;
-                    objID.push(obj);
-                }
-
-                var queryExt = new Query({
-                    objectIds: objID
-                });
-
-                pnrLayer.queryExtent(queryExt).then(function(result) {
-                    if (result.extent) {
-                        view.goTo(result.extent)
-                    }
-                });
-
-                if (highlightSelect) {
-                    highlightSelect.remove();
-                }
-                highlightSelect = layerView.highlight(objID);
-
-                view.on("click", function() {
-                    layerView.filter = null;
-                    highlightSelect.remove();
-                });
-            }); // End of queryFeatures
-        }); // End of view.whenLayerView
-
-        for(var i = 0; i < arrLviews.length; i++) {
-            arrLviews[i].filter = {
-                where: "HandOverDate = '" + type + "'"
-            }
-        }
-    });
-
-
 
     // Charts for Lot and Structure
     // Lot Chart
@@ -2581,7 +2259,7 @@ zoomToLayer(stationLayer);
                        "For Legal Pass", "For Appraisal/Offer to Buy",
                        "For Expro"];
 
-    function updateChartLot() {
+    function updateChartLot(municipal, barangay) {
         root.container.children.clear();
         // First, define statuses
         var total_handedover_lot = {
@@ -2688,7 +2366,7 @@ zoomToLayer(stationLayer);
         //pieSeries.appear(1000, 100)
         pieSeries.slices.template.events.on("click", function(ev) {
           const SELECTED = ev.target.dataItem.dataContext.category;
-          console.log(SELECTED)
+
           if (SELECTED == statusLot[0]) {
             selectedStatus = 0;
           } else if (SELECTED == statusLot[1]) {
@@ -2705,11 +2383,32 @@ zoomToLayer(stationLayer);
             selectedStatus = null;
           }
 
+          var query = lotLayer.createQuery();
+          const municipalExpression = "Municipality = '" + municipal + "'";
+          const barangayExpression = "Barangay ='" + barangay + "'";
+          const statusExpression = "StatusLA = " + selectedStatus;
+
+          if (municipal === undefined && barangay === undefined) {
+            query.where = statusExpression;
+
+          } else if (municipal !== 'None' && barangay === 'None') {
+            query.where = municipalExpression + " AND " + statusExpression;
+
+          } else if (municipal === 'None' && barangay !== 'None') {
+            query.where = barangayExpression + " AND " + statusExpression;
+
+          } else if (municipal === 'None' && barangay === 'None') {
+            query.where = "1=1";
+
+          } else if (municipal !== 'None' && barangay !== 'None') {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
+
+          } 
           view.when(function() {
             view.whenLayerView(lotLayer).then(function (layerView) {
               //chartLayerView = layerView;
 
-              lotLayer.queryFeatures().then(function(results) {
+              lotLayer.queryFeatures(query).then(function(results) {
                 const RESULT_LENGTH = results.features;
                 const ROW_N = RESULT_LENGTH.length;
 
@@ -2892,7 +2591,7 @@ zoomToLayer(stationLayer);
                             "No Need to Acquire"
                           ];
 
-    function updateMoaChartLot() {
+    function updateMoaChartLot(municipal, barangay) {
         root2.container.children.clear();
 
         var total_nego_lot = {
@@ -3062,9 +2761,7 @@ zoomToLayer(stationLayer);
 
         series.columns.template.events.on("click", function(ev) {
           const SELECTED = ev.target.dataItem.dataContext.category;
-          console.log(SELECTED);
-
-          if (SELECTED == statusMOA[0]) {
+           if (SELECTED == statusMOA[0]) {
             selectedStatus = 1;
           } else if (SELECTED == statusMOA[1]) {
             selectedStatus = 2;
@@ -3075,11 +2772,33 @@ zoomToLayer(stationLayer);
           }  else if (SELECTED == statusMOA[4]) {
             selectedStatus = 5;
           }
+
+          var query = lotLayer.createQuery();
+          const municipalExpression = "Municipality = '" + municipal + "'";
+          const barangayExpression = "Barangay ='" + barangay + "'";
+          const statusExpression = "MoA = " + selectedStatus;
+
+          if (municipal === undefined && barangay === undefined) {
+            query.where = statusExpression;
+
+          } else if (municipal !== 'None' && barangay === 'None') {
+            query.where = municipalExpression + " AND " + statusExpression;
+
+          } else if (municipal === 'None' && barangay !== 'None') {
+            query.where = barangayExpression + " AND " + statusExpression;
+
+          } else if (municipal === 'None' && barangay === 'None') {
+            query.where = priorityExpression + " AND " + statusExpression;
+
+          } else if (municipal !== 'None' && barangay !== 'None') {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
+
+          } 
           
           view.whenLayerView(lotLayer).then(function (layerView) {
           //CHART_ELEMENT.style.visibility = "visible";
 
-          lotLayer.queryFeatures().then(function(results) {
+          lotLayer.queryFeatures(query).then(function(results) {
               const RESULT_LENGTH= results.features;
               const ROW_N= RESULT_LENGTH.length;
 
@@ -3261,7 +2980,7 @@ zoomToLayer(stationLayer);
                                  "For Legal Pass", "For Appraisal/Offer to Compensate",
                                 "LBP Account Opening"];
 
-    async function updateChartStructure() {
+    async function updateChartStructure(municipal, barangay) {
         root3.container.children.clear();
 
         var total_clear_lot = {
@@ -3383,11 +3102,33 @@ zoomToLayer(stationLayer);
           selectedStatus = null;
           }
 
+          var query = structureLayer.createQuery();
+          const municipalExpression = "Municipality = '" + municipal + "'";
+          const barangayExpression = "Barangay ='" + barangay + "'";
+          const statusExpression = "StatusStruc = " + selectedStatus;
+
+          if (municipal === undefined && barangay === undefined) {
+            query.where = statusExpression;
+
+          } else if (municipal !== 'None' && barangay === 'None') {
+            query.where = municipalExpression + " AND " + statusExpression;
+
+          } else if (municipal === 'None' && barangay !== 'None') {
+            query.where = barangayExpression + " AND " + statusExpression;
+
+          } else if (municipal === 'None' && barangay === 'None') {
+            query.where = priorityExpression + " AND " + statusExpression;
+
+          } else if (municipal !== 'None' && barangay !== 'None') {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
+
+          } 
+
           // Zoom, filter, and highlight selected chart categories 
           view.when(function() {
           view.whenLayerView(structureLayer).then(function (layerView) {
 
-          structureLayer.queryFeatures().then(function(results) {
+          structureLayer.queryFeatures(query).then(function(results) {
             const RESULT_LENGTH= results.features;
             const ROW_N = RESULT_LENGTH.length;
 
@@ -3539,7 +3280,7 @@ zoomToLayer(stationLayer);
                                 "No Need to Acquire"
                                 ];
 
-    async function updateMoaChartStructure() {
+    async function updateMoaChartStructure(municipal, barangay) {
         root4.container.children.clear();
 
         var total_nego_lot = {
@@ -3713,11 +3454,31 @@ zoomToLayer(stationLayer);
             } else {
                 selectedStatus = null;
             }
+
+          var query = structureLayer.createQuery();
+          const municipalExpression = "Municipality = '" + municipal + "'";
+          const barangayExpression = "Barangay ='" + barangay + "'";
+          const statusExpression = "MoA = " + selectedStatus;
+
+          if (municipal === undefined && barangay === undefined) {
+            query.where = statusExpression;
+          } else if (municipal !== 'None' && barangay === 'None') {
+            query.where = municipalExpression + " AND " + statusExpression;
+          } else if (municipal === 'None' && barangay !== 'None') {
+            query.where = barangayExpression + " AND " + statusExpression;
+          } else if (municipal === 'None' && barangay === 'None') {
+            query.where = statusExpression;
+
+          } else if (municipal !== 'None' && barangay !== 'None') {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
+          } else if (municipal !== 'None' && barangay !== 'None') {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
+          }
           
           view.whenLayerView(structureLayer).then(function (layerView) {
           //CHART_ELEMENT.style.visibility = "visible";
 
-          structureLayer.queryFeatures().then(function(results) {
+          structureLayer.queryFeatures(query).then(function(results) {
               const RESULT_LENGTH= results.features;
               const ROW_N= RESULT_LENGTH.length;
 
@@ -3805,7 +3566,7 @@ zoomToLayer(stationLayer);
                       "For Legal Pass", "For Appraisal/OtC/Requirements for Other Entitlements",
                     "LBP Account Opening"]
 
-    async function updateChartISF() {
+    async function updateChartISF(municipal, barangay) {
         root5.container.children.clear();
 
         var total_relocated_lot = {
@@ -3940,6 +3701,26 @@ zoomToLayer(stationLayer);
             selectedStatus = 6;
           } else {
             selectedStatus = null;
+          }
+
+          var query = reloISFLayer.createQuery();
+          const municipalExpression = "Municipality = '" + municipal + "'";
+          const barangayExpression = "Barangay ='" + barangay + "'";
+          const statusExpression = "StatusRC = " + selectedStatus;
+
+          if (municipal === undefined && barangay === undefined) {
+            query.where = statusExpression;
+          } else if (municipal !== 'None' && barangay === 'None') {
+            query.where = municipalExpression + " AND " + statusExpression;
+          } else if (municipal === 'None' && barangay !== 'None') {
+            query.where = barangayExpression + " AND " + statusExpression;
+          } else if (municipal === 'None' && barangay === 'None') {
+            query.where = statusExpression;
+
+          } else if (municipal !== 'None' && barangay !== 'None') {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
+          } else if (municipal !== 'None' && barangay !== 'None') {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
           }
 
           view.when(function() {
