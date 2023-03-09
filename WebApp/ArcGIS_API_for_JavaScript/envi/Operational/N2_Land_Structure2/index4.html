@@ -5,8 +5,8 @@
     <title>N2 Land Acquisition</title>
     
     <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"/>
-    <script type="module" src="https://js.arcgis.com/calcite-components/1.0.3/calcite.esm.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.0.3/calcite.css" />
+    <script type="module" src="https://js.arcgis.com/calcite-components/1.0.7/calcite.esm.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.0.7/calcite.css" />
 
     <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
     <script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
@@ -15,7 +15,7 @@
     <script src="https://cdn.amcharts.com/lib/5/themes/Micro.js"></script>
     <script src="https://cdn.amcharts.com/lib/5/themes/Responsive.js"></script>
 
-    <script src="https://js.arcgis.com/4.25/"></script>
+    <script src="https://js.arcgis.com/4.26/"></script>
 
   </head>
   <style>
@@ -1245,23 +1245,9 @@
 
     // Pier No (point)
     // Renderer
-    var defaultPointSymbol = {
-        type: "simple",
-        symbol: {
-            type: "simple-marker",
-            size: 5,
-            color: [255, 255, 255, 0.9],
-            outline: {
-                width: 0.2,
-                color: "black"
-            }
-        }
-    }
-
-
     // 0. Define colors for unique values
     const pierAccessDateColor = {
-      0: [112, 173, 71],// Accessible (green)
+      0: [0, 255, 0],// Accessible (green)
       1: [255, 127, 80],// Orange
       2: [255, 255, 0],// Yellow
       3: [0, 112, 255], // Blue
@@ -1269,24 +1255,38 @@
       5: [255, 255, 255]
     }
 
-    // Compile
-    const accessDates = [1607040000000, 1607472000000, 1636070400000, 1672444800000, 1677542400000, 1682812800000];
-    
-    const test = accessDates.map((date, index) => {
-      const temp = new Date(date);
-      const labelDate = temp.toLocaleDateString('en-US');
-      return Object.assign({}, {
+    var defaultPointSymbol = {
+        type: "simple",
+        label: "Accessible",
+        symbol: {
+            type: "simple-marker",
+            size: 5,
+            color: pierAccessDateColor[0],
+            outline: {
+                width: 0,
+                color: "black"
+            }
+        }
+    }
+
+      // labels
+      // for multiple label class to a layer:
+      // https://developers.arcgis.com/javascript/latest/sample-code/labels-multiple-classes/
+      
+      const cutOffDateAccess = '2021-12-31 12:00:00';
+  
+      const pierAccessReadyDateLabel = new LabelClass({
         symbol: {
           type: "label-3d", // autocast as new LabelSymbol3D()
           symbolLayers: [
             {
               type: "text",
               material: {
-                color: pierAccessDateColor[index]
+                color: pierAccessDateColor[0]
               },
               size: 15,
-              color: pierAccessDateColor[index],
-              haloColor: pierAccessDateColor[index],
+              color: pierAccessDateColor[0],
+              haloColor: pierAccessDateColor[0],
               haloSize: 1,
               font: {
                 family: "Ubuntu Mono",
@@ -1315,87 +1315,7 @@
           //value: "{Type}"
         },
         labelPlacement: "above-center",
-        where: "AccessDate = " + date
-      });
-    });
-    //console.log(test[0]);
-
-    if (test.length == 1) {
-      const {0: first} = [test[0]];
-
-    } else if (test.length == 2) {
-      const {0: first, 1: second} = [test[0],test[1]];
-
-    } else if (test.length == 3) {
-      const {0: first, 1: second, 2: third} = [test[0], test[1], test[2]];
-
-    } else if (test.length == 4) {
-      const {0: first, 1: second, 2: third, 3: fourth} = [test[0], test[1], test[2], test[3]];
-
-    } else if (test.length == 5) {
-      const {0: first, 1: second, 2: third, 3: fourth, 4: fifth} = [test[0], test[1], test[2], test[3], test[4]];
-    }
-
-
-    const {0: first, 1: second, 2: third, 3: fourth, 4: fifth, 5: sixth} = [test[0],
-                                                                            test[1],
-                                                                            test[2],
-                                                                            test[3],
-                                                                            test[4],
-                                                                            test[5]
-                                                                          ]
-    
-
-    
-
-   
-    //= new LabelClass(test[0]);
-
-          // labels
-      // for multiple label class to a layer:
-      // https://developers.arcgis.com/javascript/latest/sample-code/labels-multiple-classes/
-      const cutOffDateAccess = '2020-12-04 12:00:00';
-      const pierAccessReadyDateLabel = new LabelClass({
-      symbol: {
-        type: "label-3d", // autocast as new LabelSymbol3D()
-        symbolLayers: [
-          {
-            type: "text",
-            material: {
-              color: "#00ff00"
-            },
-            size: 15,
-            color: "#00ff00",
-            haloColor: "#00ff00",
-            haloSize: 1,
-            font: {
-              family: "Ubuntu Mono",
-              weight: "bold"
-            },
-          }
-        ],
-        verticalOffset: {
-          screenLength: 80,
-          maxWorldLength: 500,
-          minWorldLength: 30
-        },
-        callout: {
-          type: "line",
-          size: 0.5,
-          color: [0, 0, 0],
-          border: {
-            color: [255, 255, 255, 0.7]
-          }
-        }
-      },
-      labelExpressionInfo: {
-        expression: "$feature.PIER"
-        //'DefaultValue($feature.GeoTechName, "no data")'
-        //"IIF($feature.Score >= 13, '', '')"
-        //value: "{Type}"
-      },
-      labelPlacement: "above-center",
-      where: "AccessDate <= date'" + cutOffDateAccess + "'"
+        where: "AccessDate <= date'" + cutOffDateAccess + "'"
     });
 
     const pierAccessNotYetLabel =  new LabelClass({
@@ -1441,6 +1361,9 @@
       where: "AccessDate > date'" + cutOffDateAccess + "'"
     });
 
+    // 1. Get unique dates
+    const numberDate = new Date(cutOffDateAccess);
+    const cutDate = numberDate.toLocaleDateString('en-US');
 
     var pierNoLayer = new FeatureLayer ({
       portalItem: {
@@ -1450,7 +1373,7 @@
           }
       },
       layerId: 6,
-      labelingInfo: [first, second, third, fourth, fifth, sixth],
+      labelingInfo: [pierAccessReadyDateLabel, pierAccessNotYetLabel],
       title: "Pier Access Date",
       minScale: 150000,
       maxScale: 0,
@@ -1461,68 +1384,89 @@
     },{utcOffset: 300});
     map.add(pierNoLayer, 3);
 
-    // 1. Get unique dates
-    const numberDate = new Date(cutOffDateAccess);
-    const cutDate = numberDate.toLocaleDateString('en-US');
-    const queryDate = "AccessDate IS NOT NULL" + " AND " + "AccessDate >= date'" + cutDate + "'";
+       // we first need to obtain unique values of date because valueExpression does not allow
+    // date'2021-10-01' notation
+    const queryDate = "AccessDate IS NOT NULL";
 
     function DateValues() {
-      const dates = [];
-      var query = pierNoLayer.createQuery();
+        const dates = [];
+        var query = pierNoLayer.createQuery();
 
-      query.where = queryDate;
-      return pierNoLayer.queryFeatures(query).then(function(response) {
-          var stats = response.features;
-          stats.forEach((result, index) => {
-              const attributes = result.attributes;
-              const date = attributes.AccessDate;
-              dates.push(date);
-          });
-          return dates;
-      });
+        query.where = queryDate;
+        return pierNoLayer.queryFeatures(query).then(function(response) {
+            var stats = response.features;
+            stats.forEach((result, index) => {
+                const attributes = result.attributes;
+                const date = attributes.AccessDate;
+                dates.push(date);
+            });
+            return dates;
+        });
     }
-   
-    function uniqueDateValues(values) {
-      var uniqueValues = [];
 
-      values.forEach((item, index) => {
-          if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
-              uniqueValues.push(item);
-          }
-      });
-      const sortedDates = uniqueValues.sort();
-      return sortedDates;
+    function uniqueDateValues(values) {
+        var uniqueValues = [];
+        values.forEach((item, index) => {
+            if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
+                uniqueValues.push(item);
+            }
+        });
+        const sortedDates = uniqueValues.sort();
+        return sortedDates;
     }
 
     function uniqueValuesInfos(sortedDates) {
-        const dates = sortedDates.map((date, index) => {
+      const dates = sortedDates.map((date, index) => {
             const temp = new Date(date);
             const labelDate = temp.toLocaleDateString('en-US');
             return Object.assign({}, {
                 value: date, // make sure to use 'number'. you cannot add 'date'
-                type: "simple",
-                label: date <= sortedDates[0] ? "Accessible" : labelDate,
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: pierAccessDateColor[index],
-                    outline: {
-                        width: 0.1,
-                        color: pierAccessDateColor[index]
-                    }
-                }
+                label: labelDate,
             });
         });
-   
-        var pierAccessDateRenderer = {
-            type: "unique-value",
-            field: "AccessDate", // For 3D, including this works, but for 2D we need to remove this 
-            defaultSymbol: defaultPointSymbol,  // autocasts as new SimpleFillSymbol()
-            uniqueValueInfos: dates
-        }
-        pierNoLayer.renderer = pierAccessDateRenderer;
+        console.log(dates);
     }
     DateValues().then(uniqueDateValues).then(uniqueValuesInfos);
+
+    const pierAccessRenderer = {
+      type: "unique-value", // autocasts as new UniqueValueRenderer()
+      field: "AccessDate",
+      defaultSymbol: defaultPointSymbol,
+      
+      valueExpression: "When($feature.AccessDate <= 1636070400000, 'accessible', \
+                            $feature.AccessDate > 1636070400000, 'others',$feature.AccessDate)", 
+      uniqueValueInfos: [
+        {
+          value: "accessible",
+          label: "Accessible",
+          type: "simple",
+          symbol: {
+              type: "simple-marker",
+              size: 5,
+              color: pierAccessDateColor[0],
+              outline: {
+                  width: 0.1,
+                  color: "white"
+              }
+          }
+        },
+        {
+          value: "others",
+          label: "Others",
+          type: "simple",
+          symbol: {
+              type: "simple-marker",
+              size: 5,
+              color: pierAccessDateColor[5],
+              outline: {
+                  width: 0.1,
+                  color: "white"
+              }
+          }
+        },
+      ]
+    }
+    pierNoLayer.renderer = pierAccessRenderer;
 
     // Popup Template
 
@@ -1564,13 +1508,12 @@
 
             // Convert numeric to date format
             var date = new Date(stats);
-            const dateValue = dateFormat(date, 'MM-dd-yyyy');
+            console.log(date);
+            dateValue = dateFormat(date, 'MM-dd-yyyy');
 
             // If the date is before current date, popupContent should be "AVAILABLE"
-            const d1 = new Date('08-31-2022');
-
-            if (date < d1) {
-                DATES = "AVAILABLE";
+            if (dateValue <= cutOffDateAccess) {
+                DATES = "ACCESSIBLE";
             } else {
                 DATES = dateValue;
             }
