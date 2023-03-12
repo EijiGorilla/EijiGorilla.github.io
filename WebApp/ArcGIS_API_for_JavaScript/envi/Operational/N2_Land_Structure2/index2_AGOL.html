@@ -41,9 +41,17 @@
       --calcite-label-margin-bottom: 0px;
     }
 
+    #container {
+      display: grid;
+      flex-wrap: wrap;
+      box-sizing: border-box;
+      grid-template-columns: 1fr 0.25fr;
+      width: 100%;
+      height: 100%;
+    }
+
     calcite-tabs {
       width: 18vw;
-      margin-right: 4.5vw;
       height: 100%;
     }
 
@@ -95,6 +103,7 @@
     #chartPanel {
         background-color: rgb(0, 0, 0, 0);
         padding: 10;
+        height: 100%;
     }
     
     #pieChartLotDiv,
@@ -274,11 +283,12 @@
         </calcite-panel>
       </calcite-shell-panel>
 
-      <div id="viewDiv">
-        <!-- Chart Panel -->
-        <!-- Tabs "https://esri.github.io/calcite-web/documentation/patterns/#tabs" -->
-        <!-- Tabs "https://developers.arcgis.com/calcite-design-system/components/tabs/" -->
-        <calcite-tabs>
+      <div id="container">
+        <div id="viewDiv"></div>
+          <!-- Chart Panel -->
+          <!-- Tabs "https://esri.github.io/calcite-web/documentation/patterns/#tabs" -->
+          <!-- Tabs "https://developers.arcgis.com/calcite-design-system/components/tabs/" -->
+          <calcite-tabs>
             <div id="chartPanel">
                 <calcite-tab-nav slot="tab-nav" id="thetabs">
                     <calcite-tab-title class="Land" selected>Land</calcite-tab-title>
@@ -312,10 +322,8 @@
                     </ul>
                   </div>
                 </calcite-tab>
-            </div>
         </calcite-tabs>
-       </div>
-
+      </div>
     </calcite-shell>
   </body>
   <script>
@@ -352,30 +360,54 @@
       "esri/popup/content/CustomContent",
       "esri/layers/TileLayer",
       "esri/core/reactiveUtils",
+      "esri/popup/support/FieldInfoFormat"
     ], function(WebMap, MapView, SceneView, Map, FeatureLayer, SceneLayer, Bookmarks, BasemapGallery, LayerList, Legend, 
                 Query, Fullscreen, FeatureFilter, TableList, PortalItem, Portal, geometryService,
                 StatisticDefinition, WebStyleSymbol, Expand, UniqueValueRenderer, Ground,
                 RelationshipQuery, GraphicsLayer, Search, Locate, BasemapToggle, PopupTemplate,
-                LabelClass, CustomContent, TileLayer, reactiveUtils
+                LabelClass, CustomContent, TileLayer, reactiveUtils, 
+                FieldInfoFormat
                  ) {
       
+    // Reference link
+    // 2D to 3D
+    //https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/
+
+    // 3D Extrusion using point, line, and polygon
+    // https://www.esri.com/arcgis-blog/products/js-api-arcgis/3d-gis/3d-visualization-working-with-objects-paths-and-extrusion/?rmedium=redirect&rsource=blogs.esri.com/esri/arcgis/2016/01/25/3d-visualization-working-with-objects-paths-and-extrusion
+
+
     var map = new Map({
         basemap: "dark-gray-vector", // "streets-night-vector", basemap
         ground: "world-elevation",
     }); 
 
+    /*
+    var view = new MapView({
+        map: map,
+        center: [120.57930, 15.18],
+        zoom: 12,
+        container: "viewDiv",
+        environment: {
+          background: {
+          type: "color", // autocasts as new ColorBackground()
+          color: [0, 0, 0, 1]
+          },
+        }
+    });
+    */
     var view = new SceneView({
-      map: map,
-      center: [120.57930, 15.18],
-      zoom: 12,
-      viewingMode: "local",
-      container: "viewDiv",
-      environment: {
-        background: {
-        type: "color", // autocasts as new ColorBackground()
-        color: [0, 0, 0, 1]
-        },
-      }
+        map: map,
+        center: [120.57930, 15.18],
+        zoom: 12,
+        viewingMode: "local",
+        container: "viewDiv",
+        environment: {
+          background: {
+          type: "color", // autocasts as new ColorBackground()
+          color: [0, 0, 0, 1]
+          },
+        }
     });
 
     // Default Renderer for Polygon------------
@@ -473,14 +505,20 @@
     }
 
     var lotLayer = new FeatureLayer({
-      portalItem: {
-        id: "4e8673e3c4bc4e5b89572366d91f451a",
-      },
-      layerId: 36,
-      renderer:lotLayerRenderer,
-      outFields: ["*"],
-      title: "Status of Land Acquisition",
-      labelsVisible: false,
+        portalItem: {
+            id: "dca1d785da0f458b8f87638a76918496",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 7,
+        renderer:lotLayerRenderer,
+        outFields: ["*"],
+        title: "Status of Land Acquisition",
+        labelsVisible: false,
+        elevationInfo: {
+          model: "on-the-ground"
+        }
     });
     map.add(lotLayer, 1);
 
@@ -733,12 +771,14 @@
       ]
     }
 
-    // Structure Layer
     var structureLayer = new FeatureLayer({
       portalItem: {
-        id: "4e8673e3c4bc4e5b89572366d91f451a",
+        id: "dca1d785da0f458b8f87638a76918496",
+        portal: {
+            url: "https://gis.railway-sector.com/portal"
+        }
       },
-      layerId: 35,
+      layerId: 6,
       title: "Structure",
       renderer: structureRenderer,
       outFields: ["*"],
@@ -782,6 +822,7 @@
     });
     map.add(structureLayer);
 
+
     // Structure (NLO/LO)
     let NLOLORenderer = {
         type: "unique-value",
@@ -817,58 +858,67 @@
     };
 
     var structureNLOLOLayer = new FeatureLayer({
-      portalItem: {
-        id: "4e8673e3c4bc4e5b89572366d91f451a",
-      },
-      renderer: NLOLORenderer,
-      layerId: 32,
-      title: "NLO/LO (Structure)",
-      outFields: ["*"],
-      popupEnabled: false
+        portalItem: {
+            id: "dca1d785da0f458b8f87638a76918496",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        renderer: NLOLORenderer,
+        layerId: 3,
+        title: "NLO/LO (Structure)",
+        outFields: ["*"],
+        popupEnabled: false,
+        elevationInfo: {
+          model: "on-the-ground"
+        }
     });
     map.add(structureNLOLOLayer);
 
     // Status of Relocation (Occupancy)
     var relocationPtLayer = new FeatureLayer({
-      portalItem: {
-        id: "4e8673e3c4bc4e5b89572366d91f451a",
-      },
-      layerId: 34,
-      outFields: ["*"],
-      title: "Occupancy (Structure)",
-      popupTemplate: {
-          title: "<p>{StrucID}</p>",
-          lastEditInfoEnabled: false,
-          returnGeometry: true,
-          content: [
-          {
-              type: "fields",
-              fieldInfos: [
-              {
-                  fieldName: "StrucOwner",
-                  label: "Structure Owner"
-              },
-              {
-                  fieldName: "Municipality"
-              },
-              {
-                  fieldName: "Barangay"
-              },
-              {
-                  fieldName: "Occupancy",
-                  label: "<p>Status for Relocation(structure)</p>"
-              },
-              {
-                  fieldName: "Name",
-              },
-              {
-                  fieldName: "Status",
-                  label: "Status of NLO/LO"
-              }
-              ]
-          }
-          ]
-      }
+        portalItem: {
+            id: "dca1d785da0f458b8f87638a76918496",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 5,
+        outFields: ["*"],
+        title: "Occupancy (Structure)",
+        popupTemplate: {
+            title: "<p>{StrucID}</p>",
+            lastEditInfoEnabled: false,
+            returnGeometry: true,
+            content: [
+            {
+                type: "fields",
+                fieldInfos: [
+                {
+                    fieldName: "StrucOwner",
+                    label: "Structure Owner"
+                },
+                {
+                    fieldName: "Municipality"
+                },
+                {
+                    fieldName: "Barangay"
+                },
+                {
+                    fieldName: "Occupancy",
+                    label: "<p>Status for Relocation(structure)</p>"
+                },
+                {
+                    fieldName: "Name",
+                },
+                {
+                    fieldName: "Status",
+                    label: "Status of NLO/LO"
+                }
+                ]
+            }
+            ]
+        }
     });
     map.add(relocationPtLayer);
 
@@ -979,9 +1029,12 @@
 
     var reloISFLayer = new FeatureLayer({
       portalItem: {
-          id: "4e8673e3c4bc4e5b89572366d91f451a",
+          id: "dca1d785da0f458b8f87638a76918496",
+          portal: {
+              url: "https://gis.railway-sector.com/portal"
+          }
       },
-      layerId: 33,
+      layerId: 4,
       renderer: isfRenderer,
       outFields: ["*"],
       title: "ISF (Informatl Settlers Families)",
@@ -1056,24 +1109,29 @@
     };
 
     var chainageLayer = new FeatureLayer ({
-      portalItem: {
-        id: "4e8673e3c4bc4e5b89572366d91f451a",
-      },
-      layerId: 27,
-      title: "Chainage",
-      elevationInfo: {
-          mode: "relative-to-ground"
-      },
-      labelingInfo: [labelChainage],
-      minScale: 150000,
-      maxScale: 0,
-      renderer: chainageRenderer,
-      outFields: ["*"],
-      popupEnabled: false
+        portalItem: {
+            id: "590680d19f2e48fdbd8bcddce3aaedb5",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 5,
+        title: "Chainage",
+        elevationInfo: {
+            mode: "relative-to-ground"
+        },
+        labelingInfo: [labelChainage],
+        minScale: 150000,
+        maxScale: 0,
+        renderer: chainageRenderer,
+        outFields: ["*"],
+        popupEnabled: false
     });
     map.add(chainageLayer);
 
     // Pier Head and Column
+
+    // Polygon 3D extrution
     const pHeight = 0;
 
     const pierColumn = {
@@ -1176,19 +1234,22 @@
     }
 
     var pierHeadColumnLayerLayer = new FeatureLayer ({
-      portalItem: {
-          id: "4e8673e3c4bc4e5b89572366d91f451a",
-      },
-      layerId: 26,
-      title: "Pier Head/Column",
-      outFields: ["*"],
-      minScale: 150000,
-      maxScale: 0,
-      renderer: pierHeadRenderer,
-      popupEnabled: false,
-      elevationInfo: {
+        portalItem: {
+            id: "590680d19f2e48fdbd8bcddce3aaedb5",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 4,
+        title: "Pier Head/Column",
+        outFields: ["*"],
+        minScale: 150000,
+        maxScale: 0,
+        renderer: pierHeadRenderer,
+        popupEnabled: false,
+        elevationInfo: {
           model: "on-the-ground"
-      }
+        }
     });
     //pierHeadColumnLayerLayer.listMode = "hide";
     map.add(pierHeadColumnLayerLayer, 1);
@@ -1318,9 +1379,12 @@
 
     var pierNoLayer = new FeatureLayer ({
       portalItem: {
-        id: "4e8673e3c4bc4e5b89572366d91f451a",
+          id: "590680d19f2e48fdbd8bcddce3aaedb5",
+          portal: {
+              url: "https://gis.railway-sector.com/portal"
+          }
       },
-      layerId: 28,
+      layerId: 6,
       labelingInfo: [pierAccessReadyDateLabel, pierAccessNotYetLabel],
       title: "Pier Access Date",
       minScale: 150000,
@@ -1485,7 +1549,6 @@
     pierNoLayer.popupTemplate = template;
 
     // Station Box
-     // Station Box
     let stationBoxRenderer = {
         type: "unique-value",
         field: "Layer",
@@ -1534,39 +1597,51 @@
     };
 
     var stationBoxLayer = new FeatureLayer ({
-      portalItem: {
-        id: "4e8673e3c4bc4e5b89572366d91f451a",
-      },
-      layerId: 25,
-      renderer: stationBoxRenderer,
-      minScale: 150000,
-      maxScale: 0,
-      title: "Station Box",
-      outFields: ["*"],
-      popupEnabled: false
+        portalItem: {
+            id: "590680d19f2e48fdbd8bcddce3aaedb5",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 3,
+        renderer: stationBoxRenderer,
+        minScale: 150000,
+        maxScale: 0,
+        title: "Station Box",
+        outFields: ["*"],
+        popupEnabled: false,
+        elevationInfo: {
+          model: "on-the-ground"
+        }
     });
     //stationBoxLayer.listMode = "hide";
     map.add(stationBoxLayer, 2);
 
     // ROW //
     var rowLayer = new FeatureLayer ({
-      portalItem: {
-        id: "4e8673e3c4bc4e5b89572366d91f451a",
-      },
-      layerId: 23,
-      title: "PROW",
-      popupEnabled: false
+        portalItem: {
+            id: "590680d19f2e48fdbd8bcddce3aaedb5",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 1,
+        title: "PROW",
+        popupEnabled: false
     });
     map.add(rowLayer,2);
 
     // Free and Clear Lot
     var fncLayer = new FeatureLayer ({
-      portalItem: {
-        id: "4e8673e3c4bc4e5b89572366d91f451a",
-      },
-      layerId: 31,
-      title: "Free-and-Clear Area",
-      //popupEnabled: false
+        portalItem: {
+            id: "dca1d785da0f458b8f87638a76918496",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 2,
+        title: "Free-and-Clear Area",
+        //popupEnabled: false
     });
     map.add(fncLayer,1);
 
@@ -1605,47 +1680,52 @@
 
     var pnrLayer = new FeatureLayer({
       portalItem: {
-        id: "4e8673e3c4bc4e5b89572366d91f451a",
+          id: "dca1d785da0f458b8f87638a76918496",
+          portal: {
+              url: "https://gis.railway-sector.com/portal"
+          }
       },
-      layerId: 39,
+      layerId: 10,
       title: "Land (PNR)",
       definitionExpression: "LandOwner IN ('BASES CONVERSION DEVELOPMENT AUTHORITY','MANILA RAILROAD COMPANY')",
       outFields: ["*"],
       title: "PNR",
+      elevationInfo: {
+          model: "on-the-ground"
+        },
       labelsVisible: false,
       renderer: pnrRenderer,
       popupTemplate: {
-          title: "<p>{LandOwner} ({LotID})</p>",
-          lastEditInfoEnabled: false,
-          returnGeometry: true,
-          content: [
+        title: "<p>{LandOwner} ({LotID})</p>",
+        lastEditInfoEnabled: false,
+        returnGeometry: true,
+        content: [
           {
-              type: "fields",
-              fieldInfos: [
+            type: "fields",
+            fieldInfos: [
               {
-                  fieldName: "HandOverDate",
-                  label: "Hand-Over Date"
+                fieldName: "HandOverDate",
+                label: "Hand-Over Date"
               },
               {
-                  fieldName: "Municipality"
+                fieldName: "Municipality"
               },
               {
-                  fieldName: "Barangay"
+                fieldName: "Barangay"
               },
               {
-                  fieldName: "LandOwner",
-                  label: "Land Owner"
+                fieldName: "LandOwner",
+                label: "Land Owner"
               }
-              ]
+            ]
           }
-          ]
+        ] 
       }
-      //popupEnabled: false
     });
     map.add(pnrLayer, 1);
 
-    // Station point feature
-    var labelClass = new LabelClass({
+  // Station point feature
+  var labelClass = new LabelClass({
     symbol: {
       type: "label-3d",// autocasts as new LabelSymbol3D()
       symbolLayers: [
@@ -1694,7 +1774,10 @@
   // Station Layer
   var stationLayer = new SceneLayer({
     portalItem: {
-      id: "212904618a1f44c1a78e2446d905e679",
+      id: "207cb34b8a324b40985b5805862c4b29",
+      portal: {
+        url: "https://gis.railway-sector.com/portal"
+      }
     },
     labelingInfo: [labelClass],
     renderer: stationsRenderer,
@@ -1706,6 +1789,101 @@
   });
   stationLayer.listMode = "hide";
   map.add(stationLayer, 0);
+
+
+    // Lot layer centroid for 3D extrusion to display hand-over dates
+
+    // define color and size
+    // color: HandOverDate
+    // 1672444800000: 2022/12/32
+    // 1677542400000: 2023/2/28
+    // 1682812800000: 2023/4/30
+    // 1690761600000: 2023/7/31
+    /*
+    // Point 3D extrusion
+    const handOverRenderer = {
+      type: "simple",
+      symbol: {
+        type: "point-3d",
+        symbolLayers: [
+          {
+            type: "object",
+            resource: {
+              primitive: "cylinder"
+            },
+            width: 10 // in meters
+          }
+        ]
+      },
+      label: "Hand-Over Date",
+      visualVariables: [
+        {
+          type: "color",
+          field: "HandOverDate",
+          stops: [
+            {
+              value: 1690761600000,
+              color: "blue"
+            },
+            {
+              value: 1682812800000,
+              color: "yellow"
+            },
+            {
+              value: 1677542400000,
+              color: "orange"
+            },
+            {
+              value: 1672444800000,
+              color: "red"
+            },
+          ]
+        },
+        {
+          type: "size",
+          field: "HandOverDate",
+          stops: [
+            {
+              value: 1672444800000, // 2022/12/31
+              size: 700
+            },
+            {
+              value: 1677542400000, // 2022/12/31
+              size: 500
+            },
+            {
+              value: 1682812800000, // 2022/12/31
+              size: 300
+            },
+            {
+              value: 1690761600000, // 2022/12/31
+              size: 100
+            },
+          ],
+          axis: "height"
+        },
+        {
+          type: "size",
+          axis: "width-and-depth",
+          useSymbolValue: true // uses the width value defined in the symbol layer (10)
+        }
+
+      ]
+    }
+
+    var lot_centroid = new FeatureLayer({
+      portalItem: {
+        id: "c6deb463b3cb4056a76e84cda147fff4",
+        portal: {
+            url: "https://gis.railway-sector.com/portal"
+        }
+      },
+      renderer: handOverRenderer,
+      title: "Hand-Over Dates 3D",
+      definitionExpression: "HandOver <> 1"
+    });
+    map.add(lot_centroid);
+*/
 
 
     /////////////////// END Of LAYER IMPORT ////////////////////////////
@@ -4307,6 +4485,8 @@ zoomToLayer(stationLayer);
                 searchWidget.searchTerm = null;
             }
         });
+
+
     });
   </script>
 </html>
