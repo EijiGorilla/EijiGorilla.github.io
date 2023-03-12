@@ -33,12 +33,6 @@
       display: flex;
     }
 
-
-    calcite-card {
-      width: 100%;
-      margin-right: 4vw;
-    }
-
     calcite-loader {
       align-self: center;
       justify-self: center;
@@ -103,11 +97,30 @@
       padding-right: 10px;
     }
 
+    calcite-card {
+      width: 100%;
+      height: 100%;
+      overflow:hidden
+    }
+
+    #container {
+      display: grid;
+      flex-wrap: wrap;
+      box-sizing: border-box;
+      grid-template-columns: 1fr 0.25fr;
+      width: 100%;
+      height: 100%;
+    }
+  
+    #chartPanel {
+      width: 100%;
+      height: 80vh;
+    }
 
     #chartHospitalDiv,
     #chartBridgeDiv {
-      width: 21vw;
-      height: 47vh;
+      width: 100%;
+      height: 60%;
     }
 
     b {
@@ -165,7 +178,8 @@
   ::-webkit-scrollbar {
     display: none;
   }
-  
+
+
   </style>
   <body class="calcite-theme-dark">
     <calcite-loader></calcite-loader>
@@ -207,19 +221,22 @@
           </div>
         </calcite-panel>
       </calcite-shell-panel>
-        <div id="viewDiv">
-          <calcite-card>
-            <span id="cardTitle" slot="title">Select Monitoring Indicator:</span>
-            <div id="selection-item">
-              <calcite-segmented-control>
-                <calcite-segmented-control-item id="hospitals" value="hospital" checked>Hospital</calcite-segmented-control-item>
-                <calcite-segmented-control-item id="bridges" value="bridge">Bridge</calcite-segmented-control-item>
-              </calcite-segmented-control>
-            </div>
+      <div id="container">
+        <div id="viewDiv"></div>
+        <calcite-card>
+          <span id="cardTitle" slot="title">Select Monitoring Indicator:</span>
+          <div id="selection-item">
+            <calcite-segmented-control>
+              <calcite-segmented-control-item id="hospitals" value="hospital" checked>Hospital</calcite-segmented-control-item>
+              <calcite-segmented-control-item id="bridges" value="bridge">Bridge</calcite-segmented-control-item>
+            </calcite-segmented-control>
+          </div>
+          <div id="chartPanel">
             <div class="boxHospital" id="chartHospitalDiv"></div>
             <div class="boxBridge" id="chartBridgeDiv"></div>
-          </calcite-card>
-        </div>
+          </div>
+        </calcite-card>
+      </div>
     </calcite-shell>
   </body>
   <script>
@@ -876,7 +893,7 @@
         chart.onPrivate("width", function(width) {
           let box = document.querySelector('.boxHospital');
           const boxWidth = box.offsetWidth;
-          var availableSpace = Math.max(width - chart.width() - 150, 190);
+          var availableSpace = Math.max(boxWidth - chart.width() - 150, 190);
           //var availableSpace = (boxWidth - valueLabelsWidth) * 0.7
           legend.labels.template.setAll({
             width: availableSpace,
@@ -1176,7 +1193,7 @@
         chart.onPrivate("width", function(width) {
           let box = document.querySelector('.boxBridge');
           const boxWidth = box.offsetWidth;
-          var availableSpace = Math.max(width - chart.width() - 150, 190);
+          var availableSpace = Math.max(boxWidth - chart.width() - 150, 190);
           //var availableSpace = (boxWidth - valueLabelsWidth) * 0.7
           legend.labels.template.setAll({
             width: availableSpace,
@@ -1214,18 +1231,21 @@
     }
 
 
+    
+
+    const chartHospitalDiv = document.getElementById("chartHospitalDiv");
+    const chartBridgeDiv = document.getElementById("chartBridgeDiv");
+    const calciteSegmentItem = document.getElementById("selection-item");
+
     function defaultRenderer() {
+      chartHospitalDiv.style.display = 'block';
+      chartBridgeDiv.style.display = 'none';
       hospitalLayer.visible = true;
       hospitalCostLayer.visible = true;
       bridgeLayer.visible = false;
       updateChart();
     }
     defaultRenderer();
-
-
-    const chartHospitalDiv = document.getElementById("chartHospitalDiv");
-    const chartBridgeDiv = document.getElementById("chartBridgeDiv");
-    const calciteSegmentItem = document.getElementById("selection-item");
     
     calciteSegmentItem.addEventListener("click", changeButtonItem);
     function changeButtonItem(event) {
@@ -1235,7 +1255,7 @@
         chartHospitalDiv.style.display = 'block';
         chartBridgeDiv.style.display = 'none';
         hospitalLayer.visible = true;
-          hospitalCostLayer.visible = true;
+        hospitalCostLayer.visible = true;
         bridgeLayer.visible = false;
         zoomToLayer(ukrainBoundary);
         updateChart();
