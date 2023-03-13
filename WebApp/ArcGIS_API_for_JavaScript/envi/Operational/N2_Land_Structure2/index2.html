@@ -857,7 +857,7 @@
         },
         renderer: NLOLORenderer,
         layerId: 3,
-        title: "NLO/LO (Structure)",
+        title: "NLO/LO Ownership (Structure)",
         outFields: ["*"],
         popupEnabled: false,
         elevationInfo: {
@@ -867,6 +867,62 @@
     map.add(structureNLOLOLayer);
 
     // Status of Relocation (Occupancy)
+    const outlineColorOccupancy = "gray";
+
+    var verticalOffsetExistingOccupancy = {
+      screenLength: 10,
+        maxWorldLength: 10,
+        minWorldLength: 10
+    };
+
+    function getUniqueValueSymbolOccupancy(name, size) {
+      return {
+        type: "point-3d", // autocasts as new PointSymbol3D()
+        symbolLayers: [
+          {
+            type: "icon", // autocasts as new IconSymbol3DLayer()
+            resource: {
+              href: name
+            },
+            size: size,
+            outline: {
+              color: "white",
+              size: 2
+            }
+          }
+        ],
+
+        verticalOffset: verticalOffsetExistingOccupancy,
+
+        callout: {
+          type: "line", // autocasts as new LineCallout3D()
+          color: [128,128,128,0.6],
+          size: 0.4,
+          border: {
+            color: "grey"
+          }
+        }
+      };
+    }
+    const occupancyPointSize = 20;
+    let occupancyRenderer = {
+      type: "unique-value",
+      valueExpression: "When($feature.Occupancy == 0, 'Occupied', \
+                      $feature.Occupancy == 1, 'Relocated', $feature.Occupancy)",
+      uniqueValueInfos: [
+        {
+          value: "Occupied",
+          label: "Occupied",
+          symbol: getUniqueValueSymbolOccupancy("https://EijiGorilla.github.io/Symbols/Demolished.png", occupancyPointSize),
+        },
+        {
+          value: "Relocated",
+          label: "Relocated",
+          symbol: getUniqueValueSymbolOccupancy("https://EijiGorilla.github.io/Symbols/DemolishComplete_v2.png", occupancyPointSize),
+        },
+      ]
+    };
+
     var relocationPtLayer = new FeatureLayer({
         portalItem: {
             id: "dca1d785da0f458b8f87638a76918496",
@@ -877,6 +933,10 @@
         layerId: 5,
         outFields: ["*"],
         title: "Occupancy (Structure)",
+        renderer: occupancyRenderer,
+        elevationInfo: {
+          mode: "relative-to-scene"
+        },
         popupTemplate: {
             title: "<p>{StrucID}</p>",
             lastEditInfoEnabled: false,
@@ -904,7 +964,7 @@
                 },
                 {
                     fieldName: "Status",
-                    label: "Status of NLO/LO"
+                    label: "NLO/LO Ownership"
                 }
                 ]
             }
@@ -1046,7 +1106,7 @@
               },
               {
                 fieldName: "Status",
-                label: "Status of NLO/LO"
+                label: "NLO/LO Ownership (structure) "
               }
             ]
           }
@@ -4382,7 +4442,7 @@ zoomToLayer(stationLayer);
         listItemCreatedFunction: function(event) {
           const item = event.item;
           if (item.title === "Chainage" || item.title === "Pier Access Date" || item.title === "Free-and-Clear Area" ||
-              item.title === "Occupancy (Structure)" || item.title === "NLO/LO (Structure)"){
+              item.title === "Occupancy (Structure)" || item.title === "NLO/LO Ownership (Structure)"){
             item.visible = false
           }
         }
