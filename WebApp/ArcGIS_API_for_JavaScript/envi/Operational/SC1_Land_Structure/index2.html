@@ -390,7 +390,7 @@
       }
     };
 
-    let defaultSymbol = {
+    const defaultSymbol = {
         type: "simple-fill",  // autocasts as new SimpleFillSymbol()
         color: [0,0,0,0],
         style: "solid",
@@ -407,123 +407,52 @@
       {
         "category": "Complete",
         "colorRGB": [76,230,0],
-        "colorHEX": "#4CE600"
+        "colorHEX": "#4CE600",
+        "value": 1
       },
       {
         "category": "Incomplete Documents",
         "colorRGB": [49,149,183],
-        "colorHEX":  "#3195B7"
+        "colorHEX":  "#3195B7",
+        "value": 2
       },
       {
         "category": "Surveyed and with plan",
         "colorRGB": [68,85,90],
-        "colorHEX": "#44555A"
+        "colorHEX": "#44555A",
+        "value": 3
       },
       {
         "category": "Surveyed and for drafting",
         "colorRGB": [255,170,0],
-        "colorHEX": "#FFAA00"
+        "colorHEX": "#FFAA00",
+        "value": 4
       },
       {
         "category": "Researched",
         "colorRGB": [255,255,0],
-        "colorHEX": "#FFFF00"
+        "colorHEX": "#FFFF00",
+        "value": 5
       },
       {
         "category": "For Survey & Research",
         "colorRGB": [255,255,255],
-        "colorHEX": "#FFFFFF"
+        "colorHEX": "#FFFFFF",
+        "value": 6
       },
       {
         "category": "Refused",
         "colorRGB": [255,0,0],
-        "colorHEX": "#FF0000"
+        "colorHEX": "#FF0000",
+        "value": 7
       },
       {
         "category": "NA",
-        "colorRGB": [128, 128, 128, 1],
-        "colorHEX": "#000000"
+        "colorRGB": [128, 128, 128],
+        "colorHEX": "#808080",
+        "value": 8
       },
     ]
-
-
-    const lotRenderer1 = {
-        type: "unique-value",
-        field: "Reqs",
-        defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
-        uniqueValueInfos: [
-            {
-                value: 1,
-                label: "Complete",
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: lotColorObj[Object.keys(lotColorObj)[0]].colorRGB,
-                }
-            },
-            {
-                value: 2,
-                label: "Incomplete Documents",
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: lotColorObj[Object.keys(lotColorObj)[1]].colorRGB,
-                }
-            },
-            {
-                value: 3,
-                label: "Surveyed and with plan",
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: lotColorObj[Object.keys(lotColorObj)[2]].colorRGB,
-                }
-            },
-            {
-                value: 4,
-                label: "Surveyed and for drafting",
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: lotColorObj[Object.keys(lotColorObj)[3]].colorRGB,
-                }
-            },
-            {
-                value: 5,
-                label: "Researched",
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: lotColorObj[Object.keys(lotColorObj)[4]].colorRGB,
-                }
-            },
-            {
-                value: 6,
-                label: "For Survey & Research",
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: lotColorObj[Object.keys(lotColorObj)[5]].colorRGB,
-                }
-            },
-            {
-                value: 7,
-                label: "Refused",
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: lotColorObj[Object.keys(lotColorObj)[6]].colorRGB,
-                }
-            },
-            {
-                value: 8,
-                label: "NA",
-                symbol: {
-                    type: "simple-fill",
-                    color: lotColorObj[Object.keys(lotColorObj)[7]].colorRGB,
-                    style: "diagonal-cross",
-                    outline: {
-                        width: 0.5,
-                        color: "grey"
-                    }
-                }
-            }
-        ]
-    }
-
 
     var lotLayer = new FeatureLayer({
       portalItem: {
@@ -533,7 +462,6 @@
         }
       },
       layerId: 14,
-      renderer: lotRenderer1,
       definitionExpression: "ContSubm = 1",
       outFields: ["*"],
       title: "Land",
@@ -579,31 +507,27 @@
       }
 
       const uniqueValueInfosLot = categoryLot.map((result, index) =>{
-        const filterColor = lotColorObj.filter((e) => e.category === result);
-        const color = filterColor[0].colorRGB;
-        const colors = `[${color}]`
-        console.log(index + "; " + result + "; " + colors);
+
         return Object.assign({}, {
           value: index + 1,
           label: result,
           symbol: {
             type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-            color: colors,
-            style: result == "NA" ? "diagonal-cross" : "none"
+            color: lotColorObj[Object.keys(lotColorObj)[index]].colorRGB,
+            style: result == "NA" ? "diagonal-cross" : "solid"
           }
         });
-        console.log(uniqueValueInfosLot);
-
-        const lotRenderer = {
-          type: "unique-value",
-          field: "Reqs",
-          defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
-          uniqueValueInfos: uniqueValueInfosLot
-        }
-
-        
-        //lotLayer.renderer = lotRenderer;
       });
+      console.log(uniqueValueInfosLot);
+
+      const lotRenderer = {
+        type: "unique-value",
+        field: "Reqs",
+        defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
+        uniqueValueInfos: uniqueValueInfosLot
+      }
+      console.log(lotRenderer);
+      lotLayer.renderer = lotRenderer;
     }
     uniqueValueInfosLotRenderer();
 
@@ -1885,28 +1809,10 @@
         //pieSeries.appear(1000, 100)
         pieSeries.slices.template.events.on("click", function(ev) {
           const SELECTED = ev.target.dataItem.dataContext.category;
-          console.log(SELECTED)
-          if (SELECTED == lotColorObj[Object.keys(lotColorObj)[0]].category) {
-            selectedStatus = 1;
-            } else if (SELECTED ==lotColorObj[Object.keys(lotColorObj)[1]].category) {
-                selectedStatus = 2;
-            } else if (SELECTED == lotColorObj[Object.keys(lotColorObj)[2]].category) {
-                selectedStatus = 3;
-            } else if (SELECTED == lotColorObj[Object.keys(lotColorObj)[3]].category) {
-                selectedStatus = 4;
-            } else if (SELECTED == lotColorObj[Object.keys(lotColorObj)[4]].category) {
-                selectedStatus = 5;
-            } else if (SELECTED == lotColorObj[Object.keys(lotColorObj)[5]].category) {
-                selectedStatus = 6;
-            } else if (SELECTED == lotColorObj[Object.keys(lotColorObj)[6]].category) {
-                selectedStatus = 7;
-            } else if (SELECTED == lotColorObj[Object.keys(lotColorObj)[7]].category) {
-                selectedStatus = 8;
-            } else {
-                selectedStatus = null;
-            }
+          const find = lotColorObj.filter((emp) => emp.category === SELECTED);
+          const selectedStatus = find[0].value;
 
-            var query = lotLayer.createQuery();
+          var query = lotLayer.createQuery();
           const municipalExpression = "Municipality = '" + municipal + "'";
           const barangayExpression = "Barangay = '" + barangay + "'";
           const priorityExpression = "Priority1_1 = '" + priority + "'";
@@ -1984,7 +1890,7 @@
               category: lotColorObj[Object.keys(lotColorObj)[0]].category,
               value: comp,
               sliceSettings: {
-                fill: am5.color(lotColorObj[Object.keys(lotColorObj)[0]].colorHEX)
+                fill: am5.color(lotColorObj[Object.keys(lotColorObj)[0]].colorHEX),
               }
             },
             {
@@ -2033,8 +1939,12 @@
               category: lotColorObj[Object.keys(lotColorObj)[7]].category,
               value: nna,
               sliceSettings: {
-                fill: am5.color(lotColorObj[Object.keys(lotColorObj)[7]].colorHEX),
-                fillOpacity: 0
+                fillPattern: am5.LinePattern.new(root, {
+                  color: am5.color("#D1D0D0"),
+                  fill: am5.color("#2E2E2E"),
+                  rotation: 45,
+                  gap: 3
+                })
               }
             },
           ]
