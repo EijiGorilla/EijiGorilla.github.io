@@ -41,20 +41,18 @@
       --calcite-label-margin-bottom: 0px;
     }
 
-    /*NOTE: If you add padding to calcite-tab, width of 'calcite-tabs' */
-    /* must be greater than that of 'calcite-tab'. Otherwise, */
-    /* You will not see any space after padding. */
-    calcite-tabs {
-      width: 18vw;
-      margin-right: 3.5vw;
+    #container {
+      display: grid;
+      flex-wrap: wrap;
+      box-sizing: border-box;
+      grid-template-columns: 1fr 0.25fr;
+      width: 100%;
       height: 100%;
     }
 
-    calcite-tab {
-      width: 17vw;
-        height: 100%;
-        padding-left: 5;
-        padding-right: 5;
+    calcite-tabs {
+      width: 100%;
+      height: 100%;
     }
 
     calcite-button {
@@ -102,10 +100,12 @@
     }
 
     #chartPanel {
-        background-color: rgb(0, 0, 0, 0);
+      background-color: rgb(0, 0, 0, 0);
+      padding: 8;
+      width: 100%;
+      height: 100%;
     }
     
-
     #pieChartLotDiv,
     #pieChartStructureDiv {
       height: 45%;
@@ -311,15 +311,16 @@
         </calcite-panel>
       </calcite-shell-panel>
 
-      <div id="viewDiv">
-                <!-- Chart Panel -->
+      <div id="container">
+        <div id="viewDiv"></div>
+        <!-- Chart Panel -->
         <!-- Tabs "https://esri.github.io/calcite-web/documentation/patterns/#tabs" -->
         <!-- Tabs "https://developers.arcgis.com/calcite-design-system/components/tabs/" -->
         <calcite-tabs>
           <div id="chartPanel">
-              <calcite-tab-nav slot="tab-nav">
-                  <calcite-tab-title selected>Land</calcite-tab-title>
-                  <calcite-tab-title>Structure</calcite-tab-title>
+              <calcite-tab-nav slot="tab-nav"  id="thetabs">
+                  <calcite-tab-title class="Land" selected>Land</calcite-tab-title>
+                  <calcite-tab-title class="Structure">Structure</calcite-tab-title>
                   <calcite-tab-title>Expro List</calcite-tab-title>
               </calcite-tab-nav>
               <calcite-tab>
@@ -344,7 +345,9 @@
                 </div>
               </calcite-tab>
           </div>
-      </calcite-tabs>
+        </calcite-tabs>
+      </div>
+
         <calcite-button hidden
           icon-end="launch"
           label="Open Process Flow Chart"
@@ -352,7 +355,6 @@
           >
           Handed-Overd Chart
       </calcite-button>
-      </div>
       <div id="timeSeriesChart" hidden></div>
     </calcite-shell>
   </body>
@@ -1586,7 +1588,8 @@
         packageSelect.addEventListener("change", function() {
           const cpValue = event.target.value;
           const landTypeValue = landTypeSelect.value;
-          
+          const sectionValue = stationSelect.value;
+
           // Filter data
           setContractPackageExpression(cpValue);
           // Reset drowpdown 
@@ -1596,19 +1599,14 @@
           landTypeFilterList(cpValue);
           sectionFilterList(cpValue, landTypeValue);
 
-          // Filter each layer
-          filterLot();
-          filterStructure();
-          filterIsf();
-
           // Update Chart and numbers
-          updateChartLot();
+          updateChartLot(cpValue, landTypeValue, sectionValue);
           totalNumberOfLots().then(totalNumberOfLotsAll);
-          updateMoaChartLot();
+          updateMoaChartLot(cpValue, landTypeValue, sectionValue);
           totalNumberOfLots().then(handedOverNumberLot);
-          updateChartStructure();
+          updateChartStructure(cpValue, landTypeValue, sectionValue);
           totalNumberOfStructures().then(totalNumberOfStructureAll);
-          updateMoaChartStructure();
+          updateMoaChartStructure(cpValue, landTypeValue, sectionValue);
           isfNumber();
 
         });
@@ -1629,19 +1627,14 @@
           //landTypeFilterList(cpValue);
           sectionFilterList(cpValue, landTypeValue);
 
-          // Filter each layer
-          filterLot();
-          filterStructure();
-          filterIsf();
-
           // Update Chart and numbers
-          updateChartLot();
+          updateChartLot(cpValue, landTypeValue, sectionValue);
           totalNumberOfLots().then(totalNumberOfLotsAll);
-          updateMoaChartLot();
+          updateMoaChartLot(cpValue, landTypeValue, sectionValue);
           totalNumberOfLots().then(handedOverNumberLot);
-          updateChartStructure();
+          updateChartStructure(cpValue, landTypeValue, sectionValue);
           totalNumberOfStructures().then(totalNumberOfStructureAll);
-          updateMoaChartStructure();
+          updateMoaChartStructure(cpValue, landTypeValue, sectionValue);
           isfNumber();
 
         });
@@ -1656,39 +1649,16 @@
           setContractPackageLandTypeSectionExpression(cpValue, landTypeValue, sectionValue);
 
           // Update Chart and numbers
-          updateChartLot();
+          updateChartLot(cpValue, landTypeValue, sectionValue);
           totalNumberOfLots().then(totalNumberOfLotsAll);
-          updateMoaChartLot();
+          updateMoaChartLot(cpValue, landTypeValue, sectionValue);
           totalNumberOfLots().then(handedOverNumberLot);
-          updateChartStructure();
+          updateChartStructure(cpValue, landTypeValue, sectionValue);
           totalNumberOfStructures().then(totalNumberOfStructureAll);
-          updateMoaChartStructure();
+          updateMoaChartStructure(cpValue, landTypeValue, sectionValue);
           isfNumber();
 
-          // Filter each layer
-          filterLot();
-          filterStructure();
-          filterIsf();
-
         });
-
-
-        // 5. Filter Lot
-        /// This is critical
-        function filterLot() {
-          var query2 = lotLayer.createQuery();
-          query2.where = lotLayer.definitionExpression; // use filtered stations
-        }
-
-        function filterStructure() {
-          var query2 = structureLayer.createQuery();
-          query2.where = structureLayer.definitionExpression; // use filtered municipality. is this correct?
-        }
-
-        function filterIsf() {
-          var query2 = isfLayer.createQuery();
-          query2.where = isfLayer.definitionExpression; // use filtered isf
-        }
 
         // Handed-Over filter button
         handedOverButton.addEventListener("change", function(event) {
@@ -1942,7 +1912,7 @@
         /// Time series chart EXPERIMENT
  //----------------------------------------------------------------------------------//
         var root = am5.Root.new("pieChartLotDiv");
-        function updateChartLot() {
+        function updateChartLot(cpValue, landTypeValue, sectionValue) {
           // Root element needs to be empty (as newly created) and can be used to add any other charts to it
           root.container.children.clear();
 
@@ -2091,12 +2061,43 @@
           } else {
             selectedStatus = null;
           }
+//cpValue, landTypeValue, sectionValue
+          var query = lotLayer.createQuery();
+          const cpExpression = "Package = '" + cpValue + "'";
+          const landtypeExpression = "Type = '" + landTypeValue + "'";
+          const sectionExpression = "Station1 = '" + sectionValue + "'";
+          const statusExpression = "StatusNVS3 = " + selectedStatus;
+
+          if (cpValue === 'None' && landTypeValue === 'None' && sectionValue === 'None') {
+            query.where = statusExpression;
+
+          } else if (cpValue === 'None' && landTypeValue === 'None' && sectionValue !== 'None') {
+            query.where = sectionExpression + " AND " + statusExpression;
+
+          } else if (cpValue === 'None' && landTypeValue !== 'None' && sectionValue === 'None') {
+            query.where = landtypeExpression + " AND " + statusExpression;
+
+          } else if (cpValue === 'None' && landTypeValue !== 'None' && sectionValue !== 'None') {
+            query.where = landtypeExpression + " AND " + sectionExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && landTypeValue === 'None' && sectionValue === 'None') {
+            query.where = cpExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && landTypeValue === 'None' && sectionValue !== 'None') {
+            query.where = cpExpression + " AND " + sectionExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && landTypeValue !== 'None' && sectionValue === 'None') {
+            query.where = cpExpression + " AND " + landtypeExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && landTypeValue !== 'None' && sectionValue !== 'None') {
+            query.where = cpExpression + " AND " + landtypeExpression + " AND " + sectionExpression + " AND " + statusExpression;
+          }
 
           view.when(function() {
             view.whenLayerView(lotLayer).then(function (layerView) {
               //chartLayerView = layerView;
 
-              lotLayer.queryFeatures().then(function(results) {
+              lotLayer.queryFeatures(query).then(function(results) {
                 const RESULT_LENGTH = results.features;
                 const ROW_N = RESULT_LENGTH.length;
 
@@ -2350,7 +2351,7 @@ updateChartLot();
           }
         }
 
-        async function updateChartStructure() {
+        async function updateChartStructure(cpValue, landTypeValue, sectionValue) {
           root2.container.children.clear();
 
         function Status_Name_Structure(){
@@ -2495,12 +2496,48 @@ updateChartLot();
           selectedStatus = null;
           }
 
+          var query = structureLayer.createQuery();
+          const cpExpression = "Package = '" + cpValue + "'";
+          const landtypeExpression = "Type = '" + landTypeValue + "'";
+          const sectionExpression = "Station1 = '" + sectionValue + "'";
+          const statusExpression = "Status = " + selectedStatus;
+
+          console.log(cpValue + "; " + landTypeValue + "; " + selectedStatus);
+
+          if (cpValue === 'None' && (landTypeValue === 'None' || landTypeValue === undefined) && sectionValue === 'None') {
+            query.where = statusExpression;
+
+          } else if (cpValue === 'None' && (landTypeValue === 'None' || landTypeValue === undefined) && sectionValue !== 'None') {
+            query.where = sectionExpression + " AND " + statusExpression;
+
+          } else if (cpValue === 'None' && (landTypeValue !== 'None' || landTypeValue === undefined) && sectionValue === 'None') {
+            query.where = landtypeExpression + " AND " + statusExpression;
+
+          } else if (cpValue === 'None' && (landTypeValue !== 'None' || landTypeValue === undefined) && sectionValue !== 'None') {
+            query.where = landtypeExpression + " AND " + sectionExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && (landTypeValue === 'None' || landTypeValue === undefined) && sectionValue === 'None') {
+            query.where = cpExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && (landTypeValue === 'None' || landTypeValue === undefined) && sectionValue !== 'None') {
+            query.where = cpExpression + " AND " + sectionExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && (landTypeValue !== 'None' || landTypeValue === undefined) && sectionValue === 'None') {
+            query.where = cpExpression + " AND " + landtypeExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && (landTypeValue !== 'None' || landTypeValue === undefined) && sectionValue !== 'None') {
+            query.where = cpExpression + " AND " + landtypeExpression + " AND " + sectionExpression + " AND " + statusExpression;
+          
+          } else {
+            query.where = statusExpression;
+          }
+
           // Zoom, filter, and highlight selected chart categories 
           view.when(function() {
           view.whenLayerView(structureLayer).then(function (layerView) {
           chartLayerView = layerView;
 
-          structureLayer.queryFeatures().then(function(results) {
+          structureLayer.queryFeatures(query).then(function(results) {
             const RESULT_LENGTH= results.features;
             const ROW_N = RESULT_LENGTH.length;
 
@@ -2648,23 +2685,23 @@ updateChartLot();
           strokeOpacity: 0,
         });
 
-        function updateMoaChartLot() {
+        function updateMoaChartLot(cpValue, landTypeValue, sectionValue) {
           root3.container.children.clear();
 
         var totalNVSLot = {
-        onStatisticField: "CASE WHEN MOA = 1 THEN 1 ELSE 0 END",
+        onStatisticField: "CASE WHEN S_MOA = 1 THEN 1 ELSE 0 END",
         outStatisticFieldName: "totalNVSLot",
         statisticType: "sum"
         };
 
         var totalExproLot = {
-        onStatisticField: "CASE WHEN MOA = 2 THEN 1 ELSE 0 END",
+        onStatisticField: "CASE WHEN S_MOA = 2 THEN 1 ELSE 0 END",
         outStatisticFieldName: "totalExproLot",
         statisticType: "sum"
         };
 
         var totalRowuaLot = {
-        onStatisticField: "CASE WHEN MOA = 3 THEN 1 ELSE 0 END",
+        onStatisticField: "CASE WHEN S_MOA = 3 THEN 1 ELSE 0 END",
         outStatisticFieldName: "totalRowuaLot",
         statisticType: "sum"
         };
@@ -2816,11 +2853,42 @@ updateChartLot();
           } else if (SELECTED == "3-ROWUA") {
             selectedStatus = 3;
           }
+
+          var query = lotLayer.createQuery();
+          const cpExpression = "Package = '" + cpValue + "'";
+          const landtypeExpression = "Type = '" + landTypeValue + "'";
+          const sectionExpression = "Station1 = '" + sectionValue + "'";
+          const statusExpression = "S_MOA = " + selectedStatus;
+
+          if (cpValue === 'None' && landTypeValue === 'None' && sectionValue === 'None') {
+            query.where = statusExpression;
+
+          } else if (cpValue === 'None' && landTypeValue === 'None' && sectionValue !== 'None') {
+            query.where = sectionExpression + " AND " + statusExpression;
+
+          } else if (cpValue === 'None' && landTypeValue !== 'None' && sectionValue === 'None') {
+            query.where = landtypeExpression + " AND " + statusExpression;
+
+          } else if (cpValue === 'None' && landTypeValue !== 'None' && sectionValue !== 'None') {
+            query.where = landtypeExpression + " AND " + sectionExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && landTypeValue === 'None' && sectionValue === 'None') {
+            query.where = cpExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && landTypeValue === 'None' && sectionValue !== 'None') {
+            query.where = cpExpression + " AND " + sectionExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && landTypeValue !== 'None' && sectionValue === 'None') {
+            query.where = cpExpression + " AND " + landtypeExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && landTypeValue !== 'None' && sectionValue !== 'None') {
+            query.where = cpExpression + " AND " + landtypeExpression + " AND " + sectionExpression + " AND " + statusExpression;
+          }
           
           view.whenLayerView(lotLayer).then(function (layerView) {
           //CHART_ELEMENT.style.visibility = "visible";
 
-          lotLayer.queryFeatures().then(function(results) {
+          lotLayer.queryFeatures(query).then(function(results) {
               const RESULT_LENGTH= results.features;
               const ROW_N= RESULT_LENGTH.length;
 
@@ -2851,7 +2919,7 @@ updateChartLot();
               });
           });
           layerView.filter = {
-          where: "MOA = " + selectedStatus
+          where: "S_MOA = " + selectedStatus
           //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
           };
           }); // End of whenLayerView
@@ -3154,7 +3222,6 @@ updateChartLot();
         } // End of updateMOAChartLot
 
         updateMoaChartStructure();
-
       // view.when
       view.when(() => {
         document.querySelector("#header-title").textContent = "MMSP LAND ACQUISITION";
@@ -3205,6 +3272,16 @@ updateChartLot();
         // Switch theme
         document.querySelector("calcite-shell").hidden = false;
         document.querySelector("calcite-loader").hidden = true;
+
+        // When 'Structure' tab is clicked, it becomes visible.
+        document.querySelector('#thetabs').addEventListener("click", tabChange);
+        function tabChange(event) {
+          const value = event.target.className;
+
+          if (value === 'Structure') {
+            structureLayer.visible = true;
+          }
+        }
 
 
       }); // end of view.when
