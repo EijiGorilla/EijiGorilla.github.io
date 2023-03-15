@@ -284,7 +284,7 @@
               <calcite-tab-nav slot="tab-nav" id="thetabs">
                   <calcite-tab-title class="Land" selected>Land</calcite-tab-title>
                   <calcite-tab-title class="Structure">Structure</calcite-tab-title>
-                  <calcite-tab-title class="ISF">ISF</calcite-tab-title>
+                  <calcite-tab-title class="ISF">NLO</calcite-tab-title>
                   <calcite-tab-title class="ExproList">Expro List</calcite-tab-title>
               </calcite-tab-nav>
               <calcite-tab>
@@ -497,12 +497,9 @@
 
     var lotLayer = new FeatureLayer({
         portalItem: {
-            id: "dca1d785da0f458b8f87638a76918496",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
+            id: "4e8673e3c4bc4e5b89572366d91f451a",
         },
-        layerId: 7,
+        layerId: 36,
         renderer:lotLayerRenderer,
         outFields: ["*"],
         title: "Status of Land Acquisition",
@@ -603,7 +600,7 @@
           type: "extrude",
           size: height,
           material: {
-            color: [0, 197, 255, 0.4]
+            color: [0, 197, 255, 0.3]
           },
           edges: {
             type: "solid",
@@ -621,7 +618,7 @@
           type: "extrude",
           size: height,
           material: {
-            color: [112, 173, 71, 0.4]
+            color: [112, 173, 71, 0.3]
           },
           edges: {
             type: "solid",
@@ -639,7 +636,7 @@
           type: "extrude",
           size: height,
           material: {
-            color: [0, 112, 255, 0.4]
+            color: [0, 112, 255, 0.3]
           },
           edges: {
             type: "solid",
@@ -657,7 +654,7 @@
           type: "extrude",
           size: height,
           material: {
-            color: [255, 255, 0, 0.4]
+            color: [255, 255, 0, 0.3]
           },
           edges: {
             type: "solid",
@@ -675,7 +672,7 @@
           type: "extrude",
           size: height,
           material: {
-            color: [255, 170, 0, 0.4]
+            color: [255, 170, 0, 0.3]
           },
           edges: {
             type: "solid",
@@ -693,7 +690,7 @@
           type: "extrude",
           size: height,
           material: {
-            color: [255, 0, 0, 0.4]
+            color: [255, 0, 0, 0.3]
           },
           edges: {
             type: "solid",
@@ -764,12 +761,9 @@
 
     var structureLayer = new FeatureLayer({
       portalItem: {
-        id: "dca1d785da0f458b8f87638a76918496",
-        portal: {
-            url: "https://gis.railway-sector.com/portal"
-        }
+        id: "4e8673e3c4bc4e5b89572366d91f451a",
       },
-      layerId: 6,
+      layerId: 35,
       title: "Structure",
       renderer: structureRenderer,
       outFields: ["*"],
@@ -825,7 +819,7 @@
                 symbol: {
                     type: "simple-fill",  // autocasts as new SimpleFillSymbol()
                     style: "forward-diagonal",
-                    color: [128, 128, 128, 0.8],
+                    color: [128, 128, 128, 1],
                     outline: {
                         color: "#6E6E6E",
                         width: 0.3
@@ -838,7 +832,7 @@
                 symbol: {
                     type: "simple-fill",  // autocasts as new SimpleFillSymbol()
                     style: "vertical",
-                    color: [128, 128, 128, 0.8],
+                    color: [128, 128, 128, 1],
                     outline: {
                         color: "#6E6E6E",
                         width: 0.3
@@ -850,14 +844,11 @@
 
     var structureNLOLOLayer = new FeatureLayer({
         portalItem: {
-            id: "dca1d785da0f458b8f87638a76918496",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
+            id: "4e8673e3c4bc4e5b89572366d91f451a",
         },
         renderer: NLOLORenderer,
-        layerId: 3,
-        title: "NLO/LO (Structure)",
+        layerId: 32,
+        title: "NLO/LO Ownership (Structure)",
         outFields: ["*"],
         popupEnabled: false,
         elevationInfo: {
@@ -867,16 +858,73 @@
     map.add(structureNLOLOLayer);
 
     // Status of Relocation (Occupancy)
+    const outlineColorOccupancy = "gray";
+
+    var verticalOffsetExistingOccupancy = {
+      screenLength: 10,
+        maxWorldLength: 10,
+        minWorldLength: 10
+    };
+
+    function getUniqueValueSymbolOccupancy(name, size) {
+      return {
+        type: "point-3d", // autocasts as new PointSymbol3D()
+        symbolLayers: [
+          {
+            type: "icon", // autocasts as new IconSymbol3DLayer()
+            resource: {
+              href: name
+            },
+            size: size,
+            outline: {
+              color: "white",
+              size: 2
+            }
+          }
+        ],
+
+        verticalOffset: verticalOffsetExistingOccupancy,
+
+        callout: {
+          type: "line", // autocasts as new LineCallout3D()
+          color: [128,128,128,0.6],
+          size: 0.4,
+          border: {
+            color: "grey"
+          }
+        }
+      };
+    }
+    const occupancyPointSize = 20;
+    let occupancyRenderer = {
+      type: "unique-value",
+      valueExpression: "When($feature.Occupancy == 0, 'Occupied', \
+                      $feature.Occupancy == 1, 'Relocated', $feature.Occupancy)",
+      uniqueValueInfos: [
+        {
+          value: "Occupied",
+          label: "Occupied",
+          symbol: getUniqueValueSymbolOccupancy("https://EijiGorilla.github.io/Symbols/Demolished.png", occupancyPointSize),
+        },
+        {
+          value: "Relocated",
+          label: "Relocated",
+          symbol: getUniqueValueSymbolOccupancy("https://EijiGorilla.github.io/Symbols/DemolishComplete_v2.png", occupancyPointSize),
+        },
+      ]
+    };
+
     var relocationPtLayer = new FeatureLayer({
         portalItem: {
-            id: "dca1d785da0f458b8f87638a76918496",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
+            id: "4e8673e3c4bc4e5b89572366d91f451a",
         },
-        layerId: 5,
+        layerId: 34,
         outFields: ["*"],
         title: "Occupancy (Structure)",
+        renderer: occupancyRenderer,
+        elevationInfo: {
+          mode: "relative-to-scene"
+        },
         popupTemplate: {
             title: "<p>{StrucID}</p>",
             lastEditInfoEnabled: false,
@@ -904,7 +952,7 @@
                 },
                 {
                     fieldName: "Status",
-                    label: "Status of NLO/LO"
+                    label: "NLO/LO Ownership"
                 }
                 ]
             }
@@ -1005,15 +1053,12 @@
 
     var reloISFLayer = new FeatureLayer({
       portalItem: {
-          id: "dca1d785da0f458b8f87638a76918496",
-          portal: {
-              url: "https://gis.railway-sector.com/portal"
-          }
+          id: "4e8673e3c4bc4e5b89572366d91f451a",
       },
-      layerId: 4,
+      layerId: 33,
       renderer: isfRenderer,
       outFields: ["*"],
-      title: "ISF (Informatl Settlers Families)",
+      title: "NLO (Non-Land Owner)",
       elevationInfo: {
         mode: "relative-to-scene"
       },
@@ -1039,14 +1084,14 @@
               },
               {
                 fieldName: "StatusRC",
-                label: "<p>Status for Relocation(ISF)</p>"
+                label: "<p>Status for Relocation</p>"
               },
               {
                 fieldName: "Name",
               },
               {
                 fieldName: "Status",
-                label: "Status of NLO/LO"
+                label: "NLO/LO Ownership (structure) "
               }
             ]
           }
@@ -1086,12 +1131,9 @@
 
     var chainageLayer = new FeatureLayer ({
         portalItem: {
-            id: "590680d19f2e48fdbd8bcddce3aaedb5",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
+            id: "4e8673e3c4bc4e5b89572366d91f451a",
         },
-        layerId: 5,
+        layerId: 27,
         title: "Chainage",
         elevationInfo: {
             mode: "relative-to-ground"
@@ -1192,7 +1234,7 @@
         {
           value: "Pier_Column",
           symbol: pierColumn,
-          label: "Pier Column"
+          label: "Column"
         },
         /*
         {
@@ -1211,12 +1253,9 @@
 
     var pierHeadColumnLayerLayer = new FeatureLayer ({
         portalItem: {
-            id: "590680d19f2e48fdbd8bcddce3aaedb5",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
+            id: "4e8673e3c4bc4e5b89572366d91f451a",
         },
-        layerId: 4,
+        layerId: 26,
         title: "Pier Head/Column",
         definitionExpression: "Layer <> 'Pier_Head'",
         outFields: ["*"],
@@ -1240,7 +1279,8 @@
       2: [255, 255, 0],// Yellow
       3: [0, 112, 255], // Blue
       4: [143, 0, 255], // violet
-      5: [255, 255, 255, 0.9]
+      5: [255, 255, 255, 0.9],
+      6: [255, 0, 0, 0.9] // Dates are missing
     }
 
     var defaultPointSymbol = {
@@ -1347,7 +1387,50 @@
         //value: "{Type}"
       },
       labelPlacement: "above-center",
-      where: "AccessDate > '" + cutOffDateAccess + "'"
+      where: "AccessDate > '" + cutOffDateAccess + "'" + " OR " + "AccessDate IS NULL"
+    });
+
+    const pierAccessDateMissingLabel =  new LabelClass({
+      symbol: {
+        type: "label-3d", // autocast as new LabelSymbol3D()
+        symbolLayers: [
+          {
+            type: "text",
+            material: {
+              color: "#ff0000"
+            },
+            size: 10,
+            color: "#cccccc",
+            haloColor: "#cccccc",
+            haloSize: 1,
+            font: {
+              family: "Ubuntu Mono",
+              weight: "normal"
+            },
+          }
+        ],
+        verticalOffset: {
+          screenLength: 80,
+          maxWorldLength: 500,
+          minWorldLength: 30
+        },
+        callout: {
+          type: "line",
+          size: 0.5,
+          color: [0, 0, 0],
+          border: {
+            color: [255, 255, 255, 0.7]
+          }
+        }
+      },
+      labelExpressionInfo: {
+        expression: "$feature.PIER"
+        //'DefaultValue($feature.GeoTechName, "no data")'
+        //"IIF($feature.Score >= 13, '', '')"
+        //value: "{Type}"
+      },
+      labelPlacement: "above-center",
+      where: "AccessDate IS NULL"
     });
 
     // 1. Get unique dates
@@ -1356,14 +1439,11 @@
 
     var pierNoLayer = new FeatureLayer ({
       portalItem: {
-          id: "590680d19f2e48fdbd8bcddce3aaedb5",
-          portal: {
-              url: "https://gis.railway-sector.com/portal"
-          }
+        id: "4e8673e3c4bc4e5b89572366d91f451a",
       },
-      layerId: 6,
-      labelingInfo: [pierAccessReadyDateLabel, pierAccessNotYetLabel],
-      title: "Pier Access Date",
+      layerId: 28,
+      labelingInfo: [pierAccessDateMissingLabel, pierAccessReadyDateLabel, pierAccessNotYetLabel],
+      title: "Pier with Access Date",
       minScale: 150000,
       maxScale: 0,
       outFields: ["*"],
@@ -1422,9 +1502,24 @@
       field: "AccessDate",
       defaultSymbol: defaultPointSymbol,
       
-      valueExpression: "When($feature.AccessDate <= 1636070400000, 'accessible', \
+      valueExpression: "When(IsEmpty($feature.AccessDate), 'empty', \
+                            $feature.AccessDate <= 1636070400000, 'accessible', \
                             $feature.AccessDate > 1636070400000, 'others',$feature.AccessDate)", 
       uniqueValueInfos: [
+        {
+          value: "empty",
+          label: "Dates are missing",
+          type: "simple",
+          symbol: {
+              type: "simple-marker",
+              size: 5,
+              color: pierAccessDateColor[6],
+              outline: {
+                  width: 0.1,
+                  color: "white"
+              }
+          }
+        },
         {
           value: "accessible",
           label: "Accessible",
@@ -1505,10 +1600,12 @@
             //console.log(dateValue + "; " + dddValue);
             
             // If the date is before current date, popupContent should be "AVAILABLE"
-            if (date <= cutOffDateAccess) {
-                DATES = "ACCESSIBLE";
-            } else {
-                DATES = dateValue;
+            if (dateValue === '01-01-1970') { // Empty date is entered as this
+              DATES = "NO DATES AVAILABLE"
+            } else if (date <= cutOffDateAccess) {
+              DATES = "ACCESSIBLE";
+            } else if (date > cutOffDateAccess) {
+              DATES = dateValue;
             }
 
             //return `Access Date: <b>${DATES}</b>`;
@@ -1575,12 +1672,9 @@
 
     var stationBoxLayer = new FeatureLayer ({
         portalItem: {
-            id: "590680d19f2e48fdbd8bcddce3aaedb5",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
+            id: "4e8673e3c4bc4e5b89572366d91f451a",
         },
-        layerId: 3,
+        layerId: 25,
         renderer: stationBoxRenderer,
         minScale: 150000,
         maxScale: 0,
@@ -1597,12 +1691,9 @@
     // ROW //
     var rowLayer = new FeatureLayer ({
         portalItem: {
-            id: "590680d19f2e48fdbd8bcddce3aaedb5",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
+            id: "4e8673e3c4bc4e5b89572366d91f451a",
         },
-        layerId: 1,
+        layerId: 23,
         title: "PROW",
         popupEnabled: false
     });
@@ -1611,12 +1702,9 @@
     // Free and Clear Lot
     var fncLayer = new FeatureLayer ({
         portalItem: {
-            id: "dca1d785da0f458b8f87638a76918496",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
+            id: "4e8673e3c4bc4e5b89572366d91f451a",
         },
-        layerId: 2,
+        layerId: 31,
         title: "Free-and-Clear Area",
         //popupEnabled: false
     });
@@ -1657,12 +1745,9 @@
 
     var pnrLayer = new FeatureLayer({
       portalItem: {
-          id: "dca1d785da0f458b8f87638a76918496",
-          portal: {
-              url: "https://gis.railway-sector.com/portal"
-          }
+          id: "4e8673e3c4bc4e5b89572366d91f451a",
       },
-      layerId: 10,
+      layerId: 39,
       title: "Land (PNR)",
       definitionExpression: "LandOwner IN ('BASES CONVERSION DEVELOPMENT AUTHORITY','MANILA RAILROAD COMPANY')",
       outFields: ["*"],
@@ -1751,11 +1836,9 @@
   // Station Layer
   var stationLayer = new SceneLayer({
     portalItem: {
-      id: "207cb34b8a324b40985b5805862c4b29",
-      portal: {
-        url: "https://gis.railway-sector.com/portal"
-      }
+      id: "212904618a1f44c1a78e2446d905e679",
     },
+    title: "N2 Stations",
     labelingInfo: [labelClass],
     renderer: stationsRenderer,
     elevationInfo: {
@@ -1851,8 +1934,8 @@
     var lot_centroid = new FeatureLayer({
       portalItem: {
         id: "c6deb463b3cb4056a76e84cda147fff4",
-        portal: {
-            url: "https://gis.railway-sector.com/portal"
+        
+            
         }
       },
       renderer: handOverRenderer,
@@ -1894,6 +1977,7 @@ zoomToLayer(stationLayer);
       am5.ready(function() {
         // Default
         reloISFLayer.visible = false;
+        pierNoLayer.visible = true;
 
         // Expropriation List----------------------------------
      
@@ -4295,8 +4379,8 @@ zoomToLayer(stationLayer);
         document.querySelector("#header-title").textContent = "N2 LAND ACQUISITION";
         document.querySelector("#item-description").innerHTML = `
                                                                  1. You can <b>filter the data</b> by City and Barangy using dropdown lists.<br>
-                                                                 2. <b>Click a tab</b> below the dropdown lists to view progress on land, structure, or ISF in charts.<br>
-                                                                 3. <b>Click series in pie charts</b> to view progress on the corresponding lots/structures/ISF on the map.<br>
+                                                                 2. <b>Click a tab</b> below the dropdown lists to view progress on land, structure, or NLO in charts.<br>
+                                                                 3. <b>Click series in pie charts</b> to view progress on the corresponding lots/structures/NLO on the map.<br>
                                                                  4. <b>Lots under expropriation</b> are available in the 'Expro List' tab.<br>
                                                                  5. Click/unclick widgets icon for viewing Layer list, legend, basemaps, and locate widgets under the main title.<br>
                                                                  6. <b>Toggle a checkbox</b> above the Land pie chart to view <b>handed-over areas</b> (m2) of Contract Packages.`
@@ -4381,8 +4465,8 @@ zoomToLayer(stationLayer);
         container: "layers-container",
         listItemCreatedFunction: function(event) {
           const item = event.item;
-          if (item.title === "Chainage" || item.title === "Pier Access Date" || item.title === "Free-and-Clear Area" ||
-              item.title === "Occupancy (Structure)" || item.title === "NLO/LO (Structure)"){
+          if (item.title === "Chainage" || item.title === "Free-and-Clear Area" ||
+              item.title === "Occupancy (Structure)" || item.title === "NLO/LO Ownership (Structure)"){
             item.visible = false
           }
         }
