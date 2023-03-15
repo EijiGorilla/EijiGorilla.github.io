@@ -1150,7 +1150,8 @@
       2: [255, 255, 0],// Yellow
       3: [0, 112, 255], // Blue
       4: [143, 0, 255], // violet
-      5: [255, 255, 255, 0.9]
+      5: [255, 255, 255, 0.9],
+      6: [255, 0, 0, 0.9] // Dates are missing
     }
 
     var defaultPointSymbol = {
@@ -1170,9 +1171,8 @@
       // labels
       // for multiple label class to a layer:
       // https://developers.arcgis.com/javascript/latest/sample-code/labels-multiple-classes/
-      
-      const cutOffDateAccess = 1636070400000;
-      // make sure to update numerical date values in 'pierAccessRenderer'
+      const cutOffDateAccess = 1658225600000;
+      // make sure to change numerical date in valueExpression of 'pierAccessRenderer'
   
       const pierAccessReadyDateLabel = new LabelClass({
         symbol: {
@@ -1257,7 +1257,50 @@
         //value: "{Type}"
       },
       labelPlacement: "above-center",
-      where: "AccessDate > '" + cutOffDateAccess + "'"
+      where: "AccessDate > '" + cutOffDateAccess + "'" + " OR " + "AccessDate IS NULL"
+    });
+
+    const pierAccessDateMissingLabel =  new LabelClass({
+      symbol: {
+        type: "label-3d", // autocast as new LabelSymbol3D()
+        symbolLayers: [
+          {
+            type: "text",
+            material: {
+              color: "#ff0000"
+            },
+            size: 10,
+            color: "#cccccc",
+            haloColor: "#cccccc",
+            haloSize: 1,
+            font: {
+              family: "Ubuntu Mono",
+              weight: "normal"
+            },
+          }
+        ],
+        verticalOffset: {
+          screenLength: 80,
+          maxWorldLength: 500,
+          minWorldLength: 30
+        },
+        callout: {
+          type: "line",
+          size: 0.5,
+          color: [0, 0, 0],
+          border: {
+            color: [255, 255, 255, 0.7]
+          }
+        }
+      },
+      labelExpressionInfo: {
+        expression: "$feature.PIER"
+        //'DefaultValue($feature.GeoTechName, "no data")'
+        //"IIF($feature.Score >= 13, '', '')"
+        //value: "{Type}"
+      },
+      labelPlacement: "above-center",
+      where: "AccessDate IS NULL"
     });
 
     // 1. Get unique dates
@@ -1269,7 +1312,7 @@
         id: "afe2b9fc67974d69a8466a9c9649fdc9",
       },
       layerId: 6,
-      labelingInfo: [pierAccessReadyDateLabel, pierAccessNotYetLabel],
+      labelingInfo: [pierAccessDateMissingLabel, pierAccessReadyDateLabel, pierAccessNotYetLabel],
       title: "Pier with Access Date",
       minScale: 150000,
       maxScale: 0,
@@ -1326,12 +1369,26 @@
 
     const pierAccessRenderer = {
       type: "unique-value", // autocasts as new UniqueValueRenderer()
-      field: "AccessDate",
+    
       defaultSymbol: defaultPointSymbol,
-      
-      valueExpression: "When($feature.AccessDate <= 1636070400000, 'accessible', \
-                            $feature.AccessDate > 1636070400000, 'others',$feature.AccessDate)", 
+      valueExpression: "When(IsEmpty($feature.AccessDate), 'empty', \
+                             $feature.AccessDate <= 1658225600000, 'accessible', \
+                            $feature.AccessDate > 1658225600000, 'others', $feature.AccessDate)", 
       uniqueValueInfos: [
+        {
+          value: "empty",
+          label: "Dates are missing",
+          type: "simple",
+          symbol: {
+              type: "simple-marker",
+              size: 5,
+              color: pierAccessDateColor[6],
+              outline: {
+                  width: 0.1,
+                  color: "white"
+              }
+          }
+        },
         {
           value: "accessible",
           label: "Accessible",
@@ -1369,59 +1426,59 @@
     /// Define popup template on dates for pier no
     // Date Format function
     function dateFormat(inputDate, format) {
-      //parse the input date
-      const date = new Date(inputDate);
+        //parse the input date
+        const date = new Date(inputDate);
 
-      //extract the parts of the date
-      const day = date.getDate();
-      const month = date.getMonth() + 1;
-      const year = date.getFullYear();    
+        //extract the parts of the date
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();    
 
-      //replace the month
-      format = format.replace("MM", month.toString().padStart(2,"0"));        
+        //replace the month
+        format = format.replace("MM", month.toString().padStart(2,"0"));        
 
-      //replace the year
-      if (format.indexOf("yyyy") > -1) {
-          format = format.replace("yyyy", year.toString());
-      } else if (format.indexOf("yy") > -1) {
-          format = format.replace("yy", year.toString().substr(2,2));
-      }
+        //replace the year
+        if (format.indexOf("yyyy") > -1) {
+            format = format.replace("yyyy", year.toString());
+        } else if (format.indexOf("yy") > -1) {
+            format = format.replace("yy", year.toString().substr(2,2));
+        }
 
-      //replace the day
-      format = format.replace("dd", day.toString().padStart(2,"0"));
+        //replace the day
+        format = format.replace("dd", day.toString().padStart(2,"0"));
 
-      return format;
+        return format;
     }
 
     // Custom Popup Content for pierNoLayer
     let customContent = new CustomContent({
-      outFields: ["*"],
-      creator: function(event) {
+        outFields: ["*"],
+        creator: function(event) {
 
-        // Extract AsscessDate of clicked pierNoLayer
-        const stats = event.graphic.attributes.AccessDate;
-        const pierNo = event.graphic.attributes.PIER;
+            // Extract AsscessDate of clicked pierNoLayer
+            const stats = event.graphic.attributes.AccessDate;
+            const pierNo = event.graphic.attributes.PIER;
 
-        // Convert numeric to date format
-        var date = new Date(stats);
-        dateValue = dateFormat(date, 'MM-dd-yyyy');
+            // Convert numeric to date format
+            var date = new Date(stats);
+            dateValue = dateFormat(date, 'MM-dd-yyyy');
+            
+            const ddd = new Date(cutOffDateAccess);
+            dddValue = dateFormat(ddd, 'MM-dd-yyyy')
 
-        const ddd = new Date(cutOffDateAccess);
-        dddValue = dateFormat(ddd, 'MM-dd-yyyy')
+            // If the date is before current date, popupContent should be "AVAILABLE"
+            if (dateValue === '01-01-1970') { // Empty date is entered as this
+              DATES = "NO DATES AVAILABLE"
+            } else if (date <= cutOffDateAccess) {
+                DATES = "ACCESSIBLE";
+            } else if (date > cutOffDateAccess) {
+                DATES = dateValue;
+            }
 
-        //console.log(dateValue + "; " + dddValue);
-        
-        // If the date is before current date, popupContent should be "AVAILABLE"
-        if (date <= cutOffDateAccess) {
-            DATES = "ACCESSIBLE";
-        } else {
-            DATES = dateValue;
+            //return `Access Date: <b>${DATES}</b>`;
+            return `Access Date: <b>${DATES}</b>`;
+
         }
-
-        //return `Access Date: <b>${DATES}</b>`;
-        return `Access Date: <b>${DATES}</b>`;
-
-      }
     });
 
     const template = new PopupTemplate({
@@ -1497,14 +1554,14 @@
 
     // ROW //
     var rowLayer = new FeatureLayer ({
-        portalItem: {
-            id: "afe2b9fc67974d69a8466a9c9649fdc9",
-        },
-        layerId: 1,
-        title: "PROW",
-        popupEnabled: false
+      portalItem: {
+        id: "afe2b9fc67974d69a8466a9c9649fdc9",
+      },
+      layerId: 1,
+      title: "PROW",
+      popupEnabled: false
     });
-    map.add(rowLayer,2);
+    map.add(rowLayer,0);
 
     // Free and Clear Lot
     var fncLayer = new FeatureLayer ({
@@ -1565,33 +1622,66 @@
     map.add(pnrLayer, 1);
 
     // Station point feature
-    var labelStation = new LabelClass({
-        symbol: {
-            type: "text",
-            color: "orange",
+    var labelClass = new LabelClass({
+      symbol: {
+        type: "label-3d",// autocasts as new LabelSymbol3D()
+        symbolLayers: [
+          {
+            type: "text", // autocasts as new TextSymbol3DLayer()
+            material: {
+              color: [255, 170, 0]
+            },
+            size: 20,
+            color: "black",
             haloColor: "black",
-            haloSize: 0.7,
+            haloSize: 1,
             font: {
-                size: 20,
-                weight: "bold"
-            }
+              family: "Ubuntu Mono",
+              //weight: "bold"
+            },
+          }
+        ],
+        verticalOffset: {
+          screenLength: 40,
+          maxWorldLength: 100,
+          minWorldLength: 20
         },
-        labelPlacement: "above-right",
-        labelExpressionInfo: {
-            expression: "$feature.Station"
-        }
+      },
+      labelPlacement: "above-center",
+      labelExpressionInfo: {
+        expression: "$feature.Station"
+                //value: "{TEXTSTRING}"
+      }
     });
+
+    function stationsSymbol(name) {
+      return {
+        type: "web-style", // autocasts as new WebStyleSymbol()
+        name: name,
+        styleName: "EsriIconsStyle"//EsriRealisticTransportationStyle, EsriIconsStyle
+      };
+    }
+
+    // Station Renderer
+    var stationsRenderer = {
+      type: "unique-value", // autocasts as new UniqueValueRenderer()
+      field: "Station",
+      defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
+    };
 
     var stationLayer = new SceneLayer({
       portalItem: {
-        id: "53a2b239df5c4edd80bd7d082fddfb23",
+        id: "87903f4d1859454a837d68e18a27ad4c",
+        portal: {
+          url: "https://gis.railway-sector.com/portal"
+        }
       },
       labelingInfo: [labelClass],
       renderer: stationsRenderer,
       elevationInfo: {
         mode: "relative-to-ground"
       },
-      //definitionExpression: "Extension = 'SC'"
+      definitionExpression: "Extension = 'SC'"
                   //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
     });
     stationLayer.listMode = "hide";
