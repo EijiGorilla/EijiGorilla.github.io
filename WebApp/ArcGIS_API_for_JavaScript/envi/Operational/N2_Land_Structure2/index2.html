@@ -1300,7 +1300,8 @@
       2: [255, 255, 0],// Yellow
       3: [0, 112, 255], // Blue
       4: [143, 0, 255], // violet
-      5: [255, 255, 255, 0.9]
+      5: [255, 255, 255, 0.9],
+      6: [255, 0, 0, 0.9] // Dates are missing
     }
 
     var defaultPointSymbol = {
@@ -1410,6 +1411,49 @@
       where: "AccessDate > '" + cutOffDateAccess + "'" + " OR " + "AccessDate IS NULL"
     });
 
+    const pierAccessDateMissingLabel =  new LabelClass({
+      symbol: {
+        type: "label-3d", // autocast as new LabelSymbol3D()
+        symbolLayers: [
+          {
+            type: "text",
+            material: {
+              color: "#ff0000"
+            },
+            size: 10,
+            color: "#cccccc",
+            haloColor: "#cccccc",
+            haloSize: 1,
+            font: {
+              family: "Ubuntu Mono",
+              weight: "normal"
+            },
+          }
+        ],
+        verticalOffset: {
+          screenLength: 80,
+          maxWorldLength: 500,
+          minWorldLength: 30
+        },
+        callout: {
+          type: "line",
+          size: 0.5,
+          color: [0, 0, 0],
+          border: {
+            color: [255, 255, 255, 0.7]
+          }
+        }
+      },
+      labelExpressionInfo: {
+        expression: "$feature.PIER"
+        //'DefaultValue($feature.GeoTechName, "no data")'
+        //"IIF($feature.Score >= 13, '', '')"
+        //value: "{Type}"
+      },
+      labelPlacement: "above-center",
+      where: "AccessDate IS NULL"
+    });
+
     // 1. Get unique dates
     const numberDate = new Date(cutOffDateAccess);
     const cutDate = numberDate.toLocaleDateString('en-US');
@@ -1422,7 +1466,7 @@
         }
       },
       layerId: 6,
-      labelingInfo: [pierAccessReadyDateLabel, pierAccessNotYetLabel],
+      labelingInfo: [pierAccessDateMissingLabel, pierAccessReadyDateLabel, pierAccessNotYetLabel],
       title: "Pier with Access Date",
       minScale: 150000,
       maxScale: 0,
@@ -1482,9 +1526,24 @@
       field: "AccessDate",
       defaultSymbol: defaultPointSymbol,
       
-      valueExpression: "When($feature.AccessDate <= 1636070400000, 'accessible', \
+      valueExpression: "When(IsEmpty($feature.AccessDate), 'empty', \
+                            $feature.AccessDate <= 1636070400000, 'accessible', \
                             $feature.AccessDate > 1636070400000 || IsEmpty($feature.AccessDate), 'others',$feature.AccessDate)", 
       uniqueValueInfos: [
+        {
+          value: "empty",
+          label: "Dates are missing",
+          type: "simple",
+          symbol: {
+              type: "simple-marker",
+              size: 5,
+              color: pierAccessDateColor[6],
+              outline: {
+                  width: 0.1,
+                  color: "white"
+              }
+          }
+        },
         {
           value: "accessible",
           label: "Accessible",
