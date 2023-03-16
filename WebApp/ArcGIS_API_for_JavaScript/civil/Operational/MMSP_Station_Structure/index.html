@@ -322,71 +322,70 @@
             TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
             FeatureTable, Compass, ElevationLayer, Ground, BasemapToggle, BasemapGallery) {
 
-let chartLayerView;
-////////////////////////////////////////////////////
-const timeSeries = document.querySelector("calcite-button");
-  timeSeries.addEventListener("click", function(event) {
-    const timeSeriesChart = document.getElementById("timeSeriesChart");
-    timeSeriesChart.hidden = !timeSeriesChart.hidden
-  });
+  let chartLayerView;
+  ////////////////////////////////////////////////////
+  const timeSeries = document.querySelector("calcite-button");
+    timeSeries.addEventListener("click", function(event) {
+      const timeSeriesChart = document.getElementById("timeSeriesChart");
+      timeSeriesChart.hidden = !timeSeriesChart.hidden
+    });
   
 
-var basemap = new Basemap({
-  baseLayers: [
-    new VectorTileLayer({
-      portalItem: {
-        id: "3a62040541b84f528da3ac7b80cf4a63" 
-      }
-    })
-  ]
-});
-
-// Add custom DEM to the default elevation layer of esri
-const worldElevation = new ElevationLayer({
-  url: "//elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
+  var basemap = new Basemap({
+    baseLayers: [
+      new VectorTileLayer({
+        portalItem: {
+          id: "3a62040541b84f528da3ac7b80cf4a63" 
+        }
+      })
+    ]
   });
-  
+
+  // Add custom DEM to the default elevation layer of esri
+  const worldElevation = new ElevationLayer({
+    url: "//elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
+  });
 
   const dem = new ElevationLayer({
     portalItem: {
-         id: "dd2e85411a504182adb99215aa98ab68",
-          portal: {
-              url: "https://gis.railway-sector.com/portal"
-          }
+      id: "dd2e85411a504182adb99215aa98ab68",
+      portal: {
+        url: "https://gis.railway-sector.com/portal"
       }
+    }
   });
 
   var map = new Map({
-        basemap: basemap, // "streets-night-vector", basemap, topo-vector
-        ground: new Ground({
-          layers: [worldElevation, dem]
-        })
+    basemap: basemap, // "streets-night-vector", basemap, topo-vector
+    ground: new Ground({
+      layers: [worldElevation, dem]
+    })
   });
   //map.ground.surfaceColor = "#FFFF";
   //map.ground.opacity = 0.1;
    
   var view = new SceneView({
-      map: map,
-      container: "viewDiv",
-      viewingMode: "local",
-      camera: {
-          position: {
-              x: 121.0322874,
-              y: 14.6750462,
-              z: 1000
-              },
-              tilt: 65
-              },
-      environment: {
-          background: {
-              type: "color", // autocasts as new ColorBackground()
-              color: [0, 0, 0, 1]
-              },
-              // disable stars
-              starsEnabled: false,
-              //disable atmosphere
-              atmosphereEnabled: false
-              }
+    map: map,
+    container: "viewDiv",
+    viewingMode: "local",
+    camera: {
+      position: {
+        x: 121.0322874,
+        y: 14.6750462,
+        z: 1000
+      },
+      tilt: 65
+    },
+    environment: {
+      background: {
+        type: "color", // autocasts as new ColorBackground()
+        color: [0, 0, 0, 1]
+      },
+      // disable stars
+      starsEnabled: false,
+      //disable atmosphere
+      atmosphereEnabled: false
+    }
   });
 
   // OpenStreetMap 3D Buildings
@@ -428,9 +427,7 @@ const worldElevation = new ElevationLayer({
   }
 
   // Setup UI
-  var headerDiv = document.getElementById("headerDiv");
-  var headerTitleDiv = document.getElementById("headerTitleDiv");
-  var applicationDiv = document.getElementById("applicationDiv");
+
 
 //*******************************//
 // Label Class Property Settings //
@@ -505,48 +502,6 @@ var sitePhotoLabelClass = new LabelClass({
     labelPlacement: "above-center",
     labelExpressionInfo: {
       expression: 'DefaultValue($feature.Station, "no data")'
-    }
-  });
-
-  // Excavation SPot Label
-  var excaspotlabelClass = new LabelClass({
-    symbol: {
-      type: "label-3d",// autocasts as new LabelSymbol3D()
-      symbolLayers: [
-        {
-          type: "text", // autocasts as new TextSymbol3DLayer()
-          material: {
-            color: "#98E600"
-          },
-          size: 10,
-          halo: {
-                size: 0.8,
-                color: "black"
-              },
-          font: {
-            family: "Ubuntu Mono",
-            weight: "bold"
-          },
-        }
-      ],
-      verticalOffset: {
-        screenLength: 100,
-        maxWorldLength: 200,
-        minWorldLength: 30
-      },
-      callout: {
-        type: "line",
-        size: 0.5,
-        color: [0, 0, 0],
-        border: {
-          color: [255, 255, 255, 0.7]
-        }
-      }
-
-    },
-    labelPlacement: "above-center",
-    labelExpressionInfo: {
-      value: "Excavation"
     }
   });
 
@@ -647,15 +602,6 @@ var sitePhotoLabelClass = new LabelClass({
       };
     }
 
-  // Excavation Spot Symbol
-    function excaspotSymbol(name) { // Excavation Spot 
-      return {
-        type: "web-style",
-        name: name,
-        styleName: "EsriRealisticTransportationStyle"
-      };
-    }
-
   // Station Renderer
     var stationsRenderer = {
       type: "unique-value", // autocasts as new UniqueValueRenderer()
@@ -663,21 +609,6 @@ var sitePhotoLabelClass = new LabelClass({
       defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
     };
 
-  // Excavatin Spot Renderer
-    var excaspotRenderer = {
-      type: "unique-value",
-      field: "OBJECTID",
-      defaultSymbol: excaspotSymbol("Backhoe"),
-      visualVariables: [
-        {
-          type: "size",
-          minDateValue: 0,
-          maxDataValue: 10,
-          minSize: 8,
-          maxSize: 8
-        }
-      ]
-    };
 
   // Legend Color for Structure Layer        
     const colors = {
