@@ -1,64 +1,1765 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="initial-scale=1,maximum-scale=1,user-scalable=no"
-    />
-    <!--
-  ArcGIS API for JavaScript, https://js.arcgis.com
-  For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
-  https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
-  -->
-<title>Depot Buildings (PO Section)</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no"/>
+    <!--ArcGIS API for JavaScript, https://js.arcgis.com For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com. 
+    https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
+    -->
+    <title>MMSP Depot Building</title>
 
-<link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"/>
-<link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"/>
+    <script type="module" src="https://js.arcgis.com/calcite-components/1.0.7/calcite.esm.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.0.7/calcite.css" />
 
-<!-- Resources -->
-<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
-<script src="https://www.amcharts.com/lib/4/themes/dark.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-<script src="https://js.arcgis.com/4.26/"></script>
-<script src="js/main.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Micro.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Responsive.js"></script>
 
+    <!-- Resources -->
+    <script src="https://unpkg.com/three@0.144.0/build/three.js"></script>
+    <script src="https://unpkg.com/three@0.144.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/7/Stats.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+    <script src="https://js.arcgis.com/4.26/"></script>
   </head>
-
-  <body class="sassy-theme">
-    <div id="applicationDiv">
-      <div id="headerDiv">
-        <div id="headerTitleDiv">
-            <h2>Depot Building (MMSP)</h2>
-        </div>
-        <div class="dateDiv">
-            <h4>As of March 13, 2023</h4>
-        </div>
-        <div class="esri-widget" id="dropdownDiv">
-            <label for="sel-options">Building:</label>
-            <select class="esri-widget" id="valSelect" width="120" style="width: 120px"></select>
+  <body class="calcite-theme-dark">
+    <calcite-loader></calcite-loader>
+    <calcite-shell content-behind>
+      <!--  Header slot  -->
+      <div slot="header" id="header">
+        <!-- Title -->
+        <h2 id="header-title" slot="header"></h2>
+        <div id="dateDiv"></div>
+        <!-- Dropdown Lists -->
+        <div id="dropdownDiv" class="esri-widget">
+        <label id="dropdownStationLabel">
+          BUILDING:
+          <select id="valSelect" class="esri-widget"></select>
+        </label>
         </div>
       </div>
-      <div class="container">
-        <div class="boxB">
-          <div id="viewDiv">
+      <!-- Icon -->
+      <!-- https://developers.arcgis.com/calcite-design-system/icons/?icon=list&library=Calcite%20UI -->
+      <calcite-shell-panel slot="panel-start" detached>
+        <calcite-action-bar slot="action-bar">
+          <calcite-action data-action-id="layers" icon="layers" text="Layers"></calcite-action>
+          <calcite-action data-action-id="basemaps" icon="basemap" text="Basemaps"></calcite-action>
+          <calcite-action data-action-id="legend" icon="legend" text="Legend"></calcite-action>
+          <calcite-action data-action-id="information" icon="information" text="Information"></calcite-action>
+        </calcite-action-bar>
+        
+        <!-- Map-specific panels (each one provides a div for ArcGIS Maps SDK for JavaScript widgets) -->
+        <calcite-panel heading="Layers" height-scale="l" data-panel-id="layers" hidden>
+          <div id="layers-container"></div>
+        </calcite-panel>
+        <calcite-panel heading="Basemaps" height-scale="l" data-panel-id="basemaps" hidden>
+          <div id="basemaps-container"></div>
+        </calcite-panel>
+        <calcite-panel heading="Legend" height-scale="l" data-panel-id="legend" hidden>
+          <div id="legend-container"></div>
+        </calcite-panel>
+        
+        <!-- Info panel (populates with info from the web map) -->
+        <calcite-panel heading="Description" data-panel-id="information" hidden>
+          <div id="info-content">
+            <!-- <img id="item-thumbnail" alt="webmap thumbnail" /> -->
+            <div id="item-description">
+              <!-- Dynamically populated -->
+            </div>
           </div>
-          <div id="menu" class="esri-widget">
-            <input type="checkbox" id="opacityInput" unchecked />
-            <label for="opacityInput">See through ground</label>
-          </div>
-        </div>
-        <div class="boxA">
+        </calcite-panel>
+        </calcite-shell-panel>
+        
+        <div id="container">
+          <div id="viewDiv"></div>
           <div id="chartPanel">
-            <div id="chartTitleDiv" class="esri-widget">Construction Progress</div>
-            <div id="chartdiv"></div>
-              <div id="optionsDiv" class="esri-widget">
-                <div><b>Total Progress</b></div>
-                <h6 id="totalProgress"></h6>
-              </div>
+            <div id="totalProgressDiv"></div>
+            <div id="chartDiv"></div>
+          </div>
         </div>
-        </div>
-      </div>
-    </div>
+        <calcite-label layout="inline" id="see-through-label">
+          <calcite-checkbox id="myLink"></calcite-checkbox>See-through-Ground
+        </calcite-label>
+    </calcite-shell>
   </body>
+
+  <style>
+  html,
+  body,
+  #viewDiv {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+  }
+
+  body {
+    display: flex;
+  }
+
+  #container {
+    display: grid;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    grid-template-columns: 1fr 0.3fr;
+    width: 100%;
+    height: 100%;
+    }
+
+  calcite-label {
+    position: fixed;
+    z-index: 1;
+    bottom: 4%;
+    right: 25%;
+    vertical-align: middle;
+    background-color: rgb(52, 52, 52);
+    text-align: center;
+    padding: 5;
+  }
+
+  calcite-loader {
+    align-self: center;
+    justify-self: center;
+  }
+  
+
+  #header-title {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+
+  #item-description b {
+    color: orange;
+    font-size: "1.1vw";
+  }
+
+  #info-content {
+    padding: 0.75rem;
+  }
+
+  calcite-rating {
+    margin-top: 0.25rem;
+  }
+  
+  #header {
+    display: flex;
+    padding: 0 1rem;
+    background-color: var(--calcite-ui-foreground-1);
+  }
+
+  #header-controls {
+    display: flex;
+    margin-inline-start: auto;
+    align-self: center;
+  }
+
+  .label-wrapper {
+    display: flex;
+    margin-inline: 1rem;
+    padding: 0.5rem;
+    border: 1px solid var(--calcite-ui-border-1);
+    cursor: pointer;
+  }
+
+  calcite-switch {
+    margin: 0 0.5rem;
+  }
+
+  #chartPanel {
+    background-color: rgb(0, 0, 0, 0);
+    padding: 5;
+ }
+
+  #chartDiv {
+    margin-top: 0.5vw;
+    overflow-y: scroll;
+    height: 140vh;
+  }
+
+  #totalProgressDiv {
+    border: solid 0.5px gray;
+    height: 5vw;
+    text-align: center;
+  }
+
+  #totalProgressDiv span {
+    color: white;
+    text-align: center;
+    font-weight: normal;
+    font-size: 1.7vw;
+  }
+
+  #totalProgressDiv b {
+    font-size: 2.5vw;
+    color:rgb(0, 197, 255);
+  }
+
+  #dateDiv {
+    font-size: 0.85vw;
+    text-align: right;
+    display: flex;
+    align-items: flex-end;
+    font-weight: bold;
+  }
+
+      /* Dropdown list */
+  #dropdownDiv {
+    background-color: rgb(0, 0, 0, 0);
+    width: 50%;
+    opacity: 1;
+    color: white;
+    text-align: center;
+    margin: auto;
+  }
+
+  #timeSeriesChart {
+    position: absolute;
+    z-index: 1;
+    height: 30%;
+    width: 70%;
+    bottom: 20;
+    left: 5%;
+  }
+
+  #time-series {
+    position: fixed;
+    top: 15;
+    right: 10;
+    width: 12.5vw;
+    height: 3.5vh;
+  }
+
+  /* Browser Setting */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /*  */
+  .sassy-theme .esri-legend__layer-caption {
+    display: none;
+  }
+
+  .esri-layer-list__item-toggle-icon,
+  .esri-layer-list__item-title {
+    color: white;
+  }
+
+  .sassy-theme .esri-popup__header-title {
+    width: 17vw;
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+
+  .sassy-theme .esri-menu,
+  .sassy-theme .esri-popup__main-container,
+  .sassy-theme .esri-popup .esri-popup__pointer-direction,
+  .sassy-theme .esri-popup .esri-popup__button,
+  .sassy-theme .esri-button,
+  .sassy-theme .esri-input,
+  .sassy-theme .esri-legend,
+  .sassy-theme .esri-layer-list,
+  .sassy-theme .esri-widget a {
+    background-color: rgb(0, 0, 0, 0.7);
+    color: #fff;
+  }
+  </style>
+  <script>
+  require([
+    "esri/Basemap",
+    "esri/Map",
+    "esri/views/MapView",
+    "esri/views/SceneView",
+    "esri/layers/FeatureLayer",
+    "esri/layers/support/FeatureFilter",
+    "esri/layers/SceneLayer",
+    "esri/layers/Layer",
+    "esri/layers/TileLayer",
+    "esri/layers/VectorTileLayer",
+    "esri/layers/support/LabelClass",
+    "esri/symbols/LabelSymbol3D",
+    "esri/WebMap",
+    "esri/WebScene",
+    "esri/portal/PortalItem",
+    "esri/portal/Portal",
+    "esri/widgets/TimeSlider",
+    "esri/widgets/Legend",
+    "esri/widgets/LayerList",
+    "esri/widgets/Fullscreen",
+    "esri/rest/geometryService",
+    "esri/rest/support/Query",
+    "esri/rest/support/StatisticDefinition",
+    "esri/symbols/WebStyleSymbol",
+    "esri/TimeExtent",
+    "esri/widgets/Expand",
+    "esri/widgets/Editor",
+    "esri/renderers/UniqueValueRenderer",
+    "esri/widgets/support/DatePicker",
+    "esri/widgets/FeatureTable",
+    "esri/widgets/Compass",
+    "esri/layers/ElevationLayer",
+    "esri/Ground",
+    "esri/widgets/BasemapToggle",
+    "esri/widgets/BasemapGallery",
+  ], function(Basemap, Map, MapView, SceneView, 
+            FeatureLayer, FeatureFilter,
+            SceneLayer, Layer, TileLayer, VectorTileLayer,
+            LabelClass, LabelSymbol3D, WebMap,
+            WebScene, PortalItem, Portal,
+            TimeSlider, Legend, LayerList, Fullscreen,
+            geometryService, Query,
+            StatisticDefinition, WebStyleSymbol,
+            TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
+            FeatureTable, Compass, ElevationLayer, Ground, BasemapToggle, BasemapGallery){
+              
+  let chartLayerView;
+
+  var basemap = new Basemap({
+    baseLayers: [
+      new VectorTileLayer({
+        portalItem: {
+        id: "3a62040541b84f528da3ac7b80cf4a63" 
+        }
+      })
+    ]
+  });
+
+  // Add custom DEM to the default elevation layer of esri
+  const worldElevation = new ElevationLayer({
+    url: "//elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
+    });
+  
+  const dem = new ElevationLayer({
+    portalItem: {
+      id: "dd2e85411a504182adb99215aa98ab68",
+      portal: {
+        url: "https://gis.railway-sector.com/portal"
+      }
+    }
+  });
+
+  var map = new Map({
+    basemap: basemap, // "streets-night-vector", basemap, topo-vector
+    ground: new Ground({
+      layers: [worldElevation, dem]
+    })
+  });
+  //map.ground.surfaceColor = "#FFFF";
+  //map.ground.opacity = 0.1;
+   
+  var view = new SceneView({
+    map: map,
+    container: "viewDiv",
+    viewingMode: "local",
+    camera: {
+      position: {
+        x: 121.0322874,
+        y: 14.6750462,
+        z: 1000
+      },
+      tilt: 65
+    },
+    environment: {
+      background: {
+        type: "color", // autocasts as new ColorBackground()
+        color: [0, 0, 0, 1]
+      },
+      // disable stars
+      starsEnabled: false,
+      //disable atmosphere
+      atmosphereEnabled: false
+    }
+  });
+
+  //
+  function shiftCamera(deg) {
+    var camera = view.camera.clone();
+    camera.position.longitude += deg;
+    return camera;
+  }
+
+  function catchAbortError(error) {
+    if (error.name != "AbortError") {
+      console.error(error);
+    }
+  }
+
+//*******************************//
+// Label Class Property Settings //
+//*******************************//
+  // Station labels
+  var stationLabelClass = new LabelClass({
+    symbol: {
+      type: "label-3d",// autocasts as new LabelSymbol3D()
+      symbolLayers: [
+        {
+          type: "text", // autocasts as new TextSymbol3DLayer()
+          material: {
+            color: "white"
+          },
+          size: 15,
+          color: "black",
+          haloColor: "black",
+          haloSize: 1,
+          font: {
+            family: "Ubuntu Mono",
+            weight: "bold"
+          },
+        }
+      ],
+      verticalOffset: {
+        screenLength: 40,
+        maxWorldLength: 100,
+        minWorldLength: 20
+      },
+
+    },
+    labelPlacement: "above-center",
+    labelExpressionInfo: {
+      expression: 'DefaultValue($feature.Station, "no data")'
+    }
+  });
+
+ //*****************************//
+//      Renderer Settings      //
+//*****************************// 
+// Station Symbol
+  function stationsSymbol(name) {
+    return {
+      type: "web-style", // autocasts as new WebStyleSymbol()
+      name: name,
+      styleName: "EsriIconsStyle",//EsriRealisticTransportationStyle, EsriIconsStyle
+    };
+  }
+
+// Station Renderer
+  var stationsRenderer = {
+    type: "unique-value", // autocasts as new UniqueValueRenderer()
+    field: "Name",
+    defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
+  };
+
+
+  // Legend Color for Structure Layer        
+  const colors = {
+    1: [225, 225, 225, 0], // To be Constructed (white)
+    2: [130, 130, 130, 0.3], // Under Construction
+    3: [255, 0, 0, 0.6], // Delayed
+    4: [0, 112, 255, 0.8], // Completed
+  };
+
+  //*******************************//
+  // Import Layers                 //
+  //*******************************//
+  // Construction boundary
+  let ConstructionBoundaryFill = {
+    type: "unique-value",
+    valueExpression: "When($feature.MappingBoundary == 1, 'Boundary',$feature.MappingBoundary)",
+    uniqueValueInfos: [
+      {
+        value: "Boundary",
+        symbol: {
+          type: "simple-fill",
+          color: [0, 0, 0,0],
+          outline: {
+            width: 1.5,
+            color: [215, 215, 158],
+            style: "short-dash"
+          }
+        }
+      }
+    ]
+  };
+
+  // Construction Boundary
+  var constBoundary = new FeatureLayer({
+    portalItem: {
+      id: "b0cf28b499a54de7b085725bca08deee",
+      portal: {
+        url: "https://gis.railway-sector.com/portal"
+      }
+    },
+    layerId: 4,
+    outFields: ["*"],
+    elevationInfo: {
+      // this elevation mode will place points on top of
+      // buildings or other SceneLayer 3D objects
+      mode: "on-the-ground"
+    },
+    renderer: ConstructionBoundaryFill,
+    definitionExpression: "MappingBoundary = 1" + " AND " + "Station = 'Depot'",
+    title: "Construction Boundary",
+    popupEnabled: false
+  });
+  //constBoundary.listMode = "hide";
+  map.add(constBoundary);
+
+  // Station point feature
+  var stationLayer = new SceneLayer({
+    portalItem: {
+      id: "6d8d606fee5841ea80fa133adbb028fc",
+      portal: {
+        url: "https://gis.railway-sector.com/portal"
+      },
+    },
+    labelingInfo: [stationLabelClass],
+    renderer: stationsRenderer,
+    definitionExpression: "sector = 'MMSP'" + " AND " + "Station = 'Depot'",
+    popupEnabled: false,
+    elevationInfo: {
+      // this elevation mode will place points on top of
+      // buildings or other SceneLayer 3D objects
+      mode: "relative-to-ground"
+    },
+    //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
+  });
+  stationLayer.listMode = "hide";
+  map.add(stationLayer);
+
+  // Structure Layer
+  var structureLayer = new SceneLayer({ //structureLayer
+    portalItem: {
+      id: "1122b4b745cf467b9eaaa8cf7dd1bbf3",
+      portal: {
+        url: "https://gis.railway-sector.com/portal"
+      }
+    },
+    popupTemplate: {
+      title: "<h5>{Status}</h5>",
+      outFields: ["*"],
+      lastEditInfoEnabled: false,
+      returnGeometry: true,
+      content: [
+        {
+          type: "fields",
+          fieldInfos: [
+            {
+              fieldName: "Type",
+              label: "Type of Structure"
+            },
+            {
+              fieldName: "Name",
+              Label: "Building"
+            }
+          ]
+        }
+      ]
+    },
+    elevationInfo: {
+      mode: "absolute-height",
+      offset: 0
+    },
+    title: "PRI Building"
+    // when filter using date, example below. use this format
+    //definitionExpression: "EndDate = date'2020-6-3'"
+  });
+  map.add(structureLayer, 1);
+
+  function renderStructureLayer() {
+    const renderer = new UniqueValueRenderer({
+      field: "Status"
+    });
+
+    for (let property in colors) {
+      if (colors.hasOwnProperty(property)) {
+        renderer.addUniqueValueInfo({
+          value: property,
+          symbol: {
+            type: "mesh-3d",
+            symbolLayers: [
+              {
+                type: "fill",
+                material: {
+                  color: colors[property],
+                  colorMixMode: "replace"
+                },
+                edges: {
+                  type: "solid", // autocasts as new SolidEdges3D()
+                  color: [225, 225, 225, 0.3]
+                  }
+              }
+            ]
+           }
+        });
+      }
+    }
+
+    structureLayer.renderer = renderer;
+  }
+
+  renderStructureLayer();
+
+  // Radio Button Selection //        
+  // Selection of 'D-Wall' or 'Station Box' only for visualization (not chart)
+
+  //*******************************//
+  //      Progress Chart           //
+  //*******************************//
+  // Total progress //
+  function totalProgress(){
+    var total_complete = {
+      onStatisticField: "CASE WHEN Status >= 4 THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete",
+      statisticType: "sum"
+    };
+
+    var total_obs = {
+      onStatisticField: "Status",
+      outStatisticFieldName: "total_obs",
+      statisticType: "count"
+    };
+    var query = structureLayer.createQuery();
+    query.outStatistics = [total_complete, total_obs];
+    query.returnGeometry = true;
+    structureLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features[0].attributes;
+
+      const total_complete = stats.total_complete;
+      const total_obs = stats.total_obs;
+      const percent = ((total_complete/total_obs)*100).toFixed(1);
+      document.getElementById("totalProgressDiv").innerHTML = `
+                                                            <span>Total Progress</span><br>
+                                                            <b>${percent}%</b>
+                                                            `;
+    });
+  }
+  totalProgress();
+
+  /* Function for zooming to selected layers */
+  function zoomToLayer(layer) {
+    return layer.queryExtent().then(function(response) {
+      view.goTo(response.extent, { //response.extent
+        speedFactor: 2
+      }).catch(function(error) {
+        if (error.name != "AbortError") {
+          console.error(error);
+        }
+      });
+    });
+  }
+
+
+  const dropdownValue = document.getElementById("valSelect");
+
+  // Create Bar chart to show progress of station structure
+  am5.ready(function() {
+    const month = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    // Query Geometry
+    // 2. Get values and return to the list
+    function getValues() {
+      var testArray = [];
+      var tempDates = [];
+
+      var query = structureLayer.createQuery();
+      query.outFields = ["Building_Names", "last_edited_date"];
+      structureLayer.returnGeometry = true;
+      return structureLayer.queryFeatures(query).then(function(response) {
+        var stats = response.features;
+        stats.forEach((result, index) => {
+          var attributes = result.attributes;
+          const values = attributes.Building_Names;
+          const dates = attributes.last_edited_date;
+          //const finalDate = dates.toLocaleDateString('en-US');
+
+          testArray.push(values);
+          tempDates.push(dates);
+        });
+        return [testArray, tempDates];
+      });
+    }
+
+
+    // 3. Return an array of unique values
+    function getUniqueValues([values, dateValues]) {
+      var uniqueValues = [];
+      var uniqueValuesDates = [];
+
+      values.forEach(function(item, i) {
+        if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
+          uniqueValues.push(item);
+        } 
+      });
+
+      dateValues.forEach((date, index) => {
+        if ((uniqueValuesDates.length < 1 || uniqueValuesDates.indexOf(date) === -1) && date !== "") {
+          uniqueValuesDates.push(date);
+        }
+      });
+      const sortedDates = uniqueValuesDates.sort();
+      const lastDate = Math.max(...sortedDates);
+      const lastEdit = new Date(lastDate);
+      const yyyy = lastEdit.getFullYear();
+      const mm = month[lastEdit.getMonth()];
+      const dd = lastEdit.getDay();
+      const lastEditedDate = `${mm} ${dd}, ${yyyy}`;
+      document.getElementById("dateDiv").innerHTML = lastEditedDate;
+
+      return uniqueValues;
+    }
+
+    // 4. Add depot building names to the list as element
+    function addToSelect(values) {
+      dropdownValue.options.length = 0;
+        values.sort();
+        values.unshift('None'); // Add 'None' to the array and place it to the beginning of the array
+        values.forEach(function(value) {
+          var option = document.createElement("option");
+          option.text = value;
+          dropdownValue.add(option);
+        });
+    }
+
+    getValues()
+      .then(getUniqueValues)
+      .then(addToSelect)
+
+    dropdownValue.addEventListener("click", filterByTest);
+    function filterByTest(event) {
+      const selectedID = event.target.value;
+      console.log(selectedID);
+      if (selectedID === "None") {
+        structureLayer.definitionExpression = null;
+        zoomToLayer(structureLayer);
+        totalProgress();
+        updateChart();
+
+      } else {
+        structureLayer.definitionExpression = "Layer = '" + selectedID + "'";
+        zoomToLayer(structureLayer);
+        totalProgress();
+        updateChart();
+      }
+    } // End of filterByTest
+
+        // For Monitoring Chart
+    // various properties setting
+    const marginTop = 0;
+    const marginLeft = 0;
+    const marginRight = 0;
+    const marginBottom = 0;
+    const paddingTop = 10;
+    const paddingLeft = 5;
+    const paddingRight = 5;
+    const paddingBottom = 0;
+
+    const xAxisNumberFormat = "#'%'";
+    const seriesBulletLabelFontSize = "0.7vw";
+
+    // series line fill pattern
+    const linePatternColorComplete = "#0070ff";
+    const linePatternColorOpacityComplete = 0;
+    const linePatternFillOpacityComplete = 0;
+
+    const linePatternColorOpacityIncomplet = 0;
+    const linePatternFillOpacityIncomplet = 1;
+    const linePatternStrokeOpacityIncomplet = 0;
+
+    // axis label
+    const yAxisLabelFontSize = "0.8vw";
+    const xAxisLabelFontSize = "0.8vw"
+    const legendFontSize = "0.8vw"
+
+    //
+    class MyTheme extends am5.Theme {
+      setupDefaultRules() {
+        var theme = this;
+
+        this.patterns = [
+          am5.LinePattern.new(this._root, {
+            color: am5.color(linePatternColorComplete),
+            colorOpacity: linePatternColorOpacityComplete,
+            fillOpacity: linePatternFillOpacityComplete,
+          }),
+
+          am5.LinePattern.new(this._root, {
+            colorOpacity: linePatternColorOpacityIncomplet,
+            fillOpacity: linePatternFillOpacityIncomplet,
+            strokeOpacity: linePatternStrokeOpacityIncomplet,
+          }),
+        ];
+
+        this.currentPattern = 0;
+        this.rule("RoundedRectangle").setAll({
+          fillOpacity: 1
+        });
+
+        this.rule("RoundedRectangle").setup = function(target) {
+          target.set("fillPattern", theme.patterns[theme.currentPattern]);
+          theme.currentPattern++;
+          if (theme.currentPattern == theme.patterns.length) {
+            theme.currentPattern = 0;
+          }
+        };
+      }
+    }
+
+    var root = am5.Root.new("chartDiv");
+   
+    const type = [
+      {
+        "category": "Beam",
+        "value": 1
+      },
+      {
+        "category": "Column",
+        "value": 2
+      },
+      {
+        "category":"Footing",
+        "value": 3
+      },
+      {
+        "category": "Girder",
+        "value": 4
+      },
+      {
+        "category": "Mecha Equip Foundation",
+        "value": 5
+      },
+      {
+        "category": "Mecha & Electirc Space",
+        "value": 6
+      },
+      {
+        "category": "Parapet",
+        "value": 7
+      },
+      {
+        "category": "Roof Deck Slab",
+        "value": 8
+      },
+      {
+        "category": "Rooftop Stair Enclosure",
+        "value": 9
+      },
+      {
+        "category": "Skylight",
+        "value": 10
+      },
+      {
+        "category": "Slab",
+        "value": 11
+      },
+      {
+        "category": "Tie Beam",
+        "value": 12
+      },
+      {
+        "category": "Wall Footing",
+        "value": 13
+      },
+      {
+        "category": "Vertical Brace",
+        "value": 14
+      },
+      {
+        "category": "Side Wall Girts",
+        "value": 15
+      },
+      {
+        "category": "Purlin",
+        "value": 16
+      },
+      {
+        "category": "Girt",
+        "value": 17
+      },
+      {
+        "category": "Foundation",
+        "value": 18
+      },
+      {
+        "category": "Rail",
+        "value": 19
+      },
+      {
+        "category": "Sleepers",
+        "value": 20
+      },
+      {
+        "category": "Rafter",
+        "value": 21
+      },
+      {
+        "category": "Tension Brace",
+        "value": 22
+      },
+      {
+        "category": "Rubble Concrete",
+        "value": 23
+      },
+    ]
+
+
+
+//////////////////////////////////////////////////////////////////////////
+// Beam 
+function updateChart() {
+  var total_beam_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 1 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
+    outStatisticFieldName: "total_beam_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_beam_done = {
+    onStatisticField: "CASE WHEN (Type = 1 and Status = 4) THEN 1 ELSE 0 END",  // D-Wall and Complete
+    outStatisticFieldName: "total_beam_done",
+    statisticType: "sum"
+  };   
+
+
+  // Column
+  var total_column_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 2 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
+    outStatisticFieldName: "total_column_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_column_done = {
+    onStatisticField: "CASE WHEN (Type = 2 and Status = 4) THEN 1 ELSE 0 END",  // D-Wall and Complete
+    outStatisticFieldName: "total_column_done",
+    statisticType: "sum"
+  };   
+
+  // Footing
+  var total_footing_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 3 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
+    outStatisticFieldName: "total_footing_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_footing_done = {
+    onStatisticField: "CASE WHEN (Type = 3 and Status = 4) THEN 1 ELSE 0 END",  // D-Wall and Complete
+    outStatisticFieldName: "total_footing_done",
+    statisticType: "sum"
+  };   
+
+  // Girder
+  var total_girder_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 4 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
+    outStatisticFieldName: "total_girder_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_girder_done = {
+    onStatisticField: "CASE WHEN (Type = 4 and Status = 4) THEN 1 ELSE 0 END",  // D-Wall and Complete
+    outStatisticFieldName: "total_girder_done",
+    statisticType: "sum"
+  };   
+
+  // Mechanical Equipment Foundation (mef)
+  var total_mef_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 5 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
+    outStatisticFieldName: "total_mef_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_mef_done = {
+    onStatisticField: "CASE WHEN (Type = 5 and Status = 4) THEN 1 ELSE 0 END",  // D-Wall and Complete
+    outStatisticFieldName: "total_mef_done",
+    statisticType: "sum"
+  };   
+
+  // Mechanical and Electrical Space (mes)
+  var total_mes_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 6 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
+    outStatisticFieldName: "total_mes_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_mes_done = {
+    onStatisticField: "CASE WHEN (Type = 6 and Status = 4) THEN 1 ELSE 0 END",  // D-Wall and Complete
+    outStatisticFieldName: "total_mes_done",
+    statisticType: "sum"
+  };   
+
+  // parapet
+  var total_parapet_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 7 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
+    outStatisticFieldName: "total_parapet_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_parapet_done = {
+    onStatisticField: "CASE WHEN (Type = 7 and Status = 4) THEN 1 ELSE 0 END",  // D-Wall and Complete
+    outStatisticFieldName: "total_parapet_done",
+    statisticType: "sum"
+  };
+
+  // Roof Deck Slabe (roofdeck)
+  var total_roofdeck_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 8 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
+    outStatisticFieldName: "total_roofdeck_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_roofdeck_done = {
+    onStatisticField: "CASE WHEN (Type = 8 and Status = 4) THEN 1 ELSE 0 END",  // D-Wall and Complete
+    outStatisticFieldName: "total_roofdeck_done",
+    statisticType: "sum"
+  };   
+
+  // Rooftop Stair Enclsore (rooftop)
+  var total_rooftop_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 9 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
+    outStatisticFieldName: "total_rooftop_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_rooftop_done = {
+    onStatisticField: "CASE WHEN (Type = 9 and Status = 4) THEN 1 ELSE 0 END",  // D-Wall and Complete
+    outStatisticFieldName: "total_rooftop_done",
+    statisticType: "sum"
+  };   
+
+  // Skylight
+  var total_sky_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 10 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
+    outStatisticFieldName: "total_sky_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_sky_done = {
+    onStatisticField: "CASE WHEN (Type = 10 and Status = 4) THEN 1 ELSE 0 END",  // D-Wall and Complete
+    outStatisticFieldName: "total_sky_done",
+    statisticType: "sum"
+  };   
+
+  // Slab
+  var total_slab_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 11 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
+    outStatisticFieldName: "total_slab_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_slab_done = {
+    onStatisticField: "CASE WHEN (Type = 11 and Status = 4) THEN 1 ELSE 0 END",  // D-Wall and Complete
+    outStatisticFieldName: "total_slab_done",
+    statisticType: "sum"
+  };   
+
+  // Tie Beam
+  var total_tiebeam_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 12 and Status = 1) THEN 1 ELSE 0 END",  // D-Wall and to be Constructed
+    outStatisticFieldName: "total_tiebeam_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_tiebeam_done = {
+    onStatisticField: "CASE WHEN (Type = 12 and Status = 4) THEN 1 ELSE 0 END",  // D-Wall and Complete
+    outStatisticFieldName: "total_tiebeam_done",
+    statisticType: "sum"
+  };   
+
+  // Wall Footing
+  var total_wallfoot_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 13 and Status = 1) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_wallfoot_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_wallfoot_done = {
+    onStatisticField: "CASE WHEN (Type = 13 and Status = 4) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_wallfoot_done",
+    statisticType: "sum"
+  };   
+
+  // Vertical Brace
+  var total_verticalbrace_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 14 and Status = 1) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_verticalbrace_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_verticalbrace_done = {
+    onStatisticField: "CASE WHEN (Type = 14 and Status = 4) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_verticalbrace_done",
+    statisticType: "sum"
+  };   
+
+  // Side Wall Girts
+  var total_sidewallgirt_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 15 and Status = 1) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_sidewallgirt_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_sidewallgirt_done = {
+    onStatisticField: "CASE WHEN (Type = 15 and Status = 4) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_sidewallgirt_done",
+    statisticType: "sum"
+  };   
+
+  // Purlin
+  var total_purlin_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 16 and Status = 1) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_purlin_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_purlin_done = {
+    onStatisticField: "CASE WHEN (Type = 16 and Status = 4) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_purlin_done",
+    statisticType: "sum"
+  };   
+
+  // Girt
+  var total_girt_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 17 and Status = 1) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_girt_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_girt_done = {
+    onStatisticField: "CASE WHEN (Type = 17 and Status = 4) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_girt_done",
+    statisticType: "sum"
+  };   
+
+  // Foundation
+  var total_found_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 18 and Status = 1) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_found_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_found_done = {
+    onStatisticField: "CASE WHEN (Type = 18 and Status = 4) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_found_done",
+    statisticType: "sum"
+  };   
+
+  //Rail
+  var total_rail_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 19 and Status = 1) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_rail_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_rail_done = {
+    onStatisticField: "CASE WHEN (Type = 19 and Status = 4) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_rail_done",
+    statisticType: "sum"
+  };   
+
+  // Sleepers
+  var total_sleepers_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 20 and Status = 1) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_sleepers_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_sleepers_done = {
+    onStatisticField: "CASE WHEN (Type = 20 and Status = 4) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_sleepers_done",
+    statisticType: "sum"
+  };   
+
+  // Rafter
+  var total_rafter_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 21 and Status = 1) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_rafter_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_rafter_done = {
+    onStatisticField: "CASE WHEN (Type = 21 and Status = 4) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_rafter_done",
+    statisticType: "sum"
+  };   
+
+  // Tension Brace
+  var total_tensionbrace_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 22 and Status = 1) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_tensionbrace_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_tensionbrace_done = {
+    onStatisticField: "CASE WHEN (Type = 22 and Status = 4) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_tensionbrace_done",
+    statisticType: "sum"
+  };   
+
+    // Rubble concrete
+  var total_rubblec_tobeC = {
+    onStatisticField: "CASE WHEN (Type = 23 and Status = 1) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_rubblec_tobeC",
+    statisticType: "sum"
+  };
+
+  var total_rubblec_done = {
+    onStatisticField: "CASE WHEN (Type = 23 and Status = 4) THEN 1 ELSE 0 END", 
+    outStatisticFieldName: "total_rubblec_done",
+    statisticType: "sum"
+  };   
+
+  var query = structureLayer.createQuery();
+  query.outStatistics = [total_beam_tobeC, total_beam_done,
+                  total_column_tobeC, total_column_done,
+                  total_footing_tobeC, total_footing_done,
+                  total_girder_tobeC, total_girder_done,
+                  total_mef_tobeC, total_mef_done,
+                  total_mes_tobeC, total_mes_done,
+                  total_parapet_tobeC, total_parapet_done,
+                  total_roofdeck_tobeC, total_roofdeck_done,
+                  total_rooftop_tobeC, total_rooftop_done,
+                  total_sky_tobeC, total_sky_done,
+                  total_slab_tobeC, total_slab_done,
+                  total_tiebeam_tobeC, total_tiebeam_done,
+                  total_wallfoot_tobeC,total_wallfoot_done,
+                  total_verticalbrace_tobeC, total_verticalbrace_done,
+                  total_sidewallgirt_tobeC, total_sidewallgirt_done,
+                  total_purlin_tobeC, total_purlin_done,
+                  total_girt_tobeC, total_girt_done,
+                  total_found_tobeC,total_found_done,
+                  total_rail_tobeC, total_rail_done,
+                  total_sleepers_tobeC, total_sleepers_done,
+                  total_rafter_tobeC, total_rafter_done,
+                  total_tensionbrace_tobeC, total_tensionbrace_done,
+                  total_rubblec_tobeC, total_rubblec_done];
+  query.returnGeometry = true;
+
+  structureLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features[0].attributes;
+
+    // Beam
+    const beam_tobeC = stats.total_beam_tobeC;
+    const beam_done = stats.total_beam_done;
+
+    // Column
+    const column_tobeC = stats.total_column_tobeC;
+    const column_done = stats.total_column_done;
+
+    // footing
+    const footing_tobeC = stats.total_footing_tobeC;
+    const footing_done = stats.total_footing_done;
+
+    // Girder
+    const girder_tobeC = stats.total_girder_tobeC;
+    const girder_done = stats.total_girder_done;
+
+    // Mechanical Equipment Foundation
+    const mef_tobeC = stats.total_mef_tobeC;
+    const mef_done = stats.total_mef_done;
+
+    // Mechanical and Electrical Space
+    const mes_tobeC = stats.total_mes_tobeC;
+    const mes_done = stats.total_mes_done;
+
+    // Parapet
+    const parapet_tobeC = stats.total_parapet_tobeC;
+    const parapet_done = stats.total_parapet_done;
+
+    // Roof Deck Slab
+    const roofdeck_tobeC = stats.total_roofdeck_tobeC;
+    const roofdeck_done = stats.total_roofdeck_done;
+
+    // Rooftop Stair Enclosure
+    const rooftop_tobeC = stats.total_rooftop_tobeC;
+    const rooftop_done = stats.total_rooftop_done;
+
+    // Skylight
+    const sky_tobeC = stats.total_sky_tobeC;
+    const sky_done = stats.total_sky_done;
+
+    // Slab
+    const slab_tobeC = stats.total_slab_tobeC;
+    const slab_done = stats.total_slab_done;
+
+    // Tie Beam
+    const tiebeam_tobeC = stats.total_tiebeam_tobeC;
+    const tiebeam_done = stats.total_tiebeam_done;
+
+    // Wall Footing
+    const wallfoot_tobeC = stats.total_wallfoot_tobeC;
+    const wallfoot_done = stats.total_wallfoot_done;
+
+    // verticalbrace
+    const verticalbrace_tobeC = stats.total_verticalbrace_tobeC;
+    const verticalbrace_done = stats.total_verticalbrace_done;
+
+    // Side Wall Girt
+    const sidewallgirt_tobeC = stats.total_sidewallgirt_tobeC;
+    const sidewallgirt_done = stats.total_sidewallgirt_done;
+
+    // Purlin
+    const purlin_tobeC = stats.total_purlin_tobeC;
+    const purlin_done = stats.total_purlin_done;
+
+    // Girt
+    const girt_tobeC = stats.total_girt_tobeC;
+    const girt_done = stats.total_girt_done;
+
+    // Foundation
+    const found_tobeC = stats.total_found_tobeC;
+    const found_done = stats.total_found_done;
+
+    // Rail
+    const rail_tobeC = stats.total_rail_tobeC;
+    const rail_done = stats.total_rail_done;
+
+    // Sleepers
+    const sleepers_tobeC = stats.total_sleepers_tobeC;
+    const sleepers_done = stats.total_sleepers_done;
+
+    // Rafter
+    const rafter_tobeC = stats.total_rafter_tobeC;
+    const rafter_done = stats.total_rafter_done;
+
+    // Tension Brace
+    const tensionbrace_tobeC = stats.total_tensionbrace_tobeC;
+    const tensionbrace_done = stats.total_tensionbrace_done;
+
+    // Rubble Concrete
+    const rubblec_tobeC = stats.total_rubblec_tobeC;
+    const rubblec_done = stats.total_rubblec_done;
+
+    // Set themes
+    // https://www.amcharts.com/docs/v5/concepts/themes/
+    root.setThemes([
+      am5themes_Animated.new(root),
+      am5themes_Responsive.new(root),
+      //MyTheme.new(root)
+    ]);
+
+    // Create chart
+    // https://www.amcharts.com/docs/v5/charts/xy-chart/
+    var chart = root.container.children.push(am5xy.XYChart.new(root, {
+      panX: false,
+      panY: false,
+      layout: root.verticalLayout,
+      marginTop: marginTop,
+      marginLeft: marginLeft,
+      marginRight: marginRight,
+      marginBottom: marginBottom,
+      paddingTop: paddingTop,
+      paddingLeft: paddingLeft,
+      paddingRight: paddingRight,
+      paddingBottom: paddingBottom,
+      scale: 1,
+      height: am5.percent(100)
+
+    }));
+
+    var data = [
+      {
+        "category": type[Object.keys(type)[0]].category,
+        "comp": beam_done,
+        "incomp": beam_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[1]].category,
+        "comp": column_done,
+        "incomp": column_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[2]].category,
+        "comp": footing_done,
+        "incomp": footing_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[3]].category,
+        "comp": girder_done,
+        "incomp": girder_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[4]].category,
+        "comp": mef_done,
+        "incomp": mef_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[5]].category,
+        "comp": mes_done,
+        "incomp": mes_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[6]].category,
+        "comp": parapet_done,
+        "incomp": parapet_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[7]].category,
+        "comp": roofdeck_done,
+        "incomp": roofdeck_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[8]].category,
+        "comp": rooftop_done,
+        "incomp": rooftop_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[9]].category,
+        "comp": sky_done,
+        "incomp": sky_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[10]].category,
+        "comp": slab_done,
+        "incomp": slab_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[11]].category,
+        "comp": tiebeam_done,
+        "incomp": tiebeam_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[12]].category,
+        "comp": wallfoot_done,
+        "incomp": wallfoot_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[13]].category,
+        "comp": verticalbrace_done,
+        "incomp": verticalbrace_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[14]].category,
+        "comp": sidewallgirt_done,
+        "incomp": sidewallgirt_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[15]].category,
+        "comp": purlin_done,
+        "incomp": purlin_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[16]].category,
+        "comp": girt_done,
+        "incomp": girt_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[17]].category,
+        "comp": found_done,
+        "incomp": found_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[18]].category,
+        "comp": rail_done,
+        "incomp": rail_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[19]].category,
+        "comp": sleepers_done,
+        "incomp": sleepers_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[20]].category,
+        "comp": rafter_done,
+        "incomp": rafter_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[21]].category,
+        "comp": tensionbrace_done,
+        "incomp": tensionbrace_tobeC
+      },
+      {
+        "category": type[Object.keys(type)[22]].category,
+        "comp": rubblec_done,
+        "incomp": rubblec_tobeC
+      },
+
+    ];
+
+    // Create axes
+    // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+    var yRenderer = am5xy.AxisRendererY.new(root, {
+      inversed: true
+    });
+    var yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root, {
+      categoryField: "category",
+      renderer: yRenderer,
+      tooltip: am5.Tooltip.new(root, {})
+    }));
+
+    yRenderer.grid.template.setAll({
+      location: 1
+    })
+
+    // Label properties Y axis
+    yAxis.get("renderer").labels.template.setAll({
+      oversizedBehavior: "wrap",
+      textAlign: "center",
+      fill: am5.color("#ffffff"),
+      //maxWidth: 150,
+      fontSize: yAxisLabelFontSize,
+    });
+
+    yAxis.data.setAll(data);
+
+    var xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root, {
+      min: 0,
+      max: 100,
+      strictMax: true,
+      numberFormat: xAxisNumberFormat,
+      calculateTotals: true,
+      renderer: am5xy.AxisRendererX.new(root, {
+        strokeOpacity: 0,
+        strokeWidth: 1,
+        stroke: am5.color("#ffffff"),
+      })
+    }));
+
+    // Label properties for yAxis (category axis)
+    xAxis.get("renderer").labels.template.setAll({
+      //oversizedBehavior: "wrap",
+      textAlign: "center",
+      fill: am5.color("#ffffff"),
+      //maxWidth: 150,
+      fontSize: xAxisLabelFontSize
+    });
+
+    /*
+    // Add legend
+    // https://www.amcharts.com/docs/v5/charts/xy-chart/legend-xy-series/
+    var legend = chart.children.push(am5.Legend.new(root, {
+      centerX: am5.p50,
+      x: am5.percent(70),
+      y: am5.percent(100)
+    }));
+
+    legend.labels.template.setAll({
+        oversizedBehavior: "truncate",
+        fill: am5.color("#ffffff"),
+        fontSize: legendFontSize,
+        //scale: 0.8,
+        //textDecoration: "underline"
+        //width: am5.percent(200)
+        //fontWeight: "300"
+      });
+*/
+      // Chart title
+      /*
+      chart.children.unshift(am5.Label.new(root, {
+        text: "Construction Progress",
+        fontSize: "1.5vw",
+        fontWeight: "bold",
+        textAlign: "center",
+        fill: am5.color("#ffffff"),
+        x: am5.percent(50),
+        centerX: am5.percent(50),
+        paddingTop: 5,
+        paddingBottom: 8,
+    }));
+    */
+
+    chart.get("colors").set("colors", [
+      am5.color("#0070ff"), //
+      am5.color("#000000"),
+    ]);
+
+    // Add series
+    // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+    function makeSeries(name, fieldName) {
+      var series = chart.series.push(am5xy.ColumnSeries.new(root, {
+        name: name,
+        stacked: true,
+        xAxis: xAxis,
+        yAxis: yAxis,
+        baseAxis: yAxis,
+        valueXField: fieldName,
+        valueXShow: "valueXTotalPercent",
+        categoryYField: "category"
+      }));
+
+      series.columns.template.setAll({
+        tooltipText: "{name}: {valueX}",// "{categoryY}: {valueX}",
+        tooltipY: am5.percent(90),
+        //fill: am5.color("#ffffff")
+        // 100% transparent for incomplete
+        fillOpacity: fieldName == "incomp" ? 0 : 1
+      });
+      series.data.setAll(data);
+
+      // Make stuff animate on load
+      // https://www.amcharts.com/docs/v5/concepts/animations/
+      series.appear();
+
+      series.bullets.push(function() {
+        return am5.Bullet.new(root, {
+          sprite: am5.Label.new(root, {
+            text: "{valueX}" === 0 ? "" : "{valueXTotalPercent.formatNumber('#.')}%", //"{valueX}",
+            fill: root.interfaceColors.get("alternativeText"),
+            opacity: fieldName == "incomp" ? 0 : 1,
+            fontSize: seriesBulletLabelFontSize,
+            centerY: am5.p50,
+            centerX: am5.p50,
+            populateText: true
+          })
+        });
+      });
+
+      series.columns.template.events.on("click", function(ev) {
+        // Layer
+        const SELECTED = ev.target.dataItem.dataContext.category;
+        const find = type.find((emp) => emp.category === SELECTED);
+        const typeSelect = find.value;
+    
+        if (fieldName === "incomp") {
+            selectedStatus = 1;
+        } else if (fieldName === "comp") {
+            selectedStatus = 4;
+        } else {
+            selectedLayer = null;
+        }
+        
+        var highlight = null;
+        // Update layerView based on viaduct components being selected
+        view.whenLayerView(structureLayer).then(function (structureLayerView) {
+          structureLayerView.filter = {
+              where: "Type = " + typeSelect + " AND " +  "Status = " + selectedStatus
+              //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+            };
+            
+            structureLayerView.queryFeatures().then(function(results) {
+              const ggg = results.features;
+              const rowN = ggg.length;
+              
+              // Extract and obtain OBJECTID
+              let objID = [];
+              for (var i=0; i< rowN; i++) {
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
+              }
+              highlightSelect = structureLayerView.highlight([objID]);
+              if (highlightSelect) {
+                highlightSelect.remove();
+              }
+              // Reset selection by clicking anywhere on the map
+              view.on("click", function() {
+                structureLayerView.filter = null;
+                  highlightSelect.remove();
+              });
+            });
+        }); // whenLayerView
+      });// End of filterByChart
+
+      //legend.data.push(series);
+    }// end of makeSeries
+    makeSeries("Complete", "comp");
+    makeSeries("Incomplete", "incomp");
+    // Make stuff animate on load
+    // https://www.amcharts.com/docs/v5/concepts/animations/
+    chart.appear(1000, 100);
+    }); // End of queryFeatures function
+    }
+
+    // Default selection = 'None'
+    function defaultRenderer() {
+      structureLayer.definitionExpression = null;
+      zoomToLayer(structureLayer);
+      updateChart();
+    }
+    defaultRenderer();
+
+      // view.when
+    view.when(() => {
+      document.querySelector("#header-title").textContent = "MMSP DEPOT BUILDING";
+      document.querySelector("#item-description").innerHTML = `
+                                                                1. <b>Filter data</b> by different building in depot using the drop-down list in header panel.<br>
+                                                                <br>2. You can view construction progress in bar charts.<br>
+                                                                <br>3. <b>Click column series in chart</b> to view selected structural components on the map.<br>
+                                                                <br>4. Click/unclick widgets icon for viewing Layer list, legend, basemaps, and locate widgets under the main title.<br>
+                                                              `
+                                                                ;
+      
+      let activeWidget;
+      const handleActionBarClick = ({ target }) => {
+        if (target.tagName !== "CALCITE-ACTION") {
+          return;
+        }
+
+        if (activeWidget) {
+          document.querySelector(`[data-action-id=${activeWidget}]`).active = false;
+          document.querySelector(`[data-panel-id=${activeWidget}]`).hidden = true;
+        }
+
+        const nextWidget = target.dataset.actionId;
+        if (nextWidget !== activeWidget) {
+          document.querySelector(`[data-action-id=${nextWidget}]`).active = true;
+          document.querySelector(`[data-panel-id=${nextWidget}]`).hidden = false;
+          activeWidget = nextWidget;
+        } else {
+          activeWidget = null;
+        }
+      };
+
+      // Action bar 
+      document.querySelector("calcite-action-bar").addEventListener("click", handleActionBarClick);
+      let actionBarExpanded = false;
+      document.addEventListener("calciteActionBarToggle", event => {
+        actionBarExpanded = !actionBarExpanded;
+        view.padding = {
+          left: actionBarExpanded ? 135 : 45
+        };
+      });
+    }); // end of view.when
+  }); // End of am5
+
+
+  const basemaps = new BasemapGallery({
+    view,
+    container: "basemaps-container"
+  });
+
+  // LayerList and Add legend to the LayerList
+  // On-off feature layer tab
+  var layerList = new LayerList({
+      view: view,
+      container: "layers-container",
+      listItemCreatedFunction: function(event) {
+        const item = event.item;
+        if (item.title === "Chainage" || item.title === "ROW"){
+          item.visible = false
+        }
+      }
+    });
+
+  var legend = new Legend({
+    view,
+    container: "legend-container",
+    layerInfos: [
+      {
+        layer: constBoundary,
+        title: "Construction Boundary"
+      },
+      {
+        layer: structureLayer,
+        title: "Station Structure"
+      },
+    ]
+  });
+
+
+
+  view.ui.empty("top-left");
+
+  // Compass
+  var compass = new Compass({
+    view: view
+  });
+    // adds the compass to the top left corner of the MapView
+  view.ui.add(compass, "top-left");
+
+  // See-through-Ground
+  view.when(function() {
+    // allow navigation above and below the ground
+    map.ground.navigationConstraint = {
+      type: "none"
+    };
+    // the webscene has no basemap, so set a surfaceColor on the ground
+    map.ground.surfaceColor = "#fff";
+            
+    // to see through the ground, set the ground opacity to 0.4
+    map.ground.opacity = 0.9;
+  });
+            
+  document.getElementById("myLink").addEventListener("click", function(event) {
+      const checked = event.srcElement.checked;
+      map.ground.opacity = event.srcElement.checked ? 0.1 : 0.6;
+  });
+  
+});
+  </script>
 </html>
