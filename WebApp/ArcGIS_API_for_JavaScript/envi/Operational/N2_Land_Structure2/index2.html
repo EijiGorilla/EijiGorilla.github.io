@@ -227,7 +227,7 @@
       
       <!-- Title -->
       <h2 id="header-title" slot="header"></h2>
-      <div id="dateDiv">March 1, 2023</div>
+      <div id="dateDiv"></div>
 
       <!-- Dropdown Lists -->
       <div id="dropdownDiv" class="esri-widget">
@@ -2017,7 +2017,7 @@
       });
     }
       
-zoomToLayer(stationLayer);
+    zoomToLayer(stationLayer);
       // Chart-----------------------------------------------
       let chartLayerView;
       var highlightSelect;
@@ -2029,6 +2029,46 @@ zoomToLayer(stationLayer);
 
       var municipalSelect = document.getElementById("municipalSelect");
       var barangaySelect = document.getElementById("barangaySelect");
+
+
+      // Get last edited date
+      const month = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      function getEditValues() {
+        var tempDates = [];
+
+        var query = lotLayer.createQuery();
+        //query.fields = ["enddate"];
+        query.where = "last_edited_date IS NOT NULL";
+        return lotLayer.queryFeatures(query).then(function(response) {
+          var stats = response.features;
+          stats.forEach((result, index) => {
+            var attributes = result.attributes;
+            const dates = attributes.last_edited_date;
+            tempDates.push(dates);
+          });
+          return tempDates;
+        });
+      }
+
+      function getUniqueDateValues(values) {
+        var uniqueValues = [];
+        
+        values.forEach((date, index) => {
+          if ((uniqueValues.length < 1 || uniqueValues.indexOf(date) === -1) && date !== "") {
+            uniqueValues.push(date);
+          } 
+        });
+        
+        const sortedDates = uniqueValues.sort();
+        const lastDate = Math.max(...sortedDates);
+        const lastEdit = new Date(lastDate);
+        const yyyy = lastEdit.getFullYear();
+        const mm = month[lastEdit.getMonth()];
+        const dd = lastEdit.getDate();
+        const lastEditedDate = `${mm} ${dd}, ${yyyy}`;
+        document.getElementById("dateDiv").innerHTML = lastEditedDate;
+      }
+      getEditValues().then(getUniqueDateValues);
       
       am5.ready(function() {
         // Default
