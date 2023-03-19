@@ -2266,7 +2266,7 @@ let tbmStatusRenderer = {
 
     // Get last edited date
     const month = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    function getEditValues() {
+    function getEditedDateValue() {
       var tempDates = [];
 
       var query = tbmTunnelLayer.createQuery();
@@ -2279,29 +2279,16 @@ let tbmStatusRenderer = {
           const dates = attributes.last_edited_date;
           tempDates.push(dates);
         });
-        return tempDates;
+        const lastDate = Math.max(...tempDates);
+        const lastEdit = new Date(lastDate);
+        const yyyy = lastEdit.getFullYear();
+        const mm = month[lastEdit.getMonth()];
+        const dd = lastEdit.getDate();
+        const lastEditedDate = `${mm} ${dd}, ${yyyy}`;
+        document.getElementById("dateDiv").innerHTML = lastEditedDate;
       });
     }
-
-    function getUniqueDateValues(values) {
-      var uniqueValues = [];
-      
-      values.forEach((date, index) => {
-        if ((uniqueValues.length < 1 || uniqueValues.indexOf(date) === -1) && date !== "") {
-          uniqueValues.push(date);
-        } 
-      });
-      
-      const sortedDates = uniqueValues.sort();
-      const lastDate = Math.max(...sortedDates);
-      const lastEdit = new Date(lastDate);
-      const yyyy = lastEdit.getFullYear();
-      const mm = month[lastEdit.getMonth()];
-      const dd = lastEdit.getDate();
-      const lastEditedDate = `${mm} ${dd}, ${yyyy}`;
-      document.getElementById("dateDiv").innerHTML = lastEditedDate;
-    }
-    getEditValues().then(getUniqueDateValues);
+    getEditedDateValue();
  
   // Create a Bar chart to calculate % completion for each viaduct sample
   am5.ready(function() {
