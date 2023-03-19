@@ -405,7 +405,7 @@
                   <div id="chartSurveyDiv"></div>
                 </calcite-tab>
               </div>
-              <div id="dateDiv">March 15, 2023</div>
+              <div id="dateDiv"></div>
             </calcite-tabs>
             <calcite-label layout="inline" id="see-through-label">
               <calcite-checkbox id="myLink"></calcite-checkbox>See-through-ground
@@ -2263,6 +2263,45 @@ let tbmStatusRenderer = {
       addStop();
       zoomToLayer(tbmShaft);
     }
+
+    // Get last edited date
+    const month = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    function getEditValues() {
+      var tempDates = [];
+
+      var query = tbmTunnelLayer.createQuery();
+      //query.fields = ["enddate"];
+      query.where = "enddate IS NOT NULL";
+      return tbmTunnelLayer.queryFeatures(query).then(function(response) {
+        var stats = response.features;
+        stats.forEach((result, index) => {
+          var attributes = result.attributes;
+          const dates = attributes.enddate;
+          tempDates.push(dates);
+        });
+        return tempDates;
+      });
+    }
+
+    function getUniqueDateValues(values) {
+      var uniqueValues = [];
+      
+      values.forEach((date, index) => {
+        if ((uniqueValues.length < 1 || uniqueValues.indexOf(date) === -1) && date !== "") {
+          uniqueValues.push(date);
+        } 
+      });
+      
+      const sortedDates = uniqueValues.sort();
+      const lastDate = Math.max(...sortedDates);
+      const lastEdit = new Date(lastDate);
+      const yyyy = lastEdit.getFullYear();
+      const mm = month[lastEdit.getMonth()];
+      const dd = lastEdit.getDate();
+      const lastEditedDate = `${mm} ${dd}, ${yyyy}`;
+      document.getElementById("dateDiv").innerHTML = lastEditedDate;
+    }
+    getEditValues().then(getUniqueDateValues);
  
   // Create a Bar chart to calculate % completion for each viaduct sample
   am5.ready(function() {
