@@ -40,7 +40,7 @@
       <div slot="header" id="header">
       <!-- Title -->
       <h2 id="header-title" slot="header"></h2>
-      <div id="dateDiv">March 13, 2023</div>
+      <div id="dateDiv"></div>
       <!-- Dropdown Lists -->
       <div id="dropdownDiv" class="esri-widget">
         <label id="dropdownStationLabel">
@@ -897,6 +897,32 @@ var sitePhotoLabelClass = new LabelClass({
   }
 
   const stationValue = document.getElementById("stationSelect");
+
+  // Get last edited date
+  const month = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    function getEditedDateValue() {
+      var tempDates = [];
+
+      var query = tbmTunnelLayer.createQuery();
+      //query.fields = ["enddate"];
+      query.where = "last_edited_date IS NOT NULL";
+      return tbmTunnelLayer.queryFeatures(query).then(function(response) {
+        var stats = response.features;
+        stats.forEach((result, index) => {
+          var attributes = result.attributes;
+          const dates = attributes.last_edited_date;
+          tempDates.push(dates);
+        });
+        const lastDate = Math.max(...tempDates);
+        const lastEdit = new Date(lastDate);
+        const yyyy = lastEdit.getFullYear();
+        const mm = month[lastEdit.getMonth()];
+        const dd = lastEdit.getDate();
+        const lastEditedDate = `${mm} ${dd}, ${yyyy}`;
+        document.getElementById("dateDiv").innerHTML = lastEditedDate;
+      });
+    }
+    getEditedDateValue();
 
   // Create Bar chart to show progress of station structure
   am5.ready(function() {

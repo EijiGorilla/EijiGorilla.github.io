@@ -117,7 +117,7 @@
     background-color: rgb(37, 37, 37);
   }
 
-  .dateDiv {
+  #dateDiv {
     color: rgb(0, 197, 255);
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     text-align: left;
@@ -424,7 +424,7 @@
   <calcite-loader></calcite-loader>
   <calcite-shell content-behind>
   <div id="viewDiv">
-  <div class="dateDiv">As of March 17, 2023</div>
+  <div id="dateDiv"></div>
   <div id="headerTitleDiv">N2 VIADUCT</div>
   <div class="cpButtonBox">
       <div id="cpButton" class="cpButtonClass">
@@ -1455,6 +1455,31 @@ async function initialization() {
   const monthlyProgressChartDiv = document.getElementById("monthlyProgressChartDiv");
   const chartElement = document.getElementById("chartPanel");
   
+  // Get last edited date
+    const month = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    function getEditedDateValue() {
+      var tempDates = [];
+
+      var query = viaductLayer.createQuery();
+      query.fields = ["last_edited_date"];
+      query.where = "last_edited_date IS NOT NULL";
+      return viaductLayer.queryFeatures(query).then(function(response) {
+        var stats = response.features;
+        stats.forEach((result, index) => {
+          var attributes = result.attributes;
+          const dates = attributes.last_edited_date;
+          tempDates.push(dates);
+        });
+        const lastDate = Math.max(...tempDates);
+        const lastEdit = new Date(lastDate);
+        const yyyy = lastEdit.getFullYear();
+        const mm = month[lastEdit.getMonth()];
+        const dd = lastEdit.getDate();
+        const lastEditedDate = `As of ${mm} ${dd}, ${yyyy}`;
+        document.getElementById("dateDiv").innerHTML = lastEditedDate;
+      });
+    }
+    getEditedDateValue();
   
   //*******************************************************************//
   // CHART FUNCTION:
