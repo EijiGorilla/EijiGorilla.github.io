@@ -1,0 +1,350 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Sample</title>
+    
+        <!-- https://www.esri.com/arcgis-blog/products/arcgis-living-atlas/public-safety/wildfire-aware-app-design-and-implementation/-->
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"/>
+    <script type="module" src="https://js.arcgis.com/calcite-components/1.0.7/calcite.esm.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.0.7/calcite.css" />
+
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Micro.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Responsive.js"></script>
+
+    <script src="https://js.arcgis.com/4.26/"></script>
+
+  </head>
+  <style>
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    scrollbar-width: thin;
+    scrollbar-color: #FFBA1F #032235;
+  }
+
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+    }
+
+    calcite-loader {
+      align-self: center;
+      justify-self: center;
+    }
+    
+    calcite-label {
+      --calcite-label-margin-bottom: 0px;
+    }
+
+    calcite-button {
+      margin: 20;
+      width: 12vw;
+    }
+
+    #layerListContainer {
+      width: 15vw;
+      max-height: 80%;
+      overflow-y: auto;
+      position: absolute;
+      z-index: 1;
+      bottom: 1rem;
+      left: 5px;
+      background-color: transparent;
+
+      /*scrollbar-width: thin;*/
+      /*scrollbar-color: #FFBA1F #032235;*/
+    }
+
+  
+  /* SCROLL BAR */
+  ::-webkit-scrollbar {
+    width: 5px;
+    
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #00032235; /*#032235*/
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #FFBA1F;
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #b98816;
+  }
+
+
+  </style>
+  <body class="calcite-theme-dark">
+    <calcite-loader></calcite-loader>
+    <calcite-shell content-behind>
+        <div id="viewDiv">
+          <div id="layerListContainer" class="esri-widget">
+            <div id = "layer-List-Container-background" style = "margin: auto 0; background: none;" hidden>
+              <calcite-list>
+                <calcite-list-item label="Land Acquisition" description="" value="land-acquisition">
+                 <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="land-check" style="margin-left: 3px" checked></calcite-checkbox>
+                  <div id="legend-land" class="esri-widget" style="margin-bottom: 0px;"></div>
+                </calcite-list-item>
+                <calcite-list-item label="Existing Structure" description="" value="structure-acquisition">
+                  <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                   <calcite-checkbox slot="actions-start" id="structure-check" style="margin-left: 3px"></calcite-checkbox>
+                   <div id="legend-structure" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+                 </calcite-list-item>
+                </div>
+            <calcite-button
+            icon-end="launch"
+            id="layer-list-button"
+          >
+            MAP LAYERS
+          </calcite-button>
+          </div>
+        </div>
+    </calcite-shell>
+  </body>
+  <script>
+    require([
+      "esri/WebMap",
+      "esri/views/MapView",
+      "esri/views/SceneView",
+      "esri/Map",
+      "esri/layers/FeatureLayer",
+      "esri/layers/SceneLayer",
+      "esri/widgets/Bookmarks",
+      "esri/widgets/BasemapGallery",
+      "esri/widgets/LayerList",
+      "esri/widgets/Legend",
+      "esri/rest/support/Query",
+      "esri/widgets/Fullscreen",
+      "esri/layers/support/FeatureFilter",
+      "esri/widgets/TableList",
+      "esri/portal/PortalItem",
+      "esri/portal/Portal",
+      "esri/rest/geometryService",
+      "esri/rest/support/StatisticDefinition",
+      "esri/symbols/WebStyleSymbol",
+      "esri/widgets/Expand",
+      "esri/renderers/UniqueValueRenderer",
+      "esri/Ground",
+      "esri/rest/support/RelationshipQuery",
+      "esri/layers/GraphicsLayer",
+      "esri/widgets/Search",
+      "esri/widgets/Locate",
+      "esri/widgets/BasemapToggle",
+      "esri/PopupTemplate",
+      "esri/layers/support/LabelClass",
+      "esri/popup/content/CustomContent",
+      "esri/layers/TileLayer",
+      "esri/core/reactiveUtils",
+      "esri/popup/support/FieldInfoFormat"
+    ], function(WebMap, MapView, SceneView, Map, FeatureLayer, SceneLayer, Bookmarks, BasemapGallery, LayerList, Legend, 
+                Query, Fullscreen, FeatureFilter, TableList, PortalItem, Portal, geometryService,
+                StatisticDefinition, WebStyleSymbol, Expand, UniqueValueRenderer, Ground,
+                RelationshipQuery, GraphicsLayer, Search, Locate, BasemapToggle, PopupTemplate,
+                LabelClass, CustomContent, TileLayer, reactiveUtils, 
+                FieldInfoFormat
+                 ) {
+      
+
+    const mapLayers = document.getElementById("layer-list-button");
+
+    // Label Change: MAP LAYERS <-> CLOSE
+    const layerListContainer = document.getElementById("layerListContainer");
+    let activeMapLayers;
+    const openCloseMapLayerClick = ({ target }) => {
+      const layerListContainerBackground = document.getElementById("layer-List-Container-background");
+      layerListContainerBackground.hidden = !layerListContainerBackground.hidden;
+
+      if (activeMapLayers) {
+        mapLayers.innerHTML = "MAP LAYERS"
+        layerListContainer.style.backgroundColor = "transparent";
+      }
+
+      const nextMapLayers = target.id;
+      if (nextMapLayers !== activeMapLayers) {
+        mapLayers.innerHTML = "CLOSE";
+        layerListContainer.style.backgroundColor = "#2f2f2f"
+        activeMapLayers = nextMapLayers
+      } else {
+        activeMapLayers = null;
+      }
+    }
+    mapLayers.addEventListener("click", openCloseMapLayerClick);
+
+
+
+    // Reference link
+    // 2D to 3D
+    //https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/
+
+    // 3D Extrusion using point, line, and polygon
+    // https://www.esri.com/arcgis-blog/products/js-api-arcgis/3d-gis/3d-visualization-working-with-objects-paths-and-extrusion/?rmedium=redirect&rsource=blogs.esri.com/esri/arcgis/2016/01/25/3d-visualization-working-with-objects-paths-and-extrusion
+
+
+    var map = new Map({
+        basemap: "dark-gray-vector", // "streets-night-vector", basemap
+        ground: "world-elevation",
+    }); 
+
+    /*
+    var view = new MapView({
+        map: map,
+        center: [120.57930, 15.18],
+        zoom: 12,
+        container: "viewDiv",
+        environment: {
+          background: {
+          type: "color", // autocasts as new ColorBackground()
+          color: [0, 0, 0, 1]
+          },
+        }
+    });
+    */
+    var view = new SceneView({
+        map: map,
+        center: [120.57930, 15.18],
+        zoom: 12,
+        viewingMode: "local",
+        container: "viewDiv",
+        environment: {
+          background: {
+          type: "color", // autocasts as new ColorBackground()
+          color: [0, 0, 0, 1]
+          },
+        }
+    });
+
+    var lotLayer = new FeatureLayer({
+      portalItem: {
+        id: "032432d931624de9bf5ff03f1f9d7016",
+        portal: {
+          url: "https://gis.railway-sector.com/portal"
+        }
+      },
+      layerId: 1
+    });
+    map.add(lotLayer);
+
+    var structureLayer = new FeatureLayer({
+      portalItem: {
+            id: "ec9dac0c16af4797bb917a0babc735e9",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        title: "Existing Structure",
+    });
+    map.add(structureLayer);
+
+    // Legend
+    var legend_land = new Legend({
+      view,
+      container: "legend-land",
+      layerInfos: [
+        {
+          layer: lotLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_structure = new Legend({
+      view,
+      container: "legend-structure",
+      layerInfos: [
+        {
+          layer: structureLayer,
+          title: ""
+        }
+      ]
+    });
+
+
+    // Default setting
+    lotLayer.visible = true;
+    structureLayer.visible = false;
+
+    // Hide and Unhide of Legend + layerList + lotLayer
+    const landCheck = document.getElementById("land-check");
+    const structureCheck = document.getElementById("structure-check");
+    const landAcquisition = document.getElementById("legend-land");
+    const structureAcquisition = document.getElementById("legend-structure");
+
+    // Lot Layer
+    // Note if default is checked in a box,
+    view.when(() => {
+      
+      let activeWidget;
+      const handleActionBarClickLand = ({ target }) => {
+
+        // Hide/Unhide legend
+        landAcquisition.hidden = !landAcquisition.hidden;
+        
+        // Visible/Unvisible Lot Layer
+        if (activeWidget) {
+          lotLayer.visible = true;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          lotLayer.visible = false;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      } 
+
+    landCheck.addEventListener("click", handleActionBarClickLand);
+    });
+
+    // Structure Layer
+    // Note if default is NOT checked in a box,
+    view.when(() => {
+      let activeWidgetStructure;
+      const handleActionBarClickStructure = ({ target }) => {
+
+        // Hide/Unhide structure layer
+        structureAcquisition.hidden = !structureAcquisition.hidden;
+        
+        // Visible/unvisible structure layer
+        if (activeWidgetStructure) {
+          structureLayer.visible = false;
+        }
+
+        const nextWidgetStruc = target.id;
+        if (nextWidgetStruc !== activeWidgetStructure) {
+          structureLayer.visible = true;
+          activeWidgetStructure = nextWidgetStruc
+        } else {
+          activeWidgetStructure = null;
+        }
+    }
+    structureCheck.addEventListener("click", handleActionBarClickStructure);
+    });
+
+
+
+    });
+  </script>
+</html>

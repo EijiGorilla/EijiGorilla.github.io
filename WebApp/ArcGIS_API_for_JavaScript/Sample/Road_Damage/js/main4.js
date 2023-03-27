@@ -42,9 +42,6 @@ require([
       "esri/Color",
       "esri/geometry/geometryEngine",
       "esri/core/urlUtils",
-      "dojo/on",
-      "dojo/query",
-      "dojo/domReady!"
 
     ], function(
     Accessor,
@@ -1765,8 +1762,9 @@ var map = new Map({
     informationScreenDiv.style.display = 'block';
     information_panel.style.display = 'block';
     //applicationDiv.style.filter = 'blur(8px)'; 
+    /*
     informationScreenDiv.innerHTML = "<br>" + "<b>" + "ABOUT THIS APP" + "</b>" + "<br>" +
-                                     "<h6>" + "This Web App was created as a sample in request for visualizing road damages on the map and monitoring associated repairing cost." + 
+                                     "<h6>" + "This sample web mapping app displays assessment results of road damages on the map and summarizes repairing cost in chart." + 
                                       "The App is intended to spatially and temporally monitor the road repairement work that helps in making better planning and " +
                                       "guided decisions in a deveopping country." + "<br>" +
                                       "<br>" + "</h6>" +
@@ -1777,6 +1775,17 @@ var map = new Map({
                                       "<br>" + 
                                       "SUMMARY CHART button displays two summary charts for the number of damaged points by category and budget balance. " + 
                                       "The chart is clickable..." + "</h6>"
+                */                      
+                                     
+      informationScreenDiv.innerHTML = `<b>ABOUT THIS APP</b><br>
+                                        This sample web mapping app displays assessment results of road damages on the map and summarizes repairing cost in chart.
+                                        It is intended to help monitor spaiotemporal road damage assessment for better planning and guided decision makings.<br><br>
+                                        <b>USE THIS APP</b><br>
+                                        You can see individual road damages by clicking the following lists: STREET, ID, or CLASS.<br>
+                                        STREET refers to street names, ID individually assigned unique identifiers, and CLASS road classification (primary, secondary,..).<br>
+                                        Please click the list names to zoom in and capture its damage status.<br>
+                                        Please click SUMMARY CHART tab to view breakdown of damaged statuses and budget balance pier chart.
+                                        `
     }
     
     

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, inherit-scale=1.0">
+  <meta name="description" content="information about the current status and potential impact of wildfire incidents in the United States.">
+  <link rel="icon" href="//www.esri.com/favicon.ico">
+  <link rel = "stylesheet" href = "map-style.css"/>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/themes/light/main.css"></link>
+  <link rel="stylesheet" href="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/css/calcite-web.min.css"/>
+
+  
+  <script type="module" src="https://js.arcgis.com/calcite-components/1.0.0-beta.77/calcite.esm.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.0.0-beta.77/calcite.css"/>
+  <script src="./Libraries/d3.7.3.0.min.js"></script>
+
+    <title> Wildfire Aware</title>
+    
+  </head>
+  <body>
+    <main>
+      <div id="viewDiv" style = "float: left;">
+        <div id = "homeContainer" style="width: 2rem; height:2rem; background:rgb(255, 255, 255); color: rgb(17, 54, 81); margin-left: 2.8rem; margin-top: -2.7rem;"> </div>
+        <div id="searchContainer"></div>
+        
+        <div class="loader is-active padding-leader-3 padding-trailer-3" style = "display: inital; position: absolute; top: 35%; left: 27%;" >
+          <div class="loader-bars"></div>
+          <div class="loader-text">Loading...</div>
+        </div>
+        
+        <div id="layerListContainer">
+        <div id = "layer-List-Container-background" style = "margin: auto 0; background: none;">
+          <div id="layers" class="animate-in-up js-animation" style = "display: none;"> 
+            <ul class="animate-in-up js-animation" style = "margin-left: 5px;">
+              <label style = "padding-top: 10px;" class = "checkbox-container">
+                <input class="layer-checkbox" type="checkbox" id="fire-points" checked="checked">
+                <span class="checkmark" style = "margin-top: 10px;"></span>
+                Assigned personnel
+              </label>
+              <div id="fire-points-legend" style="display:initial; margin-bottom: 10px;">
+                <div class="legend-spacing" style="margin-bottom: 30px; margin-left: -10px;">
+                  <div class="legend-image-spacing">
+                    <img style="margin-top: -10px; min-width: 3rem; height: 3rem;"
+                      src="https://esri.maps.arcgis.com/sharing/rest/content/items/b56beb3d45d14b63af0113901dd767f7/data"
+                      alt="fires with 500 or more people assigned">
+                  </div>
+                  <div class="legend-text" style="margin-top: 5px; margin-left: 1px;">&gt 500</div>
+                </div>
+                <div class="legend-spacing">
+                  <div class="legend-image-spacing">
+                    <img style="margin-top: -10px; margin-left: -4px; width:2rem; height: 2rem;"
+                      src="https://esri.maps.arcgis.com/sharing/rest/content/items/b56beb3d45d14b63af0113901dd767f7/data"
+                      alt="fires with personnel between 50 to 500">
+                  </div>
+                  <div class="legend-text">50-500</div>
+                </div>
+                <div class="legend-spacing">
+                  <div class="legend-image-spacing">
+                    <img class="fire-icon-legend"
+                      src="https://esri.maps.arcgis.com/sharing/rest/content/items/b56beb3d45d14b63af0113901dd767f7/data"
+                      alt="fires with less than 50 personnel">
+                  </div>
+                  <div class="legend-text"> 0-50</div>
+                </div>
+                <div class="legend-spacing">
+                  <div class="legend-image-spacing">
+                    <img class="fire-icon-legend"
+                      src="https://www.arcgis.com/sharing/rest/content/items/6f3a489a81a54494a1b57cb577e92fcb/data"
+                      alt="fire with no personnel reported">
+                  </div>
+                  <div class="legend-text">Not reported</div>
+                </div>
+                <div class="legend-spacing">
+                  <div class="legend-image-spacing">
+                    <img class="fire-icon-legend"
+                      src="https://www.arcgis.com/sharing/rest/content/items/4078350792ea4da2b36cab7351909fd7/data"
+                      alt="Prescribed fire">
+                  </div>
+                  <div class="legend-text">Prescribed fire</div>
+                </div>
+              </div>
+              <label class = "checkbox-container">
+                <input class = "layer-checkbox" type="checkbox" id = "fire-perimeters" checked>
+                <span class="checkmark"></span>
+                Wildfire perimeters
+              </label>
+              <div class = "legend-bar-img" id = "fire-perimeter-legend" style = "display: initial; margin-bottom: 10px; padding: 0 25px; background: rgba(214, 164, 159, 0.7); border: solid 2px #B13F31;"></div>
+              <label class = "checkbox-container">
+                <input class = "layer-checkbox" type="checkbox" id = "satellite-hotspots" style = "width: 0; height: 0;" checked>
+                <span class="checkmark"></span>
+                Satellite hot spots
+              </label>
+              <div id="SatelliteHotSpot-img-legend" style="display: initial; margin-bottom: 10px;">
+                <div class="legend-bar-img" style="background: linear-gradient(90deg, #FFCB48, #f69d58 18%, #2e2e2e );">
+                </div>
+                <span class="legend-bar-img-text">&lt 24 hr</span><span>&gt 72 hr</span>
+              </div>
+
+              <label class = "checkbox-container tooltip-multiline modifier-class"
+              aria-label="Zoom out to enable.">
+                <input class="auto-checkbox layer-checkbox" id="AQI-today" type="checkbox">
+                <span class="checkmark"></span>
+                Air Quality today
+              </label>
+              <div id="aqiToday-img-legend" style="display:none; margin-bottom: 10px;">
+                <div class="legend-spacing">
+                  <div class="legend-image" style="background: #f2d39d; border: solid 2px #f2d39d;"></div>
+                  <div class="legend-text">Moderate</div>
+                </div>
+                <div class="legend-spacing">
+                  <div class="legend-image" style="margin-top: 10px; background: #e3a75d; border: solid 2px #e3a75d;"></div>
+                  <div class="legend-text">Unhealthy for Sensitive Groups</div>
+                </div>
+                <div class="legend-spacing">
+                  <div class="legend-image" style="background: #d47660; border: solid 2px #d47660;"></div>
+                  <div class="legend-text">Unhealthy</div>
+                </div>
+                <div class="legend-spacing">
+                  <div class="legend-image" style="background: #84638f; border: solid 2px #84638f;"></div>
+                  <div class="legend-text">Very Unhealthy</div>
+                </div>
+                <div class="legend-spacing">
+                  <div class="legend-image" style="background: #6e4951; border: solid 2px #6e4951;"></div>
+                  <div class="legend-text">Hazardous</div>
+                </div>
+              </div>
+              <label class = "checkbox-container tooltip-multiline modifier-class"
+              aria-label="Zoom out to enable.">
+                <input class="auto-checkbox layer-checkbox" id="AQI-tomorrow" type="checkbox">
+                <span class="checkmark"></span>
+                Air Quality tomorrow
+              </label>
+              <div id="aqiTomorrow-img-legend" style="display:none; margin-bottom: 10px;">
+                <div class="legend-spacing">
+                  <div class="legend-image" style="background: #f2d39d; border: solid 2px #f2d39d;"></div>
+                  <div class="legend-text">Moderate</div>
+                </div>
+                <div class="legend-spacing">
+                  <div class="legend-image" style="margin-top: 10px; background: #e3a75d; border: solid 2px #e3a75d;"></div>
+                  <div class="legend-text">Unhealthy for Sensitive Groups</div>
+                </div>
+                <div class="legend-spacing">
+                  <div class="legend-image" style="background: #d47660; border: solid 2px #d47660;"></div>
+                  <div class="legend-text">Unhealthy</div>
+                </div>
+                <div class="legend-spacing">
+                  <div class="legend-image" style="background: #84638f; border: solid 2px #84638f;"></div>
+                  <div class="legend-text">Very Unhealthy</div>
+                </div>
+                <div class="legend-spacing">
+                  <div class="legend-image" style="background: #6e4951; border: solid 2px #6e4951;"></div>
+                  <div class="legend-text">Hazardous</div>
+                </div>
+              </div>
+              
+              <label class = "checkbox-container tooltip-multiline modifier-class"
+              aria-label="Zoom out to enable.">
+                <input class="auto-checkbox layer-checkbox" id = "watchesAndWarnings" type="checkbox">
+                <span class="checkmark"></span>
+                Fire related Weather </br>
+                Watches & Warnings
+              </label>
+              <div class = "legend-bar-img" id = "watchesAndWarnings-img-legend" style="display: none; margin-bottom: 10px; padding: 0 25px; background:rgb(201, 141, 164);"></div>
+              <label class = "checkbox-container tooltip-multiline modifier-class"
+              aria-label="Zoom out to enable.">
+                  <input class="auto-checkbox layer-checkbox" id="burned-areas" type="checkbox" disabled>
+                  <span class="checkmark"></span>
+                  Fire burned areas
+                </label>
+                <div id="burnedAreas-img-legend" style="display: none; margin-bottom: 10px;">
+                  <div class="legend-bar-img"
+                    style="background: linear-gradient(90deg, rgb(0, 0, 0), rgb(50, 50, 50) 32%, rgb(100, 100, 100), rgb(120, 120, 120), rgb(140, 140, 140)); border: solid 1px #630101;">
+                  </div>
+                  <span class="legend-bar-img-text" style='margin-left: 28px; margin-right: 88px;'>2020</span><span>1984</span>
+                </div>
+                <label class = "checkbox-container tooltip tooltip-top modifier-class disable"
+              aria-label="Zoom in to enable." style = "z-index: 100;">
+                  <input class="layer-checkbox auto-checkbox" id="census-points" type="checkbox" disabled>
+                  <span class="checkmark"></span>
+                  2020 Census block population
+                </label>
+                <div id="population-points-legend" style="display:none; margin-top: 10px;">
+                  <div class="population-legend-spacing" style="margin-bottom: 15px; margin-top: 15px;">
+                    <div class="populationLegend-image-spacing">
+                      <img style="margin-top: -10px; min-width: 52px; height: 52px;"
+                        src="https://arcgis-content.maps.arcgis.com/sharing/rest/content/items/6ef53e85458543e3bb7f78ad48972fba/data"
+                        alt="&gt 200 people">
+                    </div>
+                    <div class="legend-text" style="margin-top: 15px; margin-left: 8px;">
+                      <div>&gt 200</div>
+                    </div>
+                  </div>
+                  <div class="population-legend-spacing">
+                    <div class="populationLegend-image-spacing">
+                      <img style="margin-top: -8px; width:43px; height: 43px;"
+                        src="https://arcgis-content.maps.arcgis.com/sharing/rest/content/items/6ef53e85458543e3bb7f78ad48972fba/data"
+                        alt="160 people">
+                    </div>
+                    <div class="legend-text">
+                      <div>160</div>
+                    </div>
+                  </div>
+                  <div class="population-legend-spacing">
+                    <div class="populationLegend-image-spacing">
+                      <img class="population-icon-legend" style="width:36px; height: 36px;"
+                        src="https://arcgis-content.maps.arcgis.com/sharing/rest/content/items/6ef53e85458543e3bb7f78ad48972fba/data"
+                        alt="120 people">
+                    </div>
+                    <div class="legend-text">
+                      <div>120</div>
+                    </div>
+                  </div>
+                  <div class="population-legend-spacing" style="margin-bottom: auto;">
+                    <div class="populationLegend-image-spacing">
+                      <img class="population-icon-legend" style="width:31px; height: 31px;"
+                        src="https://arcgis-content.maps.arcgis.com/sharing/rest/content/items/6ef53e85458543e3bb7f78ad48972fba/data"
+                        alt="80 people">
+                    </div>
+                    <div class="legend-text">
+                      <div>80</div>
+                    </div>
+                  </div>
+                  <div class="population-legend-spacing" style="margin-top: auto;">
+                    <div class="populationLegend-image-spacing">
+                      <img class="population-icon-legend" style="width:24px; height: 24px;"
+                        src="https://arcgis-content.maps.arcgis.com/sharing/rest/content/items/6ef53e85458543e3bb7f78ad48972fba/data"
+                        alt="&lt 40 people">
+                    </div>
+                    <div class="legend-text">
+                      <div>&lt 40</div>
+                    </div>
+                  </div>
+                </div>
+            </ul>
+          </div>
+          <button class="btn modifier-class btn-fill" id = "layer-list-button"
+            tab-index="2" aria-haspopup="false" aria-expanded="false">
+            MAP LAYERS
+          </button>
+        </div>
+        </div>
+      </div>
+
+      <div id="sideBar" style="float:left; z-index: 2;">
+        <div id="sideBarTop"><span id="sideBarToggleArrow"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" class="svg-icon">
+          <path d="M4 23v-5L16 6l12 12v5L16 11 4 23z" />
+          </svg></span>    
+          <div>
+            <div id="sideBarMobileHeader">
+              <div class="trailer-0">
+                <span class='bold' id = 'title'style="color: #FFBA1F; white-space: nowrap;">WILDFIRE AWARE - Esri</span>
+                <span id="modal-btn" class="right btn cursor-pointer js-modal-toggle" href="#" tabIndex ='0' data-modal="infoModal">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"
+                    style="width: 25px; height: 24px; margin-top: -5px; margin-left:-1px; fill: currentColor;" class="svg-icon">
+                    <path
+                      d="M31.297 16.047c0 8.428-6.826 15.25-15.25 15.25S.797 24.475.797 16.047c0-8.424 6.826-15.25 15.25-15.25s15.25 6.826 15.25 15.25zM18 24V12h-4v12h-2v2h8v-2h-2zm0-18h-4v4h4V6z" />
+                  </svg>
+                </span>
+              </div>
+              <div class="trailer-0" style="margin-top: -8px;">
+          
+                <p class="trailer-0" style="font-size: 14px">
+                  Select a fire name from the list or click on the map for US wildfire community awareness.
+                </p>
+              </div>
+          
+              <hr class="divider">
+            </div>
+          </div>
+
+        </div>
+        <aside id = "infoBar">
+          
+          <div stlye="display: block;">
+          
+            <div id="sideBarContent" class="trailer-quarter">
+             
+              <div id="activeFiresDropdown" class="dropdown js-dropdown" style="width: 100%;">
+                <p id="fireSorting"
+                  style="display: initial; width: 100%; margin-bottom: 0.5rem; white-space: nowrap">
+                  <span class = "SortClassLeftMargin" id="firesInView" style = "margin-bottom: 11px; display: block;"> </span>
+              
+                  <span class=" sortClass underline SortClassLeftMargin" id="fire-personnel">
+                    PERSONNEL
+                  </span>
+                  <span class="sortClass" id="fire-date">
+                    DATE
+                  </span>
+                  <span class="sortClass" id="fire-name">
+                    NAME 
+                  </span>
+                  <span class="sortClass" id="fire-size">
+                    SIZE 
+                  </span>
+                  
+                </p>
+                <div style="text-align: center;">
+                  <button id="fire-list-Btn" class="btn modifier-class btn-fill"
+                    style="display: none; background: #FFBA1F; color: #14273d; color: rgb(17, 54, 81); width: auto;font-weight: bold; margin: 17px auto 0; border: none;"
+                    tab-index="0" aria-haspopup="false" aria-expanded="false">
+                    RETURN TO WILDFIRE LIST
+                  </button>
+                </div>
+                <nav id="activeFiresList" class="modifier-class" role="menu" style="width: 100%;">
+                </nav>
+              </div>
+              <div id="fire-list" style="display: initial"></div>
+              <div id="sideBarInformation" style="display: none">
+                <div class="item-container" style="margin-top: 17px;">
+                  <div class="item-header" >
+                  </div>
+                  <div class="item-content">
+                    <div id="fire-container">
+                    </div>
+                  </div>
+                </div>
+                <div class="item-container">
+                  <div class="item-header">
+                  </div>
+                  <div class="item-content">
+                    <div id="weather-container">
+                      <div id="drought-condition">
+                      </div>
+                      <div id="temp-wind-aq">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+      
+                <div class="item-container">
+                  <div class="item-header" style = "margin-bottom: -10;">
+                  </div>
+                  <div class="item-content">
+                    
+                    
+                    <div id="people-container" style="display: flex; flex-flow: row wrap; margin-bottom: 25px;">
+                      
+                      <div id="total-population" style = "width: 30%; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div id="general-population"></div>
+                        <div id="disability"></div>
+                        <div id="poverty"></div>
+                      </div>
+
+                      <div id="population-breakdown" style="width: 70%; height: 100%; margin: 0px auto 0;">
+                        <div style="width: 100%; position: relative;">
+                          <div style = 'margin: 0 40px; position: absolute;'>
+                            <h4 id="population-graph-data-control" class="bold"></h4>
+                          </div>
+                        </div>
+                      </div>
+                      <div id = "population-graph-spacer"></div>
+                      <div id = "population-graph-label"></div>
+                    </div>
+                   
+                    <div id="percentages-container" style="margin: 0 auto; width: 100%; text-align:center;">
+                      <div id="english-pop-percentage"></div>
+                      <div id="vehicle-pop-percentage"></div>
+                    </div>
+                  </div>
+
+                <div class="item-container">
+                  <div class="item-header">
+                  </div>
+                  <div class="item-content">
+                    <div id="housing-container" style='display: none; grid-auto-flow: column;'>
+                      <div style="width: 100%;">
+                        <img src="https://www.arcgis.com/sharing/rest/content/items/e1e519abf84542c1b4557697bcb7984b/data" 
+                        style="margin-bottom: -38px; width:100%; height:100%;" type="image/svg+xml" alt="image for housing section information">
+                      </div>
+                      <div id = "housing-container-stats" style="margin: 0; width: 110%; text-align: center;">
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                <div class="item-container">
+                  <div class="item-header">
+                  </div>
+                  <div class="item-content">
+                    <div id='habitat-container'>
+                      <div id = 'ecoregion'>
+                      </div>
+                      <div id = 'landform'>
+                      </div>
+                      <div id='landcover-chart'>
+                        <p class="trailer-0" style = "margin-bottom: 0px;" >LANDCOVER</p>
+                        <div id = "landcover-data-control">  
+                        </div>
+                      </div>
+                      
+                      <div id='forestType'>
+                      </div>
+                      <div id="wildfire-risk" style="margin-top: 20px;">
+                        <div style="width: 100%;">
+                          <p id="wildfire-risk-header" style="width: 100%; margin-bottom: 0;">WILDFIRE HAZARD POTENTIAL
+                            <span id="wfp-btn" class="tooltip tooltip-multiline modifier-class"
+                              style="width: 15px; height: 15px; display: inline-block;"
+                              aria-label="Higher classes represent increased probability of extreme fire behavior under conducive weather conditions (based on fire modeling using 2014 vegetation data).">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"
+                                style="width: 20px; height: 20px; margin: -6px 0px 0px -1px; fill: currentColor;" class="svg-icon">
+                                <path
+                                  d="M31.297 16.047c0 8.428-6.826 15.25-15.25 15.25S.797 24.475.797 16.047c0-8.424 6.826-15.25 15.25-15.25s15.25 6.826 15.25 15.25zM18 24V12h-4v12h-2v2h8v-2h-2zm0-18h-4v4h4V6z" />
+                              </svg>
+                            </span>
+                          </p>
+                          <div>
+                            <h4 id="wildfire-risk-data-control" class="bold"> </h4>
+                          </div>
+                        </div>
+                      </div>
+                      <div id='carbon'>
+                      </div>
+                      <div id = 'biodiversity' style = "margin-top: 10px;">
+                      </div>
+                      <div id='criticalHabitat'>
+                      </div>
+                      <div id='protectedAreas'>
+                      </div>
+                      
+                    </div>
+                  </div>
+                </div>
+
+                <div id = 'bottom-btn'>
+                  <div style="text-align: center;">
+                    <button id="return-top-Btn" class="btn modifier-class btn-fill"
+                      style="background: #FFBA1F; color: rgb(17, 54, 81); width: 223.08px; font-weight: 900; margin: 0 auto; display: block; border: none;"
+                      tab-index="2" aria-haspopup="false" aria-expanded="false">
+                      RETURN TO TOP
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="js-modal modal-overlay modifier-class" data-modal="infoModal">
+        <div class="modal-content" style = "background-color: rgba(17, 54, 81, 0.85); width: 75vw;" role="dialog" aria-labelledby="modal" role="dialog">
+          <a class="js-modal-toggle right" aria-label="close-modal" tabIndex = '0' aria-selected="false">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 28 28" class="svg-icon" style = "color: #efefef;">
+              <path
+                d="M18.404 16l9.9 9.9-2.404 2.404-9.9-9.9-9.9 9.9L3.696 25.9l9.9-9.9-9.9-9.898L6.1 3.698l9.9 9.899 9.9-9.9 2.404 2.406-9.9 9.898z" />
+            </svg>
+          </a>
+          <h5 class='avenir-demi trailer-half' style = "color:rgb(255,186,31); margin-bottom: 0;">ABOUT THIS APP</h5>
+          <div>
+            <p>
+              The Wildfire Aware app is intended to provide information about the current status and potential impact of wildfire
+              incidents in the United States. This app opens with the list of fires sorted by the number of personnel assigned from
+              greatest to least as reported by incident staff. The data included in this application can all be found in ArcGIS
+              Living Atlas and are from authoritative entities.
+            </p>
+          <h5 class='avenir-demi trailer-half' style="color:rgb(255,186,31); margin-bottom: 0;">USE THIS APP</h5>
+          <div>
+            <p>
+              Select a fire from the list, change the sort option to date, name or size, or use shift and your mouse to draw a box and
+              zoom in. Once you have selected a fire or clicked on the map, details will be displayed in the information panel on the
+              right giving you more information about a wildfire along with impacts to human and ecosystem populations.
+              You can also sort by wildfire name, date or size, by selecting the relevant filter in the information pane.
+              </br>
+              </br>
+              Read more about Wildfire Aware and ways to use it <a class="link" href="https://www.esri.com/arcgis-blog/products/arcgis-living-atlas/public-safety/wildfire-aware/" target="_blank" tabIndex = '0' aria-selected='false'>here</a>.
+            </p>  
+          <h5 class='avenir-demi trailer-half' style="color:rgb(255,186,31); margin-bottom: 0;">PERSONNEL BREAKDOWNS</h5>
+            The categories below represent the number of personnel assigned.
+          <div style = "margin-top: 25px;">
+            <div id="fire-points-legend" style="display:initial; margin-bottom: 10px;">
+              <div class="legend-spacing">
+                <div class="legend-image-spacing" style="margin-bottom: 25px;">
+                  <img style="margin-top: -10px; margin-left: -6px; width: 2.7rem; height: 2.7rem;"
+                    src="https://esri.maps.arcgis.com/sharing/rest/content/items/b56beb3d45d14b63af0113901dd767f7/data"
+                    alt="fires with 500 or more people assigned">
+                </div>
+                <div class="legend-text" style="padding: 4px 0 ">
+                  <b>&gt 500:</b> Fires with the largest number of assigned personnel often require larger incident management team involvement.
+                </div>
+              </div>
+              <div class="legend-spacing">
+                <div class="legend-image-spacing">
+                  <img style="margin-top: -10px; margin-left: -4px; width:2rem; height: 2rem;"
+                    src="https://esri.maps.arcgis.com/sharing/rest/content/items/b56beb3d45d14b63af0113901dd767f7/data"
+                    alt="fires with personnel between 50 to 500">
+                </div>
+                <div class="legend-text">
+                  <b>50-500:</b> Greater complexity requires a higher number of personnel and potentially an incident management team.
+                </div>
+              </div>
+              <div class="legend-spacing">
+                <div class="legend-image-spacing">
+                  <img class="fire-icon-legend"
+                    src="https://esri.maps.arcgis.com/sharing/rest/content/items/b56beb3d45d14b63af0113901dd767f7/data"
+                    alt="fires with less than 50 personnel">
+                </div>
+                <div class="legend-text"> 
+                  <b>1-50:</b> This number of personnel could indicate a smaller, less complex incident or one that is nearing the end of its primary response efforts.
+                </div>
+              </div>
+              <div class="legend-spacing">
+                <div class="legend-image-spacing">
+                  <img class="fire-icon-legend"
+                    src="https://www.arcgis.com/sharing/rest/content/items/6f3a489a81a54494a1b57cb577e92fcb/data"
+                    alt="fire with no personnel reported">
+                </div>
+                <div class="legend-text">
+                <b>Not Reported:</b> New fires, smaller fires that are easier to contain, or fires that are near the end of their life cycle
+                may not report the number of ‘personnel assigned’. This should in no way be taken as an indication that the fire is
+                unstaffed or otherwise receiving no response.
+              </div>
+              </div>
+              <div class="legend-spacing">
+                <div class="legend-image-spacing">
+                  <img class="fire-icon-legend"
+                    src="https://www.arcgis.com/sharing/rest/content/items/4078350792ea4da2b36cab7351909fd7/data"
+                    alt="Prescribed fire">
+                </div>
+                <div class="legend-text">
+                  <b>Prescribed Fire:</b> These fires are intentional and planned events.
+                </div>
+              </div>
+            </div>
+          </br>
+            <h5 class='avenir-demi trailer-half' style="color:rgb(255,186,31); margin-bottom: 0;">SOURCES</h5>
+            <p>
+              The 22 data layers used in this application can be found in <a class="link" href = "https://livingatlas.arcgis.com/en/home/" target ="_blank">ArcGIS Living Atlas</a>:
+              </br>
+              </br>
+              Environmental Protection Agency – <a class="link" href = " https://www.arcgis.com/home/item.html?id=3a21a75ffc8244f6a1c85a19b8ff7713" target ="_blank">Ecoregions</a> and Air Quality <a class="link" href="https://www.arcgis.com/home/item.html?id=61864315c28f4668bbbbdc73b08f4113" target="_blank">Current</a> and <a class="link" href="https://www.arcgis.com/home/item.html?id=61864315c28f4668bbbbdc73b08f4113" target="_blank">Tomorrow</a></br>
+              National Aeronautics and Space Administration – <a class="link" href="https://www.arcgis.com/home/item.html?id=b8f4033069f141729ffb298b7418b653" target="_blank">MODIS</a> and <a class="link" href="https://www.arcgis.com/home/item.html?id=dece90af1a0242dcbf0ca36d30276aa3" target="_blank">VIIRS</a> </br>
+              National Weather Service – <a class="link" href="https://www.arcgis.com/home/item.html?id=0ae7cf18df0a4b4d9e7eea665f00500d" target="_blank">Temperature Forecast</a>, <a class="link" href="https://www.arcgis.com/home/item.html?id=47ed83c3b4f943118e848fbfc33d119e" target="_blank">Wind Speed</a>, <a class="link" href="https://www.arcgis.com/home/item.html?id=a6134ae01aad44c499d12feec782b386" target="_blank">Weather Watches and Warnings</a></br>
+              US Department of Agriculture – <a class="link" href="https://www.arcgis.com/home/item.html?id=7d4cc55ecaef4ceb82c8d05b13e0d049" target="_blank">Drought Monitor</a></br>
+              US Census – <a class="link" href="https://www.arcgis.com/home/item.html?id=b3642e91b49548f5af772394b0537681" target="_blank">Census 2020 Redistricting Blocks</a> and <a class="link" href="https://www.arcgis.com/home/group.html?id=16b3a5ac36834ed6b3f16261d9a988ea" target="_blank">American Community Survey</a></br>
+              USDA Forest Service – <a class="link" href ="https://www.arcgis.com/home/item.html?id=c7dc5721f6ab42f5a515ae7f832115a9" target="_blank">Wildfire Burned Areas</a>, <a class="link" href="https://www.arcgis.com/home/item.html?id=9274dfe5318540d7a09f0117c0be0730" target="_blank">Wildfire Hazard Potential</a>, <a class="link" href="https://www.arcgis.com/home/item.html?id=bd3c2c1ba3844ebabd8df6d1c4932387" target="_blank">Forest Type Groups</a>, and <a class="link" href="https://www.arcgis.com/home/item.html?id=70aa58201e044303823a24a71a422d00" target="_blank">Forest Carbon Pools</a></br>
+              US Fish and Wildlife Service – <a class="link" href = "https://www.arcgis.com/home/item.html?id=794de45b9d774d21aed3bf9b5313ee24" target ="_blank">Critical Habitat</a></br>
+              US Geological Survey – <a class="link" href="https://www.arcgis.com/home/item.html?id=3ccf118ed80748909eb85c6d262b426f" target="_blank">National Land Cover Database</a> and <a class="link" href="https://www.arcgis.com/home/item.html?id=e20f27c6af5a49b289bea1ba05b4986b" target="_blank">Protected Areas Database</a></br>
+              Integrated Reporting of Wildland-Fire Information (IRWIN) – <a class="link" href="https://www.arcgis.com/home/item.html?id=d957997ccee7408287a963600a77f61f" target="_blank">Wildfire Points</a></br>
+              National Interagency Fire Center (NIFC) – <a class="link" href="https://www.arcgis.com/home/item.html?id=d957997ccee7408287a963600a77f61f" target="_blank">Wildfire Perimeters</a></br>
+              Nature Serve – <a class="link" href="https://www.arcgis.com/home/item.html?id=6e90cefddb634e6a949838e7efff55fb" target="_blank">Imperiled Species</a></br>
+              Esri – <a class="link" href="https://doc.arcgis.com/en/esri-demographics/latest/regional-data/updated-demographics.htm" target="_blank">2022 Demographics</a> and <a class="link" href="https://www.arcgis.com/home/item.html?id=cd817a746aa7437cbd72a6d39cdb4559" target="_blank">World Ecological Landforms</a>
+            <br>
+            <p>
+            This app is provided for informational purposes and is not monitored 24/7 for accuracy and currency and is licensed
+            under the Esri Master License Agreement.
+            <a class = "link" href="https://downloads2.esri.com/arcgisonline/docs/tou_summary.pdf" target="_blank">View Summary</a> |  <a class = "link" href = "https://www.esri.com/en-us/legal/terms/full-master-agreement" target="_blank">View Terms of Use</a>
+          </p>
+            <br>
+          </div>
+          <div class="text-center">
+            <button class="btn btn-clear-white js-modal-toggle" style="background: #FFBA1F; color: rgb(17, 54, 81); font-weight: bold; margin: 0 50px; border: none;">CLOSE</button>
+          </div>
+        </div>
+      </div>
+
+      
+    </main>
+
+    <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.2.5/js/calcite-web.min.js"></script>
+    <script>calcite.init()</script>
+</script>
+
+  </body>
+  
+  <script src="./Libraries/axios1.13.min.js"></script>
+  <!-- <script type="module" src="./Libraries/axios-1.1.3/index.js"></script> -->
+  
+  <script src="https://js.arcgis.com/4.23/"></script>
+  
+  <!-- for development -->
+  <!-- <script type = "text/javascript" src="main.js"></script> -->
+  <!-- for production -->
+  <!-- NOTE: MAKE SURE YOU CHANGE THE VERSION NUMBER WHEN EVERY THE MIN FILE IS CHANGED -->
+  <!-- CHANGE TO v=0.05 when ready for next push. Last change 11/09-->
+  <script type = "text/javascript" src="main.min.js?v=0.04"></script>
+
+</html>
