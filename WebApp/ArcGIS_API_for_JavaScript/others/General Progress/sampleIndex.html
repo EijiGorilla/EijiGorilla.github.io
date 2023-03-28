@@ -21,18 +21,11 @@
 
   </head>
   <style>
-  * {
-    box-sizing: border-box;
-    padding: 0;
-    margin: 0;
-    scrollbar-width: thin;
-    scrollbar-color: #FFBA1F #032235;
-  }
-
     html,
     body,
     #viewDiv {
-      display: flex;
+      padding: 0;
+      margin: 0;
       height: 100%;
       width: 100%;
       overflow: hidden;
@@ -40,6 +33,20 @@
 
     body {
       display: flex;
+    }
+
+    #container {
+      display: grid;
+      flex-wrap: wrap;
+      box-sizing: border-box;
+      grid-template-columns: 1fr 0.25fr;
+      width: 100%;
+      height: 100%;
+    }
+
+    calcite-tabs {
+      width: 100%;
+      height: 100%;
     }
 
     calcite-loader {
@@ -56,6 +63,44 @@
       margin: 20;
     }
 
+    #header-title {
+      margin-left: 1rem;
+      margin-right: 1rem;
+    }
+
+    #contractPackageDiv {
+      margin: auto;
+
+    }
+
+    #info-content {
+      padding: 0.75rem;
+    }
+
+    calcite-rating {
+      margin-top: 0.25rem;
+    }
+
+    #header {
+      display: flex;
+      padding: 0 1rem;
+      background-color: var(--calcite-ui-foreground-1);
+    }
+
+    #header-controls {
+      display: flex;
+      margin-inline-start: auto;
+      align-self: center;
+    }
+
+    .label-wrapper {
+      display: flex;
+      margin-inline: 1rem;
+      padding: 0.5rem;
+      border: 1px solid var(--calcite-ui-border-1);
+      cursor: pointer;
+    }
+
     #layerListContainer {
       width: 230px;
       max-height: 87%;
@@ -66,6 +111,7 @@
       left: 0px;
       background-color: transparent;
     }
+
 
   
   /* SCROLL BAR */
@@ -104,8 +150,9 @@
   .esri-legend {
     overflow: hidden;
     overflow-y: auto;
-    margin-left: -20;
+    margin-left: -10;
   }
+
 
 
   /*
@@ -122,29 +169,159 @@
   <body class="calcite-theme-dark">
     <calcite-loader></calcite-loader>
     <calcite-shell content-behind>
-        <div id="viewDiv">
-          <div id="layerListContainer" class="esri-widget">
-            <div id = "layer-List-Container-background" style = "margin: auto 0; background: none;" hidden>
-              <calcite-list>
-                <calcite-list-item label="Land Acquisition" description="" value="land-acquisition">
-                 <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
-                  <calcite-checkbox slot="actions-start" id="land-check" style="margin-left: 3px" checked></calcite-checkbox>
-                  <div id="legend-land" class="esri-widget" style="margin-bottom: 0px;"></div>
-                </calcite-list-item>
-                <calcite-list-item label="Existing Structure" description="" value="structure-acquisition">
-                  <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
-                   <calcite-checkbox slot="actions-start" id="structure-check" style="margin-left: 3px"></calcite-checkbox>
-                   <div id="legend-structure" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
-                 </calcite-list-item>
-                </div>
-            <calcite-button
-            icon-end="launch"
-            id="layer-list-button"
-          >
-            MAP LAYERS
-          </calcite-button>
-          </div>
+      <!--  Header slot  -->
+      <div slot="header" id="header">
+
+        <!-- Title -->
+        <h2 id="header-title" slot="header"></h2>
+        <div id="dateDiv"></div>
+
+        <!-- Dropdown Lists -->
+        <div id="contractPackageDiv">
+          <calcite-segmented-control>
+            <calcite-segmented-control-item id="All" value="all" checked>All</calcite-segmented-control-item>
+            <calcite-segmented-control-item id="N-01" value="n-01">N-01</calcite-segmented-control-item>
+            <calcite-segmented-control-item id="N-02" value="n-02">N-02</calcite-segmented-control-item>
+            <calcite-segmented-control-item id="N-03" value="n-03">N-03</calcite-segmented-control-item>
+            <calcite-segmented-control-item id="N-04" value="n-04">N-04</calcite-segmented-control-item>
+            <calcite-segmented-control-item id="N-05" value="n-05">N-05</calcite-segmented-control-item>
+          </calcite-segmented-control>
         </div>
+      </div>
+      <div id="container">
+      <div id="viewDiv">
+        <div id="layerListContainer" class="esri-widget">
+          <div id = "layer-List-Container-background" style = "margin: auto 0; background: none;" hidden>
+            <calcite-list>
+              <calcite-list-item label="Land Acquisition" description="" value="land-acquisition">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                <calcite-checkbox slot="actions-start" id="land-check" style="margin-left: 5px" checked></calcite-checkbox>
+                <div id="land-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
+              </calcite-list-item>
+              <calcite-list-item label="Existing Structure" description="" value="structure-acquisition">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="structure-check" style="margin-left: 5px"></calcite-checkbox>
+                  <div id="structure-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+                </calcite-list-item>
+                <calcite-list-item label="Non-Land Owner" description="" value="NLO-acquisition">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="NLO-check" style="margin-left: 5px"></calcite-checkbox>
+                  <div id="nlo-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+                </calcite-list-item>
+                <calcite-list-item label="Occupancy (Structure)" description="" value="occupancy-acquisition">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="occupancy-check" style="margin-left: 5px"></calcite-checkbox>
+                  <div id="occupancy-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+                </calcite-list-item>
+                <calcite-list-item label="NLO/LO Ownership (Structure)" description="" value="strucOwnership-acquisition">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="strucOwnership-check" style="margin-left: 5px"></calcite-checkbox>
+                  <div id="strucOwnership-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+                </calcite-list-item>
+                <calcite-list-item label="Free-and-Clear Land" description="" value="fnc-acquisition">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="fnc-check" style="margin-left: 5px" checked></calcite-checkbox>
+                  <div id="fnc-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
+                </calcite-list-item>
+                <calcite-list-item label="PNR Land" description="" value="pnr-acquisition">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="pnr-check" style="margin-left: 5px" checked></calcite-checkbox>
+                  <div id="pnr-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
+                </calcite-list-item>
+                <calcite-list-item label="Tree Cutting" description="" value="treeCutting">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="treeCutting-check" style="margin-left: 5px"></calcite-checkbox>
+                  <div id="treeCutting-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+                </calcite-list-item>
+                <calcite-list-item label="Tree Compensation" description="" value="treeCompensation">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="treeCompensation-check" style="margin-left: 5px"></calcite-checkbox>
+                  <div id="treeCompensation-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+                </calcite-list-item>
+                <calcite-list-item label="Utility Relocation (Point Sybmol)" description="" value="utility-point">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="utilityPoint-check" style="margin-left: 5px"></calcite-checkbox>
+                  <div id="utilityPoint-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+                </calcite-list-item>
+                <calcite-list-item label="Utility Relocation (Point Status)" description="" value="utility-pointStatus">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="utilityPointStatus-check" style="margin-left: 5px"></calcite-checkbox>
+                  <div id="utilityPointStatus-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+                </calcite-list-item>
+                <calcite-list-item label="Utility Relocation (Line Symbol)" description="" value="utility-line">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="utilityLine-check" style="margin-left: 5px"></calcite-checkbox>
+                  <div id="utilityLine-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+                </calcite-list-item>
+                <calcite-list-item label="Utility Relocation (Line Status)" description="" value="utility-lineStatus">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="utilityLineStatus-check" style="margin-left: 5px"></calcite-checkbox>
+                  <div id="utilityLineStatus-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+                </calcite-list-item>
+                <calcite-list-item label="Pier with Access Date" description="" value="pierAccess-date">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="pierAccess-check" style="margin-left: 5px" checked></calcite-checkbox>
+                  <div id="pierAccess-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
+                </calcite-list-item>
+                <calcite-list-item label="Pile Cap/Pier" description="" value="pilecapPier">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="pilecapPier-check" style="margin-left: 5px" checked></calcite-checkbox>
+                  <div id="pilecapPier-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
+                </calcite-list-item>
+                <calcite-list-item label="Station Box" description="" value="stationBox">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="stationBox-check" style="margin-left: 5px" checked></calcite-checkbox>
+                  <div id="stationBox-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
+                </calcite-list-item>
+                <calcite-list-item label="PROW" description="" value="prow">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="prow-check" style="margin-left: 5px" checked></calcite-checkbox>
+                  <div id="prow-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
+                </calcite-list-item>
+                <calcite-list-item label="Chainage" description="" value="chainage">
+                <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                  <calcite-checkbox slot="actions-start" id="chainage-check" style="margin-left: 5px"></calcite-checkbox>
+                  <div id="chainage-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+                </calcite-list-item>
+              </div>
+          <calcite-button
+          icon-end="launch"
+          id="layer-list-button"
+        >
+          MAP LAYERS
+        </calcite-button>
+        </div>
+      </div>
+      <!-- Tabs "https://esri.github.io/calcite-web/documentation/patterns/#tabs" -->
+      <!-- Tabs "https://developers.arcgis.com/calcite-design-system/components/tabs/" -->
+      <calcite-tabs>
+        <div id="chartPanel">
+            <calcite-tab-nav slot="tab-nav" id="thetabs">
+                <calcite-tab-title class="Land" selected>Land</calcite-tab-title>
+                <calcite-tab-title class="Structure">Structure</calcite-tab-title>
+                <calcite-tab-title class="ISF">NLO</calcite-tab-title>
+                <calcite-tab-title class="ExproList">Expro List</calcite-tab-title>
+            </calcite-tab-nav>
+            <calcite-tab>
+              <div class="boxStructure" id="pieChartStructureDiv"></div>
+              <div id="structureNumberDiv"></div>
+              <div id="chartMoaStructureDiv"></div>
+              <div id="pteStructureNumberDiv"></calcite-label>
+              </div>
+            </calcite-tab>
+            <calcite-tab>
+                <div class="boxIsf" id="pieChartIsfDiv"></calcite-label>
+                </div>
+            </calcite-tab>
+            <calcite-tab>
+              <div class="panel-side esri-widget">
+                <ul id="expropriationListDiv">
+                  <li>Loading&hellip;</li>
+                </ul>
+              </div>
+            </calcite-tab>
+      </calcite-tabs>
+    </div>
     </calcite-shell>
   </body>
   <script>
@@ -258,32 +435,2551 @@
         }
     });
 
+    // Default Renderer for Polygon------------
+    let defaultLotSymbolBoundary = {
+      type: "simple-fill",
+      color: [0, 0, 0, 0],
+      style: "solid",
+      outline: {
+        style: "short-dash",
+        color: [215, 215, 158],
+        width: 1.5
+      }
+    };
+
+    let defaultSymbol = {
+        type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+        color: [0,0,0,0],
+        style: "solid",
+        outline: {  // autocasts as new SimpleLineSymbol()
+            color: [110, 110, 110],
+            width: 0.7
+        }
+    };
+      
+    //------------- Layer ----------------------------- /
+    // Lot Layer----------------------------------
+    function colorLotReqs(){
+        return {
+            0: [0, 197, 255], 
+            1: [112,173,71],
+            2: [0,112,255],
+            3: [255,255,0],
+            4: [255,170,0],
+            5: [255,0,0],
+            6: [0,0,0,0]
+        }
+    }
+
+    let lotLayerRenderer = {
+        type: "unique-value",
+        defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
+        valueExpression: "When($feature.StatusLA == 0, '0',$feature.StatusLA == 1, '1', $feature.StatusLA == 2, '2', \
+                               $feature.StatusLA == 3, '3', $feature.StatusLA == 4, '4', \
+                               $feature.StatusLA == 5, '5', $feature.StatusLA)",
+        uniqueValueInfos: [
+            {
+                value: "0",
+                label: "Handed-Over",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[0],
+                }
+            },
+            {
+                value: "1",
+                label: "Paid",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[1],
+                }
+            },
+            {
+                value: "2",
+                label: "For Payment Processing",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[2],
+                }
+            },
+            {
+                value: "3",
+                label: "For Legal Pass",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[3],
+                }
+            },
+            {
+                value: "4",
+                label: "For Appraisal/Offer to Buy",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[4],
+                }
+            },
+            {
+                value: "5",
+                label: "For Expro",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[5],
+                }
+            }
+        ]
+    }
+
+    var lotIdLabel = new LabelClass({
+        labelExpressionInfo: {expression: "$feature.LotID"},
+        symbol: {
+            type: "text",
+            color: "black",
+            haloColor: "white",
+            haloSize: 0.5,
+            font: {
+                size: 11,
+                weight: "bold"
+            }
+        }
+    });
+
     var lotLayer = new FeatureLayer({
       portalItem: {
-        id: "032432d931624de9bf5ff03f1f9d7016",
+        id: "dca1d785da0f458b8f87638a76918496",
         portal: {
-          url: "https://gis.railway-sector.com/portal"
+            url: "https://gis.railway-sector.com/portal"
         }
       },
-      layerId: 1
+      layerId: 7,
+      renderer:lotLayerRenderer,
+      labelingInfo: [lotIdLabel],
+      outFields: ["*"],
+      title: "Status of Land Acquisition",
+      minScale: 150000,
+      maxScale: 0,
+      //labelsVisible: false,
+      elevationInfo: {
+        model: "on-the-ground"
+      }
     });
-    map.add(lotLayer);
+    map.add(lotLayer, 1);
+
+    /// Popup for lot layer
+    const lotStatusArray = [
+        "Handed-Over",
+        "Paid",
+        "For Payment Processing",
+        "For Legal Pass",
+        "For Appraisal/Offer to Buy",
+        "For Expro"
+    ];
+
+    const landUseArray = [
+        "Agricultural",
+        "Agricultural & Commercial",
+        "Agricultural / Residential",
+        "Commercial",
+        "Industrial",
+        "Irrigation",
+        "Residential",
+        "Road",
+        "Road Lot",
+        "Special Exempt"
+    ]
+
+    let customContentLot = new CustomContent({
+        outFields: ["*"],
+        creator: function(event) {
+
+            // Extract AsscessDate of clicked pierAccessLayer
+            const lotNo = event.graphic.attributes.LotID;
+            const handOverDate = event.graphic.attributes.HandOverDate;
+            const handOverArea = event.graphic.attributes.percentHandedOver;
+            const statusLot = event.graphic.attributes.StatusLA;
+            const landUse = event.graphic.attributes.LandUse;
+            const municipal = event.graphic.attributes.Municipality;
+            const barangay = event.graphic.attributes.Barangay;
+            const landOwner = event.graphic.attributes.LandOwner;
+            const cpNo = event.graphic.attributes.CP;
+
+            // Convert numeric to date format
+
+            var date = new Date(handOverDate);
+            var DATES = dateFormat(date, 'MM-dd-yyyy');
+
+            if (DATES === '01-01-1970') {
+                var finalDate = "Undefined"
+            } else {
+                var finalDate = dateFormat(date, 'MM-dd-yyyy');
+            }
+            // Convert domain code to domain name
+            /// 1. Status
+            if (statusLot >= 0) {
+                //headerTitleDiv.innerHTML = lotStatusArray[statusLot];
+                var statusLotTemp = lotStatusArray[statusLot];
+            }
+
+            if (landUse >=1 ) {
+                var landUseTemp = landUseArray[landUse - 1];
+            }
+
+            return `<ul><li>Handed-Over Area: <b>${handOverArea} %</b></li><br>
+                    <li>Status:           <b>${statusLotTemp}</b></li><br>
+                    <li>Land Use:         <b>${landUseTemp}</b></li><br>
+                    <li>Municipality:     <b>${municipal}</b></li><br>
+                    <li>Barangay:         <b>${barangay}</b></li><br>
+                    <li>Land Owner:       <b>${landOwner}</b>
+                    <li>CP:               <b>${cpNo}</b></li></ul>`;
+
+        }
+    });
+
+    const templateLot = new PopupTemplate({
+        outFields: ["*"],
+        title: "Lot No.: <b>{LotID}</b>",
+        lastEditInfoEnabled: false,
+        content: [customContentLot]
+    });
+    lotLayer.popupTemplate = templateLot;
+
+
+    // Structure Layer 
+    // Polygon 3D extrution
+    const height = 5;
+    const edgeSize = 0.3;
+    const dismantled = {
+      type: "polygon-3d",
+      symbolLayers: [
+        {
+          type: "extrude",
+          size: height,
+          material: {
+            color: [0, 197, 255, 0.3]
+          },
+          edges: {
+            type: "solid",
+            color: "#4E4E4E",
+            size: edgeSize
+          }
+        }
+      ]
+    };
+
+    const paid = {
+      type: "polygon-3d",
+      symbolLayers: [
+        {
+          type: "extrude",
+          size: height,
+          material: {
+            color: [112, 173, 71, 0.3]
+          },
+          edges: {
+            type: "solid",
+            color: "#4E4E4E",
+            size: edgeSize
+          }
+        }
+      ]
+    };
+
+    const payp = {
+      type: "polygon-3d",
+      symbolLayers: [
+        {
+          type: "extrude",
+          size: height,
+          material: {
+            color: [0, 112, 255, 0.3]
+          },
+          edges: {
+            type: "solid",
+            color: "#4E4E4E",
+            size: edgeSize
+          }
+        }
+      ]
+    }
+
+    const legalpass = {
+      type: "polygon-3d",
+      symbolLayers: [
+        {
+          type: "extrude",
+          size: height,
+          material: {
+            color: [255, 255, 0, 0.3]
+          },
+          edges: {
+            type: "solid",
+            color: "#4E4E4E",
+            size: edgeSize
+          }
+        }
+      ]
+    }
+
+    const otc = {
+      type: "polygon-3d",
+      symbolLayers: [
+        {
+          type: "extrude",
+          size: height,
+          material: {
+            color: [255, 170, 0, 0.3]
+          },
+          edges: {
+            type: "solid",
+            color: "#4E4E4E",
+            size: edgeSize
+          }
+        }
+      ]
+    }
+
+    const lbp = {
+      type: "polygon-3d",
+      symbolLayers: [
+        {
+          type: "extrude",
+          size: height,
+          material: {
+            color: [255, 0, 0, 0.3]
+          },
+          edges: {
+            type: "solid",
+            color: "#4E4E4E",
+            size: edgeSize
+          }
+        }
+      ]
+    }
+
+    const structureRenderer = {
+      type: "unique-value",
+      defaultSymbol: {
+        type: "polygon-3d",
+        symbolLayers: [
+          {
+            type: "extrude",
+            size: 5, // in meters
+            material: {
+              color: [0, 0, 0, 0.4]
+            },
+            edges: {
+              type: "solid",
+              color: "#4E4E4E",
+              size: edgeSize
+            }
+          }
+        ]
+      },
+      defaultLabel: "Other",
+      field: "StatusStruc",
+      legendOptions: {
+        title: "Status of Structure"
+      },
+      uniqueValueInfos: [
+        {
+          value: 1,
+          symbol: dismantled,
+          label: "Dismantling/Clearing"
+        },
+        {
+          value: 2,
+          symbol: paid,
+          label: "Paid"
+        },
+        {
+          value: 3,
+          symbol: payp,
+          label: "For Payment Processing"
+        },
+        {
+          value: 4,
+          symbol: legalpass,
+          label: "For Legal Pass"
+        },
+        {
+          value: 5,
+          symbol: otc,
+          label: "For Appraisal/Offer to Compensation"
+        },
+        {
+          value: 6,
+          symbol: lbp,
+          label: "LBP Account Opening"
+        },
+      ]
+    }
 
     var structureLayer = new FeatureLayer({
       portalItem: {
-            id: "ec9dac0c16af4797bb917a0babc735e9",
+        id: "dca1d785da0f458b8f87638a76918496",
+        portal: {
+            url: "https://gis.railway-sector.com/portal"
+        }
+      },
+      layerId: 6,
+      title: "Structure",
+      renderer: structureRenderer,
+      outFields: ["*"],
+      elevationInfo: {
+        model: "on-the-ground"
+      },
+      popupTemplate: {
+        title: "<p>{StrucID}</p>",
+        lastEditInfoEnabled: false,
+        returnGeometry: true,
+        content: [
+          {
+            type: "fields",
+            fieldInfos: [
+              {
+                fieldName: "FamilyNumber",
+                label: "<b>Number of Families</b>"
+              },
+              {
+                fieldName: "StrucOwner",
+                label: "Structure Owner"
+              },
+              {
+                fieldName: "StatusStruc",
+                label: "<p>Status of Structure</p>"
+              },
+              {
+                fieldName: "LotID",
+                label: "Lot ID"
+              },
+              {
+                fieldName: "Municipality"
+              },
+              {
+                fieldName: "Barangay"
+              }
+            ]
+          }
+        ]
+      }
+    });
+    map.add(structureLayer);
+
+
+    // Structure (NLO/LO)
+    let NLOLORenderer = {
+        type: "unique-value",
+        field: "Status",
+        uniqueValueInfos:[
+            {
+                value: 1,
+                label: "LO (Land Owner)",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    style: "forward-diagonal",
+                    color: [128, 128, 128, 1],
+                    outline: {
+                        color: "#6E6E6E",
+                        width: 0.3
+                    }
+                }
+            },
+            {
+                value: 2,
+                label: "NLO (Non-Land Owner)",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    style: "vertical",
+                    color: [128, 128, 128, 1],
+                    outline: {
+                        color: "#6E6E6E",
+                        width: 0.3
+                    }
+                }
+            }
+        ]
+    };
+
+    var strucOwnershipLayer = new FeatureLayer({
+        portalItem: {
+            id: "dca1d785da0f458b8f87638a76918496",
             portal: {
                 url: "https://gis.railway-sector.com/portal"
             }
         },
-        title: "Existing Structure",
+        renderer: NLOLORenderer,
+        layerId: 3,
+        title: "NLO/LO Ownership (Structure)",
+        outFields: ["*"],
+        popupEnabled: false,
+        elevationInfo: {
+          model: "on-the-ground"
+        }
     });
-    map.add(structureLayer);
+    map.add(strucOwnershipLayer);
+
+    // Status of Relocation (Occupancy)
+    const outlineColorOccupancy = "gray";
+
+    var verticalOffsetExistingOccupancy = {
+      screenLength: 10,
+        maxWorldLength: 10,
+        minWorldLength: 10
+    };
+
+    function getUniqueValueSymbolOccupancy(name, size) {
+      return {
+        type: "point-3d", // autocasts as new PointSymbol3D()
+        symbolLayers: [
+          {
+            type: "icon", // autocasts as new IconSymbol3DLayer()
+            resource: {
+              href: name
+            },
+            size: size,
+            outline: {
+              color: "white",
+              size: 2
+            }
+          }
+        ],
+
+        verticalOffset: verticalOffsetExistingOccupancy,
+
+        callout: {
+          type: "line", // autocasts as new LineCallout3D()
+          color: [128,128,128,0.6],
+          size: 0.4,
+          border: {
+            color: "grey"
+          }
+        }
+      };
+    }
+    const occupancyPointSize = 20;
+    let occupancyRenderer = {
+      type: "unique-value",
+      valueExpression: "When($feature.Occupancy == 0, 'Occupied', \
+                      $feature.Occupancy == 1, 'Relocated', $feature.Occupancy)",
+      uniqueValueInfos: [
+        {
+          value: "Occupied",
+          label: "Occupied",
+          symbol: getUniqueValueSymbolOccupancy("https://EijiGorilla.github.io/Symbols/Demolished.png", occupancyPointSize),
+        },
+        {
+          value: "Relocated",
+          label: "Relocated",
+          symbol: getUniqueValueSymbolOccupancy("https://EijiGorilla.github.io/Symbols/DemolishComplete_v2.png", occupancyPointSize),
+        },
+      ]
+    };
+
+    var occupancyLayer = new FeatureLayer({
+        portalItem: {
+            id: "dca1d785da0f458b8f87638a76918496",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 5,
+        outFields: ["*"],
+        title: "Occupancy (Structure)",
+        renderer: occupancyRenderer,
+        elevationInfo: {
+          mode: "relative-to-scene"
+        },
+        popupTemplate: {
+            title: "<p>{StrucID}</p>",
+            lastEditInfoEnabled: false,
+            returnGeometry: true,
+            content: [
+            {
+                type: "fields",
+                fieldInfos: [
+                {
+                    fieldName: "StrucOwner",
+                    label: "Structure Owner"
+                },
+                {
+                    fieldName: "Municipality"
+                },
+                {
+                    fieldName: "Barangay"
+                },
+                {
+                    fieldName: "Occupancy",
+                    label: "<p>Status for Relocation(structure)</p>"
+                },
+                {
+                    fieldName: "Name",
+                },
+                {
+                    fieldName: "Status",
+                    label: "NLO/LO Ownership"
+                }
+                ]
+            }
+            ]
+        }
+    });
+    map.add(occupancyLayer);
+
+    // ISF
+    const outlineColor = "gray";
+
+    var verticalOffsetExisting = {
+      screenLength: 80,
+        maxWorldLength: 500,
+        minWorldLength: 30
+    };
+
+    function getUniqueValueSymbol(name, size) {
+      return {
+        type: "point-3d", // autocasts as new PointSymbol3D()
+        symbolLayers: [
+          {
+            type: "icon", // autocasts as new IconSymbol3DLayer()
+            resource: {
+              href: name
+            },
+            size: size,
+            outline: {
+              color: "white",
+              size: 2
+            }
+          }
+        ],
+
+        /*
+        verticalOffset: verticalOffsetExisting,
+
+        callout: {
+          type: "line", // autocasts as new LineCallout3D()
+          color: [128,128,128,0.1],
+          size: 0.2,
+          border: {
+            color: "grey"
+          }
+        }
+        */
+      };
+    }
+
+    const symbolSize = 30;
+    let isfRenderer = {
+        type: "unique-value",
+        valueExpression: "When($feature.StatusRC == 1, 'relocated', \
+                        $feature.StatusRC == 2, 'paid', $feature.StatusRC == 3, 'payp', \
+                        $feature.StatusRC == 4, 'legalpass', $feature.StatusRC == 5, 'otc', \
+                        $feature.StatusRC == 6, 'lbp', $feature.StatusRC)",
+        uniqueValueInfos: [
+            {
+              value: "relocated",
+              label: "Relocated",
+              symbol: getUniqueValueSymbol("https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_Relocated.svg", symbolSize),
+            },
+            {
+              value: "paid",
+              label: "Paid",
+              symbol: getUniqueValueSymbol("https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_Paid.svg", symbolSize),
+            },
+            {
+                value: "payp",
+                label: "For Payment Processing",
+                symbol: getUniqueValueSymbol("https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_PaymentProcess.svg", symbolSize),
+            },
+            {
+                value: "legalpass",
+                label: "For Legal Pass",
+                symbol: getUniqueValueSymbol("https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_LegalPass.svg", symbolSize),
+            },
+            {
+                value: "otc",
+                label: "For Appraisal/OtC/Reqs for Other Entitlements",
+                symbol: getUniqueValueSymbol("https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_OtC.svg", symbolSize),
+            },
+            {
+                value: "lbp",
+                label: "LBP Account Opening",
+                symbol: getUniqueValueSymbol("https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_LBP.svg", symbolSize),
+            }
+        ]
+    };
+
+    var nloLayer = new FeatureLayer({
+      portalItem: {
+        id: "dca1d785da0f458b8f87638a76918496",
+        portal: {
+          url: "https://gis.railway-sector.com/portal"
+        }
+      },
+      layerId: 4,
+      renderer: isfRenderer,
+      outFields: ["*"],
+      title: "NLO (Non-Land Owner)",
+      elevationInfo: {
+        mode: "relative-to-scene"
+      },
+      minScale: 10000,
+      maxScale: 0,
+      popupTemplate: {
+        title: "<p>{StrucID}</p>",
+        lastEditInfoEnabled: false,
+        returnGeometry: true,
+        content: [
+          {
+            type: "fields",
+            fieldInfos: [
+              {
+                fieldName: "StrucOwner",
+                label: "Structure Owner"
+              },
+              {
+                fieldName: "Municipality"
+              },
+              {
+                fieldName: "Barangay"
+              },
+              {
+                fieldName: "StatusRC",
+                label: "<p>Status for Relocation</p>"
+              },
+              {
+                fieldName: "Name",
+              },
+              {
+                fieldName: "Status",
+                label: "NLO/LO Ownership (structure) "
+              }
+            ]
+          }
+        ]
+      }
+    });
+    //nloLayer.listMode = "hide";
+    map.add(nloLayer);
+
+    // Chainage
+    var labelChainage = new LabelClass({
+        labelExpressionInfo: {expression: "$feature.KmSpot"},
+            symbol: {
+                type: "text",
+                color: [85, 255, 0],
+                haloColor: "black",
+                haloSize: 0.5,
+                font: {
+                    size: 15,
+                    weight: "bold"
+                }
+            }
+    });
+
+    var chainageRenderer = {
+        type: "simple",
+        symbol: {
+            type: "simple-marker",
+            size: 5,
+            color: [255, 255, 255, 0.9],
+            outline: {
+                width: 0.2,
+                color: "black"
+            }
+        }
+    };
+
+    var chainageLayer = new FeatureLayer ({
+        portalItem: {
+            id: "590680d19f2e48fdbd8bcddce3aaedb5",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 5,
+        title: "Chainage",
+        elevationInfo: {
+            mode: "relative-to-ground"
+        },
+        labelingInfo: [labelChainage],
+        minScale: 150000,
+        maxScale: 0,
+        renderer: chainageRenderer,
+        outFields: ["*"],
+        popupEnabled: false
+    });
+    map.add(chainageLayer);
+
+    // Pier Head and Column
+
+    // Polygon 3D extrution
+    const pHeight = 0;
+
+    const pierColumn = {
+      type: "polygon-3d",
+      symbolLayers: [
+        {
+          type: "extrude",
+          size: pHeight + 10,
+          material: {
+            color: [78, 78, 78, 0.5]
+          },
+          edges: {
+            type: "solid",
+            color: "#4E4E4E",
+            size: 0.3
+          }
+        }
+      ]
+    };
+
+    const pierHead = {
+      type: "polygon-3d",
+      symbolLayers: [
+        {
+          type: "extrude",
+          size: pHeight + 10,
+          material: {
+            color: [169, 169, 169, 0.7]
+          },
+          edges: {
+            type: "solid",
+            color: "#4E4E4E",
+            size: 1.0
+          }
+        }
+      ]
+    };
+
+    const pileCap = {
+      type: "polygon-3d",
+      symbolLayers: [
+        {
+          type: "extrude",
+          size: pHeight + 3,
+          material: {
+            color: [200, 200, 200, 0.7]
+          },
+          edges: {
+            type: "solid",
+            color: "#4E4E4E",
+            size: 1.0
+          }
+        }
+      ]
+    }
+
+    const pierHeadRenderer = {
+      type: "unique-value",
+      defaultSymbol: {
+        type: "polygon-3d",
+        symbolLayers: [
+          {
+            type: "extrude",
+            size: 5, // in meters
+            material: {
+              color: "#E1E1E1"
+            },
+            edges: {
+              type: "solid",
+              color: "#4E4E4E",
+              size: 1.0
+            }
+          }
+        ]
+      },
+      defaultLabel: "Other",
+      field: "Layer",
+      legendOptions: {
+        title: "Pier Head/Pier Column/Pile Cap"
+      },
+      uniqueValueInfos: [
+        {
+          value: "Pier_Column",
+          symbol: pierColumn,
+          label: "Column"
+        },
+        /*
+        {
+          value: "Pier_Head",
+          symbol: pierHead,
+          label: "Pier Head"
+        },
+        */
+        {
+          value: "Pile_Cap",
+          symbol: pileCap,
+          label: "Pile Cap"
+        },
+      ]
+    }
+
+    var pilecapPierLayer = new FeatureLayer ({
+        portalItem: {
+            id: "590680d19f2e48fdbd8bcddce3aaedb5",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 4,
+        title: "Pier Head/Column",
+        definitionExpression: "Layer <> 'Pier_Head'",
+        outFields: ["*"],
+        minScale: 150000,
+        maxScale: 0,
+        renderer: pierHeadRenderer,
+        popupEnabled: false,
+        elevationInfo: {
+          model: "on-the-ground"
+        }
+    });
+    //pilecapPierLayer.listMode = "hide";
+    map.add(pilecapPierLayer, 1);
+
+    // Pier No (point)
+    // Renderer
+    // 0. Define colors for unique values
+    const pierAccessDateColor = {
+      0: [0, 255, 0, 0.9],// Accessible (green)
+      1: [255, 127, 80],// Orange
+      2: [255, 255, 0],// Yellow
+      3: [0, 112, 255], // Blue
+      4: [143, 0, 255], // violet
+      5: [255, 255, 255, 0.9],
+      6: [255, 0, 0, 0.9] // Dates are missing
+    }
+
+    var defaultPointSymbol = {
+        type: "simple",
+        label: "Accessible",
+        symbol: {
+            type: "simple-marker",
+            size: 5,
+            color: pierAccessDateColor[0],
+            outline: {
+                width: 0,
+                color: "black"
+            }
+        }
+    }
+
+      // labels
+      // for multiple label class to a layer:
+      // https://developers.arcgis.com/javascript/latest/sample-code/labels-multiple-classes/
+      
+      const cutOffDateAccess = 1636070400000;
+      // make sure to update numerical date values in 'pierAccessRenderer'
+  
+      const pierAccessReadyDateLabel = new LabelClass({
+        symbol: {
+          type: "label-3d", // autocast as new LabelSymbol3D()
+          symbolLayers: [
+            {
+              type: "text",
+              material: {
+                color: pierAccessDateColor[0]
+              },
+              size: 15,
+              color: pierAccessDateColor[0],
+              haloColor: pierAccessDateColor[0],
+              haloSize: 1,
+              font: {
+                family: "Ubuntu Mono",
+                weight: "bold"
+              },
+            }
+          ],
+          verticalOffset: {
+            screenLength: 80,
+            maxWorldLength: 500,
+            minWorldLength: 30
+          },
+          callout: {
+            type: "line",
+            size: 0.5,
+            color: [0, 0, 0],
+            border: {
+              color: [255, 255, 255, 0.7]
+            }
+          }
+        },
+        labelExpressionInfo: {
+          expression: "$feature.PIER"
+          //'DefaultValue($feature.GeoTechName, "no data")'
+          //"IIF($feature.Score >= 13, '', '')"
+          //value: "{Type}"
+        },
+        labelPlacement: "above-center",
+        where: "AccessDate <= '" + cutOffDateAccess + "'"
+    });
+
+    const pierAccessNotYetLabel =  new LabelClass({
+      symbol: {
+        type: "label-3d", // autocast as new LabelSymbol3D()
+        symbolLayers: [
+          {
+            type: "text",
+            material: {
+              color: "#cccccc"
+            },
+            size: 10,
+            color: "#cccccc",
+            haloColor: "#cccccc",
+            haloSize: 1,
+            font: {
+              family: "Ubuntu Mono",
+              weight: "normal"
+            },
+          }
+        ],
+        verticalOffset: {
+          screenLength: 80,
+          maxWorldLength: 500,
+          minWorldLength: 30
+        },
+        callout: {
+          type: "line",
+          size: 0.5,
+          color: [0, 0, 0],
+          border: {
+            color: [255, 255, 255, 0.7]
+          }
+        }
+      },
+      labelExpressionInfo: {
+        expression: "$feature.PIER"
+        //'DefaultValue($feature.GeoTechName, "no data")'
+        //"IIF($feature.Score >= 13, '', '')"
+        //value: "{Type}"
+      },
+      labelPlacement: "above-center",
+      where: "AccessDate > '" + cutOffDateAccess + "'" + " OR " + "AccessDate IS NULL"
+    });
+
+    const pierAccessDateMissingLabel =  new LabelClass({
+      symbol: {
+        type: "label-3d", // autocast as new LabelSymbol3D()
+        symbolLayers: [
+          {
+            type: "text",
+            material: {
+              color: "#ff0000"
+            },
+            size: 10,
+            color: "#cccccc",
+            haloColor: "#cccccc",
+            haloSize: 1,
+            font: {
+              family: "Ubuntu Mono",
+              weight: "normal"
+            },
+          }
+        ],
+        verticalOffset: {
+          screenLength: 80,
+          maxWorldLength: 500,
+          minWorldLength: 30
+        },
+        callout: {
+          type: "line",
+          size: 0.5,
+          color: [0, 0, 0],
+          border: {
+            color: [255, 255, 255, 0.7]
+          }
+        }
+      },
+      labelExpressionInfo: {
+        expression: "$feature.PIER"
+        //'DefaultValue($feature.GeoTechName, "no data")'
+        //"IIF($feature.Score >= 13, '', '')"
+        //value: "{Type}"
+      },
+      labelPlacement: "above-center",
+      where: "AccessDate IS NULL"
+    });
+
+    // 1. Get unique dates
+    const numberDate = new Date(cutOffDateAccess);
+    const cutDate = numberDate.toLocaleDateString('en-US');
+
+    var pierAccessLayer = new FeatureLayer ({
+      portalItem: {
+        id: "590680d19f2e48fdbd8bcddce3aaedb5",
+        portal: {
+          url: "https://gis.railway-sector.com/portal"
+        }
+      },
+      layerId: 6,
+      labelingInfo: [pierAccessDateMissingLabel, pierAccessReadyDateLabel, pierAccessNotYetLabel],
+      title: "Pier with Access Date",
+      minScale: 150000,
+      maxScale: 0,
+      outFields: ["*"],
+      elevationInfo: {
+        model: "on-the-ground"
+      }
+    },{utcOffset: 300});
+    map.add(pierAccessLayer, 3);
+
+    // we first need to obtain unique values of date because valueExpression does not allow
+    // date'2021-10-01' notation
+    const queryDate = "AccessDate IS NOT NULL";
+
+    function DateValues() {
+        const dates = [];
+        var query = pierAccessLayer.createQuery();
+
+        query.where = queryDate;
+        return pierAccessLayer.queryFeatures(query).then(function(response) {
+            var stats = response.features;
+            stats.forEach((result, index) => {
+                const attributes = result.attributes;
+                const date = attributes.AccessDate;
+                dates.push(date);
+            });
+            return dates;
+        });
+    }
+
+    function uniqueDateValues(values) {
+        var uniqueValues = [];
+        values.forEach((item, index) => {
+            if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
+                uniqueValues.push(item);
+            }
+        });
+        const sortedDates = uniqueValues.sort();
+        return sortedDates;
+    }
+
+    function uniqueValuesInfos(sortedDates) {
+      const dates = sortedDates.map((date, index) => {
+            const temp = new Date(date);
+            const labelDate = temp.toLocaleDateString('en-US');
+            return Object.assign({}, {
+                value: date, // make sure to use 'number'. you cannot add 'date'
+                label: labelDate,
+            });
+        });
+        console.log(dates);
+    }
+    DateValues().then(uniqueDateValues).then(uniqueValuesInfos);
+
+    const pierAccessRenderer = {
+      type: "unique-value", // autocasts as new UniqueValueRenderer()
+      field: "AccessDate",
+      defaultSymbol: defaultPointSymbol,
+      
+      valueExpression: "When(IsEmpty($feature.AccessDate), 'empty', \
+                            $feature.AccessDate <= 1636070400000, 'accessible', \
+                            $feature.AccessDate > 1636070400000, 'others',$feature.AccessDate)", 
+      uniqueValueInfos: [
+        {
+          value: "empty",
+          label: "Dates are missing",
+          type: "simple",
+          symbol: {
+              type: "simple-marker",
+              size: 5,
+              color: pierAccessDateColor[6],
+              outline: {
+                  width: 0.1,
+                  color: "white"
+              }
+          }
+        },
+        {
+          value: "accessible",
+          label: "Accessible",
+          type: "simple",
+          symbol: {
+              type: "simple-marker",
+              size: 5,
+              color: pierAccessDateColor[0],
+              outline: {
+                  width: 0.1,
+                  color: "white"
+              }
+          }
+        },
+        {
+          value: "others",
+          label: "Others",
+          type: "simple",
+          symbol: {
+              type: "simple-marker",
+              size: 5,
+              color: pierAccessDateColor[5],
+              outline: {
+                  width: 0.1,
+                  color: "white"
+              }
+          }
+        },
+      ]
+    }
+    pierAccessLayer.renderer = pierAccessRenderer;
+
+    // Popup Template
+
+    /// Define popup template on dates for pier no
+    // Date Format function
+    function dateFormat(inputDate, format) {
+        //parse the input date
+        const date = new Date(inputDate);
+
+        //extract the parts of the date
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();    
+
+        //replace the month
+        format = format.replace("MM", month.toString().padStart(2,"0"));        
+
+        //replace the year
+        if (format.indexOf("yyyy") > -1) {
+            format = format.replace("yyyy", year.toString());
+        } else if (format.indexOf("yy") > -1) {
+            format = format.replace("yy", year.toString().substr(2,2));
+        }
+
+        //replace the day
+        format = format.replace("dd", day.toString().padStart(2,"0"));
+
+        return format;
+    }
+
+    // Custom Popup Content for pierAccessLayer
+    let customContent = new CustomContent({
+        outFields: ["*"],
+        creator: function(event) {
+
+            // Extract AsscessDate of clicked pierAccessLayer
+            const stats = event.graphic.attributes.AccessDate;
+            const pierNo = event.graphic.attributes.PIER;
+
+            // Convert numeric to date format
+            var date = new Date(stats);
+            dateValue = dateFormat(date, 'MM-dd-yyyy');
+
+            const ddd = new Date(cutOffDateAccess);
+            dddValue = dateFormat(ddd, 'MM-dd-yyyy')
+
+            //console.log(dateValue + "; " + dddValue);
+            
+            // If the date is before current date, popupContent should be "AVAILABLE"
+            if (dateValue === '01-01-1970') { // Empty date is entered as this
+              DATES = "NO DATES AVAILABLE"
+            } else if (date <= cutOffDateAccess) {
+              DATES = "ACCESSIBLE";
+            } else if (date > cutOffDateAccess) {
+              DATES = dateValue;
+            }
+
+            //return `Access Date: <b>${DATES}</b>`;
+            return `Access Date: <b>${DATES}</b>`;
+
+        }
+    });
+
+    const template = new PopupTemplate({
+        outFields: ["*"],
+        title: "Pier No: <b>{PIER}</b>",
+        lastEditInfoEnabled: false,
+        content: [customContent]
+    });
+    pierAccessLayer.popupTemplate = template;
+
+    // Station Box
+    let stationBoxRenderer = {
+        type: "unique-value",
+        field: "Layer",
+        defaultSymbol: { type: "simple-fill"},
+        uniqueValueInfos: [
+            {
+                value: "00_Platform",
+                label: "Platform",
+                    symbol: {
+                    type: "simple-fill",
+                    color: [160, 160, 160],
+                    style: "backward-diagonal",
+                    outline: {
+                        width: 1,
+                        color: "black"
+                    }
+                }
+            },
+            {
+                value: "00_Platform 10car",
+                label: "Platform 10car",
+                symbol: {
+                    type: "simple-fill",
+                    color: [104, 104, 104],
+                    style: "cross",
+                    outline: {
+                        width: 1,
+                        color: "black",
+                        style: "short-dash"
+                    }
+                }
+            },
+            {
+            value: "00_Station",
+            label: "Station Box",
+            symbol: {
+                type: "simple-fill",
+                color: [0, 0, 0, 0],
+                outline: {
+                    width: 2,
+                    color: [115, 0, 0]
+                }
+            }
+            }
+        ]
+    };
+
+    var stationBoxLayer = new FeatureLayer ({
+        portalItem: {
+            id: "590680d19f2e48fdbd8bcddce3aaedb5",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 3,
+        renderer: stationBoxRenderer,
+        minScale: 150000,
+        maxScale: 0,
+        title: "Station Box",
+        outFields: ["*"],
+        popupEnabled: false,
+        elevationInfo: {
+          model: "on-the-ground"
+        }
+    });
+    //stationBoxLayer.listMode = "hide";
+    map.add(stationBoxLayer, 2);
+
+    // ROW //
+    var prowLayer = new FeatureLayer ({
+        portalItem: {
+            id: "590680d19f2e48fdbd8bcddce3aaedb5",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 1,
+        title: "PROW",
+        popupEnabled: false
+    });
+    map.add(prowLayer,2);
+
+    // Free and Clear Lot
+    var fncLayer = new FeatureLayer ({
+      portalItem: {
+        id: "dca1d785da0f458b8f87638a76918496",
+        portal: {
+          url: "https://gis.railway-sector.com/portal"
+        }
+      },
+      layerId: 2,
+      title: "Free-and-Clear Area",
+      //popupEnabled: false
+    });
+    map.add(fncLayer,1);
+
+    // PNR
+    let pnrRenderer = {
+        type: "unique-value",
+        valueExpression: "When($feature.LandOwner == 'BASES CONVERSION DEVELOPMENT AUTHORITY', 'BCDA', \
+                        $feature.LandOwner == 'MANILA RAILROAD COMPANY' || $feature.LandOwner == 'Manila Railroad Company','PNR',$feature.LandOwner)",
+        uniqueValueInfos: [
+            {
+                value: "BCDA",
+                symbol: {
+                    type: "simple-fill",
+                    color: [225,225,225],
+                    style: "diagonal-cross",
+                    outline: {
+                        width: 0.5,
+                        color: "black"
+                    }
+                }
+            },
+            {
+                value: "PNR",
+                symbol: {
+                    type: "simple-fill",
+                    color: [225,225,225],
+                    style: "diagonal-cross",
+                    outline: {
+                        width: 0.5,
+                        color: "black"
+                    }
+                }
+            }
+        ]
+    };
+
+    var pnrLayer = new FeatureLayer({
+      portalItem: {
+          id: "dca1d785da0f458b8f87638a76918496",
+          portal: {
+              url: "https://gis.railway-sector.com/portal"
+          }
+      },
+      layerId: 10,
+      title: "Land (PNR)",
+      definitionExpression: "LandOwner IN ('BASES CONVERSION DEVELOPMENT AUTHORITY','MANILA RAILROAD COMPANY')",
+      outFields: ["*"],
+      title: "PNR",
+      elevationInfo: {
+          model: "on-the-ground"
+        },
+      labelsVisible: false,
+      renderer: pnrRenderer,
+      popupTemplate: {
+        title: "<p>{LandOwner} ({LotID})</p>",
+        lastEditInfoEnabled: false,
+        returnGeometry: true,
+        content: [
+          {
+            type: "fields",
+            fieldInfos: [
+              {
+                fieldName: "HandOverDate",
+                label: "Hand-Over Date"
+              },
+              {
+                fieldName: "Municipality"
+              },
+              {
+                fieldName: "Barangay"
+              },
+              {
+                fieldName: "LandOwner",
+                label: "Land Owner"
+              }
+            ]
+          }
+        ] 
+      }
+    });
+    map.add(pnrLayer, 1);
+
+  // Station point feature
+  var labelClass = new LabelClass({
+    symbol: {
+      type: "label-3d",// autocasts as new LabelSymbol3D()
+      symbolLayers: [
+        {
+          type: "text", // autocasts as new TextSymbol3DLayer()
+          material: {
+            color: [255, 170, 0]
+          },
+          size: 20,
+          color: "black",
+          haloColor: "black",
+          haloSize: 1,
+          font: {
+            family: "Ubuntu Mono",
+            //weight: "bold"
+          },
+        }
+      ],
+      verticalOffset: {
+        screenLength: 40,
+        maxWorldLength: 100,
+        minWorldLength: 20
+      },
+    },
+    labelPlacement: "above-center",
+    labelExpressionInfo: {
+      expression: "$feature.Station"
+              //value: "{TEXTSTRING}"
+    }
+  });
+
+  function stationsSymbol(name) {
+    return {
+      type: "web-style", // autocasts as new WebStyleSymbol()
+      name: name,
+      styleName: "EsriIconsStyle"//EsriRealisticTransportationStyle, EsriIconsStyle
+    };
+  }
+
+  var stationsRenderer = {
+    type: "unique-value", // autocasts as new UniqueValueRenderer()
+    field: "Station",
+    defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
+  };
+
+  // Station Layer
+  var stationLayer = new SceneLayer({
+    portalItem: {
+      id: "207cb34b8a324b40985b5805862c4b29",
+      portal: {
+        url: "https://gis.railway-sector.com/portal"
+      }
+    },
+    title: "N2 Stations",
+    labelingInfo: [labelClass],
+    renderer: stationsRenderer,
+    elevationInfo: {
+      mode: "relative-to-ground"
+    },
+    definitionExpression: "Extension = 'N2'"
+                //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
+  });
+  stationLayer.listMode = "hide";
+  map.add(stationLayer, 0);
+
+
+    // Tree Cutting
+    function colorsCut(){
+        return {
+            1: [113, 171, 72, 0.8],
+            2: [0, 115, 255, 0.8],
+            3: [255, 255, 0, 0.8],
+            4: [255, 170, 0, 0.8],
+            5: [255, 0, 0, 0.8]
+        }
+    }
+
+    let treeCuttingRenderer = {
+        type: "unique-value",
+        valueExpression: "When($feature.Status == 1, 'cutearthb', \
+                        $feature.Status == 2, 'permit', $feature.Status == 3, 'submit', \
+                        $feature.Status == 4, 'ongoing', $feature.Status)",
+        uniqueValueInfos: [
+            {
+                value: "cutearthb",
+                label: "Cut/Earthballed",
+                type: "simple",
+                symbol: {
+                    type: "simple-marker",
+                    size: 5,
+                    color: colorsCut()[1], // the first two letters dictate transparency.
+                    outline: {
+                        width: 0.5,
+                        color: outlineColor
+                    }
+                }
+            },
+            {
+                value: "permit",
+                label: "Permit Acquired",
+                type: "simple",
+                symbol: {
+                    type: "simple-marker",
+                    size: 5,
+                    color: colorsCut()[3], // the first two letters dictate transparency.
+                    outline: {
+                        width: 0.5,
+                        color: outlineColor
+                    }
+                }
+            },
+            {
+                value: "submit",
+                label: "Submitted to DENR",
+                type: "simple",
+                symbol: {
+                    type: "simple-marker",
+                    size: 4,
+                    color: colorsCut()[4], // the first two letters dictate transparency.
+                    outline: {
+                        width: 0.5,
+                        color: outlineColor
+                    }
+                }
+            },
+            {
+                value: "ongoing",
+                label: "Ongoing Acquisition of Application Documents",
+                type: "simple",
+                symbol: {
+                    type: "simple-marker",
+                    size: 5,
+                    color: colorsCut()[5], // the first two letters dictate transparency.
+                    outline: {
+                        width: 0.5,
+                        color: outlineColor
+                    }
+                }
+            }
+        ]
+    };
+
+    var treeCuttingLayer = new FeatureLayer ({
+        portalItem: {
+            id: "4da5697d684f4babad15aedfe74c5b36",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        outFields: ["*"],
+        title: "Status of Tree Cutting",
+        renderer: treeCuttingRenderer,
+        popupTemplate: {
+            lastEditInfoEnabled: false,
+            returnGeometry: true,
+            content: [
+                {
+                    type: "fields",
+                    fieldInfos: [
+                        {
+                            fieldName: "ScientificName",
+                            label: "Scientific Name"
+                        },
+                        {
+                            fieldName: "CommonName",
+                            label: "Common Name"
+                        },
+                        {
+                            fieldName: "Province"
+                        },
+                        {
+                            fieldName: "Municipality"
+                        },
+                        {
+                            fieldName: "TreeNo",
+                            label: "Tree No."
+                        },
+                        {
+                            fieldName: "CP",
+                            label: "<h5>CP</h5>"
+                        },
+                        {
+                            fieldName: "Compensation",
+                            label: "Status of Tree Compensation"
+                        },
+                        {
+                            fieldName: "Conservation",
+                            label: "Conservation Status"
+                        },
+                    ]
+                }
+            ]
+        }
+    });
+    map.add(treeCuttingLayer,2);
+
+    // Tree Compensation
+    function colorsCompen(){
+        return {
+            1: [0, 112, 255, 0.8],
+            2: [255, 255, 0, 0.8],
+            3: [113, 171, 72, 0.8]
+        }
+    }
+
+
+    let treeCompensationRenderer = {
+        type: "unique-value",
+        valueExpression: "When($feature.Compensation == 1, 'nonCompensable', $feature.Compensation == 2, 'payp', \
+                        $feature.Compensation == 3, 'compensated', $feature.Compensation)",
+        uniqueValueInfos: [ //[1:Non-Compensable, 2:For Processing, 3:Compensated]
+            {
+                value: "nonCompensable",
+                label: "Non-Compensable",
+                type: "simple",
+                symbol: {
+                    type: "simple-marker",
+                    size: 5,
+                    color: colorsCompen()[1], // the first two letters dictate transparency.
+                    outline: {
+                        width: 0.5,
+                        color: outlineColor
+                    }
+                }
+            },
+            {
+                value: "payp",
+                label: "For Processing",
+                type: "simple",
+                symbol: {
+                    type: "simple-marker",
+                    size: 5,
+                    color: colorsCompen()[2], // the first two letters dictate transparency.
+                    outline: {
+                        width: 0.5,
+                        color: outlineColor
+                    }
+                }
+            },
+            {
+                value: "compensated",
+                label: "Compensated",
+                type: "simple",
+                symbol: {
+                    type: "simple-marker",
+                    size: 5,
+                    color: colorsCompen()[3], // the first two letters dictate transparency.
+                    outline: {
+                        width: 0.5,
+                        color: outlineColor
+                    }
+                }
+            }
+        ]
+    };
+
+    var treeCompensationLayer = new FeatureLayer ({
+        portalItem: {
+            id: "4da5697d684f4babad15aedfe74c5b36",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        outFields: ["*"],
+        title: "Status of Tree Compensation",
+        renderer: treeCompensationRenderer,
+        popupTemplate: {
+            title: "<h5>{Compensation}</h5>",
+            lastEditInfoEnabled: false,
+            returnGeometry: true,
+            content: [
+                {
+                    type: "fields",
+                    fieldInfos: [
+                        {
+                            fieldName: "ScientificName",
+                            label: "Scientific Name"
+                        },
+                        {
+                            fieldName: "CommonName",
+                            label: "Common Name"
+                        },
+                        {
+                            fieldName: "Province"
+                        },
+                        {
+                            fieldName: "Municipality"
+                        },
+                        {
+                            fieldName: "TreeNo",
+                            label: "Tree No."
+                        },
+                        {
+                            fieldName: "CP",
+                            label: "<h5>CP</h5>"
+                        },
+                        {
+                            fieldName: "Status",
+                            label: "Status of Tree Cutting"
+                        },
+                        {
+                            fieldName: "Conservation",
+                            label: "Conservation Status"
+                        },
+                    ]
+                }
+            ]
+        }
+    });
+    map.add(treeCompensationLayer,1);
+
+
+
+    // UTILITY RELOCATIOIN
+    // 1. Utility Point
+    var labelUtilPtSymbol = {
+      type: "label-3d", // autocasts as new LabelSymbol3D()
+      labelPlacement: "above-center",
+      labelExpressionInfo: {
+        //value: "{Company}",
+        expression: "When($feature.Status >= 0, DomainName($feature, 'Comp_Agency'), '')" //$feature.Comp_Agency
+      },
+      symbolLayers: [
+        {
+          type: "text", // autocasts as new TextSymbol3DLayer()
+          material: {
+            color: "black"
+          },
+          halo: {
+            color: [255, 255, 255, 0.7],
+            size: 2
+          },
+          size: 10
+        }
+      ],
+    };
+
+    // Esri Icon Symbol
+    function IconSymbol(name) {
+      return {
+        type: "web-style", // autocasts as new WebStyleSymbol()
+        name: name,
+        styleName: "EsriIconsStyle"//EsriRealisticTransportationStyle, EsriIconsStyle
+      };
+    }
+
+    // Utility Point Symbol
+    /// https://developers.arcgis.com/javascript/latest/guide/esri-web-style-symbols-3d/
+    function utilPtSymbolInfra(name) {
+      return {
+        type: "web-style",
+        name: name,
+        styleName: "EsriInfrastructureStyle"
+      };
+    }
+
+    function utilPtSymbolStreet(name) {
+      return {
+        type: "web-style",
+        name: name,
+        styleName: "EsriRealisticStreetSceneStyle"
+      };
+    }
+
+    function utilPtSymbolIcons(name) {
+      return {
+        type: "web-style",
+        name: name,
+        styleName: "EsriIconsStyle"
+      };
+    }
+
+    /* custom 3D Web Style for Utility Pole */
+    // Choice: 3D_Electric_Pole, 3D_Drain_Box, 3D_Water_Valve, 3D_Telecom_BTS, 3D_TelecomCATV_Pole
+    function customSymbol3D(name) {
+      return {
+        type: "web-style",
+        portal: "https://www.maps.arcgis.com",
+
+        // IMPORTANT: Your browser needs to be able to open the following link. It will say insecure so need to go to advanced.
+        styleUrl: "https://www.maps.arcgis.com/sharing/rest/content/items/c04d4d4145f64f8fa38407dd5331dd1f/data",
+        name: name
+      };
+    }
+
+    /* Company and Utilty Relocation Status Symbols with Callout */
+    var verticalOffsetExisting = {
+      screenLength: 10,
+      maxWorldLength: 10,
+      minWorldLength: 15
+    };
+
+    var verticalOffsetRelocation = {
+      screenLength: 10,
+      maxWorldLength: 30,
+      minWorldLength: 35
+    };
+
+
+    // Function that automatically creates the symbol for the points of interest
+    function getUniqueValueSymbol(name, color, sizeS, util) {
+      // The point symbol is visualized with an icon symbol. To clearly see the location of the point
+      // we displace the icon vertically and add a callout line. The line connects the offseted symbol with the location
+      // of the point feature.
+      if (util == "Existing") {
+        return {
+        type: "point-3d", // autocasts as new PointSymbol3D()
+        symbolLayers: [
+          {
+            type: "icon", // autocasts as new IconSymbol3DLayer()
+            resource: {
+              href: name
+            },
+            size: sizeS,
+            outline: {
+              color: "white",
+              size: 2
+            }
+          }
+        ],
+
+        verticalOffset: verticalOffsetExisting,
+
+        callout: {
+          type: "line", // autocasts as new LineCallout3D()
+          color: [128,128,128,0.1],
+          size: 0.2,
+          border: {
+            color: "grey"
+          }
+        }
+      };
+      } else {
+        return {
+        type: "point-3d", // autocasts as new PointSymbol3D()
+        symbolLayers: [
+          {
+            type: "icon", // autocasts as new IconSymbol3DLayer()
+            resource: {
+              href: name
+            },
+            size: sizeS,
+            outline: {
+              color: "white",
+              size: 2
+            }
+          }
+        ],
+
+        verticalOffset: verticalOffsetRelocation,
+
+        callout: {
+          type: "line", // autocasts as new LineCallout3D()
+          color: [128,128,128,0.1],
+          size: 0.2,
+          border: {
+            color: "grey"
+          }
+        }
+      };
+      }
+    }
+
+    var utilTypePtRenderer = {
+      type: "unique-value", //"unique-value", "simple"
+      //Field: "UtilType2",
+      //defaultSymbol: ,
+      //valueExpression: "When($feature.UtilType == 1, 'Telecom', $feature.UtilType == 2, 'Water',$feature.UtilType == 3, 'Power', $feature.UtilType)",
+      valueExpression: "When($feature.UtilType2 == 1, 'Telecom Pole (BTS)', \
+                            $feature.UtilType2 == 2, 'Telecom Pole (CATV)', \
+                            $feature.UtilType2 == 3, 'Water Meter', \
+                            $feature.UtilType2 == 4, 'Water Valve', \
+                            $feature.UtilType2 == 5, 'Manhole', \
+                            $feature.UtilType2 == 6, 'Drain Box', \
+                            $feature.UtilType2 == 7, 'Electric Pole', \
+                            $feature.UtilType2 == 8, 'Street Light', \
+                            $feature.UtilType2 == 9, 'Junction Box', \
+                            $feature.UtilType2 == 10, 'Coupling', \
+                            $feature.UtilType2 == 11, 'Fitting', \
+                            $feature.UtilType2 == 12, 'Transformer', \
+                            $feature.UtilType2 == 13, 'Truss Guy', \
+                            $feature.UtilType2 == 14, 'Concrete Pedestal', \
+                            $feature.UtilType2 == 15, 'Ground', \
+                            $feature.UtilType2 == 16, 'Down Guy', \
+                            $feature.UtilType2 == 17, 'Entry/Exit Pit', \
+                            $feature.UtilType2 == 18, 'Handhole', \
+                            $feature.UtilType2 == 19, 'Transmission Tower', \
+                            $feature.UtilType)",
+      uniqueValueInfos: [
+        {
+          value: "Telecom Pole (BTS)",
+          symbol: customSymbol3D("3D_Telecom_BTS")
+        },
+        {
+          value: "Telecom Pole (CATV)",
+          symbol: customSymbol3D("3D_TelecomCATV_Pole")
+        },
+        {
+          value: "Manhole",
+          symbol: utilPtSymbolStreet("Storm_Drain")
+        },
+        {
+          value: "Electric Pole",
+          //symbol: utilPtSymbolInfra("Powerline_Pole")
+          symbol: customSymbol3D("3D_Electric_Pole")
+        },
+        {
+          value: "Street Light",
+          symbol: utilPtSymbolStreet("Overhanging_Street_and_Sidewalk_-_Light_on")
+        },
+        {
+          value: "Junction Box",
+          symbol: customSymbol3D("3D_Drain_Box")
+        },
+        {
+          value: "Coupling",
+          symbol: customSymbol3D("3D_Drain_Box")
+        },
+        {
+          value: "Fitting",
+          symbol: customSymbol3D("3D_Drain_Box")
+        },
+        {
+          value: "Transformer",
+          symbol: customSymbol3D("3D_Drain_Box")
+        },
+        {
+          value: "Truss Guy",
+          symbol: customSymbol3D("3D_Drain_Box")
+        },
+        {
+          value: "Concrete Pedestal",
+          symbol: customSymbol3D("Concrete Pedestal")
+        },
+        {
+          value: "Ground",
+          symbol: customSymbol3D("3D_Drain_Box")
+        },
+        {
+          value: "Down Guy",
+          symbol: customSymbol3D("3D_Drain_Box")
+        },
+        {
+          value: "Entry/Exit Pit",
+          symbol: customSymbol3D("3D_Drain_Box")
+        },
+        {
+          value: "Handhole",
+          symbol: customSymbol3D("3D_Drain_Box")
+        },
+        {
+          value: "Transmission Tower",
+          symbol: utilPtSymbolInfra("Powerline_Pole")
+        }
+      ],
+      visualVariables: [
+        {
+          type: "size",
+          axis: "height",
+          field: "SIZE",
+          valueUnit: "meters"
+        },
+        {
+          type: "rotation",
+          field: "ROTATION"
+        },
+        /*
+        {
+          type: "opacity",
+          valueExpression: "($feature.Status * $feature.LAYER) / 2",
+          // when utility is demolished, it becomes transparent
+          //valueExpression: "When($feature.Status == 1 && $feature.LAYER == 1, 0, 1)",
+          //field: "SIZE",
+          stops: [
+            {value: 0, opacity: 0.005}, //  want to delete
+            {value: 1, opacity: 1}, // want to visualize
+          ],
+          legendOptions: {
+            showLegend: false
+          }
+        }
+  */
+      ]
+    };
+
+    var utilReloSymbolRenderer = {
+      type: "unique-value", // autocasts as new UniqueValueRenderer()
+      valueExpression: "When($feature.Remarks == 'pending', 'NoAction', \
+                            $feature.Status == 1 && $feature.LAYER == 1, 'DemolishComplete',\
+                            $feature.Status == 0 && $feature.LAYER == 1, 'DemolishIncomplete',\
+                            $feature.Status == 0 && $feature.LAYER == 2, 'RelocIncomplete', \
+                            $feature.Status == 1 && $feature.LAYER == 2, 'RelocComplete', \
+                            $feature.Status == 0 && $feature.LAYER == 3, 'NewlyAdded', \
+                            $feature.Status == 1 && $feature.LAYER == 3, 'NewlyAddedComplete',$feature.Comp_Agency)", 
+      //field: "Company",
+      uniqueValueInfos: [
+        {
+          value: "DemolishIncomplete",
+          label: "To be Demolished",
+          symbol: getUniqueValueSymbol(
+            "https://EijiGorilla.github.io/Symbols/Demolished.png",
+            "#D13470",
+            20,
+            "Relocation"
+          )
+        },
+        {
+          value: "DemolishComplete",
+          label: "Demolision Completed",
+          symbol: getUniqueValueSymbol(
+            "https://EijiGorilla.github.io/Symbols/DemolishComplete_v2.png",
+            "#D13470",
+            25,
+            "Relocation"
+            )
+        },
+        {
+          value: "RelocIncomplete",
+          label: "Proposed Relocation",
+          symbol: getUniqueValueSymbol(
+            "https://EijiGorilla.github.io/Symbols/Relocatd.png",
+            "#D13470",
+            30,
+            "Relocation"
+            )
+        },
+        {
+          value: "RelocComplete",
+          label: "Relocation Completed",
+          symbol: getUniqueValueSymbol(
+            "https://EijiGorilla.github.io/Symbols/Utility_Relocated_Completed_Symbol.png",
+            "#D13470",
+            30,
+            "Relocation"
+            )
+        },
+        {
+          value: "NewlyAdded",
+          label: "Add New Utility",
+          symbol: getUniqueValueSymbol(
+            "https://EijiGorilla.github.io/Symbols/NewlyAdded.png",
+            "#D13470",
+            35,
+            "Relocation"
+            )
+        },
+        {
+          value: "NewlyAddedComplete",
+          label: "Newly Utility Added",
+          symbol: getUniqueValueSymbol(
+            "https://EijiGorilla.github.io/Symbols/NewlyAdded_Completed.png",
+            "#D13470",
+            35,
+            "Relocation"
+            )
+        },
+        {
+          value: "NoAction",
+          label: "Require Data Checking",
+          symbol: getUniqueValueSymbol(
+            "https://EijiGorilla.github.io/Symbols/Unknown_v2.png",
+            "#D13470",
+            35,
+            "Relocation"
+            )
+        }
+      ]
+    };
+
+    var utilityPointLayer = new FeatureLayer({
+      portalItem: {
+        id: "109d4ef09fd946d1bda17396f35deb94",
+        portal: {
+          url: "https://gis.railway-sector.com/portal"
+        }
+      },
+      layerId: 1,
+      title: "Relocation Plan (Point)",
+      outFields: ["*"],
+      renderer: utilTypePtRenderer,
+      elevationInfo: {
+        mode: "relative-to-ground", // original was "relative-to-scene"
+        featureExpressionInfo: {
+          expression: "$feature.Height"
+        },
+      unit: "meters"
+      //offset: 0
+      },
+      popupTemplate: {
+        title: "<h5>{Comp_Agency}</h5>",
+        lastEditInfoEnabled: false,
+        returnGeometry: true,
+        actions: [
+          {
+            id: "find-relocated",
+            title: "Go to Relocated"
+          }
+          ],
+        content: [
+          {
+            type: "fields",
+            fieldInfos: [
+              {
+                fieldName: "Id"
+              },
+              {
+                fieldName: "UtilType",
+                label: "Utility Type"
+              },
+              {
+                fieldName: "UtilType2",
+                label: "Utility Name"
+              },
+              {
+                fieldName: "LAYER",
+                label: "<h5>Action</h5>"
+              },
+              {
+                fieldName: "Status",
+                label: "<h5>Status</h5>"
+              },
+              {
+                fieldName: "CP"
+              },
+              {
+                fieldName: "Remarks"
+              }
+            ]
+          }
+        ]
+      }
+    });
+    map.add(utilityPointLayer, 3);
+
+    /* Symbols with callout */
+    // To locate a symbol with callout on the ground, 
+    // If basemap elevation layer is on, use "relative-to-scene"
+    // If basemap elevatio layer is off, use "absolute-height"
+
+    var utilityPointLayer1 = new FeatureLayer({
+      portalItem: {
+        id: "109d4ef09fd946d1bda17396f35deb94",
+        portal: {
+          url: "https://gis.railway-sector.com/portal"
+        }
+      },
+      layerId: 1,
+      title: "Utility 3D Render Test",
+      outFields: ["*"],
+      renderer: utilReloSymbolRenderer,
+      elevationInfo: {
+        mode: "relative-to-ground", // original was "relative-to-scene"
+        featureExpressionInfo: {
+          expression: "$feature.Height"
+        },
+        unit: "meters"
+      //offset: 0
+      },
+      labelingInfo: [labelUtilPtSymbol],
+      popupTemplate: {
+        title: "<h5>{comp_agency}</h5>",
+        lastEditInfoEnabled: false,
+        returnGeometry: true,
+        actions: [
+          {
+            id: "find-relocated",
+            title: "Go to Relocated"
+          }
+        ],
+        content: [
+          {
+            type: "fields",
+            fieldInfos: [
+              {
+                fieldName: "Id"
+              },
+              {
+                fieldName: "UtilType",
+                label: "Utility Type"
+              },
+              {
+                fieldName: "UtilType2",
+                label: "Utility Name"
+              },
+              {
+                fieldName: "LAYER",
+                label: "<h5>Action</h5>"
+              },
+              {
+                fieldName: "Status",
+                label: "<h5>Status</h5>"
+              },
+              {
+                fieldName: "CP"
+              },
+              {
+                fieldName: "Remarks"
+              }
+            ]
+          }
+        ]
+      }
+    });
+    utilityPointLayer1.listMode = "hide";
+    map.add(utilityPointLayer1);
+
+
+
+    // 2. Utilit Line
+    var utilityLineLayerLabelClass = {
+      type: "label-3d", // autocasts as new LabelSymbol3D()
+      labelPlacement: "above-center", // Polyline has not choice
+      labelExpressionInfo: {
+        expression: "When($feature.Status >= 0, DomainName($feature, 'Comp_Agency'), '')"
+      },
+      symbolLayers: [
+        {
+          type: "text", // autocasts as new TextSymbol3DLayer()
+          material: {
+            color: "black"
+          },
+          halo: {
+            color: [255, 255, 255, 0.7],
+            size: 2
+          },
+          size: 10
+        }
+      ],
+    };
+
+    const options = { // Circle
+      profile: "circle",
+      cap: "none",
+      join: "miter",
+      width: 0.5,
+      height: 0.5,
+      //color: [200, 200, 200],
+      profileRotation: "all"
+    };
+
+    const options1 = { // rectangular
+      profile: "quad",
+      cap: "none",
+      join: "miter",
+      width: 0.5,
+      height: 0.5,
+      color: [200, 200, 200],
+      profileRotation: "heading"
+    };
+
+    /* The colors used for the each transit line */
+
+    const colorsRelocation = {
+      1: [32,178,170, 0.5], //Telecom Line
+      2: [112,128,144, 0.5], // Internet Cable Line
+      3: [0, 128, 255, 0.5], // Water Distribution Pipe
+      4: [224, 224, 224, 0.5], // Sewage
+      5: [105,105,105, 0.5], // Drainage
+      6: [205,133,63, 0.5], // Canal
+      7: [139,69,19, 0.5], // Creek
+      8: [211,211,211, 0.5] // Elecric Line
+    };
+
+    const colorsExisting = {
+      1: [229, 229, 229, 0.1], //Telecom/CA (Utility TYpe)
+      2: [229, 229, 229, 0.1], // Water
+      3: [229, 229, 229, 0.1], // Power
+    };
+
+    var utilityLineLayer = new FeatureLayer({
+      portalItem: {
+        id: "109d4ef09fd946d1bda17396f35deb94",
+        portal: {
+          url: "https://gis.railway-sector.com/portal"
+        }
+      },
+      layerId: 2,
+      title: "Relocation Plan (Line)",
+      elevationInfo: {
+        mode: "relative-to-ground", // original was "relative-to-scene"
+        featureExpressionInfo: {
+          expression: "$feature.height"
+        },
+        unit: "meters"
+        //offset: 0
+      },
+      outFields: ["*"],
+      popupTemplate: {
+        title: "<h5>{comp_agency}</h5>",
+        lastEditInfoEnabled: false,
+        returnGeometry: true,
+        actions: [
+          {
+            id: "find-relocated-line",
+            title: "Go to Relocated"
+          }
+        ],
+        content: [
+          {
+            type: "fields",
+            fieldInfos: [
+              {
+                fieldName: "Id"
+              },
+              {
+                fieldName: "UtilType",
+                label: "Utility Type"
+              },
+              {
+                fieldName: "UtilType2",
+                label: "Utility Name"
+              },
+              {
+                fieldName: "LAYER",
+                label: "<h5>Action</h5>"
+              },
+              {
+                fieldName: "Status",
+                label: "<h5>Status</h5>"
+              },
+              {
+                fieldName: "CP"
+              },
+              {
+                fieldName: "Remarks"
+              }
+            ]
+          }
+        ]
+      }
+    });
+    map.add(utilityLineLayer, 4);
+
+    /* Utility Line rendnerer*/
+    function lineSizeShapeSymbolLayers(profile, cap, join, width, height, profileRotation, property){
+      return {
+        type: "line-3d",
+        symbolLayers: [
+          {
+            type: "path",
+              profile: profile,
+              material: {
+                color: colorsRelocation[property]
+              },
+              width: width,
+              height: height,
+              join: join,
+              cap: cap,
+              anchor: "bottom",
+              profileRotation: profileRotation
+          }
+        ]
+      }
+    }
+
+    function renderutilityLineLayer() {
+      const renderer = new UniqueValueRenderer({
+        field: "utiltype2"
+      });
+
+      for (let property in colorsRelocation) { // For each utility type 2
+        if (property == 1) { // If utility type2 === Telecom Line
+            renderer.addUniqueValueInfo({
+            value: property,
+            symbol: lineSizeShapeSymbolLayers("circle","none","miter",0.5,0.5,"all", property)
+          });
+
+        } else if (property == 2) { // "Internet Cable Line"
+            renderer.addUniqueValueInfo({
+            value: property,
+            symbol: lineSizeShapeSymbolLayers("circle","none","miter",0.4,0.4,"all", property)
+          });
+
+        } else if (property == 3) { // "Water Distributin Pipe"
+            renderer.addUniqueValueInfo({
+            value: property,
+            symbol: lineSizeShapeSymbolLayers("circle","none","miter", 1, 1, "all", property)
+          });
+
+        } else if (property == 4) { // "Sewerage"
+            renderer.addUniqueValueInfo({
+            value: property,
+            symbol: lineSizeShapeSymbolLayers("circle","none","miter", 1, 1,"all", property)
+          });
+
+        } else if (property == 5) { // "Drainage"
+            renderer.addUniqueValueInfo({
+            value: property,
+            symbol: lineSizeShapeSymbolLayers("circle","none","miter", 1, 1,"all", property)
+          });
+        
+        } else if (property == 6) { // "Canal"
+            renderer.addUniqueValueInfo({
+            value: property,
+            symbol: lineSizeShapeSymbolLayers("quad","none","miter", 2, 2,"all", property)
+          });
+
+        } else if (property == 7) { // "Creek"
+            renderer.addUniqueValueInfo({
+            value: property,
+            symbol: lineSizeShapeSymbolLayers("circle","none","miter", 1, 1,"all", property)
+          });
+
+        } else if (property == 8) { // "Electric Line"
+            renderer.addUniqueValueInfo({
+            value: property,
+            symbol: lineSizeShapeSymbolLayers("circle","none","miter", 0.3, 0.3,"all", property)
+          });
+
+        } else {// end of 'property == '1'
+          renderer.addUniqueValueInfo({
+            value: property,
+            symbol: lineSizeShapeSymbolLayers("quad","none","miter", 0.3, 0.3,"all", property)
+
+          });
+        }
+      }
+      utilityLineLayer.renderer = renderer;
+    }
+
+    renderutilityLineLayer();
+
+    /*Line for Symbols */
+    var utilityLineLayer1 = new FeatureLayer({
+      portalItem: {
+        id: "109d4ef09fd946d1bda17396f35deb94",
+        portal: {
+          url: "https://gis.railway-sector.com/portal"
+        }
+      },
+      layerId: 2,
+      title: "utilityLineLayer",
+      elevationInfo: {
+        mode: "relative-to-ground", // original was "relative-to-scene"
+        featureExpressionInfo: {
+          expression: "$feature.height"
+        },
+        unit: "meters"
+        //offset: 0
+      },
+      outFields: ["*"],
+      renderer: utilReloSymbolRenderer,
+      labelingInfo: [utilityLineLayerLabelClass],
+      popupTemplate: {
+        title: "<h5>{comp_agency}</h5>",
+        lastEditInfoEnabled: false,
+        returnGeometry: true,
+        actions: [
+          {
+            id: "find-relocated-line",
+            title: "Go to Relocated"
+          }
+        ],
+        content: [
+          {
+            type: "fields",
+            fieldInfos: [
+              {
+                fieldName: "Id"
+              },
+              {
+                fieldName: "UtilType",
+                label: "Utility Type"
+              },
+              {
+                fieldName: "UtilType2",
+                label: "Utility Name"
+              },
+              {
+                fieldName: "LAYER",
+                label: "<h5>Action</h5>"
+              },
+              {
+                fieldName: "Status",
+                label: "<h5>Status</h5>"
+              },
+              {
+                fieldName: "CP"
+              },
+              {
+                fieldName: "Remarks"
+              }
+            ]
+          }
+        ]
+      }
+    });
+    utilityLineLayer1.listMode = "hide";
+    map.add(utilityLineLayer1);
+
+
+    /////////////////// END Of LAYER IMPORT ////////////////////////////
+
+    // Zoom
+    function zoomToLayer(layer) {
+      return layer.queryExtent().then(function(response) {
+        view.goTo(response.extent, { //response.extent
+          speedFactor: 2,
+        }).catch(function(error) {
+          if (error.name != "AbortError") {
+            console.error(error);
+          }
+        });
+      });
+    }
+
+    view.ui.empty("top-left");
+      
 
     // Legend
     var legend_land = new Legend({
       view,
-      container: "legend-land",
+      container: "land-legend",
       layerInfos: [
         {
           layer: lotLayer,
@@ -294,7 +2990,7 @@
 
     var legend_structure = new Legend({
       view,
-      container: "legend-structure",
+      container: "structure-legend",
       layerInfos: [
         {
           layer: structureLayer,
@@ -303,26 +2999,252 @@
       ]
     });
 
+    var legend_nlo = new Legend({
+      view,
+      container: "nlo-legend",
+      layerInfos: [
+        {
+          layer: nloLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_strucOwnership = new Legend({
+      view,
+      container: "strucOwnership-legend",
+      layerInfos: [
+        {
+          layer: strucOwnershipLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_occupancy = new Legend({
+      view,
+      container: "occupancy-legend",
+      layerInfos: [
+        {
+          layer: occupancyLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_pierAccess = new Legend({
+      view,
+      container: "pierAccess-legend",
+      layerInfos: [
+        {
+          layer: pierAccessLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_pilecapPier = new Legend({
+      view,
+      container: "pilecapPier-legend",
+      layerInfos: [
+        {
+          layer: pilecapPierLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_stationBox = new Legend({
+      view,
+      container: "stationBox-legend",
+      layerInfos: [
+        {
+          layer: stationBoxLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_fnc = new Legend({
+      view,
+      container: "fnc-legend",
+      layerInfos: [
+        {
+          layer: fncLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_pnr = new Legend({
+      view,
+      container: "pnr-legend",
+      layerInfos: [
+        {
+          layer: pnrLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_treeCut = new Legend({
+      view,
+      container: "treeCutting-legend",
+      layerInfos: [
+        {
+          layer: treeCuttingLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_treeCompen = new Legend({
+      view,
+      container: "treeCompensation-legend",
+      layerInfos: [
+        {
+          layer: treeCompensationLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_utilityPoint = new Legend({
+      view,
+      container: "utilityPoint-legend",
+      layerInfos: [
+        {
+          layer: utilityPointLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_utilityPointStatus = new Legend({
+      view,
+      container: "utilityPointStatus-legend",
+      layerInfos: [
+        {
+          layer: utilityPointLayer1,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_utilityLine = new Legend({
+      view,
+      container: "utilityLine-legend",
+      layerInfos: [
+        {
+          layer: utilityLineLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_utilityLineStatus = new Legend({
+      view,
+      container: "utilityLineStatus-legend",
+      layerInfos: [
+        {
+          layer: utilityLineLayer1,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_prowBox = new Legend({
+      view,
+      container: "prow-legend",
+      layerInfos: [
+        {
+          layer: prowLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_chainage = new Legend({
+      view,
+      container: "chainage-legend",
+      layerInfos: [
+        {
+          layer: chainageLayer,
+          title: ""
+        }
+      ]
+    });
 
     // Default setting
     lotLayer.visible = true;
     structureLayer.visible = false;
+    nloLayer.visible = false;
+    occupancyLayer.visible = false;
+    strucOwnershipLayer.visible = false;
+    fncLayer.visible = true;
+    pnrLayer.visible = true;
+    treeCuttingLayer.visible = false;
+    treeCompensationLayer.visible = false;
+    utilityPointLayer.visible = false;
+    utilityPointLayer1.visible = false;
+    utilityLineLayer.visible = false;
+    utilityLineLayer1.visible = false;
+    pierAccessLayer.visible = true;
+    pilecapPierLayer.visible = true;
+    stationBoxLayer.visible = true;
+    prowLayer.visible = true;
+    chainageLayer.visible = false;
 
     // Hide and Unhide of Legend + layerList + lotLayer
-    const landCheck = document.getElementById("land-check");
-    const structureCheck = document.getElementById("structure-check");
-    const landAcquisition = document.getElementById("legend-land");
-    const structureAcquisition = document.getElementById("legend-structure");
+    // 1. Checkbox
+    const landCheckbox = document.getElementById("land-check");
+    const structureCheckbox = document.getElementById("structure-check");
+    const nloCheckbox = document.getElementById("NLO-check");
+    const occupancyCheckbox = document.getElementById("occupancy-check");
+    const strucOwnershipCheckbox = document.getElementById("strucOwnership-check");
+    const fncCheckbox = document.getElementById("fnc-check");
+    const pnrCheckbox = document.getElementById("pnr-check");
+    const treeCuttingCheckbox = document.getElementById("treeCutting-check");
+    const treeCompensationCheckbox = document.getElementById("treeCompensation-check");
+    const utilityPointCheckbox = document.getElementById("utilityPoint-check");
+    const utilityPointStatusCheckbox = document.getElementById("utilityPointStatus-check");
+    const utilityLineCheckbox = document.getElementById("utilityLine-check");
+    const utilityLineStatusCheckbox = document.getElementById("utilityLineStatus-check");
+    const pierAccessCheckbox = document.getElementById("pierAccess-check");
+    const pilecapPierCheckbox = document.getElementById("pilecapPier-check");
+    const stationBoxCheckbox = document.getElementById("stationBox-check");
+    const prowCheckbox = document.getElementById("prow-check");
+    const chainageCheckbox = document.getElementById("chainage-check");
+
+    // 2. Legend
+    const landLegend = document.getElementById("land-legend");
+    const structureLegend = document.getElementById("structure-legend");
+    const nloLegend = document.getElementById("nlo-legend");
+    const occupancyLegend = document.getElementById("occupancy-legend");
+    const strucOwnershipLegend = document.getElementById("strucOwnership-legend");
+    const fncLegend = document.getElementById("fnc-legend");
+    const pnrLegend = document.getElementById("pnr-legend");
+    const treeCuttingLegend = document.getElementById("treeCutting-legend");
+    const treeCompensationLegend = document.getElementById("treeCompensation-legend");
+    const utilityPointLegend = document.getElementById("utilityPoint-legend");
+    const utilityPointStatusLegend = document.getElementById("utilityPointStatus-legend");
+    const utilityLineLegend = document.getElementById("utilityLine-legend");
+    const utilityLineStatusLegend = document.getElementById("utilityLineStatus-legend");
+    const pierAccessLegend = document.getElementById("pierAccess-legend");
+    const pilecapPierLegend = document.getElementById("pilecapPier-legend");
+    const stationBoxLegend = document.getElementById("stationBox-legend");
+    const prowLegend = document.getElementById("prow-legend");
+    const chainageLegend = document.getElementById("chainage-legend");
+   
 
     // Lot Layer
-    // Note if default is checked in a box,
     view.when(() => {
       
       let activeWidget;
-      const handleActionBarClickLand = ({ target }) => {
+      const checkBoxClick = ({ target }) => {
 
         // Hide/Unhide legend
-        landAcquisition.hidden = !landAcquisition.hidden;
+        landLegend.hidden = !landLegend.hidden;
         
         // Visible/Unvisible Lot Layer
         if (activeWidget) {
@@ -337,37 +3259,425 @@
           activeWidget = null;
         }
       } 
-
-    landCheck.addEventListener("click", handleActionBarClickLand);
+      landCheckbox.addEventListener("click", checkBoxClick);
     });
 
     // Structure Layer
-    // Note if default is NOT checked in a box,
     view.when(() => {
-      let activeWidgetStructure;
-      const handleActionBarClickStructure = ({ target }) => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
 
         // Hide/Unhide legend
-        structureAcquisition.hidden = !structureAcquisition.hidden;
+        structureLegend.hidden = !structureLegend.hidden;
         
         // Visible/unvisible structure layer
-        if (activeWidgetStructure) {
+        if (activeWidget) {
           structureLayer.visible = false;
         }
 
-        const nextWidgetStruc = target.id;
-        if (nextWidgetStruc !== activeWidgetStructure) {
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
           structureLayer.visible = true;
-          activeWidgetStructure = nextWidgetStruc
+          activeWidget = nextWidget
         } else {
-          activeWidgetStructure = null;
+          activeWidget = null;
         }
-    }
-    structureCheck.addEventListener("click", handleActionBarClickStructure);
+      }
+      structureCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // NLO Layer (ISF)
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        nloLegend.hidden = !nloLegend.hidden;
+        
+        // Visible/unvisible nlo layer
+        if (activeWidget) {
+          nloLayer.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          nloLayer.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      nloCheckbox.addEventListener("click", checkBoxClick);
     });
 
 
+    // Occupancy Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
 
+        // Hide/Unhide legend
+        occupancyLegend.hidden = !occupancyLegend.hidden;
+        
+        // Visible/unvisible occupancy layer
+        if (activeWidget) {
+          occupancyLayer.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          occupancyLayer.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      occupancyCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Structure Ownership (NLO/LO) Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        strucOwnershipLegend.hidden = !strucOwnershipLegend.hidden;
+        
+        // Visible/unvisible strucOwnership layer
+        if (activeWidget) {
+          strucOwnershipLayer.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          strucOwnershipLayer.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      strucOwnershipCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Free-and-Clear Land Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        fncLegend.hidden = !fncLegend.hidden;
+        
+        // Visible/unvisible fnc layer
+        if (activeWidget) {
+          fncLayer.visible = true;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          fncLayer.visible = false;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      fncCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // PNR Land Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        pnrLegend.hidden = !pnrLegend.hidden;
+        
+        // Visible/unvisible pnr layer
+        if (activeWidget) {
+          pnrLayer.visible = true;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          pnrLayer.visible = false;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      pnrCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Tree Cutting layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        treeCuttingLegend.hidden = !treeCuttingLegend.hidden;
+        
+        // Visible/unvisible treeCutting layer
+        if (activeWidget) {
+          treeCuttingLayer.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          treeCuttingLayer.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      treeCuttingCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Tree Compensation Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        treeCompensationLegend.hidden = !treeCompensationLegend.hidden;
+        
+        // Visible/unvisible treeCompensation layer
+        if (activeWidget) {
+          treeCompensationLayer.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          treeCompensationLayer.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      treeCompensationCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Utility Point Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        utilityPointLegend.hidden = !utilityPointLegend.hidden;
+        
+        // Visible/unvisible utilityPoint layer
+        if (activeWidget) {
+          utilityPointLayer.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          utilityPointLayer.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      utilityPointCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Utility Point Status Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        utilityPointStatusLegend.hidden = !utilityPointStatusLegend.hidden;
+        
+        // Visible/unvisible utilityPoint layer
+        if (activeWidget) {
+          utilityPointLayer1.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          utilityPointLayer1.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      utilityPointStatusCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Utility Line Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        utilityLineLegend.hidden = !utilityLineLegend.hidden;
+        
+        // Visible/unvisible utilityLine layer
+        if (activeWidget) {
+          utilityLineLayer.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          utilityLineLayer.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      utilityLineCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Utility Line Status Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        utilityLineStatusLegend.hidden = !utilityLineStatusLegend.hidden;
+        
+        // Visible/unvisible utilityLine layer
+        if (activeWidget) {
+          utilityLineLayer1.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          utilityLineLayer1.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      utilityLineStatusCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Pier Access point Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        pierAccessLegend.hidden = !pierAccessLegend.hidden;
+        
+        // Visible/unvisible pierAccess layer
+        if (activeWidget) {
+          pierAccessLayer.visible = true;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          pierAccessLayer.visible = false;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      pierAccessCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Pile Cap /Pier Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        pilecapPierLegend.hidden = !pilecapPierLegend.hidden;
+        
+        // Visible/unvisible pilecapPier layer
+        if (activeWidget) {
+          pilecapPierLayer.visible = true;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          pilecapPierLayer.visible = false;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      pilecapPierCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Station Box Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        stationBoxLegend.hidden = !stationBoxLegend.hidden;
+        
+        // Visible/unvisible stationBox layer
+        if (activeWidget) {
+          stationBoxLayer.visible = true;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          stationBoxLayer.visible = false;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      stationBoxCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // PROW Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        prowLegend.hidden = !prowLegend.hidden;
+        
+        // Visible/unvisible prow layer
+        if (activeWidget) {
+          prowLayer.visible = true;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          prowLayer.visible = false;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      prowCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Chainage layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        chainageLegend.hidden = !chainageLegend.hidden;
+        
+        // Visible/unvisible chainage layer
+        if (activeWidget) {
+          chainageLayer.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          chainageLayer.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      chainageCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+      // view.when
+      view.when(() => {
+        document.querySelector("#header-title").textContent = "N2 LAND ACQUISITION";
+        // Switch theme
+        document.querySelector("calcite-shell").hidden = false;
+        document.querySelector("calcite-loader").hidden = true;
+      });
     });
   </script>
 </html>
