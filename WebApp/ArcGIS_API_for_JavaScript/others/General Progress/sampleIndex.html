@@ -124,7 +124,8 @@
     
     #landPieChartDiv,
     #structurePieChartDiv,
-    #nloPieChartDiv {
+    #nloPieChartDiv,
+    #treeCuttingPieChartDiv {
       height: 45%;
       margin-bottom: 5;
     }
@@ -134,7 +135,8 @@
     .structureNumber-container,
     .nloNumber-container,
     .pteLot-container,
-    .pteStructure-container {
+    .pteStructure-container,
+    .treeNumber-container {
       display: flex;
     }
 
@@ -142,7 +144,8 @@
     #structureNumberDiv,
     #nloNumberDiv,
     #pteLotNumberDiv,
-    #pteStructureNumberDiv {
+    #pteStructureNumberDiv,
+    #treeNumberDiv {
       width: 50%;
       height: 10%;
       padding-top: 2%;
@@ -164,7 +167,8 @@
     #landNumberImage,
     #nloNumberImage,
     #structureImage,
-    #structureNumberImage {
+    #structureNumberImage,
+    #treeNumberImage {
       width: 23%;
       height: auto;
       margin-left: auto;
@@ -175,7 +179,8 @@
 
     #lotNumberDiv b,
     #nloNumberDiv b,
-    #structureNumberDiv b {
+    #structureNumberDiv b,
+    #treeNumberDiv b {
       font-size: 2.5vw;
       font-family: 'Calibri';
       font-weight: bold;
@@ -382,7 +387,8 @@
                 <calcite-tab-title class="Land" selected>Land</calcite-tab-title>
                 <calcite-tab-title class="Structure">Structure</calcite-tab-title>
                 <calcite-tab-title class="ISF">NLO</calcite-tab-title>
-                <calcite-tab-title class="ExproList">Expro List</calcite-tab-title>
+                <calcite-tab-title class="Trees">Tree</calcite-tab-title>
+                <calcite-tab-title class="Utility">Utility</calcite-tab-title>
             </calcite-tab-nav>
             <calcite-tab>
               <div class="lotNumber-container">
@@ -414,6 +420,14 @@
                 <img id="nloNumberImage" src="https://EijiGorilla.github.io/Symbols/NLO_Logo.svg">
               </div>
               <div class="box3" id="nloPieChartDiv"></div>
+            </calcite-tab>
+            <calcite-tab>
+              <div class="treeNumber-container">
+                <div id="treeNumberDiv"></div>
+                <img id="treeNumberImage" src="https://EijiGorilla.github.io/Symbols/NLO_Logo.svg">
+              </div>
+              <div class="box4" id="treeCuttingPieChartDiv"></div>
+              <div class="box5" id="treeCompensationPieChartDiv"></div>
             </calcite-tab>
             <calcite-tab>
               <div class="panel-side esri-widget">
@@ -4981,6 +4995,266 @@
         });  // End of queryFeature                 
     } // End of updateChartNLO()
     updateChartNLO();
+
+    var root6 = am5.Root.new("treeCuttingPieChartDiv");
+
+    const treeCutStatus = ["Cut/Earthballed", "Permit Acquired", "Submitted to DENR",
+                    "Ongoing Acquisition of Application Documents"];
+
+    function updateChartCutting() {
+        root6.container.children.clear();
+
+        var total_cutearthb = {
+            onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_cutearthb",
+            statisticType: "sum"
+        };
+
+        var total_permit = {
+            onStatisticField: "CASE WHEN Status = 2 THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_permit",
+            statisticType: "sum"
+        };
+
+        var total_denr = {
+            onStatisticField: "CASE WHEN Status = 3 THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_denr",
+            statisticType: "sum"
+        };
+
+        var total_ongoing = {
+            onStatisticField: "CASE WHEN Status = 4 THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_ongoing",
+            statisticType: "sum"
+        };
+
+        var query = treeCuttingLayer.createQuery();
+        query.outStatistics = [total_cutearthb, total_permit, total_denr, total_ongoing];
+        query.returnGeometry = true;
+
+        treeCuttingLayer.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+
+        const cutEarthb = stats.total_cutearthb;
+        const permit = stats.total_permit;
+        const denr = stats.total_denr;
+        const ongoing = stats.total_ongoing;
+
+                // Set themes
+        // https://www.amcharts.com/docs/v5/concepts/themes/
+        root6.setThemes([
+          am5themes_Animated.new(root6),
+          am5themes_Responsive.new(root6)
+        ]);
+
+
+        // Create chart
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/
+        var chart = root6.container.children.push(
+        am5percent.PieChart.new(root6, {
+
+        //centerY: am5.percent(-2), //-10
+        //y: am5.percent(-30), // -30
+        layout: root6.verticalLayout
+        })
+        );
+
+        // Create series
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/#Series
+        var pieSeries = chart.series.push(
+        am5percent.PieSeries.new(root6, {
+            name: "Series",
+            categoryField: "category",
+            valueField: "value",
+            //legendLabelText: "[{fill}]{category}[/]",
+            legendValueText: "{valuePercentTotal.formatNumber('#.')}% ({value})",
+            radius: am5.percent(85), // outer radius
+            innerRadius: am5.percent(40),
+            scale: 0.8
+        })
+        );
+
+        // Set data
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/#Setting_data
+        //https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/pie-series/
+
+        // Set slice opacity and stroke color
+        pieSeries.slices.template.setAll({
+          fillOpacity: 0.9,
+          stroke: am5.color("#ffffff"),
+          strokeWidth: 1,
+          strokeOpacity: 1,
+          templateField: "sliceSettings"
+        });
+
+        // Disabling labels and ticks
+        pieSeries.labels.template.set("visible", false);
+        pieSeries.ticks.template.set("visible", false);
+
+        //pieSeries.appear(1000, 100)
+        pieSeries.slices.template.events.on("click", function(ev) {
+        const SELECTED = ev.target.dataItem.dataContext.category;
+        console.log(SELECTED)
+        if (SELECTED == treeCutStatus[0]) {
+            selectedStatus = 1;
+        } else if (SELECTED == treeCutStatus[1]) {
+            selectedStatus = 2;
+        } else if (SELECTED == treeCutStatus[2]) {
+            selectedStatus = 3;
+        } else if (SELECTED == treeCutStatus[3]) {
+            selectedStatus = 4;
+        } else {
+            selectedStatus = null;
+        }
+
+        view.when(function() {
+            view.whenLayerView(treeCuttingLayer).then(function (layerView) {
+            //chartLayerView = layerView;
+
+            treeCuttingLayer.queryFeatures().then(function(results) {
+                const RESULT_LENGTH = results.features;
+                const ROW_N = RESULT_LENGTH.length;
+
+                let objID = [];
+                for (var i=0; i < ROW_N; i++) {
+                    var obj = results.features[i].attributes.OBJECTID;
+                    objID.push(obj);
+                }
+
+                var queryExt = new Query({
+                objectIds: objID
+                });
+
+                treeCuttingLayer.queryExtent(queryExt).then(function(result) {
+                    if (result.extent) {
+                        view.goTo(result.extent)
+                    }
+                });
+
+                if (highlightSelect) {
+                    highlightSelect.remove();
+                }
+                highlightSelect = layerView.highlight(objID);
+
+                view.on("click", function() {
+                layerView.filter = null;
+                highlightSelect.remove();
+                });
+            }); // End of queryFeatures
+            layerView.filter = {
+                where: "Status = " + selectedStatus
+            }
+            }); // End of view.whenLayerView
+        }); // End of view.when
+        });
+
+        pieSeries.data.setAll(
+        [
+            {
+            category: treeCutStatus[0],
+            value: cutEarthb,
+            sliceSettings: {
+                fill: am5.color("#71AB48")
+            }
+            },
+            {
+            category: treeCutStatus[1],
+            value: permit,
+            sliceSettings: {
+                fill: am5.color("#FFFF00")
+            }
+            },
+            {
+            category: treeCutStatus[2],
+            value: denr,
+            sliceSettings: {
+                fill: am5.color("#FFAA00")
+            }
+            },
+            {
+            category: treeCutStatus[3],
+            value: ongoing,
+            sliceSettings: {
+                fill: am5.color("#FF0000")
+            }
+            },
+        ]
+        );
+
+        // Legend
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/legend-percent-series/
+        var legend = chart.children.push(am5.Legend.new(root6, {
+        centerX: am5.percent(50),
+        x: am5.percent(50),
+        layout: root6.verticalLayout,
+        marginBottom: 10
+        }));
+        legend.data.setAll(pieSeries.dataItems);
+
+        // Change the size of legend markers
+        legend.markers.template.setAll({
+        width: 18,
+        height: 18,
+        strokeWidth: 1,
+        strokeOpacity: 1,
+        stroke: am5.color("#ffffff")
+
+        });
+
+        // Change the marker shape
+        legend.markerRectangles.template.setAll({
+        cornerRadiusTL: 10,
+        cornerRadiusTR: 10,
+        cornerRadiusBL: 10,
+        cornerRadiusBR: 10,
+        });
+
+        // To align legend items: valueLabels right, labels to left
+        // 1. fix width of valueLabels
+        // 2. dynamically change width of labels by screen size
+
+        const valueLabelsWidth = 50;
+
+        // Responsive legend 
+        // https://www.amcharts.com/docs/v5/tutorials/pie-chart-with-a-legend-with-dynamically-sized-labels/
+        chart.onPrivate("width", function(width) {
+        let box = document.querySelector('.box4');
+        const boxWidth = box.offsetWidth;
+        var availableSpace = Math.max(width - chart.width() - 150, 180);
+        //var availableSpace = (boxWidth - valueLabelsWidth) * 0.7
+        legend.labels.template.setAll({
+            width: availableSpace,
+            maxWidth: availableSpace
+        });
+        });
+
+        // Change legend labelling properties
+        // To have responsive font size, do not set font size
+        legend.labels.template.setAll({
+        oversizedBehavior: "truncate",
+        fill: am5.color("#ffffff")
+        //textDecoration: "underline"
+        //width: am5.percent(200)
+        //fontWeight: "300"
+        });
+
+        legend.valueLabels.template.setAll({
+        textAlign: "right",
+        width: valueLabelsWidth,
+        fill: am5.color("#ffffff")
+        //fontSize: LEGEND_FONT_SIZE,
+        })
+
+        legend.itemContainers.template.setAll({
+        // set space between legend items
+        paddingTop: 1.1,
+        paddingBottom: 2,
+        });
+        
+        pieSeries.appear(1000, 100);
+    }); // End of queryFeatures
+    } // End of //updateChart
+    updateChartCutting();
 
     /////////////////// END Of LAYER IMPORT ////////////////////////////
 
