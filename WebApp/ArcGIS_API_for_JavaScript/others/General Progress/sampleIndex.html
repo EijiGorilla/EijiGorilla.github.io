@@ -143,7 +143,12 @@
     .nloNumber-container,
     .pteLot-container,
     .pteStructure-container,
-    .treeNumber-container {
+    .treeNumber-container,
+    .utilityNumber-container {
+      display: flex;
+    }
+
+    .utilityWater-container {
       display: flex;
     }
 
@@ -152,7 +157,8 @@
     #nloNumberDiv,
     #pteLotNumberDiv,
     #pteStructureNumberDiv,
-    #treeNumberDiv {
+    #treeNumberDiv,
+    #utilityNumberDiv {
       width: 50%;
       height: 10%;
       padding-top: 2%;
@@ -175,7 +181,17 @@
     #nloNumberImage,
     #structureImage,
     #structureNumberImage,
-    #treeNumberImage {
+    #treeNumberImage,
+    #utilityNumberImage {
+      width: 23%;
+      height: auto;
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 0;
+      margin-bottom: -10;
+    }
+
+    #utilityWaterNumberImage {
       width: 23%;
       height: auto;
       margin-left: auto;
@@ -187,7 +203,8 @@
     #lotNumberDiv b,
     #nloNumberDiv b,
     #structureNumberDiv b,
-    #treeNumberDiv b {
+    #treeNumberDiv b,
+    #utilityNumberDiv b {
       font-size: 2.5vw;
       font-family: 'Calibri';
       font-weight: bold;
@@ -202,6 +219,14 @@
       align-items: center;
       padding: 1%;
       margin-top: 10%;
+    }
+
+    #utilityPointChartDiv {
+      padding: 0;
+      margin: 0;
+      align-items: center;
+      width: 99%;
+      height: 40%;
     }
 
     b {
@@ -439,12 +464,10 @@
             <calcite-tab>
               <div class="utilityNumber-container">
                 <div id="utilityNumberDiv"></div>
-                <img id="utilityNumberImage" src="https://EijiGorilla.github.io/Symbols/Tree_Logo.svg">
+                <img id="utilityNumberImage" src="https://EijiGorilla.github.io/Symbols/Utility_Logo.png">
               </div>
-              <div class="box6" id="utilityPowerChartDiv"></div>
-              <div class="box7" id="utilityTelecomChartDiv"></div>
-              <div class="box8" id="utilityWaterChartDiv"></div>
-              <div class="box9" id="utilitySewageChartDiv"></div>
+              <div class="box6" id="utilityPointChartDiv"></div>
+              <div class="box7" id="utilityLineChartDiv"></div>
             </calcite-tab>
             <calcite-tab>
               <div class="panel-side esri-widget">
@@ -3285,6 +3308,7 @@
     const pteStructureNumberDiv = document.getElementById("pteStructureNumberDiv");
     const nloNumberDiv = document.getElementById("nloNumberDiv");
     const treeNumberDiv = document.getElementById("treeNumberDiv");
+    const utilityNumberDiv = document.getElementById("utilityNumberDiv");
 
     // 1. Total Number of Lots
     function totalNumberOfLots(){
@@ -3387,6 +3411,73 @@
         });
     }
     pteNumberStructure();
+
+      // Total progress for both points and lines combined
+  function totalProgressPt() {
+    var total_util_number = {
+      onStatisticField: "Status",
+      outStatisticFieldName: "total_util_number",
+      statisticType: "count"
+    };
+
+    var total_prog_util = {
+      onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_prog_util",
+      statisticType: "sum"
+    };
+
+    var query = utilityPointLayer.createQuery();
+    query.outStatistics = [total_util_number, total_prog_util];
+    query.returnGeometry = true;
+
+    return utilityPointLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features[0].attributes;
+      const progress = stats.total_prog_util;
+      const total = stats.total_util_number;
+      const perc = (progress/total)*100;
+
+      const compileArray = [total, progress];
+      return compileArray;
+    });
+  }
+
+  function totalProgressLine(compileArray) {
+    var total_util_number = {
+      onStatisticField: "Status",
+      outStatisticFieldName: "total_util_number",
+      statisticType: "count"
+    };
+
+    var total_prog_util = {
+      onStatisticField: "CASE WHEN Status = 1 THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_prog_util",
+      statisticType: "sum"
+    };
+
+    var query = utilityLineLayer.createQuery();
+    query.outStatistics = [total_util_number, total_prog_util];
+    query.returnGeometry = true;
+
+    utilityLineLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features[0].attributes;
+      const progress = stats.total_prog_util;
+      const total = stats.total_util_number;
+      const perc = (progress/total)*100;
+
+      const totalAll = total + compileArray[0];
+      const progressAll = progress + compileArray[1];
+
+      const total_count = thousands_separators(totalAll);
+      const totalperc = (progressAll/totalAll)*100;
+      const total_utility = totalperc.toFixed(1);
+      utilityNumberDiv.innerHTML = `TOTAL PROGRESS<br><br><b>${total_utility} %</b><br><br>(${total_count})`;
+    });
+  }
+
+  function totalProgressAll(){
+    totalProgressPt().then(totalProgressLine)
+  };
+  totalProgressAll();
 
      
     // CHART PANEL FOR LOT
@@ -5542,9 +5633,347 @@
     updateChartTreeComp();
 
     // UTILITY RELOCATION
-    function updateChartUtility() {
+    const type = [
+      {
+        "category": "Telecom",
+        "value": 1
+      },
+      {
+        "category": "Water",
+        "value": 2
+      },
+      {
+        "category": "Sewage",
+        "value": 3
+      },
+      {
+        "category": "Power",
+        "value": 4
+      },
+    ]
 
+    const marginTop = 0;
+    const marginLeft = 0;
+    const marginRight = 0;
+    const marginBottom = 0;
+    const paddingTop = 10;
+    const paddingLeft = 5;
+    const paddingRight = 5;
+    const paddingBottom = 0;
+
+    const xAxisNumberFormat = "#'%'";
+    const seriesBulletLabelFontSize = "0.7vw";
+
+    // series line fill pattern
+    const linePatternColorComplete = "#0070ff";
+    const linePatternColorOpacityComplete = 0;
+    const linePatternFillOpacityComplete = 0;
+
+    const linePatternColorOpacityIncomplet = 0;
+    const linePatternFillOpacityIncomplet = 1;
+    const linePatternStrokeOpacityIncomplet = 0;
+
+    // axis label
+    const yAxisLabelFontSize = "0.8vw";
+    const xAxisLabelFontSize = "0.8vw"
+    const legendFontSize = "0.8vw"
+
+    // 1.1. Point
+
+    var root_pt = am5.Root.new("utilityPointChartDiv");
+
+    function updateChartUtilityPoint() {
+      root_pt.container.children.clear();
+      var total_telecom_incomp = {
+        onStatisticField: "CASE WHEN (UtilType = 1 and Status = 0) THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_telecom_incomp",
+        statisticType: "sum"
+      };
+
+      var total_telecom_comp = {
+        onStatisticField: "CASE WHEN (UtilType = 1 and Status = 1) THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_telecom_comp",
+        statisticType: "sum"  
+      };
+
+      var total_water_incomp = {
+        onStatisticField: "CASE WHEN (UtilType = 2 and Status = 0) THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_water_incomp",
+        statisticType: "sum"
+      };
+
+      var total_water_comp = {
+        onStatisticField: "CASE WHEN (UtilType = 2 and Status = 1) THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_water_comp",
+        statisticType: "sum"  
+      };
+
+      var total_sewage_incomp = {
+        onStatisticField: "CASE WHEN (UtilType = 3 and Status = 0) THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_sewage_incomp",
+        statisticType: "sum"
+      };
+
+      var total_sewage_comp = {
+        onStatisticField: "CASE WHEN (UtilType = 3 and Status = 1) THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_sewage_comp",
+        statisticType: "sum"  
+      };
+
+      var total_power_incomp = {
+        onStatisticField: "CASE WHEN (UtilType = 4 and Status = 0) THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_power_incomp",
+        statisticType: "sum"
+      };
+
+      var total_power_comp = {
+        onStatisticField: "CASE WHEN (UtilType = 4 and Status = 1) THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_power_comp",
+        statisticType: "sum"  
+      };
+
+
+      // Query
+      var query = utilityPointLayer.createQuery();
+      query.outStatistics = [
+        total_telecom_incomp, total_telecom_comp,
+        total_water_incomp, total_water_comp,
+        total_sewage_incomp, total_sewage_comp,
+        total_power_incomp, total_power_comp
+      ];
+      query.returnGeometry = true;
+
+      utilityPointLayer.queryFeatures(query).then(function(response) {
+        var stats = response.features[0].attributes;
+        const telecom_incomp = stats.total_telecom_incomp;
+        const telecom_comp = stats.total_telecom_comp;
+        const water_incomp = stats.total_water_incomp;
+        const water_comp = stats.total_water_comp;
+        const sewage_incomp = stats.total_sewage_incomp;
+        const sewage_comp = stats.total_sewage_comp;
+        const power_incomp = stats.total_power_incomp;
+        const power_comp = stats.total_power_comp;
+
+        // Set themes
+        // https://www.amcharts.com/docs/v5/concepts/themes/
+        root_pt.setThemes([
+          am5themes_Animated.new(root_pt),
+          am5themes_Responsive.new(root_pt),
+        ]);
+
+        // Create chart
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/
+        var chart = root_pt.container.children.push(am5xy.XYChart.new(root_pt, {
+          panX: false,
+          panY: false,
+          layout: root_pt.verticalLayout,
+          marginTop: marginTop,
+          marginLeft: marginLeft,
+          marginRight: marginRight,
+          marginBottom: marginBottom,
+          paddingTop: paddingTop,
+          paddingLeft: paddingLeft,
+          paddingRight: paddingRight,
+          paddingBottom: paddingBottom,
+          scale: 1,
+          height: am5.percent(100)
+        }));
+
+          var data = [
+            {
+              "category": type[Object.keys(type)[0]].category,
+              "comp": telecom_comp,
+              "incomp": telecom_incomp,
+              "icon": "https://EijiGorilla.github.io/Symbols/Tree_Cutting_Logo.svg",
+            },
+            {
+              "category": type[Object.keys(type)[1]].category,
+              "comp": water_comp,
+              "incomp": water_incomp
+            },
+            {
+              "category": type[Object.keys(type)[2]].category,
+              "comp": sewage_comp,
+              "incomp": sewage_incomp
+            },
+            {
+              "category": type[Object.keys(type)[3]].category,
+              "comp": power_comp,
+              "incomp": power_incomp
+            },
+          ];
+
+    // Create axes
+    // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+    var yRenderer = am5xy.AxisRendererY.new(root_pt, {
+      inversed: true,
+    });
+    var yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root_pt, {
+      categoryField: "category",
+      renderer: yRenderer,
+      bullet: function(root_pt, axis, dataItem) {
+        return am5xy.AxisBullet.new(root_pt, {
+          location: 0.5,
+          sprite: am5.Picture.new(root_pt, {
+            width: 25,
+            height: 25,
+            centerY: am5.p50,
+            centerX: am5.p50,
+            x: -15,
+            src: dataItem.dataContext.icon
+          })
+        });
+      },
+      tooltip: am5.Tooltip.new(root_pt, {})
+    }));
+
+    yRenderer.labels.template.setAll({
+      paddingRight: 30
+    });
+
+    yRenderer.grid.template.setAll({
+      location: 1
+    })
+
+    // Label properties Y axis
+    yAxis.get("renderer").labels.template.setAll({
+      oversizedBehavior: "wrap",
+      textAlign: "center",
+      fill: am5.color("#ffffff"),
+      //maxWidth: 150,
+      fontSize: yAxisLabelFontSize,
+    });
+
+    yAxis.data.setAll(data);
+
+    var xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root_pt, {
+      min: 0,
+      max: 100,
+      strictMax: true,
+      numberFormat: xAxisNumberFormat,
+      calculateTotals: true,
+      renderer: am5xy.AxisRendererX.new(root_pt, {
+        strokeOpacity: 0,
+        strokeWidth: 1,
+        stroke: am5.color("#ffffff"),
+      })
+    }));
+
+
+    // Label properties for yAxis (category axis)
+    xAxis.get("renderer").labels.template.setAll({
+      //oversizedBehavior: "wrap",
+      textAlign: "center",
+      fill: am5.color("#ffffff"),
+      //maxWidth: 150,
+      fontSize: xAxisLabelFontSize
+    });
+
+    chart.get("colors").set("colors", [
+      am5.color("#0070ff"), //
+      am5.color("#000000"),
+    ]);
+
+    // Add series
+    // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+    function makeSeries(name, fieldName) {
+      var series = chart.series.push(am5xy.ColumnSeries.new(root_pt, {
+        name: name,
+        stacked: true,
+        xAxis: xAxis,
+        yAxis: yAxis,
+        baseAxis: yAxis,
+        valueXField: fieldName,
+        valueXShow: "valueXTotalPercent",
+        categoryYField: "category"
+      }));
+
+      series.columns.template.setAll({
+        tooltipText: "{name}: {valueX}",// "{categoryY}: {valueX}",
+        tooltipY: am5.percent(90),
+        //fill: am5.color("#ffffff")
+        // 100% transparent for incomplete
+        fillOpacity: fieldName == "incomp" ? 0 : 1,
+        strokeOpacity: 0,
+      });
+      series.data.setAll(data);
+
+      // Make stuff animate on load
+      // https://www.amcharts.com/docs/v5/concepts/animations/
+      series.appear();
+
+      series.bullets.push(function() {
+        return am5.Bullet.new(root_pt, {
+          sprite: am5.Label.new(root_pt, {
+            text: "{valueX}" === 0 ? "" : "{valueXTotalPercent.formatNumber('#.')}%", //"{valueX}",
+            fill: root_pt.interfaceColors.get("alternativeText"),
+            opacity: fieldName == "incomp" ? 0 : 1,
+            fontSize: seriesBulletLabelFontSize,
+            centerY: am5.p50,
+            centerX: am5.p50,
+            populateText: true
+          })
+        });
+      });
+
+      series.columns.template.events.on("click", function(ev) {
+        // Layer
+        const SELECTED = ev.target.dataItem.dataContext.category;
+        const find = type.find((emp) => emp.category === SELECTED);
+        const typeSelect = find.value;
+    
+        if (fieldName === "incomp") {
+            selectedStatus = 1;
+        } else if (fieldName === "comp") {
+            selectedStatus = 4;
+        } else {
+            selectedLayer = null;
+        }
+        
+        var highlight = null;
+        // Update layerView based on viaduct components being selected
+        view.whenLayerView(utilityPointLayer).then(function (structureLayerView) {
+          structureLayerView.filter = {
+              where: "Type = " + typeSelect + " AND " + "Status = " + selectedStatus
+              //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+            };
+            
+            structureLayerView.queryFeatures().then(function(results) {
+              const ggg = results.features;
+              const rowN = ggg.length;
+              
+              // Extract and obtain OBJECTID
+              let objID = [];
+              for (var i=0; i< rowN; i++) {
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
+              }
+              highlightSelect = structureLayerView.highlight([objID]);
+              if (highlightSelect) {
+                highlightSelect.remove();
+              }
+              // Reset selection by clicking anywhere on the map
+              view.on("click", function() {
+                structureLayerView.filter = null;
+                  highlightSelect.remove();
+              });
+            });
+        }); // whenLayerView
+      });// End of filterByChart
+
+      //legend.data.push(series);
+    }// end of makeSeries
+    makeSeries("Complete", "comp");
+    makeSeries("Incomplete", "incomp");
+    // Make stuff animate on load
+    // https://www.amcharts.com/docs/v5/concepts/animations/
+    chart.appear(1000, 100);
+    }); // End of queryFeatures function
     }
+
+    updateChartUtilityPoint();
+
+  // 1.2. Line
 
 
     /////////////////// END Of LAYER IMPORT ////////////////////////////
