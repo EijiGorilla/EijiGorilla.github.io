@@ -136,11 +136,8 @@
     .pteLot-container,
     .pteStructure-container,
     .treeNumber-container,
-    .utilityNumber-container {
-      display: flex;
-    }
-
-    .utilityWater-container {
+    .utilityNumber-container,
+    .viaductNumber-container {
       display: flex;
     }
 
@@ -150,7 +147,8 @@
     #pteLotNumberDiv,
     #pteStructureNumberDiv,
     #treeNumberDiv,
-    #utilityNumberDiv {
+    #utilityNumberDiv,
+    #viaductNumberDiv {
       width: 50%;
       height: 10%;
       padding-top: 2%;
@@ -174,16 +172,8 @@
     #structureImage,
     #structureNumberImage,
     #treeNumberImage,
-    #utilityNumberImage {
-      width: 23%;
-      height: auto;
-      margin-left: auto;
-      margin-right: auto;
-      margin-top: 0;
-      margin-bottom: -10;
-    }
-
-    #utilityWaterNumberImage {
+    #utilityNumberImage,
+    #viaductNumberImage {
       width: 23%;
       height: auto;
       margin-left: auto;
@@ -196,7 +186,8 @@
     #nloNumberDiv b,
     #structureNumberDiv b,
     #treeNumberDiv b,
-    #utilityNumberDiv b {
+    #utilityNumberDiv b,
+    #viaductNumberDiv b {
       font-size: 2.5vw;
       font-family: 'Calibri';
       font-weight: bold;
@@ -219,6 +210,15 @@
       align-items: center;
       width: 91%;
       height: 38%;
+      font-size: 1vw;
+      color: #f7f5f7;
+    }
+
+    #viaductChartDiv {
+      padding-left: 12px;
+      align-items: center;
+      width: 91%;
+      height: 50%;
       font-size: 1vw;
       color: #f7f5f7;
     }
@@ -448,6 +448,7 @@
                 <calcite-tab-title class="ISF">NLO</calcite-tab-title>
                 <calcite-tab-title class="Trees">Tree</calcite-tab-title>
                 <calcite-tab-title class="Utility">Utility</calcite-tab-title>
+                <calcite-tab-title class="Viaduct">Viaduct</calcite-tab-title>
             </calcite-tab-nav>
             <calcite-tab>
               <div class="lotNumber-container">
@@ -495,6 +496,13 @@
               </div>
               <div class="box6" id="utilityPointChartDiv">UTILITY POINT</div>
               <div class="box7" id="utilityLineChartDiv">UTILITY LINE</div>
+            </calcite-tab>
+            <calcite-tab>
+              <div class="viaductNumber-container">
+                <div id="viaductNumberDiv"></div>
+                <img id="viaductNumberImage" src="https://EijiGorilla.github.io/Symbols/Utility_Logo.png">
+              </div>
+              <div class="box8" id="viaductChartDiv"></div>
             </calcite-tab>
             <calcite-tab>
               <div class="panel-side esri-widget">
@@ -3325,6 +3333,7 @@
     const nloNumberDiv = document.getElementById("nloNumberDiv");
     const treeNumberDiv = document.getElementById("treeNumberDiv");
     const utilityNumberDiv = document.getElementById("utilityNumberDiv");
+    const viaductNumberDiv = document.getElementById("viaductNumberDiv");
 
     document.getElementById("utilityPointChartDiv").innerHTML = `<br>UTILITY POINT`;
     document.getElementById("utilityLineChartDiv").innerHTML = `<br><br><br>UTILITY LINE`;
@@ -6300,9 +6309,344 @@
       // Make stuff animate on load
       // https://www.amcharts.com/docs/v5/concepts/animations/
       chart.appear(1000, 100);
-      }); // End of queryFeatures function
-      }
+    }); // End of queryFeatures function
+  }
       updateChartUtilityLine();
+
+    // VIADUCT
+    const viaductType = [
+    {
+      "category": "Bored Pile",
+      "value": 1
+    },
+    {
+      "category": "Pile Cap",
+      "value": 2
+    },
+    {
+      "category": "Pier",
+      "value": 3
+    },
+    {
+      "category": "Pier Head",
+      "value": 4
+    },
+    {
+      "category": "Precast",
+      "value": 5
+    },
+  ]
+  var root_via = am5.Root.new("viaductChartDiv");
+
+  function updateChartViaduct() {
+    root_via.container.children.clear();
+    var total_pile_incomp = {
+      onStatisticField: "CASE WHEN (Type = 1 and Status1 = 1) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_pile_incomp",
+      statisticType: "sum"
+    };
+
+    var total_pile_comp = {
+      onStatisticField: "CASE WHEN (Type = 1 and Status1 = 4) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_pile_comp",
+      statisticType: "sum"  
+    };
+
+    var total_pilecap_incomp = {
+      onStatisticField: "CASE WHEN (Type = 2 and Status1 = 1) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_pilecap_incomp",
+      statisticType: "sum"
+    };
+
+    var total_pilecap_comp = {
+      onStatisticField: "CASE WHEN (Type = 2 and Status1 = 4) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_pilecap_comp",
+      statisticType: "sum"  
+    };
+
+    var total_pier_incomp = {
+      onStatisticField: "CASE WHEN (Type = 3 and Status1 = 1) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_pier_incomp",
+      statisticType: "sum"
+    };
+
+    var total_pier_comp = {
+      onStatisticField: "CASE WHEN (Type = 3 and Status1 = 4) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_pier_comp",
+      statisticType: "sum"  
+    };
+
+    var total_pierhead_incomp = {
+      onStatisticField: "CASE WHEN (Type = 4 and Status1 = 1) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_pierhead_incomp",
+      statisticType: "sum"
+    };
+
+    var total_pierhead_comp = {
+      onStatisticField: "CASE WHEN (Type = 4 and Status1 = 4) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_pierhead_comp",
+      statisticType: "sum"  
+    };
+
+    var total_precast_incomp = {
+      onStatisticField: "CASE WHEN (Type = 5 and Status1 = 1) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_precast_incomp",
+      statisticType: "sum"
+    };
+
+    var total_precast_comp = {
+      onStatisticField: "CASE WHEN (Type = 5 and Status1 = 4) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_precast_comp",
+      statisticType: "sum"  
+    };
+
+
+    // Query
+    var query = viaductLayer.createQuery();
+    query.outStatistics = [
+      total_pile_incomp, total_pile_comp,
+      total_pilecap_incomp, total_pilecap_comp,
+      total_pier_incomp, total_pier_comp,
+      total_pierhead_incomp, total_pierhead_comp,
+      total_precast_incomp, total_precast_comp,
+    ];
+    query.returnGeometry = true;
+
+    viaductLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features[0].attributes;
+      const pile_incomp = stats.total_pile_incomp;
+      const pile_comp = stats.total_pile_comp;
+      const pilecap_incomp = stats.total_pilecap_incomp;
+      const pilecap_comp = stats.total_pilecap_comp;
+      const pier_incomp = stats.total_pier_incomp;
+      const pier_comp = stats.total_pier_comp;
+      const pierhead_incomp = stats.total_pierhead_incomp;
+      const pierhead_comp = stats.total_pierhead_comp;
+      const precast_incomp = stats.total_precast_incomp;
+      const precast_comp = stats.total_precast_comp;
+
+      // Set themes
+      // https://www.amcharts.com/docs/v5/concepts/themes/
+      root_via.setThemes([
+        am5themes_Animated.new(root_via),
+        am5themes_Responsive.new(root_via),
+      ]);
+
+      // Create chart
+      // https://www.amcharts.com/docs/v5/charts/xy-chart/
+      var chart = root_via.container.children.push(am5xy.XYChart.new(root_via, {
+        panX: false,
+        panY: false,
+        layout: root_via.verticalLayout,
+        marginTop: marginTop,
+        marginLeft: marginLeft,
+        marginRight: marginRight,
+        marginBottom: marginBottom,
+        paddingTop: paddingTop,
+        paddingLeft: paddingLeft,
+        paddingRight: paddingRight,
+        paddingBottom: paddingBottom,
+        scale: 1,
+        height: am5.percent(100)
+      }));
+
+        var data = [
+          {
+            "category": viaductType[Object.keys(viaductType)[0]].category,
+            "comp": pile_comp,
+            "incomp": pile_incomp,
+            "icon": "https://EijiGorilla.github.io/Symbols/Telecom_Logo2.svg",
+          },
+          {
+            "category": viaductType[Object.keys(viaductType)[1]].category,
+            "comp": pilecap_comp,
+            "incomp": pilecap_incomp,
+            "icon": "https://EijiGorilla.github.io/Symbols/Water_Logo2.svg",
+          },
+          {
+            "category": viaductType[Object.keys(viaductType)[2]].category,
+            "comp": pier_comp,
+            "incomp": pier_incomp,
+            "icon": "https://EijiGorilla.github.io/Symbols/Sewage_Logo2.svg",
+          },
+          {
+            "category": viaductType[Object.keys(viaductType)[3]].category,
+            "comp": pierhead_comp,
+            "incomp": pierhead_incomp,
+            "icon": "https://EijiGorilla.github.io/Symbols/Power_Logo2.svg",
+          },
+          {
+            "category": viaductType[Object.keys(viaductType)[4]].category,
+            "comp": pierhead_comp,
+            "incomp": pierhead_incomp,
+            "icon": "https://EijiGorilla.github.io/Symbols/Power_Logo2.svg",
+          },
+        ];
+
+      // Create axes
+      // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+      var yRenderer = am5xy.AxisRendererY.new(root_via, {
+        inversed: true,
+      });
+      var yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root_via, {
+        categoryField: "category",
+        renderer: yRenderer,
+        bullet: function(root_via, axis, dataItem) {
+          return am5xy.AxisBullet.new(root_via, {
+            location: 0.5,
+            sprite: am5.Picture.new(root_via, {
+              width: 25,
+              height: 25,
+              centerY: am5.p50,
+              centerX: am5.p50,
+              x: -15,
+              src: dataItem.dataContext.icon
+            })
+          });
+        },
+        tooltip: am5.Tooltip.new(root_via, {})
+      }));
+
+      yRenderer.labels.template.setAll({
+        paddingRight: 30
+      });
+
+      yRenderer.grid.template.setAll({
+        location: 1
+      })
+
+      // Label properties Y axis
+      yAxis.get("renderer").labels.template.setAll({
+        oversizedBehavior: "wrap",
+        textAlign: "center",
+        fill: am5.color("#ffffff"),
+        //maxWidth: 150,
+        fontSize: yAxisLabelFontSize,
+      });
+
+      yAxis.data.setAll(data);
+
+      var xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root_via, {
+        min: 0,
+        max: 100,
+        strictMax: true,
+        numberFormat: xAxisNumberFormat,
+        calculateTotals: true,
+        renderer: am5xy.AxisRendererX.new(root_via, {
+          strokeOpacity: 0,
+          strokeWidth: 1,
+          stroke: am5.color("#ffffff"),
+        })
+      }));
+
+
+      // Label properties for yAxis (category axis)
+      xAxis.get("renderer").labels.template.setAll({
+        //oversizedBehavior: "wrap",
+        textAlign: "center",
+        fill: am5.color("#ffffff"),
+        //maxWidth: 150,
+        fontSize: xAxisLabelFontSize
+      });
+
+      chart.get("colors").set("colors", [
+        am5.color("#008c1a"), //
+        am5.color("#000000"),
+      ]);
+
+      // Add series
+      // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+      function makeSeries(name, fieldName) {
+        var series = chart.series.push(am5xy.ColumnSeries.new(root_via, {
+          name: name,
+          stacked: true,
+          xAxis: xAxis,
+          yAxis: yAxis,
+          baseAxis: yAxis,
+          valueXField: fieldName,
+          valueXShow: "valueXTotalPercent",
+          categoryYField: "category"
+        }));
+
+        series.columns.template.setAll({
+          tooltipText: "{name}: {valueX}",// "{categoryY}: {valueX}",
+          tooltipY: am5.percent(90),
+          //fill: am5.color("#ffffff")
+          // 100% transparent for incomplete
+          fillOpacity: fieldName == "incomp" ? 0 : 1,
+          strokeOpacity: 0,
+        });
+        series.data.setAll(data);
+
+        // Make stuff animate on load
+        // https://www.amcharts.com/docs/v5/concepts/animations/
+        series.appear();
+
+        series.bullets.push(function() {
+          return am5.Bullet.new(root_via, {
+            sprite: am5.Label.new(root_via, {
+              text: "{valueX}" === 0 ? "" : "{valueXTotalPercent.formatNumber('#.')}%", //"{valueX}",
+              fill: root_via.interfaceColors.get("alternativeText"),
+              opacity: fieldName == "incomp" ? 0 : 1,
+              fontSize: seriesBulletLabelFontSize,
+              centerY: am5.p50,
+              centerX: am5.p50,
+              populateText: true
+            })
+          });
+        });
+
+        series.columns.template.events.on("click", function(ev) {
+          const SELECTED = ev.target.dataItem.dataContext.category;
+          const find = type.find((emp) => emp.category === SELECTED);
+          const typeSelect = find.value;
+      
+          const selectedStatus = fieldName == 'incomp' ? 0 : 1;
+
+          var highlight = null;
+          let arrLviews = [];
+          const sqlExpression = "Type = " + typeSelect + " AND " +  "Status1 = " + selectedStatus;
+
+          view.whenLayerView(viaductLayer).then(function (viaductLayerView) {
+            viaductLayerView.filter = {
+                where: sqlExpression
+                //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+            };
+            
+            viaductLayerView.queryFeatures().then(function(results) {
+                const ggg = results.features;
+                const rowN = ggg.length;
+                
+                // Extract and obtain OBJECTID
+                let objID = [];
+                for (var i=0; i< rowN; i++) {
+                    var obj = results.features[i].attributes.OBJECTID;
+                    objID.push(obj);
+                }
+                highlightSelect = viaductLayerView.highlight([objID]);
+                if (highlightSelect) {
+                  highlightSelect.remove();
+                }
+
+                // Reset selection by clicking anywhere on the map
+                view.on("click", function() {
+                    viaductLayerView.filter = null;
+                    highlightSelect.remove();
+                });
+            });
+          }); // whenLayerView
+        });// End of filterByChart
+
+        //legend.data.push(series);
+      }// end of makeSeries
+      makeSeries("Complete", "comp");
+      makeSeries("Incomplete", "incomp");
+      // Make stuff animate on load
+      // https://www.amcharts.com/docs/v5/concepts/animations/
+      chart.appear(1000, 100);
+    }); // End of queryFeatures function
+  }
+  updateChartViaduct();
 
     /////////////////// END Of LAYER IMPORT ////////////////////////////
 
@@ -7058,29 +7402,31 @@
             left: actionBarExpanded ? 135 : 45
           };
         });
+
+        // See-through-Ground
+        view.when(function() {
+          // allow navigation above and below the ground
+          map.ground.navigationConstraint = {
+            type: "none"
+          };
+          // the webscene has no basemap, so set a surfaceColor on the ground
+          map.ground.surfaceColor = "#fff";
+                  
+          // to see through the ground, set the ground opacity to 0.4
+          map.ground.opacity = 1;
+        });
+                  
+        document.getElementById("myLink").addEventListener("click", function(event) {
+          const checked = event.srcElement.checked;
+          map.ground.opacity = event.srcElement.checked ? 0 : 0.8;
+          view.environment.atmosphereEnabled = false;
+        });
       // Switch theme
       document.querySelector("calcite-shell").hidden = false;
       document.querySelector("calcite-loader").hidden = true;
     });
 
-    // See-through-Ground
-    view.when(function() {
-      // allow navigation above and below the ground
-      map.ground.navigationConstraint = {
-        type: "none"
-      };
-      // the webscene has no basemap, so set a surfaceColor on the ground
-      map.ground.surfaceColor = "#fff";
-              
-      // to see through the ground, set the ground opacity to 0.4
-      map.ground.opacity = 1;
-    });
-              
-    document.getElementById("myLink").addEventListener("click", function(event) {
-      const checked = event.srcElement.checked;
-      map.ground.opacity = event.srcElement.checked ? 0.8 : 0;
-      view.environment.atmosphereEnabled = false;
-    });
+
 
     });
   </script>
