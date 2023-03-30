@@ -172,9 +172,17 @@
     #structureImage,
     #structureNumberImage,
     #treeNumberImage,
-    #utilityNumberImage,
+    #utilityNumberImage {
+      width: 20%;
+      height: auto;
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 0;
+      margin-bottom: -10;
+    }
+
     #viaductNumberImage {
-      width: 23%;
+      width: 25%;
       height: auto;
       margin-left: auto;
       margin-right: auto;
@@ -201,7 +209,7 @@
       height: 30%;
       align-items: center;
       padding: 1%;
-      margin-top: 10%;
+      margin-top: 5%;
     }
 
     #utilityPointChartDiv,
@@ -500,7 +508,7 @@
             <calcite-tab>
               <div class="viaductNumber-container">
                 <div id="viaductNumberDiv"></div>
-                <img id="viaductNumberImage" src="https://EijiGorilla.github.io/Symbols/Utility_Logo.png">
+                <img id="viaductNumberImage" src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol.png">
               </div>
               <div class="box8" id="viaductChartDiv"></div>
             </calcite-tab>
@@ -3222,7 +3230,7 @@
   function updateSummary() {
     totalNumberOfLots();
     totalNumberOfStructures();
-    totalProgressAll();
+    totalProgressUtility();
 
     pteNumberLot();
     pteNumberStructure();
@@ -3502,10 +3510,40 @@
     });
   }
 
-  function totalProgressAll(){
+  function totalProgressUtility(){
     totalProgressPt().then(totalProgressLine)
   };
-  totalProgressAll();
+  totalProgressUtility();
+
+  function totalProgressViaduct(){
+      var total_viaduct_comp = {
+        onStatisticField: "CASE WHEN Status1 = 4 THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_viaduct_comp",
+        statisticType: "sum"
+      };
+
+      var total_viaduct_all = {
+        onStatisticField: "Type",
+        outStatisticFieldName: "total_viaduct_all",
+        statisticType: "count"
+      }
+      var query = viaductLayer.createQuery();
+      viaductLayer.outStatistics = [total_viaduct_all, total_viaduct_comp];
+
+      query.returnGeometry = true;
+
+      viaductLayer.queryFeatures(query).then(function(response){
+        var stats = response.features[0].attributes;
+        const viaduct_total = stats.total_viaduct_all;
+        const viaduct_comp = stats.total_viaduct_comp;
+
+        const PROGRESS = ((viaduct_comp / viaduct_total)*100).toFixed(1);
+        const total = thousands_separators(viaduct_total); 
+
+        viaductNumberDiv.innerHTML = utilityNumberDiv.innerHTML = `TOTAL PROGRESS<br><br><b>${PROGRESS} %</b><br><br>(${total})`;;
+      });
+    }
+    totalProgressViaduct();
 
      
     // CHART PANEL FOR LOT
@@ -6455,7 +6493,7 @@
             "category": viaductType[Object.keys(viaductType)[0]].category,
             "comp": pile_comp,
             "incomp": pile_incomp,
-            "icon": "https://EijiGorilla.github.io/Symbols/Telecom_Logo2.svg",
+            "icon": "https://EijiGorilla.github.io/Symbols/Viaduct_Images/Bored_Pile_Logo.svg",
           },
           {
             "category": viaductType[Object.keys(viaductType)[1]].category,
@@ -6495,8 +6533,8 @@
           return am5xy.AxisBullet.new(root_via, {
             location: 0.5,
             sprite: am5.Picture.new(root_via, {
-              width: 25,
-              height: 25,
+              width: 45,
+              height: 50,
               centerY: am5.p50,
               centerX: am5.p50,
               x: -15,
