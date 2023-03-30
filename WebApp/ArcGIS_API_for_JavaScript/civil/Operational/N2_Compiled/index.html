@@ -6702,7 +6702,49 @@
     }
 
     view.ui.empty("top-left");
-      
+    
+  //Search Widget 
+  var searchWidget = new Search({
+    view: view,
+    locationEnabled: false,
+    allPlaceholder: "Chainage or Pier No.",
+    includeDefaultSources: false,
+    sources: [
+      {
+        layer: chainageLayer,
+        searchFields: ["KmSpot"],
+        displayField: "KmSpot",
+        exactMatch: false,
+        outFields: ["KmSpot"],
+        name: "Main KM",
+        placeholder: "example: 80+400"
+      },
+      {
+        layer: pierAccessLayer,
+        searchFields: ["PIER"],
+        displayField: "PIER",
+        exactMatch: false,
+        outFields: ["PIER"],
+        name: "Pier No.",
+        placeholder: "example: PLK-01"
+      },
+    ]
+  });
+    
+    const searchExpand = new Expand({
+      view: view,
+      content: searchWidget,
+      expandIconClass: "esri-icon-search"
+    });
+    view.ui.add(searchExpand, {
+      position: "top-right"
+    });
+    
+    searchExpand.watch("expanded", function() {
+      if(!searchExpand.expanded) {
+        searchWidget.searchTerm = null;
+      }
+    });
 
     // Legend
     var legend_land = new Legend({
