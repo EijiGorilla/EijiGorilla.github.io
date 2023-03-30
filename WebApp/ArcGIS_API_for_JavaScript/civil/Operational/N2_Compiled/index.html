@@ -17,7 +17,13 @@
     <script src="https://cdn.amcharts.com/lib/5/themes/Micro.js"></script>
     <script src="https://cdn.amcharts.com/lib/5/themes/Responsive.js"></script>
 
+    <!-- Resources -->
+    <script src="https://unpkg.com/three@0.144.0/build/three.js"></script>
+    <script src="https://unpkg.com/three@0.144.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/7/Stats.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
     <script src="https://js.arcgis.com/4.26/"></script>
+    <script src="js/animepoint.js"></script>
 
   </head>
   <style>
@@ -231,14 +237,53 @@
       color: #f7f5f7;
     }
 
-    /* See Through Label */
-    #see-through-label {
-      padding: 10;
+    #timeSeriesChart {
+      position: absolute;
+      z-index: 1;
+      height: 40vh;
+      width: 60vw;
+      bottom: 20%;
+      left: 8vw;
+      background-color: rgb(37, 37, 37);
+    }
 
+    /* See Through Label */
+    #see-through-label,
+    #viaduct-checkbox,
+    #land-checkbox {
+      padding: 10;
     }
 
     b {
         color: orange;
+    }
+
+    /* TRAIN ANIMATION BUTTON */
+    .overlay {
+      position: fixed;
+      z-index: 1;
+      width: 2%;
+      bottom: 0;
+      right: 7;
+      background-color: rgba(80, 80, 80, 0);
+      padding: 0;
+      /*text-align: center;*/
+    }
+  
+    .button {
+      cursor: pointer;
+      font-size: 1vw !important;
+      font-weight: bold !important;
+      color: rgb(230, 230, 230);
+      padding: 0;
+    }
+    
+    .button:hover, #label {
+      color: white;
+    }
+    
+    .button, #label {
+      margin: 15px;
     }
 
     /* SCROLL BAR */
@@ -282,8 +327,6 @@
       margin-left: -10;
     }
 
-
-
     /*
     .esri-legend__layer-cell {
       min-width: 100px;
@@ -325,6 +368,7 @@
           <calcite-action data-action-id="layers" icon="layers" text="Layers"></calcite-action>
           <calcite-action data-action-id="basemaps" icon="basemap" text="Basemaps"></calcite-action>
           <calcite-action data-action-id="seethrough" icon="transparency" text="Transparency"></calcite-action>
+          <calcite-action data-action-id="charts" icon="graph-time-series" text="Progree Chart"></calcite-action>
           <calcite-action data-action-id="information" icon="information" text="Information"></calcite-action>
         </calcite-action-bar>
         
@@ -429,10 +473,17 @@
         </calcite-panel>
         <calcite-panel heading="View Underground" height-scale="l" data-panel-id="seethrough" hidden>
           <calcite-label layout="inline" id="see-through-label">
-            <calcite-checkbox id="myLink"></calcite-checkbox>
+            <calcite-checkbox id="myLink"></calcite-checkbox> Ground color becomes transparent
           </calcite-label>
         </calcite-panel>
-
+        <calcite-panel class="timeSeries-panel" heading="Progress Chart" height-scale="l" data-panel-id="charts" hidden>
+          <calcite-label layout="inline" id="viaduct-timeSeries-label">
+            <calcite-checkbox id="viaduct-checkbox"></calcite-checkbox>Viaduct
+          </calcite-label>
+          <calcite-label layout="inline" id="land-timeSeries-label">
+            <calcite-checkbox id="land-checkbox"></calcite-checkbox>Land Acquisition (Coming Soon..)
+          </calcite-label>
+        </calcite-panel>
         <!-- Info panel (populates with info from the web map) -->
         <calcite-panel heading="Description" data-panel-id="information" hidden>
           <div id="info-content">
@@ -444,6 +495,7 @@
         </calcite-panel>
       </calcite-shell-panel>
       <div id="container">
+        <div id="timeSeriesChart" hidden></div>
       <div id="viewDiv">
       </div>
       <!-- Tabs "https://esri.github.io/calcite-web/documentation/patterns/#tabs" -->
@@ -511,6 +563,14 @@
                 <img id="viaductNumberImage" src="https://EijiGorilla.github.io/Symbols/Viaduct_Images/Viaduct_All_Logo.svg">
               </div>
               <div class="box8" id="viaductChartDiv"></div>
+              <div class="overlay">
+                <div>
+                  <span id="play" class="button esri-icon-play" style="display: block;" />
+                </div>
+                <div>
+                  <span id="pause" class="button esri-icon-pause" style="display: none;" />
+                </div>
+              </div> 
             </calcite-tab>
             <calcite-tab>
               <div class="panel-side esri-widget">
@@ -520,7 +580,6 @@
               </div>
             </calcite-tab>
       </calcite-tabs>
-
     </div>
     </calcite-shell>
   </body>
@@ -558,13 +617,27 @@
       "esri/popup/content/CustomContent",
       "esri/layers/TileLayer",
       "esri/core/reactiveUtils",
-      "esri/popup/support/FieldInfoFormat"
+      "esri/popup/support/FieldInfoFormat",
+      "esri/geometry/geometryEngine",
+      "esri/rest/route",
+      "esri/rest/support/RouteParameters",
+      "esri/core/Accessor",
+      "esri/Graphic",
+      "esri/geometry/Point",
+      "esri/geometry/Polyline",
+      "esri/views/3d/externalRenderers",
+      "esri/rest/support/FeatureSet",
+      "esri/symbols/SimpleMarkerSymbol",
+      "esri/symbols/SimpleLineSymbol",
+      "esri/geometry/SpatialReference",
     ], function(WebMap, MapView, SceneView, Map, FeatureLayer, SceneLayer, Bookmarks, BasemapGallery, LayerList, Legend, 
                 Query, Fullscreen, FeatureFilter, TableList, PortalItem, Portal, geometryService,
                 StatisticDefinition, WebStyleSymbol, Expand, UniqueValueRenderer, Ground,
                 RelationshipQuery, GraphicsLayer, Search, Locate, BasemapToggle, PopupTemplate,
                 LabelClass, CustomContent, TileLayer, reactiveUtils, 
-                FieldInfoFormat
+                FieldInfoFormat, geometryEngine, route, RouteParameters, Accessor, Graphic,
+                Point, Polyline, externalRenderers, FeatureSet, SimpleMarkerSymbol, SimpleLineSymbol,
+                SpatialReference
                  ) {
       
 
@@ -582,26 +655,20 @@
         ground: "world-elevation",
     }); 
 
-    /*
-    var view = new MapView({
-        map: map,
-        center: [120.57930, 15.18],
-        zoom: 12,
-        container: "viewDiv",
-        environment: {
-          background: {
-          type: "color", // autocasts as new ColorBackground()
-          color: [0, 0, 0, 1]
-          },
-        }
-    });
-    */
     var view = new SceneView({
         map: map,
         center: [120.57930, 15.18],
         zoom: 12,
         viewingMode: "local",
         container: "viewDiv",
+        camera: {
+          position: {
+            x: 120.75200,
+            y: 14.90,
+            z: 2500
+          },
+          tilt: 65
+        },
         environment: {
           background: {
             type: "color", // autocasts as new ColorBackground()
@@ -616,6 +683,431 @@
       view,
       container: "basemaps-container"
     });
+
+
+    // TRAIN ANIMATION //
+////// Train Animation using externalRenderers
+// Route Layer for animatioin
+      // The stops and route result will be stored in this layer
+      var routeLyr = new GraphicsLayer();
+  
+      // Setup the route parameters
+      var routeParams = new RouteParameters({
+          stops: new FeatureSet(),
+          outSpatialReference: { // autocasts as new SpatialReference()
+              wkid: 3857
+          }
+      });
+  
+      // Define the symbology used to display the stops
+      var stopSymbol = new SimpleMarkerSymbol({
+          style: "cross",
+          size: 0, // 15
+          outline: { // autocasts as new SimpleLineSymbol()
+              width: 0 // 4
+          }
+      });
+  
+      // Define the symbology used to display the route
+      var routeSymbol = new SimpleLineSymbol({
+          color: [0, 0, 255, 0], // [0, 0, 255, 0.5]
+          width: 5
+      });
+  
+      // Adds a graphic when the user clicks the map. If 2 or more points exist, route is solved.
+      //on(view, "click", addStop);
+      view.on("click", function() {
+        addStop();
+
+    });
+
+    function addStop(event) {
+
+        // Add a point at the location of the map click
+        //var stop = new Graphic({
+        //    geometry: event.mapPoint,
+        //    symbol: stopSymbol
+        //});
+
+        var stop1 = new Graphic({
+            geometry: new Point({x: 13422812.716400001, y: 1710317.0639999993, z: 115.65110000000277, spatialReference: SpatialReference.WebMercator}),
+            symbol: stopSymbol
+        });
+        routeLyr.add(stop1);
+
+        var stop2 = new Graphic({
+            geometry: new Point({x: 13422004.020599999, y: 1713789.0846000016, z: 105.54970000000321, spatialReference: SpatialReference.WebMercator }),
+            symbol: stopSymbol
+        });
+        routeLyr.add(stop2);
+
+        routeParams.stops.features.push(stop1);
+        routeParams.stops.features.push(stop2);
+
+        // Execute the route task if 2 or more stops are input
+        //routeParams.stops.features.push(stop);
+        if (routeParams.stops.features.length >= 2) {
+            //routeTask.solve(routeParams).then(showRoute);
+            showRoute();
+        }
+    }
+
+    // Adds the solved route to the map as a graphic
+    function showRoute(data) {
+        
+        //var routeResult = data.routeResults[0].route;
+
+        var polyline = new Polyline(polylinePoints);
+        polyline.spatialReference = SpatialReference.WebMercator;
+
+        var routeResult = new Graphic({
+            geometry: polyline,
+            symbol: routeSymbol
+        });
+        routeResult.symbol = routeSymbol;
+
+        routeLyr.add(routeResult);
+      
+      // the speed of the object becomes low with maximum segment of length
+      var pl = geometryEngine.densify(routeResult.geometry, 0.5, "meters");
+        // register the external renderer
+        const myExternalRenderer = new skeletonRenderer(view, pl);
+        externalRenderers.add(view, myExternalRenderer);
+
+    }
+    // Disable lighting based on the current camera position.
+    // We want to display the lighting according to the current time of day.
+    //view.environment.lighting.cameraTrackingEnabled = false;
+
+    // Create our custom external renderer
+   //////////////////////////////////////////////////////////////////////////////////////
+    //https://github.nicogis.it/externalRendererSkeleton/
+    var skeletonRenderer = Accessor.createSubclass({ // if '|| {}' is not added beside null,
+    // you will receive the following error 'Cannot destructure property of xx of 'null' as it is null'
+        view: null,
+        //pl: null,
+        renderer: null,     // three.js renderer
+        camera: null,       // three.js camera
+        scene: null,        // three.js scene
+        vertexIdx: 0,
+        ambient: null,      // three.js ambient light source
+        sun: null,          // three.js sun light source
+        mixer: null,
+        mixer2: null,
+        clock: null,
+        clips: null,
+        animate: null,
+        light: null,
+        iss: null, 
+        iss2: null,                                                   // ISS model
+        issScale: 3,                                     // scale for the iss model
+        issScale2: 10,
+        path: null,
+      count: null,
+      up: null,
+      timeDelta: null,
+      markerMaterial: null,    // material for the markers left by the ISS
+      markerGeometry: null,    // geometry for the markers left by the ISS
+      //issMaterial: new THREE.MeshLambertMaterial({ color: 0x2194ce, transparent: true, opacity: 0.1 }), 
+
+        cameraPositionInitialized: false, // we focus the view on the ISS once we receive our first data point
+        positionHistory: [],
+      
+        constructor: function (view, pl) {
+          this.view = view;
+            this.path = pl.paths[0]; //pl.paths[0];
+        },
+        /**
+         * Setup function, called once by the ArcGIS JS API.
+         */
+        setup: function (context) {
+
+            // initialize the three.js renderer
+            /////////////////////////////////////////////////////////////////////////////////////
+            this.renderer = new THREE.WebGLRenderer({
+                context: context.gl,
+                premultipliedAlpha: false
+            });
+            this.renderer.setPixelRatio(window.devicePixelRatio);
+            this.renderer.setSize(context.camera.fullWidth, context.camera.fullHeight);
+            this.renderer.setViewport(0, 0, view.width, view.height);
+
+            // prevent three.js from clearing the buffers provided by the ArcGIS JS API.
+            this.renderer.autoClearDepth = false;
+            this.renderer.autoClearStencil = false;
+            this.renderer.autoClearColor = false;
+
+            // The ArcGIS JS API renders to custom offscreen buffers, and not to the default framebuffers.
+            // We have to inject this bit of code into the three.js runtime in order for it to bind those
+            // buffers instead of the default ones.
+            var originalSetRenderTarget = this.renderer.setRenderTarget.bind(this.renderer);
+            this.renderer.setRenderTarget = function (target) {
+                originalSetRenderTarget(target);
+                if (target == null) {
+                    context.bindRenderTarget();
+                }
+            }
+
+            // setup the three.js scene
+            //////////////////////////////////////////////////////////////////////////////////////         
+            this.scene = new THREE.Scene();
+
+            // setup the camera
+            this.camera = new THREE.PerspectiveCamera();
+
+            // setup scene lighting
+            this.ambient = new THREE.AmbientLight(0xffffff, 0.5);
+            this.scene.add(this.ambient);
+            this.sun = new THREE.DirectionalLight(0xffffff, 0.5);
+            this.scene.add(this.sun);
+
+          // setup markers
+            this.markerGeometry = new THREE.SphereBufferGeometry(12*1000, 16, 16);
+            this.markerMaterial = new THREE.MeshBasicMaterial({ color: 0xe03110, transparent: true, opacity: 0.5});
+
+            this.clock = new THREE.Clock();
+
+            var issMeshUrl = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/Locomotive.glb"; 
+            var loaderGLTF = new THREE.GLTFLoader(); // check this: https://qgenhate.hatenablog.com/ [object not an instance of THREE.Object3D]
+            let example = new THREE.Object3D();
+
+            loaderGLTF.load(issMeshUrl,
+            function(gltf) {
+                console.log("ISS mesh loaded.");
+               
+                example = gltf.scene;
+                this.iss = example;
+
+                // set the specified scale for the model
+                this.iss.scale.set(this.issScale, this.issScale, this.issScale);
+                
+                // add the model
+                this.scene.add(this.iss); // original: this.iss
+                console.log("ISS mesh added.");
+
+                // Mixer for animation
+                this.mixer = new THREE.AnimationMixer(this.iss);
+                this.mixer.clipAction(gltf.animations[0]).play();
+            
+            }.bind(this), undefined, function(error) {
+                console.error("Error loading ISS mesh. ", error);
+            });
+
+            this.light = new THREE.DirectionalLight(0xffffff, 1);
+            this.light.position.set(0, 1, 0);
+            this.scene.add(this.light);
+          
+          // rotation 
+              this.up = new THREE.Vector3(0, 0, 1); // used with lookAt: look at the next point at x-axis
+              this.axis = new THREE.Vector3();
+              this.n  = new THREE.Vector3( ); // normal,
+              this.b  = new THREE.Vector3( ); // binormal
+              this.M3 = new THREE.Matrix3( );
+              this.M4 = new THREE.Matrix4( );
+              this.pp = new THREE.Vector3( );
+              this.quaternion = new THREE.Quaternion();
+
+            // cleanup after ourselfs
+            context.resetWebGLState();
+        },
+        render: function (context) {
+
+            // update camera parameters
+            ///////////////////////////////////////////////////////////////////////////////////
+            var cam = context.camera;
+
+            this.camera.position.set(cam.eye[0], cam.eye[1], cam.eye[2]);
+            this.camera.up.set(cam.up[0], cam.up[1], cam.up[2]);
+            this.camera.lookAt(new THREE.Vector3(cam.center[0], cam.center[1], cam.center[2]));
+
+            // Projection matrix can be copied directly
+            this.camera.projectionMatrix.fromArray(cam.projectionMatrix);
+          
+            if (this.iss) {
+                     
+                // Add this.mixer.update first; otherwise, the object will not be animated.s
+                if (this.mixer) {
+                    var scale = 0.0001; //this.gui.getTimeScale();
+                    var delta = this.clock.getDelta();
+
+                  this.mixer.update(delta);         
+                }
+
+                    if (this.path.length == (this.vertexIdx + 1))
+                {
+                    this.vertexIdx = 0;
+                }
+              
+                var p = this.path[this.vertexIdx]; // vertexIdx = 0
+              var p1 = this.path[this.vertexIdx + 1];
+              
+            
+              // Define Z:
+              // It is important that the same Z values are set for both current (pt) and next points (pt1)
+              // Otherwise, the object will be tilted.
+              const changeZ = 0;
+              const offset = 0;
+              const offsetZ = 0;
+
+                var pt = new Point({
+                    x: p[0] + offset, // longitude
+                    y: p[1], // latitude
+                    z: p[2] + offsetZ
+                });
+
+                pt.spatialReference = SpatialReference.WebMercator;
+
+                //z = offsetZ; // view.basemapTerrain.getElevation(p);
+
+                pos = [pt.x, pt.y, pt.z];
+
+                this.vertexIdx++;
+
+                if (this.path.length == (this.vertexIdx)) {
+                    this.vertexIdx--;
+                }
+              
+                var transform = new THREE.Matrix4();
+                transform.fromArray(externalRenderers.renderCoordinateTransformAt(view, pos, SpatialReference.WebMercator, new Array(16)));
+
+               this.iss.position.set(transform.elements[12], transform.elements[13], transform.elements[14]);
+              
+                this.count ++;
+                if (this.count === 1) {
+                  console.log(transform.elements[12], transform.elements[13], transform.elements[14]);
+                }
+
+                var p0;
+                var p1;
+
+                if ((this.path.length - 1) == (this.vertexIdx))
+                {
+                    p0 = this.path[--this.vertexIdx];
+                    p1 = this.path[this.vertexIdx];
+                }
+                else
+                {
+                    p0 = this.path[this.vertexIdx];
+                    p1 = this.path[++this.vertexIdx];
+                }
+                            
+              var rotation = new THREE.Matrix4();
+              
+                var pt1 = new Point({
+                    x: p1[0] + offset, // longitude
+                    y: p1[1], // latitude
+                    z: p1[2] + offsetZ
+                });
+              posR = [pt1.x, pt1.y, pt1.z];
+              rotation.fromArray(externalRenderers.renderCoordinateTransformAt(view, posR, SpatialReference.WebMercator, new Array(16)));
+              // https://answers.unity.com/questions/36255/lookat-to-only-rotate-on-y-axis-how.html
+              // how to use '.up' with lookAt?
+              //geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( Math.PI / 2 ) );
+              this.iss.up = this.up;
+              
+              this.iss.lookAt(rotation.elements[12], rotation.elements[13], rotation.elements[14]);
+            }
+
+
+            // update lighting
+            /////////////////////////////////////////////////////////////////////////////////////////////////////
+            //view.environment.lighting.date = Date.now();
+
+            var l = context.sunLight;
+            this.sun.position.set(
+              l.direction[0],
+              l.direction[1],
+              l.direction[2]
+            );
+            this.sun.intensity = l.diffuse.intensity;
+            this.sun.color = new THREE.Color(l.diffuse.color[0], l.diffuse.color[1], l.diffuse.color[2]);
+
+            this.ambient.intensity = l.ambient.intensity;
+            this.ambient.color = new THREE.Color(l.ambient.color[0], l.ambient.color[1], l.ambient.color[2]);
+
+            // draw the scene
+            /////////////////////////////////////////////////////////////////////////////////////////////////////
+            this.renderer.resetState();
+            context.bindRenderTarget();
+            this.renderer.render(this.scene, this.camera);
+            externalRenderers.requestRender(view);
+
+            // cleanup
+            context.resetWebGLState();
+        },
+    })
+    externalRenderers.add(view, skeletonRenderer);
+    // End of externalRenderers
+
+    /// Camera animation
+    const camera = view.camera.clone();
+
+    const pt1 = {x: 120.58066534, y: 15.18190446, z: 193.6964};
+    const pt2 = {x: 120.57976213, y: 15.1870787, z: 128.02725};
+    const pt3 = {x: 120.57975569, y: 15.19070198, z: 138.165};
+    const pt4 = {x: 120.57831507, y: 15.19802226, z: 183.82172};
+    const pt5 = {x: 120.57478353, y: 15.20799639, z: 145.15981};
+    const pt6 = {x: 120.57369966, y: 15.21207364, z: 138.33217};
+
+    const comp_pts = [pt1, pt2, pt3, pt4, pt5, pt6];
+    const heading_pts = [331.62, 334.31, 336.19, 323.47, 311.74, 289.63];
+    const tilt_pts = [72.29, 81.91, 78.58, 72.66, 72.48, 73.59];
+
+    let abort = false;
+    async function startAnimation(slideNo) {
+      play.style.display = "none";
+      pause.style.display = "block";
+        if (!view.interacting && !abort) {
+
+            if (slideNo < comp_pts.length) {
+                if (slideNo === 0) {
+                    camera.heading = heading_pts[slideNo];
+                    camera.tilt = tilt_pts[slideNo];
+                } else {
+                    camera.heading = heading_pts[slideNo];
+                }
+                camera.tilt = tilt_pts[slideNo];
+                camera.position = comp_pts[slideNo];
+        
+                await view.goTo(camera, {animate: true, speedFactor: 0.265, easing: "linear"});
+                //requestAnimationFrame(startAnimation);
+                window.setTimeout(function() {
+                    startAnimation(slideNo + 1);
+                }, 0);
+            }
+        } else {
+            abort = true;
+            play.style.display = "block";
+            pause.style.display = "none";
+        }
+    }
+
+    // Initialization
+    play.onclick = initialization;
+    pause.onclick = function() {
+        play.style.display = "block";
+        pause.style.display = "none";
+        abort = true;
+    };
+
+    async function initialization() {
+      abort = false;
+
+      document.getElementById("N-04").checked = true;
+      viaductLayer.definitionExpression = "CP = 'N-04'";
+      pierAccessLayer.definitionExpression = "CP = 'N-04'";
+
+      addStop();
+      await startAnimation(0);
+      /*
+        window.setTimeout(function() {
+            startAnimation(0);
+        }, 1)
+        */
+    }
+    // TRAIN ANIMATION END //
+
+
 
     // Default Renderer for Polygon------------
     let defaultLotSymbolBoundary = {
@@ -6686,6 +7178,238 @@
   }
   updateChartViaduct();
 
+  var root_ts = am5.Root.new("timeSeriesChart");
+
+  function timeSeriesChart() {
+    root_ts.container.children.clear();
+
+    var total_complete_pile = {
+      onStatisticField: "CASE WHEN (Status1 = 4 and Type = 1) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete_pile",
+      statisticType: "sum"
+    };
+  
+    var total_complete_pilecap = {
+      onStatisticField: "CASE WHEN (Status1 = 4 and Type = 2) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete_pilecap",
+      statisticType: "sum"
+    };
+
+    var total_complete_pier = {
+      onStatisticField: "CASE WHEN (Status1 = 4 and Type = 3) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete_pier",
+      statisticType: "sum"
+    };
+
+    var total_complete_pierhead = {
+      onStatisticField: "CASE WHEN (Status1 = 4 and Type = 4) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete_pierhead",
+      statisticType: "sum"
+    };
+
+    var total_complete_precast = {
+      onStatisticField: "CASE WHEN (Status1 = 4 and Type = 5) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete_precast",
+      statisticType: "sum"
+    };
+
+    var query = viaductLayer.createQuery();
+    query.where = "end_date IS NOT NULL";
+    query.outStatistics = [total_complete_pile, total_complete_pilecap,
+                           total_complete_pier, total_complete_pierhead, total_complete_precast];
+    query.outFields = ["end_date"];
+    query.orderByFields = ["end_date"];
+    query.groupByFieldsForStatistics = ["end_date"];
+
+      const pile = [];
+      const pilecap = [];
+      const pier = [];
+      const pierhead = [];
+      const precast = [];
+
+    viaductLayer.queryFeatures(query).then(function(response) {
+      var stats = response.features;
+
+      // collect all dates for each viaduct type
+      const data = stats.map((result, index) => {
+        const attributes = result.attributes;
+        const date = attributes.end_date;
+        
+        const pileCount = attributes.total_complete_pile;
+        const pilecapCount = attributes.total_complete_pilecap;
+        const pierCount = attributes.total_complete_pier;
+        const pierheadCount = attributes.total_complete_pierhead;
+        const precastCount = attributes.total_complete_precast;
+
+        // compile in object
+        return Object.assign({}, {
+          date,
+          pile: pileCount,
+          pilecap: pilecapCount,
+          pier: pierCount,
+          piearhead: pierheadCount,
+          precast: precastCount
+        });
+      });
+
+      // 6. Add to Chart
+
+      // set themes
+      root_ts.setThemes([
+        am5themes_Animated.new(root_ts)
+      ]);
+
+      // Create chart
+      // https://www.amcharts.com/docs/v5/charts/xy-chart/
+      var chart = root_ts.container.children.push(am5xy.XYChart.new(root_ts, {
+        panX: false,
+        panY: false,
+        wheelX: "panX",
+        wheelY: "zoomX",
+        layout: root_ts.verticalLayout
+      }));
+
+      // Create axes
+      // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+      var xRenderer = am5xy.AxisRendererX.new(root_ts, {
+        //minGridDistance: 60,
+          strokeOpacity: 1,
+          strokeWidth: 1,
+          stroke: am5.color("#ffffff"),
+      });
+      var xAxis = chart.xAxes.push(am5xy.DateAxis.new(root_ts, {
+        // When you group data for series 
+        // Note you need to baseInterval timeUnit is 'day'
+        // and groupIntervals timeUnit is 'month'
+        maxDeviation: 0,
+        groupData: true,
+        baseInterval: {
+          timeUnit: "day",
+          count: 1
+        },
+        // count: 
+       groupIntervals: [{timeUnit: "month", count: 1}],
+        
+        categoryField: "date",
+        renderer: xRenderer,
+        tooltip: am5.Tooltip.new(root_ts, {})
+      }));
+
+      xRenderer.grid.template.setAll({
+        location: 1
+      })
+
+      // Label properties for yAxis (category axis)
+      xAxis.get("renderer").labels.template.setAll({
+        //oversizedBehavior: "wrap",
+        textAlign: "center",
+        fill: am5.color("#ffffff"),
+        //maxWidth: 150,
+        fontSize: 12
+      });
+
+      xAxis.data.setAll(data);
+
+      var yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root_ts, {
+        min: 0,
+        renderer: am5xy.AxisRendererY.new(root_ts, {
+          strokeOpacity: 0.1,
+          minGridDistance: 60,
+          strokeOpacity: 1,
+          strokeWidth: 1,
+          stroke: am5.color("#ffffff"),
+        })
+      }));
+
+    // Add yaxix title
+    yAxis.children.unshift(
+      am5.Label.new(root_ts, {
+        rotation: -90,
+        text: "Count",
+        y: am5.p50,
+        centerX: am5.p50,
+        fill: am5.color("#ffffff"),
+        fontSize: 11
+      })
+    );
+
+      yAxis.get("renderer").labels.template.setAll({
+        //oversizedBehavior: "wrap",
+        textAlign: "center",
+        fill: am5.color("#ffffff"),
+        //maxWidth: 150,
+        fontSize: 12
+      });
+
+      // Add legend
+      // https://www.amcharts.com/docs/v5/charts/xy-chart/legend-xy-series/
+      var legend = chart.children.push(am5.Legend.new(root_ts, {
+        centerX: am5.p50,
+        x: am5.p50
+      }));
+
+      legend.labels.template.setAll({
+        oversizedBehavior: "truncate",
+        fill: am5.color("#ffffff"),
+        fontSize: 17,
+        scale: 0.8,
+        //textDecoration: "underline"
+        //width: am5.percent(200)
+        //fontWeight: "300"
+      });
+
+      // Add series
+      // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+      function makeSeries(name, fieldName) {
+        var series = chart.series.push(am5xy.ColumnSeries.new(root_ts, {
+          name: name,
+          stacked: true,
+          xAxis: xAxis,
+          yAxis: yAxis,
+          valueYField: fieldName,
+          valueXField: "date",
+          valueYGrouped: "sum"
+        }));
+
+        series.columns.template.setAll({
+          tooltipText: "{name}, {categoryX}: {valueY}",
+          tooltipY: am5.percent(10)
+        });
+        series.data.setAll(data);
+
+        // Make stuff animate on load
+        // https://www.amcharts.com/docs/v5/concepts/animations/
+        series.appear();
+
+        series.bullets.push(function() {
+          return am5.Bullet.new(root_ts, {
+            sprite: am5.Label.new(root_ts, {
+              text: "{valueY}",
+              fill: root_ts.interfaceColors.get("alternativeText"),
+              centerY: am5.p50,
+              centerX: am5.p50,
+              populateText: true
+            })
+          });
+        });
+
+        legend.data.push(series);
+      }
+
+      makeSeries("Bored Pile", "pile");
+      makeSeries("Pile Cap", "pilecap");
+      makeSeries("Pier", "pier");
+      makeSeries("Pier Head", "pierhead");
+      makeSeries("Precast", "precast");
+
+      chart.appear(1000, 100);
+
+
+    });
+  }
+  timeSeriesChart();
+
+
     /////////////////// END Of LAYER IMPORT ////////////////////////////
 
     // Zoom
@@ -7481,6 +8205,18 @@
           view.padding = {
             left: actionBarExpanded ? 135 : 45
           };
+        });
+
+        // IMPORTANT NOTE:
+        // You need to include progress chart and see-through-ground inside widget calcite-panel; otherwise,
+        // when you click the checkbox, toggling action will be reversed for this activation.
+
+        // Progress Chart
+        document.getElementById("viaduct-checkbox").addEventListener("click", function(event) {
+          const timeSeriesChartDiv = document.getElementById("timeSeriesChart");
+          const checked = event;
+          console.log(event);
+          timeSeriesChartDiv.hidden = !timeSeriesChartDiv.hidden;
         });
 
         // See-through-Ground
