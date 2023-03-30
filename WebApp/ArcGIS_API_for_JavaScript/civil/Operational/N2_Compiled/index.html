@@ -182,12 +182,12 @@
     }
 
     #viaductNumberImage {
-      width: 25%;
-      height: auto;
+      width: 18%;
+      height: 18%;
       margin-left: auto;
       margin-right: auto;
-      margin-top: 0;
-      margin-bottom: -10;
+      margin-top: 5;
+      margin-bottom: -30;
     }
 
     #lotNumberDiv b,
@@ -508,7 +508,7 @@
             <calcite-tab>
               <div class="viaductNumber-container">
                 <div id="viaductNumberDiv"></div>
-                <img id="viaductNumberImage" src="https://EijiGorilla.github.io/Symbols/Viaduct_symbol.png">
+                <img id="viaductNumberImage" src="https://EijiGorilla.github.io/Symbols/Viaduct_Images/Viaduct_All_Logo.svg">
               </div>
               <div class="box8" id="viaductChartDiv"></div>
             </calcite-tab>
@@ -3231,6 +3231,7 @@
     totalNumberOfLots();
     totalNumberOfStructures();
     totalProgressUtility();
+    totalProgressViaduct();
 
     pteNumberLot();
     pteNumberStructure();
@@ -3242,6 +3243,7 @@
     updateChartTreeComp();
     updateChartUtilityPoint();
     updateChartUtilityLine();
+    updateChartViaduct();
 
     updateMoaChartLot();
     updateMoaChartStructure();
@@ -3311,9 +3313,6 @@
         pierAccessLayer.definitionExpression = cpExpression;
         viaductLayer.definitionExpression = cpExpression;
         pnrLayer.definitionExpression = cpExpression;
-
-        pierAccessLayer.visible = true;
-        pnrLayer.visible = true;
 
         updateSummary();
 
@@ -3523,13 +3522,13 @@
       };
 
       var total_viaduct_all = {
-        onStatisticField: "Type",
+        onStatisticField: "Status1",
         outStatisticFieldName: "total_viaduct_all",
         statisticType: "count"
-      }
-      var query = viaductLayer.createQuery();
-      viaductLayer.outStatistics = [total_viaduct_all, total_viaduct_comp];
+      };
 
+      var query = viaductLayer.createQuery();
+      query.outStatistics = [total_viaduct_all, total_viaduct_comp];
       query.returnGeometry = true;
 
       viaductLayer.queryFeatures(query).then(function(response){
@@ -3540,7 +3539,7 @@
         const PROGRESS = ((viaduct_comp / viaduct_total)*100).toFixed(1);
         const total = thousands_separators(viaduct_total); 
 
-        viaductNumberDiv.innerHTML = utilityNumberDiv.innerHTML = `TOTAL PROGRESS<br><br><b>${PROGRESS} %</b><br><br>(${total})`;;
+        viaductNumberDiv.innerHTML = `TOTAL PROGRESS<br><br><b>${PROGRESS} %</b><br><br>(${total})`;;
       });
     }
     totalProgressViaduct();
@@ -5728,7 +5727,7 @@
     const paddingBottom = 0;
 
     const xAxisNumberFormat = "#'%'";
-    const seriesBulletLabelFontSize = "0.7vw";
+    const seriesBulletLabelFontSize = "1vw";
 
     // series line fill pattern
     const linePatternColorComplete = "#0070ff";
@@ -6499,25 +6498,25 @@
             "category": viaductType[Object.keys(viaductType)[1]].category,
             "comp": pilecap_comp,
             "incomp": pilecap_incomp,
-            "icon": "https://EijiGorilla.github.io/Symbols/Water_Logo2.svg",
+            "icon": "https://EijiGorilla.github.io/Symbols/Viaduct_Images/Viaduct_Pilecap_Logo.svg",
           },
           {
             "category": viaductType[Object.keys(viaductType)[2]].category,
             "comp": pier_comp,
             "incomp": pier_incomp,
-            "icon": "https://EijiGorilla.github.io/Symbols/Sewage_Logo2.svg",
+            "icon": "https://EijiGorilla.github.io/Symbols/Viaduct_Images/Viaduct_Pier_Logo.svg",
           },
           {
             "category": viaductType[Object.keys(viaductType)[3]].category,
             "comp": pierhead_comp,
             "incomp": pierhead_incomp,
-            "icon": "https://EijiGorilla.github.io/Symbols/Power_Logo2.svg",
+            "icon": "https://EijiGorilla.github.io/Symbols/Viaduct_Images/Viaduct_Pierhead_Logo.svg",
           },
           {
             "category": viaductType[Object.keys(viaductType)[4]].category,
             "comp": pierhead_comp,
             "incomp": pierhead_incomp,
-            "icon": "https://EijiGorilla.github.io/Symbols/Power_Logo2.svg",
+            "icon": "https://EijiGorilla.github.io/Symbols/Viaduct_Images/Viaduct_Precast_Logo.svg",
           },
         ];
 
@@ -6533,11 +6532,11 @@
           return am5xy.AxisBullet.new(root_via, {
             location: 0.5,
             sprite: am5.Picture.new(root_via, {
-              width: 45,
-              height: 50,
+              width: 40,
+              height: 40,
               centerY: am5.p50,
               centerX: am5.p50,
-              x: -15,
+              x: -25,
               src: dataItem.dataContext.icon
             })
           });
@@ -6546,7 +6545,7 @@
       }));
 
       yRenderer.labels.template.setAll({
-        paddingRight: 30
+        paddingRight: 50
       });
 
       yRenderer.grid.template.setAll({
@@ -6636,43 +6635,44 @@
 
         series.columns.template.events.on("click", function(ev) {
           const SELECTED = ev.target.dataItem.dataContext.category;
-          const find = type.find((emp) => emp.category === SELECTED);
+          const find = viaductType.find((emp) => emp.category === SELECTED);
           const typeSelect = find.value;
       
-          const selectedStatus = fieldName == 'incomp' ? 0 : 1;
+          const selectedStatus = fieldName == 'incomp' ? 1 : 4;
+          console.log(typeSelect + "; " + selectedStatus);
 
           var highlight = null;
-          let arrLviews = [];
           const sqlExpression = "Type = " + typeSelect + " AND " +  "Status1 = " + selectedStatus;
 
-          view.whenLayerView(viaductLayer).then(function (viaductLayerView) {
-            viaductLayerView.filter = {
-                where: sqlExpression
-                //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
-            };
-            
-            viaductLayerView.queryFeatures().then(function(results) {
+            // Update layerView based on viaduct components being selected
+            view.whenLayerView(viaductLayer).then(function (viaductLayerView) {
+              viaductLayerView.filter = {
+                  where: "Type = " + typeSelect + " AND " +  "Status1 = " + selectedStatus
+                  //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+              };
+                
+              viaductLayerView.queryFeatures().then(function(results) {
                 const ggg = results.features;
                 const rowN = ggg.length;
                 
                 // Extract and obtain OBJECTID
                 let objID = [];
                 for (var i=0; i< rowN; i++) {
-                    var obj = results.features[i].attributes.OBJECTID;
-                    objID.push(obj);
-                }
-                highlightSelect = viaductLayerView.highlight([objID]);
-                if (highlightSelect) {
-                  highlightSelect.remove();
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
                 }
 
-                // Reset selection by clicking anywhere on the map
+                if (highlight) {
+                  highlightSelect.remove();
+                }
+                highlight = viaductLayerView.highlight(objID);
+
                 view.on("click", function() {
-                    viaductLayerView.filter = null;
-                    highlightSelect.remove();
+                  viaductLayerView.filter = null;
+                  highlight.remove();
                 });
-            });
-          }); // whenLayerView
+              });
+            }); // whenLayerView
         });// End of filterByChart
 
         //legend.data.push(series);
