@@ -466,7 +466,31 @@ if (error.name != "AbortError") {
 });
 }
 
+const month = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+function getEditedDateValue() {
+  var tempDates = [];
 
+  var query = structureLayer.createQuery();
+  query.fields = ["last_edited_date"];
+  query.where = "last_edited_date IS NOT NULL";
+  return structureLayer.queryFeatures(query).then(function(response) {
+    var stats = response.features;
+    stats.forEach((result, index) => {
+      var attributes = result.attributes;
+      const dates = attributes.last_edited_date;
+      tempDates.push(dates);
+    });
+    const lastDate = Math.max(...tempDates);
+    const lastEdit = new Date(lastDate);
+    const yyyy = lastEdit.getFullYear();
+    const mm = month[lastEdit.getMonth()];
+    const dd = lastEdit.getDate();
+    const lastEditedDate = `As of ${mm} ${dd}, ${yyyy}`;
+    document.getElementById("dateDiv").innerHTML = lastEditedDate;
+  });
+}
+getEditedDateValue();
+  
 // Create Bar chart to show progress of station structure
 am4core.ready(function() {
 am4core.useTheme(am4themes_animated);
