@@ -32,6 +32,10 @@
       display: flex;
     }
 
+    calcite-list {
+      overflow-y: auto;
+    }
+
     calcite-loader {
       align-self: center;
       justify-self: center;
@@ -50,9 +54,10 @@
       height: 100%;
     }
 
-    calcite-tabs {
+    calcite-tab {
       width: 100%;
       height: 100%;
+      overflow: hidden;
     }
 
     #header-title {
@@ -100,34 +105,61 @@
       height: 100%;
     }
     
-    #pieChartLotDiv,
-    #pieChartStructureDiv,
-    #pieChartBarangayDiv {
-      width: 100%;
-      height: 48%;
-      align-items: center;
-      padding: 1%;
-      margin-bottom: 10;
+    #landPieChartDiv,
+    #structurePieChartDiv,
+    #barangayPieChartDiv {
+      height: 55%;
+      margin-top: 5%;
     }
 
-    
+    .lotNumber-container,
+    .structureNumber-container,
+    .barangayNumber-container {
+      display: flex;
+    }
+
     #lotNumberDiv,
-    #structureNumberDiv {
-      color: rgb(0, 197, 255); 
-      text-align: center;
-      font-weight: normal;
-      font-size: 1.5vw;
-      border: solid 0.5px gray;
-      padding-top: 1%;
-      padding-bottom: 4%;
+    #structureNumberDiv,
+    #barangayNumberDiv {
+      width: 50%;
+      height: 10%;
+      padding-top: 2%;
+      padding-left: 15px;
+      font-size: 1vw;
+      color: #f7f5f7;
     }
 
     #lotNumberDiv b,
-    #structureNumberDiv b {
-      font-size: 1.0vw;
+    #structureNumberDiv b,
+    #barangayNumberDiv b {
+      font-size: 2.5vw;
       font-family: 'Calibri';
       font-weight: bold;
-      color:rgb(250, 246, 246);
+      color: #6ede00; /*#d4ff33;*/
+      margin: auto;
+    }
+
+    #landNumberImage,
+    #barangayNumberImage,
+    #structureNumberImage {
+      width: 20%;
+      height: auto;
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 0;
+      margin-bottom: -10;
+    }
+
+    #chartPriorityLotDiv {
+      width: 100%;
+      height: 25%;
+      align-items: center;
+      padding: 1%;
+      margin-top: 3%;
+    }
+
+    #land-checkbox {
+      padding: 10;
     }
 
     br {
@@ -187,14 +219,6 @@
       width: 17vw;
     }
 
-    /* MOA Chart */
-    #chartPriorityLotDiv {
-        width: 100%;
-        height: 35%;
-        align-items: center;
-        padding: 1%;
-    }
-
     /* Dropdown list */
     #dropdownDiv {
       background-color: rgb(0, 0, 0, 0);
@@ -205,14 +229,45 @@
         margin: auto;
     }
 
-    /* Browser Setting */
+    /* SCROLL BAR */
+    /* ESRI POPUP */
+
     ::-webkit-scrollbar {
-        display: none;
+      width: 5px;
+      
     }
-    
-    /*  */
+
+    /* Track */
+    ::-webkit-scrollbar-track {
+      background: #00032235; /*#032235*/
+    }
+
+    /* Handle */
+    ::-webkit-scrollbar-thumb {
+      background: #FFBA1F;
+    }
+
+    /* Handle on hover */
+    ::-webkit-scrollbar-thumb:hover {
+      background: #b98816;
+    }
+
     .esri-legend__layer-caption {
-      display: none;
+        display: none;
+      }
+
+    /*
+    .esri-legend__layer-cell--info {
+      background-color: black;
+      color: white;
+      font-size: 0.85vw;
+    }
+    */
+
+    .esri-legend {
+      overflow: hidden;
+      overflow-y: auto;
+      margin-left: -10;
     }
 
   </style>
@@ -226,7 +281,7 @@
       <!-- Title -->
       <h2 id="header-title" slot="header"></h2>
 
-      <div id="dateDiv">August 1, 2022</div>
+      <div id="dateDiv"></div>
 
       <!-- Dropdown Lists -->
       <div id="dropdownDiv" class="esri-widget">
@@ -251,23 +306,61 @@
         <calcite-action-bar slot="action-bar">
           <calcite-action data-action-id="layers" icon="layers" text="Layers"></calcite-action>
           <calcite-action data-action-id="basemaps" icon="basemap" text="Basemaps"></calcite-action>
-          <calcite-action data-action-id="legend" icon="legend" text="Legend"></calcite-action>
           <calcite-action data-action-id="information" icon="information" text="Information"></calcite-action>
-          <calcite-action data-action-id="locate" icon="gps-on-f" text="My Location"></calcite-action>
         </calcite-action-bar>
         
         <!-- Map-specific panels (each one provides a div for ArcGIS Maps SDK for JavaScript widgets) -->
         <calcite-panel heading="Layers" height-scale="l" data-panel-id="layers" hidden>
-          <div id="layers-container"></div>
+          <calcite-list>
+            <calcite-list-item label="Land Acquisition" description="" value="land-acquisition">
+              <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+              <calcite-checkbox slot="actions-start" id="land-check" style="margin-left: 5px" checked></calcite-checkbox>
+              <div id="land-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
+            </calcite-list-item>
+            <calcite-list-item label="Existing Structure" description="" value="structure-acquisition">
+              <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                <calcite-checkbox slot="actions-start" id="structure-check" style="margin-left: 5px"></calcite-checkbox>
+                <div id="structure-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+            </calcite-list-item>
+            <calcite-list-item label="Barangay" description="" value="barangay-acquisition">
+            <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+              <calcite-checkbox slot="actions-start" id="barangay-check" style="margin-left: 5px" checked></calcite-checkbox>
+              <div id="barangay-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
+            </calcite-list-item>
+            <calcite-list-item label="Free-and-Clear Land" description="" value="fnc-acquisition">
+            <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+              <calcite-checkbox slot="actions-start" id="fnc-check" style="margin-left: 5px"></calcite-checkbox>
+              <div id="fnc-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+            </calcite-list-item>
+            <calcite-list-item label="PNR Land" description="" value="pnr-acquisition">
+            <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+              <calcite-checkbox slot="actions-start" id="pnr-check" style="margin-left: 5px" checked></calcite-checkbox>
+              <div id="pnr-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
+            </calcite-list-item>
+            <calcite-list-item label="Pier with Access Date" description="" value="pierAccess-date">
+            <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+              <calcite-checkbox slot="actions-start" id="pierAccess-check" style="margin-left: 5px" checked></calcite-checkbox>
+              <div id="pierAccess-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
+            </calcite-list-item>
+            <calcite-list-item label="Station Box" description="" value="stationBox">
+            <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+              <calcite-checkbox slot="actions-start" id="stationBox-check" style="margin-left: 5px" checked></calcite-checkbox>
+              <div id="stationBox-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
+            </calcite-list-item>
+            <calcite-list-item label="PROW" description="" value="prow">
+            <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+              <calcite-checkbox slot="actions-start" id="prow-check" style="margin-left: 5px" checked></calcite-checkbox>
+              <div id="prow-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
+            </calcite-list-item>
+            <calcite-list-item label="Chainage" description="" value="chainage">
+            <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+              <calcite-checkbox slot="actions-start" id="chainage-check" style="margin-left: 5px"></calcite-checkbox>
+              <div id="chainage-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+            </calcite-list-item>
+          </calcite-list>
         </calcite-panel>
         <calcite-panel heading="Basemaps" height-scale="l" data-panel-id="basemaps" hidden>
           <div id="basemaps-container"></div>
-        </calcite-panel>
-        <calcite-panel heading="Legend" height-scale="l" data-panel-id="legend" hidden>
-          <div id="legend-container"></div>
-        </calcite-panel>
-        <calcite-panel heading="Click the icon below" width-scale="w" data-panel-id="locate" hidden>
-          <div id="locate-container"></div>
         </calcite-panel>
 
         <!-- Info panel (populates with info from the web map) -->
@@ -295,18 +388,26 @@
                     <calcite-tab-title>Refused</calcite-tab-title>
                 </calcite-tab-nav>
                 <calcite-tab>
-                    <div class="box" id="pieChartLotDiv"></div>
+                  <div class="lotNumber-container">
                     <div id="lotNumberDiv"></div>
-                    <div id="chartPriorityLotDiv"></div>
-                </calcite-tab>
-                <calcite-tab>
-                  <div class="box2" id="pieChartStructureDiv"></div>
-                  <div id="structureNumberDiv"></calcite-label>
+                    <img id="landNumberImage" src="https://EijiGorilla.github.io/Symbols/Land_logo.png">
                   </div>
+                  <div class="box" id="landPieChartDiv"></div>
+                  <div id="chartPriorityLotDiv"></div>
                 </calcite-tab>
                 <calcite-tab>
-                    <div class="box3" id="pieChartBarangayDiv"></calcite-label>
-                    </div>
+                  <div class="structureNumber-container">
+                    <div id="structureNumberDiv"></div>
+                    <img id="structureNumberImage" src="https://EijiGorilla.github.io/Symbols/House_Logo.svg">
+                  </div>
+                  <div class="box2" id="structurePieChartDiv"></div>
+                </calcite-tab>
+                <calcite-tab>
+                  <div class="barangayNumber-container">
+                    <div id="barangayNumberDiv"></div>
+                    <img id="barangayNumberImage" src="https://EijiGorilla.github.io/Symbols/House_Logo.svg">
+                  </div>
+                  <div class="box3" id="barangayPieChartDiv"></div>
                   </calcite-tab>
                 <calcite-tab>
                   <div class="panel-side esri-widget">
@@ -1324,7 +1425,7 @@
     const numberDate = new Date(cutOffDateAccess);
     const cutDate = numberDate.toLocaleDateString('en-US');
 
-    var pierNoLayer = new FeatureLayer ({
+    var pierAccessLayer = new FeatureLayer ({
       portalItem: {
         id: "d3926383cf3548569372216edb808996",
         portal: {
@@ -1341,7 +1442,7 @@
         model: "on-the-ground"
       }
     },{utcOffset: 300});
-    map.add(pierNoLayer, 3);
+    map.add(pierAccessLayer, 3);
 
     // we first need to obtain unique values of date because valueExpression does not allow
     // date'2021-10-01' notation
@@ -1349,10 +1450,10 @@
 
     function DateValues() {
       const dates = [];
-      var query = pierNoLayer.createQuery();
+      var query = pierAccessLayer.createQuery();
 
       query.where = queryDate;
-      return pierNoLayer.queryFeatures(query).then(function(response) {
+      return pierAccessLayer.queryFeatures(query).then(function(response) {
         var stats = response.features;
         stats.forEach((result, index) => {
           const attributes = result.attributes;
@@ -1439,7 +1540,7 @@
         },
       ]
     }
-    pierNoLayer.renderer = pierAccessRenderer;
+    pierAccessLayer.renderer = pierAccessRenderer;
 
     // Popup Template
 
@@ -1470,12 +1571,12 @@
         return format;
     }
 
-    // Custom Popup Content for pierNoLayer
+    // Custom Popup Content for pierAccessLayer
     let customContent = new CustomContent({
         outFields: ["*"],
         creator: function(event) {
 
-            // Extract AsscessDate of clicked pierNoLayer
+            // Extract AsscessDate of clicked pierAccessLayer
             const stats = event.graphic.attributes.AccessDate;
             const pierNo = event.graphic.attributes.PIER;
 
@@ -1508,7 +1609,7 @@
         lastEditInfoEnabled: false,
         content: [customContent]
     });
-    pierNoLayer.popupTemplate = template;
+    pierAccessLayer.popupTemplate = template;
 
     // Station Box
     let stationBoxRenderer = {
@@ -1577,7 +1678,7 @@
     map.add(stationBoxLayer, 2);
 
     // ROW //
-    var rowLayer = new FeatureLayer ({
+    var prowLayer = new FeatureLayer ({
         portalItem: {
             id: "d3926383cf3548569372216edb808996",
             portal: {
@@ -1588,7 +1689,7 @@
         title: "PROW",
         popupEnabled: false
     });
-    map.add(rowLayer,2);
+    map.add(prowLayer,2);
 
     // Free and Clear Lot
     var fncLayer = new FeatureLayer ({
@@ -1662,12 +1763,12 @@
           {
             type: "text", // autocasts as new TextSymbol3DLayer()
             material: {
-              color: [255, 170, 0]
+              color: "#d4ff33"
             },
-            size: 20,
+            size: 15,
             color: "black",
             haloColor: "black",
-            haloSize: 1,
+            haloSize: 0.5,
             font: {
               family: "Ubuntu Mono",
               //weight: "bold"
@@ -1675,10 +1776,19 @@
           }
         ],
         verticalOffset: {
-          screenLength: 40,
-          maxWorldLength: 100,
-          minWorldLength: 20
+          screenLength: 100,
+          maxWorldLength: 300,
+          minWorldLength: 80
         },
+
+        callout: {
+          type: "line", // autocasts as new LineCallout3D()
+          color: [128,128,128,0.5],
+          size: 0.2,
+          border: {
+            color: "grey"
+          }
+        }
       },
       labelPlacement: "above-center",
       labelExpressionInfo: {
@@ -1710,7 +1820,7 @@
         }
       },
       labelingInfo: [labelClass],
-      renderer: stationsRenderer,
+      //renderer: stationsRenderer,
       elevationInfo: {
         mode: "relative-to-ground"
       },
@@ -1744,36 +1854,107 @@
     
     const lotNumberDiv = document.getElementById("lotNumberDiv");
     const structureNumberDiv = document.getElementById("structureNumberDiv");
+    const barangayNumberDiv = document.getElementById("barangayNumberDiv");
 
     var municipalSelect = document.getElementById("municipalSelect");
     var barangaySelect = document.getElementById("barangaySelect");
     var prioritySelect = document.getElementById("prioritySelect");
+
+    // chart setup
+    const chartTitleFontSize = "1.1em";
+    const chartTitlePaddingBottom = -5;
+
+    // Thousand separators function
+    function thousands_separators(num) {
+      var num_parts = num.toString().split(".");
+      num_parts[0] = num_parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      return num_parts.join(".");
+    }
     
     am5.ready(function() {
-      pierNoLayer.visible = true;
+      pierAccessLayer.visible = true;
+
+      // Total Number
+      function totalNumberOfLots(){
+        var totalLot = {
+          onStatisticField: "CASE WHEN StatusLA >= 1 THEN 1 ELSE 0 END",
+          outStatisticFieldName: "totalLot",
+          statisticType: "sum"
+        };
+        var query = lotLayer.createQuery();
+        query.outStatistics = [totalLot];
+        query.returnGeometry = true;
+
+        lotLayer.queryFeatures(query).then(function(response){
+          var stats = response.features[0].attributes;
+          const LOT_TOTAL = thousands_separators(stats.totalLot);
+
+          lotNumberDiv.innerHTML = `TOTAL LOTS<br><br><b>${LOT_TOTAL}</b>`;
+        });
+      }
+      totalNumberOfLots();
+
+      function totalNumberOfStructures(){
+        var totalStructure = {
+          onStatisticField: "CASE WHEN BasicPlan >=1 THEN 1 ELSE 0 END",
+          outStatisticFieldName: "totalStructure",
+          statisticType: "count"
+        };
+        var query = structureLayer.createQuery();
+        query.outStatistics = [totalStructure];
+        query.returnGeometry = true;
+
+        structureLayer.queryFeatures(query).then(function(response){
+          var stats = response.features[0].attributes;
+
+          const STRUCTURE_TOTAL = thousands_separators(stats.totalStructure);
+          structureNumberDiv.innerHTML = `TOTAL STRUCTURES<br><br><b>${STRUCTURE_TOTAL}</b>`;
+        });
+      }
+      totalNumberOfStructures();
+
+      function totalNumberOfBarangay(){
+        var totalBarangay = {
+          onStatisticField: "CASE WHEN Coop >=1 THEN 1 ELSE 0 END",
+          outStatisticFieldName: "totalBarangay",
+          statisticType: "count"
+        };
+        var query = barangayLayer.createQuery();
+        query.outStatistics = [totalBarangay];
+        query.returnGeometry = true;
+
+        barangayLayer.queryFeatures(query).then(function(response){
+          var stats = response.features[0].attributes;
+
+          const BARANGAY_TOTAL = thousands_separators(stats.totalBarangay);
+          barangayNumberDiv.innerHTML = `TOTAL BARANGAYS<br><br><b>${BARANGAY_TOTAL}</b>`;
+        });
+      }
+      totalNumberOfBarangay();
+
     // Charts for Lot and Structure
     // Lot Chart
     const LEGEND_FONT_SIZE = "0.9em";
-    var root = am5.Root.new("pieChartLotDiv");
+    var root = am5.Root.new("landPieChartDiv");
 
     function updateChartLot(municipal, barangay, priority) {
         root.container.children.clear();
         // First, define statuses
-        var total_survdraft_struc = {
+        var total_comp_lot = {
             onStatisticField: "CASE WHEN Reqs = 1 THEN 1 ELSE 0 END",
-            outStatisticFieldName: "total_survdraft_struc",
+            outStatisticFieldName: "total_comp_lot",
             statisticType: "sum"
         };
 
-        var total_survey_struc = {
+        var total_incomp_lot = {
             onStatisticField: "CASE WHEN Reqs = 2 THEN 1 ELSE 0 END",
-            outStatisticFieldName: "total_survey_struc",
+            outStatisticFieldName: "total_incomp_lot",
             statisticType: "sum"
         };
 
-        var total_resche_struc = {
+        var total_survey_lot = {
             onStatisticField: "CASE WHEN Reqs = 3 THEN 1 ELSE 0 END",
-            outStatisticFieldName: "total_resche_struc",
+            outStatisticFieldName: "total_survey_lot",
             statisticType: "sum"
         };
 
@@ -1783,9 +1964,9 @@
             statisticType: "sum"
         };
 
-        var total_second_lot = {
+        var total_researched_lot = {
             onStatisticField: "CASE WHEN Reqs = 5 THEN 1 ELSE 0 END",
-            outStatisticFieldName: "total_second_lot",
+            outStatisticFieldName: "total_researched_lot",
             statisticType: "sum"
         };
 
@@ -1808,19 +1989,19 @@
         };
 
         var query = lotLayer.createQuery();
-        query.outStatistics = [total_survdraft_struc, total_survey_struc, total_resche_struc,
-                               total_survdraft_lot, total_second_lot, total_survres_lot,
+        query.outStatistics = [total_comp_lot, total_incomp_lot, total_survey_lot,
+                               total_survdraft_lot, total_researched_lot, total_survres_lot,
                                total_refuse_lot, total_na_lot];
         query.returnGeometry = true;
 
         return lotLayer.queryFeatures(query).then(function(response) {
             var stats = response.features[0].attributes;
 
-            const comp = stats.total_survdraft_struc;
-            const incomp = stats.total_survey_struc;
-            const survplan = stats.total_resche_struc;
+            const comp = stats.total_comp_lot;
+            const incomp = stats.total_incomp_lot;
+            const survplan = stats.total_survey_lot;
             const survdraft = stats.total_survdraft_lot;
-            const research = stats.total_second_lot;
+            const research = stats.total_researched_lot;
             const survres = stats.total_survres_lot;
             const refuse = stats.total_refuse_lot;
             const nna = stats.total_na_lot;
@@ -2069,13 +2250,12 @@
 
         // chart title
         chart.children.unshift(am5.Label.new(root, {
-            text: "Lot Requirements",
-            fontSize: "1em",
-            fontWeight: "bold",
-            textAlign: "center",
-            fill: am5.color("#ffffff"),
-            x: am5.percent(50),
-            centerX: am5.percent(50),
+          text: "LOT REQUIREMENTS",
+          fontSize: chartTitleFontSize,
+          fontWeight: "normal",
+          textAlign: "left",
+          fill: am5.color("#f7f5f7"),
+          paddingBottom: chartTitlePaddingBottom
         }));
 
         // Change legend labelling properties
@@ -2124,9 +2304,9 @@
             statisticType: "sum"
         };
 
-        var total_second_lot = {
+        var total_researched_lot = {
             onStatisticField: "CASE WHEN Priority1 = 2 THEN 1 ELSE 0 END",
-            outStatisticFieldName: "total_second_lot",
+            outStatisticFieldName: "total_researched_lot",
             statisticType: "sum"
         };
 
@@ -2137,14 +2317,14 @@
         };
 
         var query = lotLayer.createQuery();
-        query.outStatistics = [total_first_lot, total_second_lot, total_third_lot];
+        query.outStatistics = [total_first_lot, total_researched_lot, total_third_lot];
         query.returnGeometry = true;
 
         lotLayer.queryFeatures(query).then(function(response) {
             var stats = response.features[0].attributes;
 
             const first = stats.total_first_lot;
-            const second = stats.total_second_lot;
+            const second = stats.total_researched_lot;
             const third = stats.total_third_lot;
 
                               // Set themes
@@ -2353,15 +2533,13 @@
 
         // Chart title
         chart.children.unshift(am5.Label.new(root2, {
-          text: "Priority Lot",
-          fontSize: 14,
-          fontWeight: "bold",
-          textAlign: "center",
-          fill: am5.color("#3ce00a"),
-          x: am5.percent(50),
-          centerX: am5.percent(50),
-          paddingTop: -10,
-          paddingBottom: 0,
+          text: "PRIORITY LOT",
+          fontSize: chartTitleFontSize,
+          fontWeight: "normal",
+          textAlign: "left",
+          fill: am5.color("#f7f5f7"),
+          paddingTop: -15,
+
         }));
         // Set data
         var data = [
@@ -2392,7 +2570,7 @@
     } // End of updateMOAChartLot
 
     // ------------------ PIE CHART FOR STRUCTURE ----------------------//
-    var root3 = am5.Root.new("pieChartStructureDiv");
+    var root3 = am5.Root.new("structurePieChartDiv");
     class MyTheme extends am5.Theme {
           setupDefaultRules() {
             var theme = this;
@@ -2506,21 +2684,21 @@
             statisticType: "sum"
         };
 
-        var total_survdraft_struc = {
+        var total_comp_lot = {
             onStatisticField: "CASE WHEN BasicPlan = 2 THEN 1 ELSE 0 END",
-            outStatisticFieldName: "total_survdraft_struc",
+            outStatisticFieldName: "total_comp_lot",
             statisticType: "sum"
         };
 
-        var total_survey_struc = {
+        var total_incomp_lot = {
             onStatisticField: "CASE WHEN BasicPlan = 3 THEN 1 ELSE 0 END",
-            outStatisticFieldName: "total_survey_struc",
+            outStatisticFieldName: "total_incomp_lot",
             statisticType: "sum"
         };
 
-        var total_resche_struc = {
+        var total_survey_lot = {
             onStatisticField: "CASE WHEN BasicPlan = 4 THEN 1 ELSE 0 END",
-            outStatisticFieldName: "total_resche_struc",
+            outStatisticFieldName: "total_survey_lot",
             statisticType: "sum"
         };
 
@@ -2543,17 +2721,17 @@
         };  
 
         var query = structureLayer.createQuery();
-        query.outStatistics = [total_complete_struc, total_survdraft_struc, total_survey_struc,
-                               total_resche_struc, total_miss_struc, total_refuse_struc, total_na_struc];
+        query.outStatistics = [total_complete_struc, total_comp_lot, total_incomp_lot,
+                               total_survey_lot, total_miss_struc, total_refuse_struc, total_na_struc];
         query.returnGeometry = true;
 
         structureLayer.queryFeatures(query).then(function(response) {
             var stats = response.features[0].attributes;
 
             const complete = stats.total_complete_struc;
-            const survdraft = stats.total_survdraft_struc;
-            const survey = stats.total_survey_struc;
-            const resche = stats.total_resche_struc;
+            const survdraft = stats.total_comp_lot;
+            const survey = stats.total_incomp_lot;
+            const resche = stats.total_survey_lot;
             const miss = stats.total_miss_struc;
             const refuse = stats.total_refuse_struc;
             const nna = stats.total_na_struc;
@@ -2579,13 +2757,13 @@
 
         // chart title
         chart.children.unshift(am5.Label.new(root3, {
-            text: "Structure Basic Plan",
-            fontSize: "1em",
-            fontWeight: "bold",
-            textAlign: "center",
-            fill: am5.color("#ffffff"),
-            x: am5.percent(50),
-            centerX: am5.percent(50),
+          text: "STRUCTURE BASIC PLAN",
+          fontSize: chartTitleFontSize,
+          fontWeight: "normal",
+          textAlign: "left",
+          fill: am5.color("#f7f5f7"),
+          paddingTop: 5,
+          paddingBottom: chartTitlePaddingBottom,
         }));
 
         // Create series
@@ -2818,7 +2996,7 @@
 
 
     // ------------------ PIE CHART FOR Brangay ----------------------//
-    var root4 = am5.Root.new("pieChartBarangayDiv");
+    var root4 = am5.Root.new("barangayPieChartDiv");
 
         const statusBarangay = [
             "Cooperative w/ assistance", "Cooperative w/out assistance", "For Coordination",
@@ -2899,13 +3077,12 @@
 
         // chart title
         chart.children.unshift(am5.Label.new(root4, {
-            text: "Cooperation (Barangay)",
-            fontSize: "1em",
-            fontWeight: "bold",
-            textAlign: "center",
-            fill: am5.color("#ffffff"),
-            x: am5.percent(50),
-            centerX: am5.percent(50),
+          text: "COOPERATION (BARANGAY)",
+          fontSize: chartTitleFontSize,
+          fontWeight: "normal",
+          textAlign: "left",
+          fill: am5.color("#f7f5f7"),
+          paddingBottom: 3
         }));
 
         // Create series
@@ -3284,56 +3461,7 @@
                 }); // End of layerView.watch
             }); // End of view.whenLayerView
         }
-
-
-        // Thousand separators function
-        function thousands_separators(num) {
-          var num_parts = num.toString().split(".");
-          num_parts[0] = num_parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-          return num_parts.join(".");
-        }
         
-        // 1. Total Number of Lots
-        function totalNumberOfLots(){
-          var totalLot = {
-            onStatisticField: "CASE WHEN Reqs >= 1 THEN 1 ELSE 0 END",
-            outStatisticFieldName: "totalLot",
-            statisticType: "sum"
-          };
-          var query = lotLayer.createQuery();
-          query.outStatistics = [totalLot];
-          query.returnGeometry = true;
-
-          lotLayer.queryFeatures(query).then(function(response){
-            var stats = response.features[0].attributes;
-            const LOT_TOTAL = thousands_separators(stats.totalLot);
-
-            lotNumberDiv.innerHTML = `<b>Number of Lots</b><br><br>${LOT_TOTAL}`;
-          });
-        }
-
-        totalNumberOfLots();
-
-        // Total number of structures
-        function totalNumberOfStructures(){
-          var totalStructure = {
-            onStatisticField: "CASE WHEN BasicPlan >= 1 THEN 1 ELSE 0 END",
-            outStatisticFieldName: "totalStructure",
-            statisticType: "count"
-          };
-          var query = structureLayer.createQuery();
-          query.outStatistics = [totalStructure];
-          query.returnGeometry = true;
-
-          structureLayer.queryFeatures(query).then(function(response){
-            var stats = response.features[0].attributes;
-
-            const STRUCTURE_TOTAL = thousands_separators(stats.totalStructure);
-            structureNumberDiv.innerHTML = `<b>Number of Structures</b><br><br>${STRUCTURE_TOTAL}`;
-          });
-        }
-        totalNumberOfStructures();
-
         // Dropdown List
         view.when(function() {
             return lotLayer.when(function() {
@@ -3811,10 +3939,361 @@
 
     }); // end of view.when
 
-      });// End of am4chart
+      });// End of am5
 
       
       // Widgets
+    // Legend
+    var legend_land = new Legend({
+      view,
+      container: "land-legend",
+      layerInfos: [
+        {
+          layer: lotLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_structure = new Legend({
+      view,
+      container: "structure-legend",
+      layerInfos: [
+        {
+          layer: structureLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_barangay = new Legend({
+      view,
+      container: "barangay-legend",
+      layerInfos: [
+        {
+          layer: barangayLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_pierAccess = new Legend({
+      view,
+      container: "pierAccess-legend",
+      layerInfos: [
+        {
+          layer: pierAccessLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_stationBox = new Legend({
+      view,
+      container: "stationBox-legend",
+      layerInfos: [
+        {
+          layer: stationBoxLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_fnc = new Legend({
+      view,
+      container: "fnc-legend",
+      layerInfos: [
+        {
+          layer: fncLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_pnr = new Legend({
+      view,
+      container: "pnr-legend",
+      layerInfos: [
+        {
+          layer: pnrLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_prowBox = new Legend({
+      view,
+      container: "prow-legend",
+      layerInfos: [
+        {
+          layer: prowLayer,
+          title: ""
+        }
+      ]
+    });
+
+    var legend_chainage = new Legend({
+      view,
+      container: "chainage-legend",
+      layerInfos: [
+        {
+          layer: chainageLayer,
+          title: ""
+        }
+      ]
+    });
+
+    // Default setting
+    lotLayer.visible = true;
+    structureLayer.visible = false;
+    fncLayer.visible = false;
+    pnrLayer.visible = true;
+    pierAccessLayer.visible = true;
+    stationBoxLayer.visible = true;
+    prowLayer.visible = true;
+    chainageLayer.visible = false;
+
+    // Hide and Unhide of Legend + layerList + lotLayer
+    // 1. Checkbox
+    const landCheckbox = document.getElementById("land-check");
+    const structureCheckbox = document.getElementById("structure-check");
+    const brangayCheckbox = document.getElementById("barangay-check");
+    const fncCheckbox = document.getElementById("fnc-check");
+    const pnrCheckbox = document.getElementById("pnr-check");
+    const pierAccessCheckbox = document.getElementById("pierAccess-check");
+    const stationBoxCheckbox = document.getElementById("stationBox-check");
+    const prowCheckbox = document.getElementById("prow-check");
+    const chainageCheckbox = document.getElementById("chainage-check");
+
+    // 2. Legend
+    const landLegend = document.getElementById("land-legend");
+    const structureLegend = document.getElementById("structure-legend");
+    const barangayLegend = document.getElementById("barangay-legend");
+    const fncLegend = document.getElementById("fnc-legend");
+    const pnrLegend = document.getElementById("pnr-legend");
+    const pierAccessLegend = document.getElementById("pierAccess-legend");
+    const stationBoxLegend = document.getElementById("stationBox-legend");
+    const prowLegend = document.getElementById("prow-legend");
+    const chainageLegend = document.getElementById("chainage-legend");
+
+    // Lot Layer
+    view.when(() => {
+      
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        landLegend.hidden = !landLegend.hidden;
+        
+        // Visible/Unvisible Lot Layer
+        if (activeWidget) {
+          lotLayer.visible = true;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          lotLayer.visible = false;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      } 
+      landCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Structure Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        structureLegend.hidden = !structureLegend.hidden;
+        
+        // Visible/unvisible structure layer
+        if (activeWidget) {
+          structureLayer.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          structureLayer.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      structureCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Barangay layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        barangayLegend.hidden = !barangayLegend.hidden;
+        
+        // Visible/unvisible nlo layer
+        if (activeWidget) {
+         barangayLayer.visible = true;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          barangayLayer.visible = false;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      brangayCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Free-and-Clear Land Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        fncLegend.hidden = !fncLegend.hidden;
+        
+        // Visible/unvisible fnc layer
+        if (activeWidget) {
+          fncLayer.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          fncLayer.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      fncCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // PNR Land Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        pnrLegend.hidden = !pnrLegend.hidden;
+        
+        // Visible/unvisible pnr layer
+        if (activeWidget) {
+          pnrLayer.visible = true;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          pnrLayer.visible = false;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      pnrCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Pier Access point Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        pierAccessLegend.hidden = !pierAccessLegend.hidden;
+        
+        // Visible/unvisible pierAccess layer
+        if (activeWidget) {
+          pierAccessLayer.visible = true;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          pierAccessLayer.visible = false;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      pierAccessCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+
+    // Station Box Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        stationBoxLegend.hidden = !stationBoxLegend.hidden;
+        
+        // Visible/unvisible stationBox layer
+        if (activeWidget) {
+          stationBoxLayer.visible = true;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          stationBoxLayer.visible = false;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      stationBoxCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // PROW Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        prowLegend.hidden = !prowLegend.hidden;
+        
+        // Visible/unvisible prow layer
+        if (activeWidget) {
+          prowLayer.visible = true;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          prowLayer.visible = false;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      prowCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Chainage layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        chainageLegend.hidden = !chainageLegend.hidden;
+        
+        // Visible/unvisible chainage layer
+        if (activeWidget) {
+          chainageLayer.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          chainageLayer.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      chainageCheckbox.addEventListener("click", checkBoxClick);
+    });
+
       
       const basemaps = new BasemapGallery({
         view,
@@ -3827,22 +4306,11 @@
         container: "layers-container",
         listItemCreatedFunction: function(event) {
           const item = event.item;
-          if (item.title === "Chainage" ||
-              item.title === "Free-and-Clear Area" ||
-              item.title === "Station Box"){
+          if (item.title === "Chainage" || item.title === "Free-and-Clear Area" ||
+              item.title === "Occupancy (Structure)" || item.title === "NLO/LO Ownership (Structure)"){
             item.visible = false
           }
         }
-      });
-      
-      const legend = new Legend({
-        view,
-        container: "legend-container"
-      });
-
-      const locate = new Locate({
-        view: view,
-        container: "locate-container"
       });
 
       var searchWidget = new Search({
@@ -3880,7 +4348,7 @@
             placeholder: "example: 80+400"
           },
           {
-            layer: pierNoLayer,
+            layer: pierAccessLayer,
             searchFields: ["PIER"],
             displayField: "PIER",
             exactMatch: false,
