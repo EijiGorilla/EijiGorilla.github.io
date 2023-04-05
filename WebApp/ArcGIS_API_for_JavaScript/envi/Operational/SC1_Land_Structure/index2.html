@@ -317,6 +317,11 @@
               <calcite-checkbox slot="actions-start" id="land-check" style="margin-left: 5px" checked></calcite-checkbox>
               <div id="land-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
             </calcite-list-item>
+            <calcite-list-item label="Land Acquisition (Priority)" description="" value="land-priority-acquisition">
+              <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+              <calcite-checkbox slot="actions-start" id="land-priority-check" style="margin-left: 5px" checked></calcite-checkbox>
+              <div id="land-priority-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
+            </calcite-list-item>
             <calcite-list-item label="Existing Structure" description="" value="structure-acquisition">
               <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
                 <calcite-checkbox slot="actions-start" id="structure-check" style="margin-left: 5px"></calcite-checkbox>
@@ -405,7 +410,7 @@
                 <calcite-tab>
                   <div class="barangayNumber-container">
                     <div id="barangayNumberDiv"></div>
-                    <img id="barangayNumberImage" src="https://EijiGorilla.github.io/Symbols/House_Logo.svg">
+                    <img id="barangayNumberImage" src="https://EijiGorilla.github.io/Symbols/Barangay_Logo.svg">
                   </div>
                   <div class="box3" id="barangayPieChartDiv"></div>
                   </calcite-tab>
@@ -3955,6 +3960,17 @@
       ]
     });
 
+    var legend_land_priority = new Legend({
+      view,
+      container: "land-priority-legend",
+      layerInfos: [
+        {
+          layer: priorityLayer,
+          title: ""
+        }
+      ]
+    });
+
     var legend_structure = new Legend({
       view,
       container: "structure-legend",
@@ -4056,6 +4072,7 @@
     // Hide and Unhide of Legend + layerList + lotLayer
     // 1. Checkbox
     const landCheckbox = document.getElementById("land-check");
+    const landPriorityCheckbox = document.getElementById("land-priority-check");
     const structureCheckbox = document.getElementById("structure-check");
     const brangayCheckbox = document.getElementById("barangay-check");
     const fncCheckbox = document.getElementById("fnc-check");
@@ -4067,6 +4084,7 @@
 
     // 2. Legend
     const landLegend = document.getElementById("land-legend");
+    const landPriorityLegend = document.getElementById("land-priority-legend");
     const structureLegend = document.getElementById("structure-legend");
     const barangayLegend = document.getElementById("barangay-legend");
     const fncLegend = document.getElementById("fnc-legend");
@@ -4099,6 +4117,31 @@
         }
       } 
       landCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // priority layer
+    view.when(() => {
+      
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        landPriorityLegend.hidden = !landPriorityLegend.hidden;
+        
+        // Visible/Unvisible Lot Layer
+        if (activeWidget) {
+          priorityLayer.visible = true;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          priorityLayer.visible = false;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      } 
+      landPriorityCheckbox.addEventListener("click", checkBoxClick);
     });
 
     // Structure Layer
