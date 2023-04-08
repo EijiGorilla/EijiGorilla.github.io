@@ -245,12 +245,14 @@
       "esri/core/promiseUtils",
       "esri/layers/GroupLayer",
       "esri/widgets/Home",
-      "esri/widgets/Print"
+      "esri/widgets/Print",
+      "esri/geometry/Circle"
     ], function(Basemap, VectorTileLayer, WebMap, MapView, Map, FeatureLayer, Bookmarks, BasemapGallery, LayerList, Legend, 
                 Query, Fullscreen, FeatureFilter, TableList, PortalItem, Portal, geometryService,
                 StatisticDefinition, WebStyleSymbol, Expand, UniqueValueRenderer, Ground,
                 RelationshipQuery, GraphicsLayer, Graphic, Search, Locate, BasemapToggle, PopupTemplate,
-                LabelClass, CustomContent, TileLayer, Extent, reactiveUtils, promiseUtils, GroupLayer, Home, Print
+                LabelClass, CustomContent, TileLayer, Extent, reactiveUtils, promiseUtils, GroupLayer, Home, Print,
+                Circle
                  ) {
 
     const calciteAction = document.querySelector("calcite-action");
@@ -265,7 +267,7 @@
       baseLayers: [
           new VectorTileLayer({
           portalItem: {
-              id: "fed599dc735e4febb5bdb432cec27834" // 3a62040541b84f528da3ac7b80cf4a63
+              id: "824fe99ab989479f83b9a6d7f2da0bcb" // 3a62040541b84f528da3ac7b80cf4a63
           }
           })
       ]
@@ -275,7 +277,7 @@
         basemap: basemap, // "streets-night-vector", basemap
         ground: "world-elevation"
     }); 
-    map.basemap.baseLayers.getItemAt(0).opacity = 0.9;
+    map.basemap.baseLayers.getItemAt(0).opacity = 1;
     //map.opacity = 0.1;
 /*
       xmin: 13368016.94,
@@ -314,7 +316,7 @@
     // sample smart map: https://ekenes.github.io/national-park-visits/?viewType=all&variable=bivariate&year=2021
     // Overview Extent
     var overViewMap = new Map({
-        basemap: basemap, // "streets-night-vector", basemap
+        basemap: "streets-night-vector", // "streets-night-vector", basemap
     }); 
 
     const overViewCenter = [120.9411264, 14.7354620];
@@ -429,9 +431,10 @@ function disableZooming(overView) {
             });
         });
 
+
     function setup() {
       const extent3Dgraphic = new Graphic({
-        geometry: null,
+        geometry: null, // default: null
         symbol: {
           type: "simple-fill",
           color: [0, 0, 0, 0],
@@ -467,7 +470,7 @@ function disableZooming(overView) {
       nscrex_hex: "#00b3ff",
     }
 
-    const lineWidth = "10px";
+    const lineWidth = "5px";
 
     const lineSymbol_mmsp = {
       type: "simple",  // autocasts as new SimpleLineSymbol(),
@@ -698,7 +701,66 @@ function disableZooming(overView) {
     // Station point feature
     const minScale = 577790;
     const maxScale = 0;
-    const opacity = 0.8;
+    const opacity = 1;
+    const pointSize = "10px";
+    const pointColor = "white";
+    const pointOutlineWidth = 1.5;
+
+    const stationPointSymbol_n1 = {
+      type: "simple",
+      symbol: {
+        type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+        style: "circle",
+        color: pointColor,
+        size: pointSize,  // pixels
+        outline: {  // autocasts as new SimpleLineSymbol()
+          color: centerlineProjectColor.nscr_hex,
+          width: pointOutlineWidth  // points
+        }
+      }
+    };
+
+    const stationPointSymbol_mmsp = {
+      type: "simple",
+      symbol: {
+        type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+        style: "circle",
+        color: pointColor,
+        size: pointSize,  // pixels
+        outline: {  // autocasts as new SimpleLineSymbol()
+          color: centerlineProjectColor.mmsp_hex,
+          width: pointOutlineWidth  // points
+        }
+      }
+    };
+
+    const stationPointSymbol_n2 = {
+      type: "simple",
+      symbol: {
+        type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+        style: "circle",
+        color: pointColor,
+        size: pointSize,  // pixels
+        outline: {  // autocasts as new SimpleLineSymbol()
+          color: centerlineProjectColor.nscrex_hex,
+          width: pointOutlineWidth  // points
+        }
+      }
+    };
+
+    const stationPointSymbol_sc = {
+      type: "simple",
+      symbol: {
+        type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+        style: "circle",
+        color: pointColor,
+        size: pointSize,  // pixels
+        outline: {  // autocasts as new SimpleLineSymbol()
+          color: centerlineProjectColor.nscrex_hex,
+          width: pointOutlineWidth  // points
+        }
+      }
+    };
 
     var labelStation = new LabelClass({
         symbol: {
@@ -714,7 +776,9 @@ function disableZooming(overView) {
         labelPlacement: "center-left",
         labelExpressionInfo: {
             expression: "$feature.Station"
-        }
+        },
+        minScale: minScale,
+        maxScale: maxScale,
     });
 
     var n2StationLayer = new FeatureLayer({
@@ -729,9 +793,8 @@ function disableZooming(overView) {
         outFields: ["*"],
         popupEnabled: false,
         definitionExpression: "Station <> 'NCC'",
+        renderer: stationPointSymbol_n2,
         labelingInfo: [labelStation],
-        minScale: minScale,
-        maxScale: maxScale,
         opacity: opacity
     });
     n2StationLayer.listMode = "hide";
@@ -752,7 +815,9 @@ function disableZooming(overView) {
         labelPlacement: "center-right",
         labelExpressionInfo: {
             expression: "$feature.Station"
-        }
+        },
+        minScale: minScale,
+        maxScale: maxScale,
     });
 
     var scStationLayer = new FeatureLayer({
@@ -767,8 +832,7 @@ function disableZooming(overView) {
         outFields: ["*"],
         popupEnabled: false,
         labelingInfo: [labelStationSC],
-        minScale: minScale,
-        maxScale: maxScale,
+        renderer: stationPointSymbol_sc,
         opacity: opacity
     });
     scStationLayer.listMode = "hide";
@@ -789,7 +853,9 @@ function disableZooming(overView) {
         labelPlacement: "center-left",
         labelExpressionInfo: {
             expression: "$feature.Station1"
-        }
+        },
+        minScale: minScale,
+        maxScale: maxScale,
     });
 
     var mmspStationLayer = new FeatureLayer({
@@ -805,8 +871,7 @@ function disableZooming(overView) {
         outFields: ["*"],
         popupEnabled: false,
         labelingInfo: [mmspLabelStation],
-        minScale: minScale,
-        maxScale: maxScale,
+        renderer: stationPointSymbol_mmsp,
         opacity: opacity
     });
     mmspStationLayer.listMode = "hide";
@@ -827,7 +892,9 @@ function disableZooming(overView) {
         labelPlacement: "center-right",
         labelExpressionInfo: {
             expression: "$feature.Station"
-        }
+        },
+        minScale: minScale,
+        maxScale: maxScale,
     });
 
     var n1StationLayer = new FeatureLayer({
@@ -842,8 +909,7 @@ function disableZooming(overView) {
         outFields: ["*"],
         popupEnabled: false,
         labelingInfo: [n1LabelStation],
-        minScale: minScale,
-        maxScale: maxScale,
+        renderer: stationPointSymbol_n1,
         opacity: opacity
     });
     n1StationLayer.listMode = "hide";
