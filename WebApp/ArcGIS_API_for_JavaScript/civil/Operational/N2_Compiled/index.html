@@ -1865,7 +1865,7 @@
       elevationInfo: {
         mode: "relative-to-scene"
       },
-      minScale: 10000,
+      minScale: 150000,
       maxScale: 0,
       popupTemplate: {
         title: "<p>{StrucID}</p>",
@@ -3799,19 +3799,20 @@
     pteNumberLot();
     pteNumberStructure();
 
-    updateChartLot();
-    updateChartStructure();
-    updateChartNLO();
-    updateChartCutting();
-    updateChartTreeComp();
+    updateChartLot(cpValue);
+    updateChartStructure(cpValue);
+    updateChartNLO(cpValue);
+    updateChartCutting(cpValue);
+    updateChartTreeComp(cpValue);
     updateChartUtilityPoint(cpValue);
     updateChartUtilityLine(cpValue);
-    updateChartViaduct();
+    updateChartViaduct(cpValue);
 
-    updateMoaChartLot();
-    updateMoaChartStructure();
+    updateMoaChartLot(cpValue);
+    updateMoaChartStructure(cpValue);
   }
 
+  const viaductChartDiv = document.getElementById("viaductChartDiv");
   document.getElementById("contractPackageDiv").addEventListener("click", changeProject);
     function changeProject(event) {
       const value = event.srcElement.id;
@@ -3835,6 +3836,9 @@
         pnrLayer.definitionExpression = null;
 
         pierAccessLayer.visible = true;
+        viaductChartDiv.style.display = 'block';
+        viaductNumberDiv.style.display = 'block';
+
         pnrLayer.visible = true;
 
         updateSummary();
@@ -3853,9 +3857,14 @@
         utilityPointLayer1.definitionExpression = cpExpression;
         utilityLineLayer.definitionExpression = cpExpression;
         utilityLineLayer1.definitionExpression = cpExpression;
+
         pierAccessLayer.visible = false;
-        viaductLayer.visible = false;
         pnrLayer.definitionExpression = false;
+
+        // Viaduct layer has no N-05 so need to hide its chart
+        viaductLayer.visible = false;
+        viaductChartDiv.style.display = 'none';
+        viaductNumberDiv.style.display = 'none';
 
         updateSummary();
 
@@ -3877,6 +3886,9 @@
         viaductLayer.definitionExpression = cpExpression;
         pnrLayer.definitionExpression = cpExpression;
 
+        viaductChartDiv.style.display = 'block';
+        viaductNumberDiv.style.display = 'block';
+        
         updateSummary(value);
 
         zoomToLayer(pierAccessLayer);
@@ -4116,7 +4128,7 @@
                        "For Legal Pass", "For Appraisal/Offer to Buy",
                        "For Expro"];
 
-    function updateChartLot(municipal, barangay) {
+    function updateChartLot(cpValue) {
         root.container.children.clear();
         // First, define statuses
         var total_handedover_lot = {
@@ -4241,26 +4253,15 @@
           }
 
           var query = lotLayer.createQuery();
-          const municipalExpression = "Municipality = '" + municipal + "'";
-          const barangayExpression = "Barangay ='" + barangay + "'";
+          const cpExpression = "CP = '" + cpValue + "'";
           const statusExpression = "StatusLA = " + selectedStatus;
 
-          if (municipal === undefined && barangay === undefined) {
+          if (cpValue === undefined || cpValue === "All") {
             query.where = statusExpression;
-
-          } else if (municipal !== 'None' && barangay === 'None') {
-            query.where = municipalExpression + " AND " + statusExpression;
-
-          } else if (municipal === 'None' && barangay !== 'None') {
-            query.where = barangayExpression + " AND " + statusExpression;
-
-          } else if (municipal === 'None' && barangay === 'None') {
-            query.where = "1=1";
-
-          } else if (municipal !== 'None' && barangay !== 'None') {
-            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
-
+          } else {
+            query.where = cpExpression + " AND " + statusExpression;
           } 
+
           view.when(function() {
             view.whenLayerView(lotLayer).then(function (layerView) {
               //chartLayerView = layerView;
@@ -4437,7 +4438,7 @@
                             "No Need to Acquire"
                           ];
 
-    function updateMoaChartLot(municipal, barangay) {
+    function updateMoaChartLot(cpValue) {
         root2.container.children.clear();
 
         var total_nego_lot = {
@@ -4620,25 +4621,13 @@
           }
 
           var query = lotLayer.createQuery();
-          const municipalExpression = "Municipality = '" + municipal + "'";
-          const barangayExpression = "Barangay ='" + barangay + "'";
+          const cpExpression = "CP = '" + cpValue + "'";
           const statusExpression = "MoA = " + selectedStatus;
 
-          if (municipal === undefined && barangay === undefined) {
+          if (cpValue === undefined || cpValue === "All") {
             query.where = statusExpression;
-
-          } else if (municipal !== 'None' && barangay === 'None') {
-            query.where = municipalExpression + " AND " + statusExpression;
-
-          } else if (municipal === 'None' && barangay !== 'None') {
-            query.where = barangayExpression + " AND " + statusExpression;
-
-          } else if (municipal === 'None' && barangay === 'None') {
-            query.where = statusExpression;
-
-          } else if (municipal !== 'None' && barangay !== 'None') {
-            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
-
+          } else {
+            query.where = cpExpression + " AND " + statusExpression;
           } 
           
           view.whenLayerView(lotLayer).then(function (layerView) {
@@ -4824,7 +4813,7 @@
                                  "For Legal Pass", "For Appraisal/Offer to Compensate",
                                 "LBP Account Opening"];
 
-    async function updateChartStructure(municipal, barangay) {
+    async function updateChartStructure(cpValue) {
         root3.container.children.clear();
 
         var total_clear_lot = {
@@ -4947,25 +4936,13 @@
           }
 
           var query = structureLayer.createQuery();
-          const municipalExpression = "Municipality = '" + municipal + "'";
-          const barangayExpression = "Barangay ='" + barangay + "'";
+          const cpExpression = "CP = '" + cpValue + "'";
           const statusExpression = "StatusStruc = " + selectedStatus;
 
-          if (municipal === undefined && barangay === undefined) {
+          if (cpValue === undefined || cpValue === "All") {
             query.where = statusExpression;
-
-          } else if (municipal !== 'None' && barangay === 'None') {
-            query.where = municipalExpression + " AND " + statusExpression;
-
-          } else if (municipal === 'None' && barangay !== 'None') {
-            query.where = barangayExpression + " AND " + statusExpression;
-
-          } else if (municipal === 'None' && barangay === 'None') {
-            query.where = statusExpression;
-
-          } else if (municipal !== 'None' && barangay !== 'None') {
-            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
-
+          } else {
+            query.where = cpExpression + " AND " + statusExpression;
           } 
 
           // Zoom, filter, and highlight selected chart categories 
@@ -5124,7 +5101,7 @@
                                 "No Need to Acquire"
                                 ];
 
-    async function updateMoaChartStructure(municipal, barangay) {
+    async function updateMoaChartStructure(cpValue) {
         root4.container.children.clear();
 
         var total_nego_lot = {
@@ -5300,25 +5277,15 @@
             }
 
           var query = structureLayer.createQuery();
-          const municipalExpression = "Municipality = '" + municipal + "'";
-          const barangayExpression = "Barangay ='" + barangay + "'";
+          const cpExpression = "CP = '" + cpValue + "'";
           const statusExpression = "MoA = " + selectedStatus;
 
-          if (municipal === undefined && barangay === undefined) {
+          if (cpValue === undefined || cpValue === "All") {
             query.where = statusExpression;
-          } else if (municipal !== 'None' && barangay === 'None') {
-            query.where = municipalExpression + " AND " + statusExpression;
-          } else if (municipal === 'None' && barangay !== 'None') {
-            query.where = barangayExpression + " AND " + statusExpression;
-          } else if (municipal === 'None' && barangay === 'None') {
-            query.where = statusExpression;
+          } else {
+            query.where = cpExpression + " AND " + statusExpression;
+          } 
 
-          } else if (municipal !== 'None' && barangay !== 'None') {
-            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
-          } else if (municipal !== 'None' && barangay !== 'None') {
-            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
-          }
-          
           view.whenLayerView(structureLayer).then(function (layerView) {
           //CHART_ELEMENT.style.visibility = "visible";
 
@@ -5407,7 +5374,7 @@
                       "For Legal Pass", "For Appraisal/OtC/Requirements for Other Entitlements",
                     "LBP Account Opening"]
 
-    async function updateChartNLO(municipal, barangay) {
+    async function updateChartNLO(cpValue) {
         root5.container.children.clear();
 
         var total_relocated_lot = {
@@ -5548,30 +5515,20 @@
           }
 
           var query = nloLayer.createQuery();
-          const municipalExpression = "Municipality = '" + municipal + "'";
-          const barangayExpression = "Barangay ='" + barangay + "'";
+          const cpExpression = "CP = '" + cpValue + "'";
           const statusExpression = "StatusRC = " + selectedStatus;
 
-          if (municipal === undefined && barangay === undefined) {
+          if (cpValue === undefined || cpValue === "All") {
             query.where = statusExpression;
-          } else if (municipal !== 'None' && barangay === 'None') {
-            query.where = municipalExpression + " AND " + statusExpression;
-          } else if (municipal === 'None' && barangay !== 'None') {
-            query.where = barangayExpression + " AND " + statusExpression;
-          } else if (municipal === 'None' && barangay === 'None') {
-            query.where = statusExpression;
-
-          } else if (municipal !== 'None' && barangay !== 'None') {
-            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
-          } else if (municipal !== 'None' && barangay !== 'None') {
-            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
-          }
+          } else {
+            query.where = cpExpression + " AND " + statusExpression;
+          } 
 
           view.when(function() {
             view.whenLayerView(nloLayer).then(function (layerView) {
               //chartLayerView = layerView;
 
-              nloLayer.queryFeatures().then(function(results) {
+              nloLayer.queryFeatures(query).then(function(results) {
                 const RESULT_LENGTH = results.features;
                 const ROW_N = RESULT_LENGTH.length;
 
@@ -5737,7 +5694,7 @@
     const treeCutStatus = ["Cut/Earthballed", "Permit Acquired", "Submitted to DENR",
                     "Ongoing Acquisition of Application Documents"];
 
-    function updateChartCutting() {
+    function updateChartCutting(cpValue) {
         root6.container.children.clear();
 
         var total_cutearthb = {
@@ -5858,11 +5815,21 @@
             selectedStatus = null;
         }
 
+        var query = treeCuttingLayer.createQuery();
+          const cpExpression = "CP = '" + cpValue + "'";
+          const statusExpression = "Status = " + selectedStatus;
+
+          if (cpValue === undefined || cpValue === "All") {
+            query.where = statusExpression;
+          } else {
+            query.where = cpExpression + " AND " + statusExpression;
+          } 
+
         view.when(function() {
             view.whenLayerView(treeCuttingLayer).then(function (layerView) {
             //chartLayerView = layerView;
 
-            treeCuttingLayer.queryFeatures().then(function(results) {
+            treeCuttingLayer.queryFeatures(query).then(function(results) {
                 const RESULT_LENGTH = results.features;
                 const ROW_N = RESULT_LENGTH.length;
 
@@ -6011,7 +5978,7 @@
 
     const treeCompen = ["Non-Compensable", "For Processing", "Compensated"];
 
-    function updateChartTreeComp() {
+    function updateChartTreeComp(cpValue) {
         root7.container.children.clear();
 
         var total_noncompen = {
@@ -6119,11 +6086,21 @@
                     selectedStatus = null;
                 }
 
+                var query = treeCompensationLayer.createQuery();
+                const cpExpression = "CP = '" + cpValue + "'";
+                const statusExpression = "Compensation = " + selectedStatus;
+
+                if (cpValue === undefined || cpValue === "All") {
+                  query.where = statusExpression;
+                } else {
+                  query.where = cpExpression + " AND " + statusExpression;
+                } 
+
             view.when(function() {
                 view.whenLayerView(treeCompensationLayer).then(function (layerView) {
                 //chartLayerView = layerView;
 
-                treeCompensationLayer.queryFeatures().then(function(results) {
+                treeCompensationLayer.queryFeatures(query).then(function(results) {
                     const RESULT_LENGTH = results.features;
                     const ROW_N = RESULT_LENGTH.length;
 
@@ -7003,7 +6980,7 @@
   ]
   var root_via = am5.Root.new("viaductChartDiv");
 
-  function updateChartViaduct() {
+  function updateChartViaduct(cpValue) {
     root_via.container.children.clear();
     var total_pile_incomp = {
       onStatisticField: "CASE WHEN (Type = 1 and Status1 = 1) THEN 1 ELSE 0 END",
@@ -7269,16 +7246,21 @@
           const selectedStatus = fieldName == 'incomp' ? 1 : 4;
           
           var highlight = null;
+          var query = viaductLayer.createQuery();
+          query.outFields = ["*"]
           const sqlExpression = "Type = " + typeSelect + " AND " +  "Status1 = " + selectedStatus;
+          const cpExpression = "CP = '" + cpValue + "'" + " AND " + "Type = " + typeSelect + " AND " +  "Status1 = " + selectedStatus;
 
+          if (cpValue === undefined || cpValue === "All") {
+            query.where = sqlExpression;
+          } else {
+            query.where = cpExpression;
+          } 
             // Update layerView based on viaduct components being selected
             view.whenLayerView(viaductLayer).then(function (viaductLayerView) {
-              viaductLayerView.filter = {
-                  where: "Type = " + typeSelect + " AND " +  "Status1 = " + selectedStatus
-                  //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
-              };
+
                 
-              viaductLayerView.queryFeatures().then(function(results) {
+              viaductLayerView.queryFeatures(query).then(function(results) {
                 const ggg = results.features;
                 const rowN = ggg.length;
                 
@@ -7299,6 +7281,10 @@
                   highlight.remove();
                 });
               });
+              viaductLayerView.filter = {
+                  where: "Type = " + typeSelect + " AND " +  "Status1 = " + selectedStatus
+                  //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+              };
             }); // whenLayerView
         });// End of filterByChart
 
