@@ -156,6 +156,13 @@ body,
     height: 40;
   }
 
+  #chartPanel {
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    /*-Vertically align in the middle-*/
+  }
+
   .labelWater,
   .labelPower,
   .labelTelecom,
@@ -164,10 +171,7 @@ body,
     color: white;
     font-size: 1.5vw;
     margin: 0;
-    padding-top: 5;
-    float: right;
     text-align: center;
-    width: 9vw;
   }
 
   #labelTotalDiv {
@@ -6199,7 +6203,7 @@ display: none;
                 "category": "gas",
                 "comp": gas_comp,
                 "incomp": gas_incomp,
-                "icon": "https://EijiGorilla.github.io/Symbols/Telecom_Logo2.svg",
+                "icon": "https://EijiGorilla.github.io/Symbols/Gas_Logo2.svg",
             },
         ];
 
@@ -6307,7 +6311,7 @@ display: none;
 
           series.columns.template.events.on("click", function(ev) {
           const selectedStatus = fieldName == 'incomp' ? 0 : 1;
-          const sqlExpression = "UtilType = 1" + " AND " +  "Status = " + selectedStatus;
+          const sqlExpression = "UtilType = 5" + " AND " +  "Status = " + selectedStatus;
 
           var highlight = null;
           // Point 1:
@@ -6436,57 +6440,81 @@ display: none;
           }));
 
           var data = [
-              {
-                  "category": "gas",
-                  "comp": gas_comp,
-                  "incomp": gas_incomp
-              },
-          ];
+            {
+                "category": "gas",
+                "comp": gas_comp,
+                "incomp": gas_incomp,
+                "icon": "https://EijiGorilla.github.io/Symbols/Gas_Logo2.svg",
+            },
+        ];
 
-          // Create axes
-          // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
-          var yRenderer = am5xy.AxisRendererY.new(root_gas2, {});
-          var yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root_gas2, {
-            categoryField: "category",
-            visible: false, // disable axis label
-            renderer: yRenderer,
-            tooltip: am5.Tooltip.new(root_gas2, {})
+        // Create axes
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+        var yRenderer = am5xy.AxisRendererY.new(root_gas2, {});
+        var yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root_gas2, {
+          categoryField: "category",
+          //visible: false, // disable axis label
+          renderer: yRenderer,
+          bullet: function(root_gas2, axis, dataItem) {
+              return am5xy.AxisBullet.new(root_gas2, {
+                location: 0.5,
+                sprite: am5.Picture.new(root_gas2, {
+                  width: chartIconWidth,
+                  height: chartIconHeight,
+                  centerY: am5.p50,
+                  centerX: am5.p50,
+                  x: chartIconPositionX,
+                  src: dataItem.dataContext.icon
+                })
+              });
+            },
+          tooltip: am5.Tooltip.new(root_gas2, {})
+        }));
+
+        yRenderer.labels.template.setAll({
+          paddingRight: 45
+        });
+
+        yRenderer.grid.template.setAll({
+          location: 1
+        });
+
+        // Label properties Y axis
+        yAxis.get("renderer").labels.template.setAll({
+          //maxWidth: 150,
+          fontSize: "0em",
+        });
+
+        yAxis.data.setAll(data);
+
+        var xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root_gas2, {
+          min: 0,
+          max: 100,
+          strictMinMax: true,
+          numberFormat: xAxisNumberFormat,
+          calculateTotals: true,
+          visible: false, // disable axis label
+          renderer: am5xy.AxisRendererX.new(root_gas2, {
+            strokeOpacity: 0.1
+          })
+        }));
+
+        // Add series
+        let arrLviews = [];
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+        function makeSeries(name, fieldName) {
+          var series = chart.series.push(am5xy.ColumnSeries.new(root_gas2, {
+            name: name,
+            stacked: true,
+            xAxis: xAxis,
+            yAxis: yAxis,
+            baseAxis: yAxis,
+            valueXField: fieldName,
+            valueXShow: "valueXTotalPercent",
+            categoryYField: "category",
           }));
 
-          yRenderer.grid.template.setAll({
-            location: 1
-          });
-
-          yAxis.data.setAll(data);
-
-          var xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root_gas2, {
-            min: 0,
-            max: 100,
-            strictMinMax: true,
-            numberFormat: xAxisNumberFormat,
-            calculateTotals: true,
-            visible: false, // disable axis label
-            renderer: am5xy.AxisRendererX.new(root_gas2, {
-              strokeOpacity: 0.1
-            })
-          }));
-
-          // Add series
-          let arrLviews = [];
-          // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
-          function makeSeries(name, fieldName) {
-            var series = chart.series.push(am5xy.ColumnSeries.new(root_gas2, {
-              name: name,
-              stacked: true,
-              xAxis: xAxis,
-              yAxis: yAxis,
-              baseAxis: yAxis,
-              valueXField: fieldName,
-              valueXShow: "valueXTotalPercent",
-              categoryYField: "category",
-            }));
-
-            series.columns.template.setAll({
+          series.columns.template.setAll({
             tooltipText: "{name}, {categoryX}: {valueY}",
             width: am5.percent(90),
             tooltipY: 0
@@ -6501,74 +6529,95 @@ display: none;
             labelText: "[bold][fontSize:18.5px]{name}: {valueX} ({valueXTotalPercent.formatNumber('#.')}%)"
           });
 
-            series.set("tooltip", tooltip);
-            series.data.setAll(data);
+          series.set("tooltip", tooltip);
+          series.data.setAll(data);
 
-            // Make stuff animate on load
-            // https://www.amcharts.com/docs/v5/concepts/animations/
-            series.appear();
+          // Make stuff animate on load
+          // https://www.amcharts.com/docs/v5/concepts/animations/
+          series.appear();
 
-            series.bullets.push(function() {
-              return am5.Bullet.new(root_gas2, {
-                sprite: am5.Label.new(root_gas2, {
-                  text: gas_comp == 0 ? "" : "{valueXTotalPercent.formatNumber('#.')}%", //"{valueX}",
-                  fill: root_gas2.interfaceColors.get("alternativeText"),
-                  opacity: fieldName == "incomp" ? 0 : 1,
-                  fontSize: seriesBulletLabelFontSize,
-                  centerY: am5.p50,
-                  centerX: am5.p50,
-                  populateText: true
-                })
-              });
+          series.bullets.push(function() {
+            return am5.Bullet.new(root_gas2, {
+              sprite: am5.Label.new(root_gas2, {
+                text: gas_comp == 0 ? "" : "{valueXTotalPercent.formatNumber('#.')}%", //"{valueX}",
+                fill: root_gas2.interfaceColors.get("alternativeText"),
+                opacity: fieldName == "incomp" ? 0 : 1,
+                fontSize: seriesBulletLabelFontSize,
+                centerY: am5.p50,
+                centerX: am5.p50,
+                populateText: true
+              })
             });
+          });
 
-            series.columns.template.events.on("click", function(ev) {
-            const selectedStatus = fieldName == 'incomp' ? 0 : 1;
+          series.columns.template.events.on("click", function(ev) {
+          const selectedStatus = fieldName == 'incomp' ? 0 : 1;
+          const sqlExpression = "UtilType = 5" + " AND " +  "Status = " + selectedStatus;
 
-            var highlight = null;
-            // Point 1:
-            view.when(function() {
-              view.whenLayerView(utilityLineLayer).then(function (layerView) {
-                    arrLviews.push(layerView);
-                    
-                    //testUtilPt1.definitionExpression = sqlExpression;
-                    utilityLineLayer.queryFeatures().then(function(results) {
-                        const ggg = results.features;
-                        const rowN = ggg.length;
-                        
-                        let objID = [];
-                        for (var i=0; i < rowN; i++) {
-                            var obj = results.features[i].attributes.OBJECTID;
-                            objID.push(obj);
-                        }
-                        
-                        var queryExt = new Query({
-                            objectIds: objID
-                        });
-                        
-                        view.on("click", function() {
-                            layerView.filter = null;
-                        });
-                    }); // end of query features   
-                }); // end of when layerview
+          var highlight = null;
+          // Point 1:
+          view.when(function() {
+            view.whenLayerView(utilityLineLayer).then(function (layerView) {
+                  
+              //testUtilPt1.definitionExpression = sqlExpression;
+              utilityLineLayer.queryFeatures().then(function(results) {
+                const RESULT_LENGTH= results.features;
+                const ROW_N= RESULT_LENGTH.length;
 
-            // Point: 2
-            view.whenLayerView(utilityLineLayer1).then(function (layerView) {
-                arrLviews.push(layerView);
-              
-                view.on("click", function() {
-                    layerView.filter = null;
+                let objID = [];
+                for (var i=0; i< ROW_N; i++) {
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
+                }
+                
+                var queryExt = new Query({
+                  objectIds: objID
                 });
+
+                utilityLineLayer.queryExtent(queryExt).then(function(result) {
+                  if (result.extent) {
+                    view.goTo(result.extent)
+                  }
+                });
+
+                if (highlight) {
+                  highlightSelect.remove();
+                }
+                highlight = layerView.highlight(objID);
+                  
+                  view.on("click", function() {
+                      layerView.filter = null;
+                      highlight.remove();
+                  });
+                }); // end of query features
+                layerView.filter = {
+                  where: sqlExpression
+                  //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+                };
             }); // end of when layerview
 
-            // Query view using compiled arrays
-            for(var i = 0; i < arrLviews.length; i++) {
-                arrLviews[i].filter = {
-                  where: "UtilType = 5" + " AND " +  "Status = " + selectedStatus
-                }
-            }
-          });
-      });// End of filterByChart
+            view.whenLayerView(utilityLineLayer1).then(function (layerView) {
+                utilityLineLayer1.queryFeatures(query).then(function(results) {
+                  const RESULT_LENGTH= results.features;
+                  const ROW_N= RESULT_LENGTH.length;
+
+                  let objID = [];
+                  for (var i=0; i< ROW_N; i++) {
+                    var obj = results.features[i].attributes.OBJECTID;
+                    objID.push(obj);
+                  }
+
+                  view.on("click", function() {
+                    layerView.filter = null;
+                  });
+                });
+              layerView.filter = {
+                where: sqlExpression
+                //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+              };
+            }); // End of whenLayerView
+          }); // end of view.when
+    });// End of filterByChart
     }
 
     makeSeries("Complete", "comp");
@@ -6677,9 +6726,10 @@ display: none;
 
     data = [
     {
-      "category": "Gas",
+      "category": "Telecom",
       "comp": gas_comp,
-      "incomp": gas_incomp
+      "incomp": gas_incomp,
+      "icon": "https://EijiGorilla.github.io/Symbols/Gas_Logo2.svg",
     }
     ];
 
@@ -6688,15 +6738,38 @@ display: none;
     var yRenderer = am5xy.AxisRendererY.new(root_gas3, {});
     var yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root_gas3, {
       categoryField: "category",
-      visible: false, // disable axis label
+      //visible: false, // disable axis label
       renderer: yRenderer,
+      bullet: function(root_gas3, axis, dataItem) {
+          return am5xy.AxisBullet.new(root_gas3, {
+            location: 0.5,
+            sprite: am5.Picture.new(root_gas3, {
+              width: chartIconWidth,
+              height: chartIconHeight,
+              centerY: am5.p50,
+              centerX: am5.p50,
+              x: chartIconPositionX,
+              src: dataItem.dataContext.icon
+            })
+          });
+        },
       tooltip: am5.Tooltip.new(root_gas3, {})
     }));
+
+    yRenderer.labels.template.setAll({
+      paddingRight: 45
+    });
 
     yRenderer.grid.template.setAll({
       location: 1
     });
 
+    // Label properties Y axis
+    yAxis.get("renderer").labels.template.setAll({
+      //maxWidth: 150,
+      fontSize: "0em",
+    });
+    
     yAxis.data.setAll(data);
 
     var xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root_gas3, {
@@ -6770,51 +6843,134 @@ display: none;
 
       series.columns.template.events.on("click", function(ev) {
         const selectedStatus = fieldName == 'incomp' ? 0 : 1;
+        const sqlExpression = "UtilType = 5" + " AND " +  "Status = " + selectedStatus;
 
         var highlight = null;
-
-        // Query view using compiled arrays
-        for(var i = 0; i < arrLviews.length; i++) {
-          arrLviews[i].filter = {
-            where: "UtilType = 5" + " AND " +  "Status = " + selectedStatus
-          }
-        }
-
-        view.whenLayerView(utilityLineLayer1).then(function (layerView) {
-          arrLviews.push(layerView);
-
-          view.on("click", function() {
-            layerView.filter = null;
-          });
-
-          });
-
-          view.whenLayerView(utilityLineLayer).then(function (layerView) {
-            arrLviews.push(layerView);
-
-            view.on("click", function() {
-              layerView.filter = null;
-            });
-          });
-
+        // Point 1:
+        view.when(function() {
           view.whenLayerView(utilityPointLayer).then(function (layerView) {
-            arrLviews.push(layerView);
+                
+            //testUtilPt1.definitionExpression = sqlExpression;
+            utilityPointLayer.queryFeatures().then(function(results) {
+              const RESULT_LENGTH= results.features;
+              const ROW_N= RESULT_LENGTH.length;
 
-            view.on("click", function() {
-              layerView.filter = null;
-            });
+              let objID = [];
+              for (var i=0; i< ROW_N; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+              }
+              
+              var queryExt = new Query({
+                objectIds: objID
+              });
 
-          });
+              utilityPointLayer.queryExtent(queryExt).then(function(result) {
+                if (result.extent) {
+                  view.goTo(result.extent)
+                }
+              });
+
+              if (highlight) {
+                highlightSelect.remove();
+              }
+              highlight = layerView.highlight(objID);
+                
+                view.on("click", function() {
+                    layerView.filter = null;
+                    highlight.remove();
+                });
+              }); // end of query features
+              layerView.filter = {
+                where: sqlExpression
+                //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+              };
+          }); // end of when layerview
 
           view.whenLayerView(utilityPointLayer1).then(function (layerView) {
-            arrLviews.push(layerView);
+              utilityPointLayer1.queryFeatures().then(function(results) {
+                const RESULT_LENGTH= results.features;
+                const ROW_N= RESULT_LENGTH.length;
 
-            view.on("click", function() {
-              layerView.filter = null;
-            });
-          });
-          // End of LayerView
-  });// End of filterByChart
+                let objID = [];
+                for (var i=0; i< ROW_N; i++) {
+                  var obj = results.features[i].attributes.OBJECTID;
+                  objID.push(obj);
+                }
+
+                view.on("click", function() {
+                  layerView.filter = null;
+                });
+              });
+            layerView.filter = {
+              where: sqlExpression
+              //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+            };
+          }); // End of whenLayerView
+
+          var highlight2 = null;
+          // Line
+          view.whenLayerView(utilityLineLayer).then(function (layerView) {
+                
+                //testUtilPt1.definitionExpression = sqlExpression;
+                utilityLineLayer.queryFeatures().then(function(results) {
+                  const RESULT_LENGTH= results.features;
+                  const ROW_N= RESULT_LENGTH.length;
+
+                  let objID = [];
+                  for (var i=0; i< ROW_N; i++) {
+                    var obj = results.features[i].attributes.OBJECTID;
+                    objID.push(obj);
+                  }
+                  
+                  var queryExt = new Query({
+                    objectIds: objID
+                  });
+    
+                  utilityLineLayer.queryExtent(queryExt).then(function(result) {
+                    if (result.extent) {
+                      view.goTo(result.extent)
+                    }
+                  });
+    
+                  if (highlight2) {
+                    highlightSelect.remove();
+                  }
+                  highlight2 = layerView.highlight(objID);
+                    
+                    view.on("click", function() {
+                        layerView.filter = null;
+                        highlight2.remove();
+                    });
+                  }); // end of query features
+                  layerView.filter = {
+                    where: sqlExpression
+                    //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+                  };
+              }); // end of when layerview
+    
+              view.whenLayerView(utilityLineLayer1).then(function (layerView) {
+                  utilityLineLayer1.queryFeatures().then(function(results) {
+                    const RESULT_LENGTH= results.features;
+                    const ROW_N= RESULT_LENGTH.length;
+    
+                    let objID = [];
+                    for (var i=0; i< ROW_N; i++) {
+                      var obj = results.features[i].attributes.OBJECTID;
+                      objID.push(obj);
+                    }
+    
+                    view.on("click", function() {
+                      layerView.filter = null;
+                    });
+                  });
+                layerView.filter = {
+                  where: sqlExpression
+                  //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+                };
+              }); // End of whenLayerView
+        }); // end of view.when
+        });// End of filterByChart
   }
 
   makeSeries("Complete", "comp");
