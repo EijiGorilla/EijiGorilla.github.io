@@ -54,7 +54,7 @@
       height: 100%;
     }
 
-    calcite-tab {
+    calcite-tabs {
       width: 100%;
       height: 100%;
       overflow: hidden;
@@ -105,7 +105,8 @@
     }
     
     #pieChartLotDiv,
-    #pieChartStructureDiv {
+    #pieChartStructureDiv,
+    #isfPieChartDiv {
       height: 45%;
       margin-bottom: 5;
     }
@@ -118,18 +119,19 @@
 
     .lotNumber-container,
     .structureNumber-container,
-    .nloNumber-container,
+    .isfNumber-container,
     .handOverLot-container,
     .pteStructure-container {
       display: flex;
+      height: 70px;
     }
 
     #lotNumberDiv,
     #handedOverLotNumberDiv,
     #structureNumberDiv,
     #isfNumberDiv {
-      width: 50%;
-      height: 10%;
+      width: 52%;
+      height: 11%;
       padding-top: 2%;
       padding-left: 15px;
       font-size: 1vw;
@@ -156,16 +158,16 @@
 
     #landImage,
     #landNumberImage,
-    #nloNumberImage,
+    #isfNumberImage,
     #structureImage,
     #handedOverImage,
     #structureNumberImage {
-      width: 18%;
-      height: auto;
+      width: 60;
+      height: 60;
       margin-left: auto;
       margin-right: auto;
-      margin-top: 0;
-      margin-bottom: -10;
+      margin-top: auto;
+      margin-bottom: auto;
     }
 
     br {
@@ -222,7 +224,6 @@
       padding-right: 5%;
       font-size: 0.8vw;
       width: 17vw;
-
     }
 
     /* MOA Chart */
@@ -232,7 +233,7 @@
       height: 30%;
       align-items: center;
       padding: 1%;
-      margin-top: 5%;
+      margin-top: 3%;
     }
 
     /* Dropdown list */
@@ -246,15 +247,6 @@
     }
 
     /* Browser Setting */
-    ::-webkit-scrollbar {
-        display: none;
-    }
-    
-    /*  */
-    .esri-legend__layer-caption {
-      display: none;
-    }
-
     #timeSeriesChart {
       position: absolute;
       z-index: 1;
@@ -418,6 +410,7 @@
             <calcite-tab-nav slot="tab-nav"  id="thetabs">
               <calcite-tab-title class="Land" selected>Land</calcite-tab-title>
               <calcite-tab-title class="Structure">Structure</calcite-tab-title>
+              <calcite-tab-title class="ISF">ISF</calcite-tab-title>
               <calcite-tab-title>Expro List</calcite-tab-title>
             </calcite-tab-nav>
             <calcite-tab>
@@ -428,16 +421,24 @@
               <div class="box" id="pieChartLotDiv"></div>
               <div class="handOverLot-container">
                 <div id="handedOverLotNumberDiv"></div>
-                <img id="handedOverImage" src="https://EijiGorilla.github.io/Symbols/Permit-To-Enter.png">
+                <img id="handedOverImage" src="https://EijiGorilla.github.io/Symbols/Handed_Over_Logo.svg">
               </div>
               <div id="chartMoaLotDiv"></div>
             </calcite-tab>
             <calcite-tab>
-              <div class="boxStructure" id="pieChartStructureDiv"></div>
-              <div id="structureNumberDiv"></div>
-              <div id="chartMoaStructureDiv"></div>
-              <div id="isfNumberDiv"></calcite-label>
+              <div class="structureNumber-container">
+                <div id="structureNumberDiv"></div>
+                <img id="structureNumberImage" src="https://EijiGorilla.github.io/Symbols/House_Logo.svg">
               </div>
+              <div class="boxStructure" id="pieChartStructureDiv"></div>
+              <div id="chartMoaStructureDiv"></div>
+            </calcite-tab>
+            <calcite-tab>
+              <div class="isfNumber-container">
+                <div id="isfNumberDiv"></div>
+                <img id="isfNumberImage" src="https://EijiGorilla.github.io/Symbols/NLO_Logo.svg">
+              </div>
+              <div class="box2" id="isfPieChartDiv"></div>
             </calcite-tab>
             <calcite-tab>
               <div class="panel-side esri-widget">
@@ -1413,11 +1414,12 @@
 
           structureLayer.queryFeatures(query).then(function(response) {
             var stats = response.features[0].attributes;
-
-            const total = thousands_separators(stats.totalStructureAll);
+            const total = stats.totalStructureAll;
+            const total_structure = thousands_separators(total);
             const totalValue = thousands_separators(total) + " (" + structureValue + ")";
-            structureNumberDiv.innerHTML = `<b>Number of Structures</b><br>${totalValue}`;
+
             //structureNumberDiv.innerHTML = dark.disabled ? `<b style="color:black">Number of Structures</b><br><br>${STRUCTURE_TOTAL}` : `<b>Number of Structures</b><br><br>${STRUCTURE_TOTAL}`;
+            structureNumberDiv.innerHTML =  `TOTAL STRUCTURES<br><br><b>${structureValue}</b><br><br>(${total_structure})`;
 
           })
         }
@@ -1447,12 +1449,13 @@
             const ISF_TOTAL = stats.totalIsf;
             const PERCENT = (ISF_RELO/ISF_TOTAL)*100;
 
+            isfNumberDiv.innerHTML =  `TOTAL ISF<br><br><b>${ISF_TOTAL}</b>`;
+
             if (ISF_RELO == null) {
-              const isf_null = 0 + " (" + 0 + " %" + ")";
-              isfNumberDiv.innerHTML = `<b>Relocated ISF</b><br><br>${isf_null}`;
+              isfNumberDiv.innerHTML =  `TOTAL ISF<br><br><b>0</b>`;
             } else {
               const isf_total = ISF_RELO + " (" + PERCENT + "%" + ")";
-              isfNumberDiv.innerHTML =  `<b>Relocated ISF</b><br><br>${isf_total}`;
+              isfNumberDiv.innerHTML =  `TOTAL ISF<br><br><b>${ISF_TOTAL}</b>`;
             }
 
           });
@@ -1735,6 +1738,7 @@
           totalNumberOfStructures().then(totalNumberOfStructureAll);
           updateMoaChartStructure(cpValue, landTypeValue, sectionValue);
           isfNumber();
+          updateChartISF(cpValue, landTypeValue, sectionValue);
 
         });
 
@@ -1763,6 +1767,7 @@
           totalNumberOfStructures().then(totalNumberOfStructureAll);
           updateMoaChartStructure(cpValue, landTypeValue, sectionValue);
           isfNumber();
+          updateChartISF(cpValue, landTypeValue, sectionValue);
 
         });
 
@@ -1784,6 +1789,7 @@
           totalNumberOfStructures().then(totalNumberOfStructureAll);
           updateMoaChartStructure(cpValue, landTypeValue, sectionValue);
           isfNumber();
+          updateChartISF(cpValue, landTypeValue, sectionValue);
 
         });
 
@@ -2124,6 +2130,9 @@
           const statusExpression = "StatusNVS3 = " + selectedStatus;
 
           if (cpValue === 'None' && landTypeValue === 'None' && sectionValue === 'None') {
+            query.where = statusExpression;
+
+          } else if (cpValue === undefined && landTypeValue === undefined && sectionValue === undefined) {
             query.where = statusExpression;
 
           } else if (cpValue === 'None' && landTypeValue === 'None' && sectionValue !== 'None') {
@@ -2562,6 +2571,9 @@ updateChartLot();
           if (cpValue === 'None' && (landTypeValue === 'None' || landTypeValue === undefined) && sectionValue === 'None') {
             query.where = statusExpression;
 
+          } else if (cpValue === undefined && landTypeValue === undefined && sectionValue === undefined) {
+            query.where = statusExpression;
+
           } else if (cpValue === 'None' && (landTypeValue === 'None' || landTypeValue === undefined) && sectionValue !== 'None') {
             query.where = sectionExpression + " AND " + statusExpression;
 
@@ -2918,6 +2930,9 @@ updateChartLot();
           if (cpValue === 'None' && landTypeValue === 'None' && sectionValue === 'None') {
             query.where = statusExpression;
 
+          } else if (cpValue === undefined && landTypeValue === undefined && sectionValue === undefined) {
+            query.where = statusExpression;
+
           } else if (cpValue === 'None' && landTypeValue === 'None' && sectionValue !== 'None') {
             query.where = sectionExpression + " AND " + statusExpression;
 
@@ -2986,7 +3001,7 @@ updateChartLot();
         // Chart title
         chart.children.unshift(am5.Label.new(root2, {
           text: "MODE OF ACQUISITION",
-          fontSize: 14,
+          fontSize: 16,
           fontWeight: "normal",
           textAlign: "left",
           fill: am5.color("#f7f5f7"),
@@ -3032,36 +3047,36 @@ updateChartLot();
           strokeOpacity: 0,
         });
 
-        function updateMoaChartStructure() {
+        function updateMoaChartStructure(cpValue, landTypeValue, sectionValue) {
           root6.container.children.clear();
 
-          var totalNVSLot = {
+          var total_NVS_structure = {
         onStatisticField: "CASE WHEN S_MOA = 1 THEN 1 ELSE 0 END",
-        outStatisticFieldName: "totalNVSLot",
+        outStatisticFieldName: "total_NVS_structure",
         statisticType: "sum"
         };
 
-        var totalExproLot = {
+        var total_Expro_structure = {
         onStatisticField: "CASE WHEN S_MOA = 2 THEN 1 ELSE 0 END",
-        outStatisticFieldName: "totalExproLot",
+        outStatisticFieldName: "total_Expro_structure",
         statisticType: "sum"
         };
 
-        var totalRowuaLot = {
+        var total_rowua_structure = {
         onStatisticField: "CASE WHEN S_MOA = 3 THEN 1 ELSE 0 END",
-        outStatisticFieldName: "totalRowuaLot",
+        outStatisticFieldName: "total_rowua_structure",
         statisticType: "sum"
         };
 
         var query = lotLayer.createQuery();
-        query.outStatistics = [totalNVSLot, totalExproLot, totalRowuaLot];
+        query.outStatistics = [total_NVS_structure, total_Expro_structure, total_rowua_structure];
         query.returnGeometry = true;
 
         lotLayer.queryFeatures(query).then(function(response) {
           var stats = response.features[0].attributes;
-          const NVS = stats.totalNVSLot;
-          const EXPRO = stats.totalExproLot;
-          const ROWUA = stats.totalRowuaLot;
+          const NVS = stats.total_NVS_structure;
+          const EXPRO = stats.total_Expro_structure;
+          const ROWUA = stats.total_rowua_structure;
 
                   // Set themes
         // https://www.amcharts.com/docs/v5/concepts/themes/
@@ -3207,6 +3222,8 @@ updateChartLot();
           } else if (SELECTED == "3-ROWUA") {
             selectedStatus = 3;
           }
+
+
           
           view.whenLayerView(lotLayer).then(function (layerView) {
           //CHART_ELEMENT.style.visibility = "visible";
@@ -3248,18 +3265,6 @@ updateChartLot();
           }); // End of whenLayerVie
         });
 
-        // Chart title
-        chart.children.unshift(am5.Label.new(root6, {
-          text: "Mode of Acquisition",
-          fontSize: 14,
-          fontWeight: "bold",
-          textAlign: "center",
-          fill: am5.color("#3ce00a"),
-          x: am5.percent(50),
-          centerX: am5.percent(50),
-          paddingTop: -10,
-          paddingBottom: 0,
-        }));
         // Set data
         var data = [
           {
@@ -3286,8 +3291,283 @@ updateChartLot();
         chart.appear(1000, 100);
         }); // End of queryFeatures
         } // End of updateMOAChartLot
-
         updateMoaChartStructure();
+
+
+        var root7 = am5.Root.new("isfPieChartDiv");
+        const statusISF = ["UNRELOCATED","RELOCATED"];
+
+    async function updateChartISF(cpValue, landTypeValue, sectionValue) {
+        root7.container.children.clear();
+        var total_unrelocated_lot = {
+            onStatisticField: "CASE WHEN RELOCATION <> 'RELOCATED' THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_unrelocated_lot",
+            statisticType: "sum"
+        };
+
+        var total_relocated_lot = {
+            onStatisticField: "CASE WHEN RELOCATION = 'RELOCATED' THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_relocated_lot",
+            statisticType: "sum"
+        };
+
+        var query = isfLayer.createQuery();
+        query.outStatistics = [total_unrelocated_lot, total_relocated_lot];
+        query.returnGeometry = true;
+
+        return isfLayer.queryFeatures(query).then(function(response) {
+            var stats = response.features[0].attributes;
+            const noclear = stats.total_unrelocated_lot;
+            const clear = stats.total_relocated_lot;
+
+        // https://www.amcharts.com/docs/v5/concepts/themes/
+        root7.setThemes([
+          am5themes_Animated.new(root7),
+          am5themes_Responsive.new(root7)
+        ]);
+
+
+        // Create chart
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/
+        var chart = root7.container.children.push(
+          am5percent.PieChart.new(root7, {
+
+          //centerY: am5.percent(-2), //-10
+          //y: am5.percent(-30), // -30
+          layout: root7.verticalLayout
+          })
+        );
+
+        // Create series
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/#Series
+        var pieSeries = chart.series.push(
+          am5percent.PieSeries.new(root7, {
+            name: "Series",
+            categoryField: "category",
+            valueField: "value",
+            //legendLabelText: "[{fill}]{category}[/]",
+            legendValueText: "{valuePercentTotal.formatNumber('#.')}% ({value})",
+            radius: am5.percent(85), // outer radius
+            innerRadius: am5.percent(40),
+          })
+        );
+        /*
+
+        var label = pieSeries.children.push(am5.Label.new(root, {
+          text: clear,
+          fontSize: 40,
+          centerX: am5.percent(50),
+          centerY: am5.percent(50),
+          populateText: true,
+          fill: am5.color("#ffffff")
+        }));
+*/
+        // Set data
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/#Setting_data
+        //https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/pie-series/
+
+        // To set slice color, you need to add this before data.setAll
+        /*
+        pieSeries.get("colors").set("colors", [
+          am5.color("#70ad47"),
+          am5.color("#0070FF"),
+          am5.color("#FFFF00"),
+          am5.color("#FFAA00"),
+          am5.color("#FF0000"),
+          am5.color("#00734C"),
+        ]);
+        */
+
+        // Set slice opacity and stroke color
+        pieSeries.slices.template.setAll({
+          fillOpacity: 0.9,
+          stroke: am5.color("#ffffff"),
+          strokeWidth: 1,
+          strokeOpacity: 1,
+          templateField: "sliceSettings"
+        });
+
+        // Disabling labels and ticks
+        pieSeries.labels.template.set("visible", false);
+        pieSeries.ticks.template.set("visible", false);
+
+        //pieSeries.appear(1000, 100)
+        pieSeries.slices.template.events.on("click", function(ev) {
+          const SELECTED = ev.target.dataItem.dataContext.category;
+
+          var query = isfLayer.createQuery();
+          const cpExpression = "Package = '" + cpValue + "'";
+          const landtypeExpression = "Type = '" + landTypeValue + "'";
+          const sectionExpression = "Station1 = '" + sectionValue + "'";
+          const statusExpression = "RELOCATION = '" + SELECTED + "'";
+
+          console.log(cpValue + "; " + landTypeValue + "; " + sectionValue);
+          if (cpValue === 'None' && landTypeValue === 'None' && sectionValue === 'None') {
+            query.where = statusExpression;
+
+          } else if (cpValue === undefined && landTypeValue === undefined && sectionValue === undefined) {
+            query.where = statusExpression;
+
+          } else if (cpValue === 'None' && landTypeValue === 'None' && sectionValue !== 'None') {
+            query.where = sectionExpression + " AND " + statusExpression;
+
+          } else if (cpValue === 'None' && landTypeValue !== 'None' && sectionValue === 'None') {
+            query.where = landtypeExpression + " AND " + statusExpression;
+
+          } else if (cpValue === 'None' && landTypeValue !== 'None' && sectionValue !== 'None') {
+            query.where = landtypeExpression + " AND " + sectionExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && landTypeValue === 'None' && sectionValue === 'None') {
+            query.where = cpExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && landTypeValue === 'None' && sectionValue !== 'None') {
+            query.where = cpExpression + " AND " + sectionExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && landTypeValue !== 'None' && sectionValue === 'None') {
+            query.where = cpExpression + " AND " + landtypeExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && landTypeValue !== 'None' && sectionValue !== 'None') {
+            query.where = cpExpression + " AND " + landtypeExpression + " AND " + sectionExpression + " AND " + statusExpression;
+          }
+
+          view.when(function() {
+            view.whenLayerView(isfLayer).then(function (layerView) {
+              //chartLayerView = layerView;
+
+              isfLayer.queryFeatures(query).then(function(results) {
+                const RESULT_LENGTH = results.features;
+                const ROW_N = RESULT_LENGTH.length;
+
+                let objID = [];
+                for (var i=0; i < ROW_N; i++) {
+                    var obj = results.features[i].attributes.OBJECTID;
+                    objID.push(obj);
+                }
+
+                var queryExt = new Query({
+                   objectIds: objID
+                });
+
+                isfLayer.queryExtent(queryExt).then(function(result) {
+                    if (result.extent) {
+                        view.goTo(result.extent)
+                    }
+                });
+
+                if (highlightSelect) {
+                    highlightSelect.remove();
+                }
+                highlightSelect = layerView.highlight(objID);
+
+                view.on("click", function() {
+                  layerView.filter = null;
+                  highlightSelect.remove();
+                });
+              }); // End of queryFeatures
+              layerView.filter = {
+                where: "RELOCATION = '" + SELECTED + "'"
+              }
+            }); // End of view.whenLayerView
+          }); // End of view.when
+        });
+
+        pieSeries.data.setAll(
+          [
+            {
+              category: statusISF[0],
+              value: noclear,
+              sliceSettings: {
+                fill: am5.color("#00C5FF")
+              }
+            },
+            {
+              category: statusISF[1],
+              value: clear,
+              sliceSettings: {
+                fill: am5.color("#70AD47")
+              }
+            },
+          ]
+        );
+
+        // Legend
+        // https://www.amcharts.com/docs/v5/charts/percent-charts/legend-percent-series/
+        var legend = chart.children.push(am5.Legend.new(root7, {
+          centerX: am5.percent(50),
+          x: am5.percent(50),
+          layout: root7.verticalLayout,
+          marginBottom: 10
+        }));
+        legend.data.setAll(pieSeries.dataItems);
+
+        // Change the size of legend markers
+        legend.markers.template.setAll({
+          width: 18,
+          height: 18,
+          strokeWidth: 1,
+          strokeOpacity: 1,
+          stroke: am5.color("#ffffff")
+
+        });
+
+        // Change the marker shape
+        legend.markerRectangles.template.setAll({
+          cornerRadiusTL: 10,
+          cornerRadiusTR: 10,
+          cornerRadiusBL: 10,
+          cornerRadiusBR: 10,
+        });
+
+        // To align legend items: valueLabels right, labels to left
+        // 1. fix width of valueLabels
+        // 2. dynamically change width of labels by screen size
+
+        const valueLabelsWidth = 50;
+
+        // Responsive legend 
+        // https://www.amcharts.com/docs/v5/tutorials/pie-chart-with-a-legend-with-dynamically-sized-labels/
+        chart.onPrivate("width", function(width) {
+          let box = document.querySelector('.box2');
+          const boxWidth = box.offsetWidth;
+          var availableSpace = Math.max(width - chart.width() - 150, 180);
+          //var availableSpace = (boxWidth - valueLabelsWidth) * 0.7
+          legend.labels.template.setAll({
+            width: availableSpace,
+            maxWidth: availableSpace
+          });
+        });
+
+        // Change legend labelling properties
+        // To have responsive font size, do not set font size
+        legend.labels.template.setAll({
+          oversizedBehavior: "truncate",
+          fill: am5.color("#ffffff")
+          //textDecoration: "underline"
+          //width: am5.percent(200)
+          //fontWeight: "300"
+        });
+
+        legend.valueLabels.template.setAll({
+          textAlign: "right",
+          width: valueLabelsWidth,
+          fill: am5.color("#ffffff")
+          //fontSize: LEGEND_FONT_SIZE,
+        })
+
+        legend.itemContainers.template.setAll({
+          // set space between legend items
+          paddingTop: 1.1,
+          paddingBottom: 2,
+        });
+        
+        pieSeries.appear(1000, 100);
+
+        });  // End of queryFeature                 
+    } // End of updateChartISF()
+    updateChartISF();
+
+        // Informal Settler Families (ISF)
+
       // view.when
       view.when(() => {
         document.querySelector("#header-title").textContent = "MMSP LAND ACQUISITION";
@@ -3347,6 +3627,7 @@ updateChartLot();
         document.querySelector("calcite-shell").hidden = false;
         document.querySelector("calcite-loader").hidden = true;
 
+        /*
         // When 'Structure' tab is clicked, it becomes visible.
         document.querySelector('#thetabs').addEventListener("click", tabChange);
         function tabChange(event) {
@@ -3356,10 +3637,10 @@ updateChartLot();
             structureLayer.visible = true;
           }
         }
+*/
       }); // end of view.when
     });
 
-      
       // Widgets
       const basemaps = new BasemapGallery({
         view,
