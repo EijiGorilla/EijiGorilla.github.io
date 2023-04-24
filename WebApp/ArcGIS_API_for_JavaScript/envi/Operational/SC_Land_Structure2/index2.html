@@ -1141,6 +1141,45 @@
     }
     const outlineColor = "gray";
 
+    var verticalOffsetExisting = {
+      screenLength: 80,
+        maxWorldLength: 500,
+        minWorldLength: 30
+    };
+
+    function getUniqueValueSymbol(name, size) {
+      return {
+        type: "point-3d", // autocasts as new PointSymbol3D()
+        symbolLayers: [
+          {
+            type: "icon", // autocasts as new IconSymbol3DLayer()
+            resource: {
+              href: name
+            },
+            size: size,
+            outline: {
+              color: "white",
+              size: 2
+            }
+          }
+        ],
+
+        /*
+        verticalOffset: verticalOffsetExisting,
+
+        callout: {
+          type: "line", // autocasts as new LineCallout3D()
+          color: [128,128,128,0.1],
+          size: 0.2,
+          border: {
+            color: "grey"
+          }
+        }
+        */
+      };
+    }
+
+    const symbolSize = 30;
     let isfRenderer = {
         type: "unique-value",
         valueExpression: "When($feature.StatusRC == 1, 'relocated', \
@@ -1149,88 +1188,34 @@
                         $feature.StatusRC == 6, 'lbp', $feature.StatusRC)",
         uniqueValueInfos: [
             {
-                value: "relocated",
-                label: "Relocated",
-                type: "simple",
-                    symbol: {
-                        type: "simple-marker",
-                        size: 5,
-                        color: isfSymbolColor[1], // the first two letters dictate transparency.
-                        outline: {
-                            width: 0.5,
-                            color: outlineColor
-                        }
-                    }
+              value: "relocated",
+              label: "Relocated",
+              symbol: getUniqueValueSymbol("https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_Relocated.svg", symbolSize),
             },
             {
-                value: "paid",
-                label: "Paid",
-                type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: isfSymbolColor[2], // the first two letters dictate transparency.
-                    outline: {
-                    width: 0.5,
-                    color: outlineColor
-                    }
-                }
+              value: "paid",
+              label: "Paid",
+              symbol: getUniqueValueSymbol("https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_Paid.svg", symbolSize),
             },
             {
                 value: "payp",
                 label: "For Payment Processing",
-                type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: isfSymbolColor[3], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: getUniqueValueSymbol("https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_PaymentProcess.svg", symbolSize),
             },
             {
                 value: "legalpass",
                 label: "For Legal Pass",
-                type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: isfSymbolColor[4], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: getUniqueValueSymbol("https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_LegalPass.svg", symbolSize),
             },
             {
                 value: "otc",
                 label: "For Appraisal/OtC/Reqs for Other Entitlements",
-                type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: isfSymbolColor[5], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: getUniqueValueSymbol("https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_OtC.svg", symbolSize),
             },
             {
                 value: "lbp",
                 label: "LBP Account Opening",
-                type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: isfSymbolColor[6], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: getUniqueValueSymbol("https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_LBP.svg", symbolSize),
             }
         ]
     };
@@ -1246,6 +1231,11 @@
       renderer: isfRenderer,
       outFields: ["*"],
       title: "NLO (Non-Land Owner)",
+      elevationInfo: {
+        mode: "relative-to-scene"
+      },
+      minScale: 10000,
+      maxScale: 0,
       popupTemplate: {
         title: "<p>{StrucID}</p>",
         lastEditInfoEnabled: false,
@@ -1281,7 +1271,7 @@
       }
     });
     //nloLayer.listMode = "hide";
-    //map.add(nloLayer);
+    map.add(nloLayer);
 
     // Chainage
     var labelChainage = new LabelClass({
@@ -2064,6 +2054,7 @@ zoomToLayer(stationLayer);
       const pteLotNumberDiv = document.getElementById("pteLotNumberDiv");
       const structureNumberDiv = document.getElementById("structureNumberDiv");
       const pteStructureNumberDiv = document.getElementById("pteStructureNumberDiv");
+      const nloNumberDiv = document.getElementById("nloNumberDiv");
 
       var municipalSelect = document.getElementById("municipalSelect");
       var barangaySelect = document.getElementById("barangaySelect");
@@ -2482,7 +2473,7 @@ zoomToLayer(stationLayer);
         updateMoaChartLot(municipal, barangay);
         updateChartStructure(municipal, barangay);
         updateMoaChartStructure(municipal, barangay);
-        //updateChartISF();
+        updateChartISF();
 
         zoomToLayer(lotLayer);
     });
@@ -2501,7 +2492,7 @@ zoomToLayer(stationLayer);
             updateMoaChartLot(municipal, barangay);
             updateChartStructure(municipal, barangay);
             updateMoaChartStructure(municipal, barangay);
-            //updateChartISF();
+            updateChartISF();
 
             zoomToLayer(lotLayer);
         //relocationObjectID(reloStatusLayer);
@@ -3808,7 +3799,7 @@ zoomToLayer(stationLayer);
     updateMoaChartStructure();
 
     // ISF Chart
-    document.getElementById("nloPieChartDiv").innerHTML = `Available by April 30, 2023`;
+    //document.getElementById("nloPieChartDiv").innerHTML = `Available by April 30, 2023`;
     var root5 = am5.Root.new("nloPieChartDiv");
     const statusISF = ["Relocated", "Paid", "For Payment Processing",
                       "For Legal Pass", "For Appraisal/OtC/Requirements for Other Entitlements",
@@ -3868,6 +3859,9 @@ zoomToLayer(stationLayer);
             const legalpass = stats.total_legalpass_lot;
             const otc = stats.total_otc_lot;
             const lbp = stats.total_lbp_lot;
+
+            const total_nlo = thousands_separators(clear + paid + payp + legalpass + otc + lbp);
+            nloNumberDiv.innerHTML = `TOTAL NLOs<br><br><b>${total_nlo}</b>`;
 
                     // Set themes
         // https://www.amcharts.com/docs/v5/concepts/themes/
