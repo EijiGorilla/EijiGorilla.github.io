@@ -1229,6 +1229,66 @@ async function initialization() {
   //*******************************//
   // Import Layers                 //
   //*******************************//
+  // Launching Girders location
+  var launchingGirderLabelClass = new LabelClass({
+    symbol: {
+      type: "label-3d",// autocasts as new LabelSymbol3D()
+      symbolLayers: [
+        {
+          type: "text", // autocasts as new TextSymbol3DLayer()
+          material: {
+            color: "red"
+          },
+          size: 14,
+          color: "black",
+          haloColor: "black",
+          haloSize: 1,
+          font: {
+            family: "Ubuntu Mono",
+            weight: "bold"
+          },
+        }
+      ],
+      verticalOffset: {
+        screenLength: 40,
+        maxWorldLength: 250,
+        minWorldLength: 150
+      },
+      callout: {
+        type: "line", // autocasts as new LineCallout3D()
+        color: "red",
+        size: 1,
+        border: {
+          color: "grey"
+        }
+      }
+    },
+    labelPlacement: "above-center",
+    labelExpressionInfo: {
+      expression: "$feature.LAYER"
+              //value: "{TEXTSTRING}"
+    }
+  });
+
+  var launchingGirderLayer = new FeatureLayer({
+    portalItem: {
+      id: "590680d19f2e48fdbd8bcddce3aaedb5",
+      portal: {
+        url: "https://gis.railway-sector.com/portal"
+      }
+    },
+    layerId: 6,
+    labelingInfo: [launchingGirderLabelClass],
+    elevationInfo: {
+      mode: "on-the-ground" //absolute-height, relative-to-ground
+    },
+    title: "Girder Launcher Location",
+    outFields: ["*"],
+    definitionExpression: "LAYER IS NOT NULL"
+  });
+  map.add(launchingGirderLayer);
+  launchingGirderLayer.visible = true;
+
   // Station Layer
   var stationLayer = new SceneLayer({
     portalItem: {
@@ -2993,6 +3053,10 @@ if (document.getElementById("N-01").checked = true) {
     view: view,
     container: document.getElementById("legendDiv"),
     layerInfos: [
+      {
+        layer: launchingGirderLayer,
+        title: "Girder Launcher Location"
+      },
       {
         layer: rowLayer,
         title: "PROW"
