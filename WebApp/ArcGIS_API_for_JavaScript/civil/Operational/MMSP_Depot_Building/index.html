@@ -171,11 +171,11 @@
   #chartPanel {
     background-color: rgb(0, 0, 0, 0);
     padding: 5;
+    overflow-y: auto;
  }
 
   #chartDiv {
     margin-top: 0.5vw;
-    overflow-y: scroll;
     height: 140vh;
   }
 
@@ -232,10 +232,28 @@
     height: 3.5vh;
   }
 
-  /* Browser Setting */
-  ::-webkit-scrollbar {
-    display: none;
-  }
+    /* SCROLL BAR */
+    /* ESRI POPUP */
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      
+    }
+
+    /* Track */
+    ::-webkit-scrollbar-track {
+      background: #00032235; /*#032235*/
+    }
+
+    /* Handle */
+    ::-webkit-scrollbar-thumb {
+      background: #FFBA1F;
+    }
+
+    /* Handle on hover */
+    ::-webkit-scrollbar-thumb:hover {
+      background: #b98816;
+    }
   
   /*  */
   .sassy-theme .esri-legend__layer-caption {
@@ -558,7 +576,7 @@
       mode: "absolute-height",
       offset: 0
     },
-    title: "PRI Building"
+    title: "Depot Building"
     // when filter using date, example below. use this format
     //definitionExpression: "EndDate = date'2020-6-3'"
   });
@@ -598,6 +616,304 @@
 
   renderStructureLayer();
 
+      // Default Renderer for Polygon------------
+      let defaultLotSymbolBoundary = {
+      type: "simple-fill",
+      color: [0, 0, 0, 0],
+      style: "solid",
+      outline: {
+        style: "short-dash",
+        color: [215, 215, 158],
+        width: 1.5
+      }
+    };
+      
+    //------------- Layer ----------------------------- /
+    // Lot Layer----------------------------------
+    const LOT_LABEL_CLASS = {
+        symbol: {
+            type: "text",  // autocasts as new TextSymbol()
+            color: "black",
+            font: {  // autocast as new Font()
+                family: "Gill Sans",
+                size: 8
+            }
+        },
+        labelPlacement: "always-horizontal",
+        labelExpressionInfo: {
+            expression: "$feature.CN"
+        }
+    };
+      
+    let lotDefaultSymbol = {
+        type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+        color: [0,0,0,0],
+        style: "solid",
+        outline: {  // autocasts as new SimpleLineSymbol()
+            color: [110, 110, 110],
+            width: 0.7
+        }
+    };
+
+    let lotLayerRenderer = {
+        type: "unique-value",
+        //field: "StatusLA",
+        defaultSymbol: lotDefaultSymbol,  // autocasts as new SimpleFillSymbol()
+        valueExpression: "When($feature.StatusNVS3 == 1, '1',$feature.StatusNVS3 == 2, '2', $feature.StatusNVS3 == 3, '3', \
+                        $feature.StatusNVS3 == 4, '4', $feature.StatusNVS3 == 5, '5', \
+                        $feature.StatusNVS3 == 6, '6', $feature.StatusNVS3)",
+        uniqueValueInfos: [
+            {
+                // All features with value of "North" will be blue
+                value: "1",
+                label: "Paid",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[1],
+                }
+            },
+            {
+                // All features with value of "North" will be blue
+                value: "2",
+                label: "For Payment Processing",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[2],
+                }
+            },
+            {
+                // All features with value of "North" will be blue
+                value: "3",
+                label: "For Legal Pass",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[3],
+                }
+            },
+            {
+                // All features with value of "North" will be blue
+                value: "4",
+                label: "For Appraisal/Offer to Buy",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[4],
+                }
+            },
+            {
+                // All features with value of "North" will be blue
+                value: "5",
+                label: "For Expro",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[5],
+                }
+            },
+            {
+                // All features with value of "North" will be blue
+                value: "6",
+                label: "with WOP Fully Turned-over",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[6],
+                }
+            }
+        ]
+    }
+      
+    function colorLotReqs(){
+        return {
+            1: [112,173,71],
+            2: [0,112,255],
+            3: [255,255,0],
+            4: [255,170,0],
+            5: [255,0,0],
+            6: [0,115,76]
+        }
+    }
+
+    var lotLayer = new FeatureLayer({
+        portalItem: {
+            id: "032432d931624de9bf5ff03f1f9d7016",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 1,
+        outFields: ["*"],
+        title: "Land Acquisition",
+        labelingInfo: [LOT_LABEL_CLASS],
+        renderer: lotLayerRenderer,
+        popupTemplate: {
+            title: "<p>{Id}</p>",
+            lastEditInfoEnabled: false,
+            returnGeometry: true,
+            content: [
+                {
+                    type: "fields",
+                    fieldInfos: [
+                        {
+                            fieldName: "OWNER",
+                            label: "Land Owner"
+                        },
+                        {
+                            fieldName: "Station1",
+                            label: "Station"
+                        },
+                        {
+                            fieldName: "StatusNVS3",
+                            label: "<p>Status of Land Acquisition</p>"
+                        }
+                    ]
+                }
+            ]
+        }
+    });
+    map.add(lotLayer);
+      
+      // Structure Layer----------------------------------
+      function colorStructureReqs(){
+        return {
+          1: [112, 173, 71], // Paid #70AD47
+          2: [0, 112, 255], // For Payment Processing #0070FF
+          3: [255, 255, 0], // For Legal Pass #FFFF00
+          4: [255, 170, 0], // For Appraisal/Offer to Compensate #FFAA00
+          5: [255, 0, 0], // For Expro #FF0000
+          6: [0, 115, 76] //Quit Claim #00734C
+        }
+      }
+
+      let existingStructureLayerRenderer = {
+        type: "unique-value",
+        //field: "StatusLA",
+        defaultSymbol: defaultLotSymbolBoundary,  // autocasts as new SimpleFillSymbol()
+        valueExpression: "When($feature.Status == 1, '1',$feature.Status == 2, '2', \
+                          $feature.Status == 3, '3', \
+                          $feature.Status == 4, '4', $feature.Status == 5, '5', \
+                          $feature.Status == 6, '6', $feature.Status)",
+        uniqueValueInfos: [
+          {
+            // All features with value of "North" will be blue
+            value: "1",
+            label: "Paid",
+            symbol: {
+              type: "simple-fill",
+              color: colorStructureReqs()[1],
+              style: "backward-diagonal",
+              outline: {
+                color: "#6E6E6E",
+                width: 0.7
+              }
+            }
+          },
+          {
+            // All features with value of "North" will be blue
+            value: "2",
+            label: "For Payment Processing",
+            symbol: {
+              type: "simple-fill",
+              color: colorStructureReqs()[2],
+              style: "backward-diagonal",
+              outline: {
+                color: "#6E6E6E",
+                width: 0.7
+              }
+            }
+          },
+          {
+            // All features with value of "North" will be blue
+            value: "3",
+            label: "For Legal Pass",
+            symbol: {
+              type: "simple-fill",
+              color: colorStructureReqs()[3],
+              style: "backward-diagonal",
+              outline: {
+                color: "#6E6E6E",
+                width: 0.7
+              }
+            }
+          },
+          {
+            // All features with value of "North" will be blue
+            value: "4",
+            label: "For Appraisal/Offer to Buy",
+            symbol: {
+              type: "simple-fill",
+              color: colorStructureReqs()[4],
+              style: "backward-diagonal",
+              outline: {
+                color: "#6E6E6E",
+                width: 0.7
+              }
+            }
+          },
+        {
+            // All features with value of "North" will be blue
+            value: "5",
+            label: "For Expro",
+            symbol: {
+              type: "simple-fill",
+              color: colorStructureReqs()[5],
+              style: "backward-diagonal",
+              outline: {
+                color: "#6E6E6E",
+                width: 0.7
+              }
+            }
+          },
+          {
+            // All features with value of "North" will be blue
+            value: "6",
+            label: "Quit Claim",
+            symbol: {
+              type: "simple-fill",
+              color: colorStructureReqs()[6],
+              style: "backward-diagonal",
+              outline: {
+                color: "#6E6E6E",
+                width: 0.7
+              }
+            }
+          }
+        ]
+      }
+
+      var existingStructureLayer = new FeatureLayer({
+        portalItem: {
+            id: "ec9dac0c16af4797bb917a0babc735e9",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        title: "Existing Structure",
+        outFields: ["*"],
+        renderer: existingStructureLayerRenderer,
+        popupTemplate: {
+          title: "Structure ID: <b>{STRUCTURE_TAG_NO_}</b>" ,
+          lastEditInfoEnabled: false,
+          returnGeometry: true,
+          content: [
+            {
+              type: "fields",
+              fieldInfos: [
+                {
+                  fieldName: "STATION",
+                  label: "Station"
+                },
+                {
+                  fieldName: "Status",
+                  label: "<b>Status of Structure</b>"
+                },
+                {
+                  fieldName: "LOT_OWNER",
+                  label: "Lot Owner"
+                }
+              ]
+            }
+          ]
+        }
+      });
+      map.add(existingStructureLayer);
   // Radio Button Selection //        
   // Selection of 'D-Wall' or 'Station Box' only for visualization (not chart)
 
@@ -1714,7 +2030,8 @@ function updateChart() {
       container: "layers-container",
       listItemCreatedFunction: function(event) {
         const item = event.item;
-        if (item.title === "Chainage" || item.title === "ROW"){
+        if (item.title === "Chainage" || item.title === "ROW" ||
+        item.title === "Land Acquisition"){
           item.visible = false
         }
       }
@@ -1724,6 +2041,14 @@ function updateChart() {
     view,
     container: "legend-container",
     layerInfos: [
+      {
+        layer: lotLayer,
+        title: "Land Acquisition"
+      },
+      {
+        layer: existingStructureLayer,
+        title: "Existing Structure"
+      },
       {
         layer: constBoundary,
         title: "Construction Boundary"
