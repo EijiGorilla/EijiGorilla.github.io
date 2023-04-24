@@ -54,6 +54,12 @@
       height: 100%;
     }
 
+    calcite-button {
+      margin-top: auto;
+      margin-bottom: auto;
+      margin-left: auto;
+    }
+
     calcite-tabs {
       width: 100%;
       height: 100%;
@@ -324,6 +330,12 @@
           <select id="stationSelect" class="esri-widget"></select>
         </label>
       </div>
+      <calcite-button
+        icon-end="color-coded-map"
+        id="handedover-button"
+        >
+        Handed-Over Lots 
+      </calcite-button>
       </div>
 
       <!-- Icon -->
@@ -450,13 +462,7 @@
           </div>
         </calcite-tabs>
       </div>
-        <calcite-button hidden
-          icon-end="launch"
-          label="Open Process Flow Chart"
-          id="time-series"
-          >
-          Handed-Overd Chart
-      </calcite-button>
+
     </calcite-shell>
   </body>
   <script>
@@ -493,12 +499,7 @@
                 RelationshipQuery, GraphicsLayer, Search, Locate, BasemapToggle, Print
                  ) {  
 
-    const timeSeries = document.querySelector("calcite-button");
-    timeSeries.addEventListener("click", function(event) {
-      const timeSeriesChart = document.getElementById("timeSeriesChart");
-      timeSeriesChart.hidden = !timeSeriesChart.hidden;
-    })
-      
+
     var map = new Map({
         basemap: "dark-gray-vector", // "streets-night-vector", basemap
         ground: "world-elevation",
@@ -670,6 +671,38 @@
         }
     });
     map.add(lotLayer);
+
+    // Handed-Over Layer
+    const handedOverRenderer = {
+      type: "simple",
+      field: "HandedOver",
+      symbol: {
+        type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+        color: "#FF00C5",
+        style: "solid",
+        outline: {  // autocasts as new SimpleLineSymbol()
+            color: [110, 110, 110],
+            width: 0.5
+        }
+    }
+
+    }
+    var handedOverLotLayer = new FeatureLayer({
+      portalItem: {
+            id: "032432d931624de9bf5ff03f1f9d7016",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 1,
+        outFields: ["*"],
+        definitionExpression: "HandedOver = 1",
+        title: "Handed-Over Lots",
+        renderer: handedOverRenderer,
+        popupEnabled: false
+    });
+    map.add(handedOverLotLayer);
+    handedOverLotLayer.visible = false;
 
 
     // Delete this layer later. temporary used to experiment time series chart
@@ -3566,7 +3599,26 @@ updateChartLot();
     } // End of updateChartISF()
     updateChartISF();
 
-        // Informal Settler Families (ISF)
+    // Handed-Over Button to show these lots
+    view.when(() => {
+      let activeWidget;
+      const clickBox = ({ target }) => {
+
+        if (activeWidget) {
+          handedOverLotLayer.visible = false
+        }
+
+        const nextWidget = target.id;
+        console.log(target.id);
+        if (nextWidget !== activeWidget) {
+          handedOverLotLayer.visible = true;
+          activeWidget = nextWidget;
+        } else {
+          activeWidget = null;
+        }
+      }
+      document.getElementById("handedover-button").addEventListener("click", clickBox);
+    });
 
       // view.when
       view.when(() => {
