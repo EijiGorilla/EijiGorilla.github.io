@@ -334,12 +334,21 @@
           <select id="stationSelect" class="esri-widget"></select>
         </label>
       </div>
+      <div id="Handed-Over">
+        <calcite-segmented-control>
+          <calcite-segmented-control-item id="handedover-button" value="handedover">Handed-Over Lots</calcite-segmented-control-item>
+        </calcite-segmented-control>
+      </div>
+
+      <!--
       <calcite-button
         icon-end="color-coded-map"
         id="handedover-button"
         >
         Handed-Over Lots 
       </calcite-button>
+      -->
+
       </div>
 
       <!-- Icon -->
@@ -681,6 +690,47 @@
         }
     });
     map.add(lotLayer);
+
+    // lot layer for backgound when handed-over lots are on
+    var lotLayerForHandedOver = new FeatureLayer({
+        portalItem: {
+            id: "032432d931624de9bf5ff03f1f9d7016",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 1,
+        outFields: ["*"],
+        title: "Land Acquisition",
+        labelingInfo: [LOT_LABEL_CLASS],
+        renderer: lotDefaultSymbol,
+        popupTemplate: {
+            title: "<p>{Id}</p>",
+            lastEditInfoEnabled: false,
+            returnGeometry: true,
+            content: [
+                {
+                    type: "fields",
+                    fieldInfos: [
+                        {
+                            fieldName: "OWNER",
+                            label: "Land Owner"
+                        },
+                        {
+                            fieldName: "Station1",
+                            label: "Station"
+                        },
+                        {
+                            fieldName: "StatusNVS3",
+                            label: "<p>Status of Land Acquisition</p>"
+                        }
+                    ]
+                }
+            ]
+        }
+    });
+    lotLayerForHandedOver.visible = false;
+    map.add(lotLayerForHandedOver);
 
     // Handed-Over Layer
     const handedOverRenderer = {
@@ -1851,10 +1901,10 @@
         function timeSeriesChart() {
           root5.container.children.clear();
 
-          var query = testLayerDelete.createQuery();
+          var query = lotLayer.createQuery();
           query.where = "HandOverDate IS NOT NULL";
           query.orderByFields = ["HandOverDate"];
-          testLayerDelete.queryFeatures(query).then(function(response) {
+          lotLayer.queryFeatures(query).then(function(response) {
             var stats = response.features;
             const dates = [];
 
@@ -3619,20 +3669,22 @@ updateChartLot();
 
         if (activeWidget) {
           handedOverLotLayer.visible = false;
-          lotLayer.visible = true;
+          //lotLayer.visible = true;
+          lotLayerForHandedOver.visible = true;
         }
 
         const nextWidget = target.id;
-        console.log(target.id);
+
         if (nextWidget !== activeWidget) {
           handedOverLotLayer.visible = true;
-          lotLayer.visible = false;
+          //lotLayer.visible = false;
+          lotLayerForHandedOver.visible = true;
           activeWidget = nextWidget;
         } else {
           activeWidget = null;
         }
       }
-      document.getElementById("handedover-button").addEventListener("click", clickBox);
+      document.getElementById("Handed-Over").addEventListener("click", clickBox);
     });
 
       // view.when
