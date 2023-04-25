@@ -49,7 +49,7 @@
       display: grid;
       flex-wrap: wrap;
       box-sizing: border-box;
-      grid-template-columns: 1fr 0.25fr;
+      grid-template-columns: 1fr 0.30fr;
       width: 100%;
       height: 100%;
     }
@@ -58,12 +58,6 @@
       margin-top: auto;
       margin-bottom: auto;
       margin-left: auto;
-    }
-
-    calcite-tabs {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
     }
 
     #header-title {
@@ -103,13 +97,23 @@
       margin: 0 0.5rem;
     }
 
-    #chartPanel {
-      background-color: rgb(0, 0, 0, 0);
-      padding: 8;
-      width: 100%;
-      height: 100%;
+    calcite-tabs {
+      overflow-y: auto;
+      margin-left: 5;
     }
-    
+
+    calcite-tab {
+      overflow-y: hidden;
+      overflow-x: hidden;
+    }
+
+    calcite-tab-title {
+      overflow: auto;
+      padding: 0;
+      margin-right: 5;
+      margin-left: 5;
+    }
+
     #pieChartLotDiv,
     #pieChartStructureDiv,
     #isfPieChartDiv {
@@ -200,6 +204,7 @@
     .panel-side {
       background-color: rgb(0, 0, 0, 0);
       margin-top: 1%;
+      padding-left: 20;
     }
 
     /** adjust line height between texts **/
@@ -224,12 +229,13 @@
       background-color: rgba(73, 72, 72, 0.5);
     }
 
-    #expropriationListDiv {
+    #expropriationListDiv,
+    #problemLotListDiv {
       list-style: none;
       padding: 0.5%;
       padding-right: 5%;
       font-size: 0.8vw;
-      width: 17vw;
+      width: 22vw;
     }
 
     /* MOA Chart */
@@ -303,8 +309,6 @@
       overflow-y: auto;
       margin-left: -10;
     }
-
-
 
   </style>
   <body class="calcite-theme-dark">
@@ -418,12 +422,12 @@
         <!-- Tabs "https://esri.github.io/calcite-web/documentation/patterns/#tabs" -->
         <!-- Tabs "https://developers.arcgis.com/calcite-design-system/components/tabs/" -->
         <calcite-tabs>
-          <div id="chartPanel">
-            <calcite-tab-nav slot="tab-nav"  id="thetabs">
+            <calcite-tab-nav slot="title-group"  id="thetabs">
               <calcite-tab-title class="Land" selected>Land</calcite-tab-title>
               <calcite-tab-title class="Structure">Structure</calcite-tab-title>
               <calcite-tab-title class="ISF">ISF</calcite-tab-title>
               <calcite-tab-title>Expro List</calcite-tab-title>
+              <calcite-tab-title>Problem Lot</calcite-tab-title>
             </calcite-tab-nav>
             <calcite-tab>
               <div class="lotNumber-container">
@@ -459,7 +463,13 @@
                 </ul>
               </div>
             </calcite-tab>
-          </div>
+            <calcite-tab>
+              <div class="panel-side esri-widget">
+                <ul id="problemLotListDiv">
+                  <li>Loading&hellip;</li>
+                </ul>
+              </div>
+            </calcite-tab>
         </calcite-tabs>
       </div>
 
@@ -2833,7 +2843,8 @@ updateChartLot();
             panY: false,
             wheelX: "none",
             wheelY: "none",
-            paddingLeft: 0,
+            paddingLeft: 10,
+            paddingRight: 30
           })
         );
 
@@ -3033,14 +3044,13 @@ updateChartLot();
 
         // Chart title
         chart.children.unshift(am5.Label.new(root2, {
-          text: "MODE OF ACQUISITION",
+          text: "   MODE OF ACQUISITION",
           fontSize: 16,
           fontWeight: "normal",
-          textAlign: "left",
+          //textAlign: "right",
           fill: am5.color("#f7f5f7"),
           paddingTop: -15,
-          paddingBottom: 0,
-          x: 50,
+          paddingBottom: 5,
         }));
 
         // Set data
@@ -3128,18 +3138,21 @@ updateChartLot();
             wheelX: "none",
             wheelY: "none",
             paddingLeft: 0,
+            paddingLeft: 10,
+            paddingRight: 40
           })
         );
 
         // Chart title
         chart.children.unshift(am5.Label.new(root2, {
-          text: "MODE OF ACQUISITION",
+          text: "   MODE OF ACQUISITION",
           fontSize: 16,
           fontWeight: "normal",
-          textAlign: "left",
+          //textAlign: "right",
           fill: am5.color("#f7f5f7"),
           paddingTop: -15,
-          paddingBottom: 0,
+          paddingBottom: 10,
+
         }));
 
         // Create axes
@@ -3605,13 +3618,15 @@ updateChartLot();
       const clickBox = ({ target }) => {
 
         if (activeWidget) {
-          handedOverLotLayer.visible = false
+          handedOverLotLayer.visible = false;
+          lotLayer.visible = true;
         }
 
         const nextWidget = target.id;
         console.log(target.id);
         if (nextWidget !== activeWidget) {
           handedOverLotLayer.visible = true;
+          lotLayer.visible = false;
           activeWidget = nextWidget;
         } else {
           activeWidget = null;
