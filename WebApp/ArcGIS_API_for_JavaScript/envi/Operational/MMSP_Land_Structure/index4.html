@@ -558,10 +558,12 @@
         symbol: {
             type: "text",  // autocasts as new TextSymbol()
             color: "black",
+            /*
             font: {  // autocast as new Font()
                 family: "Gill Sans",
                 size: 8
             }
+            */
         },
         labelPlacement: "always-horizontal",
         labelExpressionInfo: {
@@ -577,6 +579,11 @@
             color: [110, 110, 110],
             width: 0.7
         }
+    };
+
+    let lotDefaultRenderer = {
+      type: "simple",
+      symbol: lotDefaultSymbol
     };
 
     let lotLayerRenderer = {
@@ -732,17 +739,49 @@
 
 
     // Delete this layer later. temporary used to experiment time series chart
-    var testLayerDelete = new FeatureLayer({
+    var handedOverLotBackgroundLayer = new FeatureLayer({
         portalItem: {
-            id: "dca1d785da0f458b8f87638a76918496",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
+          id: "032432d931624de9bf5ff03f1f9d7016",
+          portal: {
+              url: "https://gis.railway-sector.com/portal"
+          }
         },
-        layerId: 7,
+        layerId: 1,
         outFields: ["*"],
-        labelsVisible: false,
+        definitionExpression: "HandedOver IS NULL",
+        labelingInfo: [LOT_LABEL_CLASS],
+        renderer: lotDefaultRenderer,
+        popupTemplate: {
+          title: "<p>{Id}</p>",
+          lastEditInfoEnabled: false,
+          returnGeometry: true,
+          content: [
+            {
+                type: "fields",
+                fieldInfos: [
+                  {
+                    fieldName: "Issue",
+                    label: "Remarks"
+                  },
+                  {
+                      fieldName: "OWNER",
+                      label: "Land Owner"
+                  },
+                  {
+                      fieldName: "Station1",
+                      label: "Station"
+                  },
+                  {
+                      fieldName: "StatusNVS3",
+                      label: "<p>Status of Land Acquisition</p>"
+                  }
+                ]
+            }
+          ]
+        }
     });
+    handedOverLotBackgroundLayer.visible = false;
+    map.add(handedOverLotBackgroundLayer);
 
     
       
@@ -1347,6 +1386,7 @@
                                     }); // End of li.addEventListener
                                     expropriationList.appendChild(li);
 
+                                    /* It looks like hovering + zoom do not work when put together
                                     // Hover a mouse over the list and highlight
                                     li.addEventListener("mouseenter", function(event) {
                                       var objectId = feature.attributes.OBJECTID;
@@ -1362,6 +1402,7 @@
                                       });
 
                                     }); // End of mouse hover highlight
+                                    */
                                 }); // End of result.features.forEach
                             }); // End of layerView.queryFeatures
                         } // End of if (!val)
@@ -1425,6 +1466,7 @@
                                     }); // End of li.addEventListener
                                     problemLotList.appendChild(li);
 
+                                    /*
                                     // Hover a mouse over the list and highlight
                                     li.addEventListener("mouseenter", function(event) {
                                       var objectId = feature.attributes.OBJECTID;
@@ -1438,8 +1480,8 @@
                                         exprolayerView.filter = null;
                                         highlightSelect.remove();
                                       });
-
                                     }); // End of mouse hover highlight
+                                    */
                                 }); // End of result.features.forEach
                             }); // End of layerView.queryFeatures
                         } // End of if (!val)
@@ -1877,7 +1919,7 @@
           updateMoaChartStructure(cpValue, landTypeValue, sectionValue);
           isfNumber();
           updateChartISF(cpValue, landTypeValue, sectionValue);
-          timeSeriesChart();
+          timeSeriesChart(cpValue, landTypeValue, sectionValue);
 
         });
 
@@ -1907,7 +1949,7 @@
           updateMoaChartStructure(cpValue, landTypeValue, sectionValue);
           isfNumber();
           updateChartISF(cpValue, landTypeValue, sectionValue);
-          timeSeriesChart();
+          timeSeriesChart(cpValue, landTypeValue, sectionValue);
 
         });
 
@@ -1930,7 +1972,7 @@
           updateMoaChartStructure(cpValue, landTypeValue, sectionValue);
           isfNumber();
           updateChartISF(cpValue, landTypeValue, sectionValue);
-          timeSeriesChart();
+          timeSeriesChart(cpValue, landTypeValue, sectionValue);
 
         });
 
@@ -1946,11 +1988,47 @@
         /// Time series chart EXPERIMENT
         var root5 = am5.Root.new("timeSeriesChart");
 
-        function timeSeriesChart() {
+        function timeSeriesChart(cpValue, landTypeValue, sectionValue) {
           root5.container.children.clear();
 
           var query = lotLayer.createQuery();
-          query.where = "HandOverDate IS NOT NULL";
+          const cpExpression = "Package = '" + cpValue + "'";
+          const landtypeExpression = "Type = '" + landTypeValue + "'";
+          const sectionExpression = "Station1 = '" + sectionValue + "'";
+          const statusExpression = "HandOverDate IS NOT NULL";
+
+          if (cpValue === 'None' && (landTypeValue === 'None' || landTypeValue === undefined) && sectionValue === 'None') {
+            query.where = statusExpression;
+
+          } else if (cpValue === undefined && landTypeValue === undefined && sectionValue === undefined) {
+            query.where = statusExpression;
+
+          } else if (cpValue === 'None' && (landTypeValue === 'None' || landTypeValue === undefined) && sectionValue !== 'None') {
+            query.where = sectionExpression + " AND " + statusExpression;
+
+          } else if (cpValue === 'None' && (landTypeValue !== 'None' || landTypeValue === undefined) && sectionValue === 'None') {
+            query.where = landtypeExpression + " AND " + statusExpression;
+
+          } else if (cpValue === 'None' && (landTypeValue !== 'None' || landTypeValue === undefined) && sectionValue !== 'None') {
+            query.where = landtypeExpression + " AND " + sectionExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && (landTypeValue === 'None' || landTypeValue === undefined) && sectionValue === 'None') {
+            query.where = cpExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && (landTypeValue === 'None' || landTypeValue === undefined) && sectionValue !== 'None') {
+            query.where = cpExpression + " AND " + sectionExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && (landTypeValue !== 'None' || landTypeValue === undefined) && sectionValue === 'None') {
+            query.where = cpExpression + " AND " + landtypeExpression + " AND " + statusExpression;
+
+          } else if (cpValue !== 'None' && (landTypeValue !== 'None' || landTypeValue === undefined) && sectionValue !== 'None') {
+            query.where = cpExpression + " AND " + landtypeExpression + " AND " + sectionExpression + " AND " + statusExpression;
+          
+          } else {
+            query.where = statusExpression;
+          }
+
+          //query.having = "HandOverDate IS NOT NULL";
           query.orderByFields = ["HandOverDate"];
           lotLayer.queryFeatures(query).then(function(response) {
             var stats = response.features;
@@ -1989,12 +2067,13 @@
             // Sort by date: make sure to sort; otherwise, it fails.
             const data = datas.sort((a, b) => a.date - b.date);
 
+            console.log(data);
             // set themes
             root5.setThemes([
               am5themes_Animated.new(root5)
             ]);
 
-            // Create chart
+          // Create chart
             // https://www.amcharts.com/docs/v5/charts/xy-chart/
             var chart = root5.container.children.push(am5xy.XYChart.new(root5, {
               panX: false,
@@ -2037,7 +2116,7 @@
                 strokeWidth: 1,
                 stroke: am5.color("#ffffff"),
               }),
-              tooltip: am5.Tooltip.new(root5, {})
+              //tooltip: am5.Tooltip.new(root5, {})
             }));
 
             // Label properties for yAxis (category axis)
@@ -2050,6 +2129,8 @@
             });
 
             var yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root5, {
+              calculateTotals: true,
+              min: 0,
               renderer: am5xy.AxisRendererY.new(root5, {
                 minGridDistance: 60,
                 strokeOpacity: 1,
@@ -2086,10 +2167,23 @@
               yAxis: yAxis,
               valueYField: "value",
               valueXField: "date",
-              tooltip: am5.Tooltip.new(root5, {
-                labelText: "{valueY}"
-              })
             }));
+
+            // Add Label bullet
+            series.bullets.push(function () {
+              return am5.Bullet.new(root5, {
+                locationY: 1,
+                locationX: 0.5,
+                sprite: am5.Label.new(root5, {
+                  text: "{valueYTotal}",
+                  fill: root5.interfaceColors.get("alternativeText"),
+                  centerY: 0,
+                  centerX: am5.p50,
+                  populateText: true,
+                  fontSize: 10
+                })
+              });
+            });
 
             series.columns.template.setAll({ strokeOpacity: 0 })
 
@@ -3717,6 +3811,7 @@ updateChartLot();
 
         if (activeWidget) {
           handedOverLotLayer.visible = false;
+          handedOverLotBackgroundLayer.visible = false;
           lotLayer.visible = true;
         }
 
@@ -3724,6 +3819,7 @@ updateChartLot();
 
         if (nextWidget !== activeWidget) {
           handedOverLotLayer.visible = true;
+          handedOverLotBackgroundLayer.visible = true;
           lotLayer.visible = false;
           activeWidget = nextWidget;
         } else {
