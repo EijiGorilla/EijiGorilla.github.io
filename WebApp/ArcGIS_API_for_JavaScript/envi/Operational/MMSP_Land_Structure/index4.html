@@ -40,9 +40,18 @@
       align-self: center;
       justify-self: center;
     }
+
+    calcite-segmented-control {
+      margin-left: 10px;
+    }
+
+    #handedover-stationlot-segment-control {
+      margin-bottom: 20px;
+    }
     
     calcite-label {
       --calcite-label-margin-bottom: 0px;
+      margin: 5px;
     }
 
     #container {
@@ -110,9 +119,13 @@
     calcite-tab-title {
       overflow: auto;
       padding: 0;
-      margin-right: 5;
-      margin-left: 5;
+
     }
+
+    #info-content {
+      overflow-y: auto;
+    }
+
 
     #pieChartLotDiv,
     #pieChartStructureDiv,
@@ -338,12 +351,6 @@
           <select id="stationSelect" class="esri-widget"></select>
         </label>
       </div>
-      <calcite-button
-        icon-start="color-coded-map"
-        id="handedover-button"
-        >
-        Handed-Over Lots
-    </calcite-button>
       <!--
       <div id="Handed-Over">
         <calcite-segmented-control>
@@ -361,6 +368,7 @@
           <calcite-action data-action-id="layers" icon="layers" text="Layers"></calcite-action>
           <calcite-action data-action-id="basemaps" icon="basemap" text="Basemaps"></calcite-action>
           <calcite-action data-action-id="charts" icon="graph-time-series" text="Progree Chart"></calcite-action>
+          <calcite-action data-action-id="handedover" icon="selection" text="Handed-Over Lot"></calcite-action>
           <calcite-action data-action-id="information" icon="information" text="Information"></calcite-action>
         </calcite-action-bar>
         
@@ -415,6 +423,24 @@
           <calcite-label layout="inline" id="land-timeSeries-label">
             <calcite-checkbox id="land-checkbox"></calcite-checkbox>Handed-Over Lots
           </calcite-label>
+        </calcite-panel>
+        <calcite-panel heading="View Handed Over Lots" height-scale="l" data-panel-id="handedover" hidden>
+          <div id="viewHandedOverLot">
+            <calcite-label id="handedoverlot-label">
+              Stations:
+            </calcite-label>
+            <calcite-segmented-control id="handedover-stationlot-segment-control">
+              <calcite-segmented-control-item id="stationLot-on" value="stationloton">ON</calcite-segmented-control-item>
+              <calcite-segmented-control-item id="stationLot-off" value="stationlotoff"  checked>OFF</calcite-segmented-control-item>
+            </calcite-segmented-control>
+            <calcite-label id="handedoverlot-label">
+              Subterranean:
+            </calcite-label>
+            <calcite-segmented-control>
+              <calcite-segmented-control-item id="subteLot-on" value="subteloton">ON</calcite-segmented-control-item>
+              <calcite-segmented-control-item id="subteLot-off" value="subtelotoff"  checked>OFF</calcite-segmented-control-item>
+            </calcite-segmented-control>
+          </div>
         </calcite-panel>
         <!-- Info panel (populates with info from the web map) -->
         <calcite-panel heading="Description" data-panel-id="information" hidden>
@@ -3865,45 +3891,70 @@ updateChartLot();
     } // End of updateChartISF()
     updateChartISF();
 
-    // Handed-Over Button to show lots that were handed over at stations
-    view.when(() => {
-      let activeWidget;
-      const clickBox = ({ target }) => {
+    ///////////////////////////////////////////////////////////////////////////////////
+    // Handed-Over Button to show lots that were handed over at stations and at Subterranean
+    const viewHandedOverLot = document.getElementById("viewHandedOverLot");
+    const stationon = document.getElementById("stationLot-on");
+    const subteon = document.getElementById("subteLot-on");
 
-        if (activeWidget) {
-          handedOverLotLayer.visible = false;
-          handedOverLotBackgroundLayer.visible = false;
-          lotLayer.visible = true;
-        }
+    viewHandedOverLot.addEventListener("click", function(event) {
+      //const handedOver_switch = event.target.ariaLabel;
+      const stationon_switch = stationon.checked; // true or false
+      const subteon_switch = subteon.checked;
 
-        const nextWidget = target.id;
+      if (stationon_switch === true && subteon_switch === false) {
+        handedOverLotLayer.visible = true;
+        handedOverLotBackgroundLayer.visible = true;
+        lotLayer.visible = false;
 
-        if (nextWidget !== activeWidget) {
-          handedOverLotLayer.visible = true;
-          handedOverLotBackgroundLayer.visible = true;
-          lotLayer.visible = false;
-          activeWidget = nextWidget;
-        } else {
-          activeWidget = null;
-        }
+        pteLotSubteLayer.visible = false;
+        pteLotSubteBackgroundLayer.visible = false;
+
+      } else if (stationon_switch === false && subteon_switch === true) {
+        handedOverLotLayer.visible = false;
+        handedOverLotBackgroundLayer.visible = false;
+        lotLayer.visible = false;
+
+        pteLotSubteLayer.visible = true;
+        pteLotSubteBackgroundLayer.visible = true;
+
+      } else if (stationon_switch === false && subteon_switch === false) {
+        handedOverLotLayer.visible = false;
+        handedOverLotBackgroundLayer.visible = false;
+        lotLayer.visible = true;
+
+        pteLotSubteLayer.visible = false;
+        pteLotSubteBackgroundLayer.visible = false;
+
+      } else if (stationon_switch === true && subteon_switch === true) {
+        handedOverLotLayer.visible = true;
+        handedOverLotBackgroundLayer.visible = true;
+        lotLayer.visible = false;
+
+        pteLotSubteLayer.visible = true;
+        pteLotSubteBackgroundLayer.visible = true;
       }
-      document.getElementById("handedover-button").addEventListener("click", clickBox);
     });
+
 
 
       // view.when
       view.when(() => {
         document.querySelector("#header-title").textContent = "MMSP LAND ACQUISITION";
         document.querySelector("#item-description").innerHTML = `
-                                                                 1. You can opt for either <b>light theme or dark theme</b> for a window screen via a switch icon in the upper right.<br>
-                                                                 2. You can <b>filter the data</b> by CP, land type (station or subterranean), and section using dropdown lits.<br>
-                                                                 3. <b>Toggle a checkbox</b> at the bottom of 'Land' panel to filter for handed-over lots.<br>
-                                                                 4. View charts for summary statistics and progress on acquisition of land/structure.<br>
-                                                                 5. <b>Click pie chart</b> to view the respective lots/structures on the map.<br>
-                                                                 6. <b>Lots under expropriation</b> is available in the 'Expro List' tab under the theme switch.<br>
-                                                                 7. <b>Click/unclick widgets</b> icon for viewing Layer list, legend, basemaps, and locate widgets under the main title.<br>
-                                                                 8. <b>NVS</b> stands for <b>'Negotiated Voluntary Sale'.</b><br>
-                                                                 9. <b>ROWUA</b> stands for <b>'Right-of-Way Usage Agreement'</b>.
+                                                                 1. You can <b>filter the data</b> by CP, land type (station or subterranean), and section using dropdown lits.<br>
+                                                                 2. View charts for summary statistics and progress on acquisition of land/structure.<br>
+                                                                 3. <b>Click pie chart</b> to view the respective lots/structures on the map.<br>
+                                                                 4. <b>Lots under expropriation</b> is available in the 'Expro List' tab.<br>
+                                                                 5. <b>Lots with Remarks</b> are available in the 'Remarks' tab.<br>
+                                                                 6. <b>Click/unclick widgets</b> icon for viewing Layer list:<br>
+                                                                 &ensp;* legend,<br>
+                                                                 &ensp;* basemaps,<br>
+                                                                 &ensp;* Progress Chart,<br>
+                                                                 &ensp;* Handed-Over Lots,<br>
+                                                                 &ensp;* Information<br>
+                                                                 7. <b>NVS</b> stands for <b>'Negotiated Voluntary Sale'.</b><br>
+                                                                 8. <b>ROWUA</b> stands for <b>'Right-of-Way Usage Agreement'.</b><br>
                                                                  `
                                                                  ;
         
