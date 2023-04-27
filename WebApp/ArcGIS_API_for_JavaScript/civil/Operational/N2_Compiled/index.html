@@ -261,7 +261,8 @@
       color: #f7f5f7;
     }
 
-    #timeSeriesChart {
+    #timeSeriesChartViaduct,
+    #timeSeriesChartLand {
       position: absolute;
       z-index: 1;
       height: 40vh;
@@ -500,14 +501,16 @@
             <calcite-checkbox id="myLink"></calcite-checkbox> Ground color becomes transparent
           </calcite-label>
         </calcite-panel>
+
         <calcite-panel class="timeSeries-panel" heading="Progress Chart" height-scale="l" data-panel-id="charts" hidden>
           <calcite-label layout="inline" id="viaduct-timeSeries-label">
             <calcite-checkbox id="viaduct-checkbox"></calcite-checkbox>Viaduct
           </calcite-label>
           <calcite-label layout="inline" id="land-timeSeries-label">
-            <calcite-checkbox id="land-checkbox"></calcite-checkbox>Land Acquisition (Coming Soon..)
+            <calcite-checkbox id="land-checkbox"></calcite-checkbox>Handed-Over Lot
           </calcite-label>
         </calcite-panel>
+
         <calcite-panel heading="Links to Individual Smart Maps" height-scale="l" data-panel-id="smartmaps" hidden>
           <calcite-list>
             <calcite-list-item label="Land Acqusition" description="Structure/NLO included">
@@ -555,7 +558,8 @@
         </calcite-panel>
       </calcite-shell-panel>
       <div id="container">
-        <div id="timeSeriesChart" hidden></div>
+        <div id="timeSeriesChartViaduct" hidden></div>
+        <div id="timeSeriesChartLand" hidden></div>
       <div id="viewDiv">
       </div>
       <!-- Tabs "https://esri.github.io/calcite-web/documentation/patterns/#tabs" -->
@@ -3802,6 +3806,8 @@
 
     updateMoaChartLot(cpValue);
     updateMoaChartStructure(cpValue);
+
+    timeSeriesChartLand(cpValue);
   }
 
   const viaductChartDiv = document.getElementById("viaductChartDiv");
@@ -3833,7 +3839,7 @@
 
         pnrLayer.visible = true;
 
-        updateSummary();
+        updateSummary(value);
 
         zoomToLayer(pierAccessLayer);
 
@@ -3858,7 +3864,7 @@
         viaductChartDiv.style.display = 'none';
         viaductNumberDiv.style.display = 'none';
 
-        updateSummary();
+        updateSummary(value);
 
         zoomToLayer(lotLayer);
 
@@ -7291,9 +7297,9 @@
   }
   updateChartViaduct();
 
-  var root_ts = am5.Root.new("timeSeriesChart");
+  var root_ts = am5.Root.new("timeSeriesChartViaduct");
 
-  function timeSeriesChart() {
+  function timeSeriesChartViaduct() {
     root_ts.container.children.clear();
 
     var total_complete_pile = {
@@ -7520,9 +7526,231 @@
 
     });
   }
-  timeSeriesChart();
+  timeSeriesChartViaduct();
 
 
+  //----------------------------------------------------------------------------------//
+    /// Time series chart EXPERIMENT
+    var root8 = am5.Root.new("timeSeriesChartLand");
+
+    function timeSeriesChartLand(cpValue) {
+      root8.container.children.clear();
+
+      var query = lotLayer.createQuery();
+      const cpExpression = "CP = '" + cpValue + "'";
+      const statusExpression = "HandedOverDate IS NOT NULL";
+
+      if (cpValue === 'All' || cpValue === undefined) {
+        query.where = statusExpression;
+
+      } else {
+        query.where = cpExpression + " AND " + statusExpression;
+      }
+
+      var total_count_handedOver_private = {
+        onStatisticField: "CASE WHEN (LandOwner <> 'BASES CONVERSION DEVELOPMENT AUTHORITY' and LandOwner <> 'MANILA RAILROAD COMPANY') THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_count_handedOver_private",
+        statisticType: "sum"
+      }
+
+      var total_count_handedOver_public = {
+        onStatisticField: "CASE WHEN (LandOwner = 'BASES CONVERSION DEVELOPMENT AUTHORITY' or LandOwner = 'MANILA RAILROAD COMPANY') THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_count_handedOver_public",
+        statisticType: "sum"
+      }
+
+      query.outStatistics = [total_count_handedOver_private, total_count_handedOver_public];
+      query.outFields = ["HandedOverDate"];
+      query.orderByFields = ["HandedOverDate"];
+      query.groupByFieldsForStatistics = ["HandedOverDate"];
+
+      const private = [];
+      const public = [];
+
+      lotLayer.queryFeatures(query).then(function(response) {
+        var stats = response.features;
+        ////
+        // collect all dates
+        const data = stats.map((result, index) => {
+          const attributes = result.attributes;
+          const date = attributes.HandedOverDate;
+
+          const privateCount = attributes.total_count_handedOver_private;
+          const publicCount = attributes.total_count_handedOver_public;
+
+          // compile in object array
+          return Object.assign({}, {
+            date,
+            private: privateCount,
+            public: publicCount
+          });
+        });
+
+        // set themes
+        root8.setThemes([
+          am5themes_Animated.new(root8)
+        ]);
+
+      // Create chart
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/
+        var chart = root8.container.children.push(am5xy.XYChart.new(root8, {
+          panX: false,
+          panY: false,
+          wheelX: "panX",
+          wheelY: "zoomX",
+          paddingBottom: 35,
+        }));
+
+        chart.get("colors").set("colors", [
+          am5.color("#e8ff00"),
+          am5.color("#4a99ff"),
+        ]);
+
+        // Chart title
+        chart.children.unshift(am5.Label.new(root8, {
+          text: "Monthly Progress of Handed-Over Lots",
+          fontSize: 14,
+          fontWeight: "bold",
+          textAlign: "center",
+          fill: am5.color("#ffffff"),
+          x: am5.percent(50),
+          centerX: am5.percent(50),
+          paddingTop: 0,
+          paddingBottom: 0,
+        }));
+
+        // Add cursor
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
+        var cursor = chart.set("cursor", am5xy.XYCursor.new(root8, {
+          behavior: "zoomX"
+        }));
+        cursor.lineY.set("visible", false);
+
+        // Create axes
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+        var xAxis = chart.xAxes.push(am5xy.DateAxis.new(root8, {
+          maxDeviation: 0,
+          groupData: true,
+          baseInterval: {
+            timeUnit: "day",
+            count: 1
+          },
+          groupIntervals: [{timeUnit: "month", count: 1}],
+          renderer: am5xy.AxisRendererX.new(root8, {
+            minGridDistance: 60,
+            strokeOpacity: 1,
+            strokeWidth: 1,
+            stroke: am5.color("#ffffff"),
+          }),
+          //tooltip: am5.Tooltip.new(root8, {})
+        }));
+
+        // Label properties for yAxis (category axis)
+        xAxis.get("renderer").labels.template.setAll({
+          //oversizedBehavior: "wrap",
+          textAlign: "center",
+          fill: am5.color("#ffffff"),
+          //maxWidth: 150,
+          fontSize: 12
+        });
+
+        var yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root8, {
+          calculateTotals: true,
+          min: 0,
+          renderer: am5xy.AxisRendererY.new(root8, {
+            minGridDistance: 60,
+            strokeOpacity: 1,
+            strokeWidth: 1,
+            stroke: am5.color("#ffffff"),
+          })
+        }));
+
+        yAxis.get("renderer").labels.template.setAll({
+          //oversizedBehavior: "wrap",
+          textAlign: "center",
+          fill: am5.color("#ffffff"),
+          //maxWidth: 150,
+          fontSize: 12
+        });
+
+        // Add yaxix title
+        yAxis.children.unshift(
+          am5.Label.new(root8, {
+            rotation: -90,
+            text: "No. of handed-over lots",
+            y: am5.p50,
+            centerX: am5.p50,
+            fill: am5.color("#ffffff"),
+            fontSize: 11
+          })
+        );
+
+      // Add legend
+      // https://www.amcharts.com/docs/v5/charts/xy-chart/legend-xy-series/
+      var legend = chart.children.push(am5.Legend.new(root8, {
+        centerX: am5.p50,
+        centerY: am5.percent(50),
+        x: am5.p50,
+        y: am5.percent(108),
+
+      }));
+
+      legend.labels.template.setAll({
+        oversizedBehavior: "truncate",
+        fill: am5.color("#ffffff"),
+        fontSize: 17,
+        scale: 0.8,
+        //textDecoration: "underline"
+        //width: am5.percent(200)
+        //fontWeight: "300"
+      });
+
+
+      function makeSeries(name, fieldName) {
+        // Add series
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+        var series = chart.series.push(am5xy.ColumnSeries.new(root8, {
+          name: name,
+          stacked: true,
+          xAxis: xAxis,
+          yAxis: yAxis,
+          valueYField: fieldName,
+          valueXField: "date",
+          valueYGrouped: "sum"
+        }));
+
+        series.columns.template.setAll({
+          tooltipText: "{name}, {categoryX}: {valueY}",
+          tooltipY: am5.percent(10),
+          strokeOpacity: 0 
+        });
+        series.data.setAll(data);
+        series.appear(1000);
+
+        // Add Label bullet
+        series.bullets.push(function () {
+          return am5.Bullet.new(root8, {
+            locationY: 1,
+            locationX: 0.5,
+            sprite: am5.Label.new(root8, {
+              text: "{valueYTotal}",
+              fill: root8.interfaceColors.get("alternativeText"),
+              centerY: 0,
+              centerX: am5.p50,
+              populateText: true,
+              fontSize: 10
+            })
+          });
+        });
+        legend.data.push(series);
+      }
+      makeSeries("Private Land", "private");
+      makeSeries("Public Land", "public");
+      
+      chart.appear(1000, 100);
+      }); 
+    }
+    timeSeriesChartLand();
     /////////////////// END Of LAYER IMPORT ////////////////////////////
 
     // Zoom
@@ -8326,11 +8554,19 @@
 
         // Progress Chart
         document.getElementById("viaduct-checkbox").addEventListener("click", function(event) {
-          const timeSeriesChartDiv = document.getElementById("timeSeriesChart");
+          const timeSeriesChartViaductDiv = document.getElementById("timeSeriesChartViaduct");
           const checked = event;
-          console.log(event);
-          timeSeriesChartDiv.hidden = !timeSeriesChartDiv.hidden;
+          timeSeriesChartViaductDiv.hidden = !timeSeriesChartViaductDiv.hidden;
         });
+
+        document.getElementById("land-checkbox").addEventListener("click", function(event) {
+          const timeSeriesChartLandDiv = document.getElementById("timeSeriesChartLand");
+          const checked = event;
+          timeSeriesChartLandDiv.hidden = !timeSeriesChartLandDiv.hidden;
+        });
+
+
+        //////////////////////////////////////////////////////////////////////////////////
 
         // See-through-Ground
         view.when(function() {
