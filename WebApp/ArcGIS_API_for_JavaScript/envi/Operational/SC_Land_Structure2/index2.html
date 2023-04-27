@@ -2477,7 +2477,8 @@ zoomToLayer(stationLayer);
         updateMoaChartLot(municipal, barangay);
         updateChartStructure(municipal, barangay);
         updateMoaChartStructure(municipal, barangay);
-        updateChartISF();
+        updateChartISF(municipal, barangay);
+        timeSeriesChart(municipal, barangay);
 
         zoomToLayer(lotLayer);
     });
@@ -2496,7 +2497,8 @@ zoomToLayer(stationLayer);
             updateMoaChartLot(municipal, barangay);
             updateChartStructure(municipal, barangay);
             updateMoaChartStructure(municipal, barangay);
-            updateChartISF();
+            updateChartISF(municipal, barangay);
+            timeSeriesChart(municipal, barangay);
 
             zoomToLayer(lotLayer);
         //relocationObjectID(reloStatusLayer);
@@ -3810,7 +3812,7 @@ zoomToLayer(stationLayer);
                     "LBP Account Opening"]
 
 
-    async function updateChartISF() {
+    async function updateChartISF(municipal, barangay) {
         root5.container.children.clear();
 
         var total_relocated_lot = {
@@ -3950,11 +3952,31 @@ zoomToLayer(stationLayer);
             selectedStatus = null;
           }
 
+          var query = nloLayer.createQuery();
+          const municipalExpression = "Municipality = '" + municipal + "'";
+          const barangayExpression = "Barangay ='" + barangay + "'";
+          const statusExpression = "StatusRC = " + selectedStatus;
+
+          if (municipal === undefined && barangay === undefined) {
+            query.where = statusExpression;
+          } else if (municipal !== 'None' && barangay === 'None') {
+            query.where = municipalExpression + " AND " + statusExpression;
+          } else if (municipal === 'None' && barangay !== 'None') {
+            query.where = barangayExpression + " AND " + statusExpression;
+          } else if (municipal === 'None' && barangay === 'None') {
+            query.where = statusExpression;
+
+          } else if (municipal !== 'None' && barangay !== 'None') {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
+          } else if (municipal !== 'None' && barangay !== 'None') {
+            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
+          }
+
           view.when(function() {
             view.whenLayerView(nloLayer).then(function (layerView) {
               //chartLayerView = layerView;
 
-              nloLayer.queryFeatures().then(function(results) {
+              nloLayer.queryFeatures(query).then(function(results) {
                 const RESULT_LENGTH = results.features;
                 const ROW_N = RESULT_LENGTH.length;
 
@@ -4530,6 +4552,241 @@ zoomToLayer(stationLayer);
             .then(percentHandedOverLotByCPChart)
         }
 
+//----------------------------------------------------------------------------------//
+    /// Time series chart EXPERIMENT
+    var root7 = am5.Root.new("timeSeriesChart");
+
+    function timeSeriesChart(municipal, barangay) {
+      root7.container.children.clear();
+
+      var query = lotLayer.createQuery();
+      const municipalExpression = "Municipality = '" + municipal + "'";
+      const barangayExpression = "Barangay = '" + barangay + "'";
+      const statusExpression = "HandedOverDate IS NOT NULL";
+
+      if (municipal === 'None' && (barangay === 'None' || barangay === undefined)) {
+        query.where = statusExpression;
+
+      } else if (municipal === undefined && barangay === undefined) {
+        query.where = statusExpression;
+
+      } else if (municipal === 'None' && barangay !== 'None') {
+        query.where = barangayExpression + " AND " + statusExpression;
+
+      } else if (municipal !== 'None' && (barangay === 'None' || barangay === undefined)) {
+        query.where = municipalExpression + " AND " + statusExpression;
+
+      } else if (municipal !== 'None' && barangay !== 'None') {
+        query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
+
+      } else {
+        query.where = statusExpression;
+      }
+
+      var total_count_handedOver_private = {
+        onStatisticField: "CASE WHEN (LandOwner <> 'BASES CONVERSION DEVELOPMENT AUTHORITY' and LandOwner <> 'MANILA RAILROAD COMPANY') THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_count_handedOver_private",
+        statisticType: "sum"
+      }
+
+      var total_count_handedOver_public = {
+        onStatisticField: "CASE WHEN (LandOwner = 'BASES CONVERSION DEVELOPMENT AUTHORITY' or LandOwner = 'MANILA RAILROAD COMPANY') THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_count_handedOver_public",
+        statisticType: "sum"
+      }
+
+      query.outStatistics = [total_count_handedOver_private, total_count_handedOver_public];
+      query.outFields = ["HandedOverDate"];
+      query.orderByFields = ["HandedOverDate"];
+      query.groupByFieldsForStatistics = ["HandedOverDate"];
+
+      const private = [];
+      const public = [];
+
+      lotLayer.queryFeatures(query).then(function(response) {
+        var stats = response.features;
+        ////
+        // collect all dates
+        const data = stats.map((result, index) => {
+          const attributes = result.attributes;
+          const date = attributes.HandedOverDate;
+
+          const privateCount = attributes.total_count_handedOver_private;
+          const publicCount = attributes.total_count_handedOver_public;
+
+          // compile in object array
+          return Object.assign({}, {
+            date,
+            private: privateCount,
+            public: publicCount
+          });
+        });
+
+        // set themes
+        root7.setThemes([
+          am5themes_Animated.new(root7)
+        ]);
+
+      // Create chart
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/
+        var chart = root7.container.children.push(am5xy.XYChart.new(root7, {
+          panX: false,
+          panY: false,
+          wheelX: "panX",
+          wheelY: "zoomX",
+          paddingBottom: 35,
+        }));
+
+        chart.get("colors").set("colors", [
+          am5.color("#e8ff00"),
+          am5.color("#4a99ff"),
+        ]);
+
+        // Chart title
+        chart.children.unshift(am5.Label.new(root7, {
+          text: "Monthly Progress of Handed-Over Lots",
+          fontSize: 14,
+          fontWeight: "bold",
+          textAlign: "center",
+          fill: am5.color("#ffffff"),
+          x: am5.percent(50),
+          centerX: am5.percent(50),
+          paddingTop: 0,
+          paddingBottom: 0,
+        }));
+
+        // Add cursor
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
+        var cursor = chart.set("cursor", am5xy.XYCursor.new(root7, {
+          behavior: "zoomX"
+        }));
+        cursor.lineY.set("visible", false);
+
+        // Create axes
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+        var xAxis = chart.xAxes.push(am5xy.DateAxis.new(root7, {
+          maxDeviation: 0,
+          groupData: true,
+          baseInterval: {
+            timeUnit: "day",
+            count: 1
+          },
+          groupIntervals: [{timeUnit: "month", count: 1}],
+          renderer: am5xy.AxisRendererX.new(root7, {
+            minGridDistance: 60,
+            strokeOpacity: 1,
+            strokeWidth: 1,
+            stroke: am5.color("#ffffff"),
+          }),
+          //tooltip: am5.Tooltip.new(root7, {})
+        }));
+
+        // Label properties for yAxis (category axis)
+        xAxis.get("renderer").labels.template.setAll({
+          //oversizedBehavior: "wrap",
+          textAlign: "center",
+          fill: am5.color("#ffffff"),
+          //maxWidth: 150,
+          fontSize: 12
+        });
+
+        var yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root7, {
+          calculateTotals: true,
+          min: 0,
+          renderer: am5xy.AxisRendererY.new(root7, {
+            minGridDistance: 60,
+            strokeOpacity: 1,
+            strokeWidth: 1,
+            stroke: am5.color("#ffffff"),
+          })
+        }));
+
+        yAxis.get("renderer").labels.template.setAll({
+          //oversizedBehavior: "wrap",
+          textAlign: "center",
+          fill: am5.color("#ffffff"),
+          //maxWidth: 150,
+          fontSize: 12
+        });
+
+        // Add yaxix title
+        yAxis.children.unshift(
+          am5.Label.new(root7, {
+            rotation: -90,
+            text: "No. of handed-over lots",
+            y: am5.p50,
+            centerX: am5.p50,
+            fill: am5.color("#ffffff"),
+            fontSize: 11
+          })
+        );
+
+      // Add legend
+      // https://www.amcharts.com/docs/v5/charts/xy-chart/legend-xy-series/
+      var legend = chart.children.push(am5.Legend.new(root7, {
+        centerX: am5.p50,
+        centerY: am5.percent(50),
+        x: am5.p50,
+        y: am5.percent(108),
+
+      }));
+
+      legend.labels.template.setAll({
+        oversizedBehavior: "truncate",
+        fill: am5.color("#ffffff"),
+        fontSize: 17,
+        scale: 0.8,
+        //textDecoration: "underline"
+        //width: am5.percent(200)
+        //fontWeight: "300"
+      });
+
+
+      function makeSeries(name, fieldName) {
+        // Add series
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+        var series = chart.series.push(am5xy.ColumnSeries.new(root7, {
+          name: name,
+          stacked: true,
+          xAxis: xAxis,
+          yAxis: yAxis,
+          valueYField: fieldName,
+          valueXField: "date",
+          valueYGrouped: "sum"
+        }));
+
+        series.columns.template.setAll({
+          tooltipText: "{name}, {categoryX}: {valueY}",
+          tooltipY: am5.percent(10),
+          strokeOpacity: 0 
+        });
+        series.data.setAll(data);
+        series.appear(1000);
+
+        // Add Label bullet
+        series.bullets.push(function () {
+          return am5.Bullet.new(root7, {
+            locationY: 1,
+            locationX: 0.5,
+            sprite: am5.Label.new(root7, {
+              text: "{valueYTotal}",
+              fill: root7.interfaceColors.get("alternativeText"),
+              centerY: 0,
+              centerX: am5.p50,
+              populateText: true,
+              fontSize: 10
+            })
+          });
+        });
+        legend.data.push(series);
+      }
+      makeSeries("Private Land", "private");
+      makeSeries("Public Land", "public");
+      
+      chart.appear(1000, 100);
+      }); 
+    }
+    timeSeriesChart();
 
       // view.when
       view.when(() => {
