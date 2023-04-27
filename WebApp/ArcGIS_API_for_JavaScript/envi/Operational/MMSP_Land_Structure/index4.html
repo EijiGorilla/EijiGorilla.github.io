@@ -2116,44 +2116,32 @@
             query.where = statusExpression;
           }
 
-          //query.having = "HandOverDate IS NOT NULL";
+          var total_count_handedOVer = {
+            onStatisticField: "HandOverDate",
+            outStatisticFieldName: "total_count_handedOVer",
+            statisticType: "count"
+          }
+
+          query.outStatistics = [total_count_handedOVer];
+          query.outFields = ["HandOverDate"];
           query.orderByFields = ["HandOverDate"];
+          query.groupByFieldsForStatistics = ["HandOverDate"];
+
           lotLayer.queryFeatures(query).then(function(response) {
             var stats = response.features;
-            const dates = [];
-
-            stats.forEach((result, index) => {
+            ////
+            // collect all dates
+            const data = stats.map((result, index) => {
               const attributes = result.attributes;
               const date = attributes.HandOverDate;
-              dates.push(date);
-            });
+              const count = attributes.total_count_handedOVer;
 
-            // Count the number of values per date and store results into
-            // {16809800000: 20, 15600000: 10,....}
-            const datesCount = {};
-            for (let i = 0; i < dates.length; i++) {
-              datesCount[dates[i]] = 1 + (datesCount[dates[i]] || 0);
-            }
-
-            // Conver array to Object Array: 
-            // [{"date": 167630400000, "value": 20}, {"date": 167730400000, "value": 50}]
-            const dateArray = [];
-            const valueArray = [];
-            for (let i = 0; i < Object.keys(datesCount).length; i++) {
-              const dates = Number(Object.keys(datesCount)[i]);
-              const values = datesCount[Object.keys(datesCount)[i]];
-              dateArray.push(dates);
-              valueArray.push(values)
-            }
-            const datas = dateArray.map((date, index) => {
+              // compile in object array
               return Object.assign({}, {
                 date,
-                value: valueArray[index]
+                value: count
               });
             });
-
-            // Sort by date: make sure to sort; otherwise, it fails.
-            const data = datas.sort((a, b) => a.date - b.date);
 
             console.log(data);
             // set themes
@@ -2194,10 +2182,12 @@
             // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
             var xAxis = chart.xAxes.push(am5xy.DateAxis.new(root5, {
               maxDeviation: 0,
+              groupData: true,
               baseInterval: {
-                timeUnit: "month",
+                timeUnit: "day",
                 count: 1
               },
+              groupIntervals: [{timeUnit: "month", count: 1}],
               renderer: am5xy.AxisRendererX.new(root5, {
                 minGridDistance: 60,
                 strokeOpacity: 1,
@@ -2255,6 +2245,7 @@
               yAxis: yAxis,
               valueYField: "value",
               valueXField: "date",
+              valueYGrouped: "sum"
             }));
 
             // Add Label bullet
