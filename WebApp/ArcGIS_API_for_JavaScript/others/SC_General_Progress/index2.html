@@ -2236,333 +2236,337 @@ function treeCompenSummary(totalNumber) {
     statisticType: "sum"
     };
 
-var total_compensated_tree = {
-onStatisticField: "CASE WHEN Compensation = 3 THEN 1 ELSE 0 END",
-outStatisticFieldName: "total_compensated_tree",
-statisticType: "sum"
-}
+  var total_compensated_tree = {
+  onStatisticField: "CASE WHEN Compensation = 3 THEN 1 ELSE 0 END",
+  outStatisticFieldName: "total_compensated_tree",
+  statisticType: "sum"
+  }
 
-var query = treeLayer.createQuery();
-query.outStatistics = [total_number_tree, total_compensated_tree];
-query.returnGeometry = true;
-query.groupByFieldsForStatistics = ["CP"];
+  var query = treeLayer.createQuery();
+  query.outStatistics = [total_number_tree, total_compensated_tree];
+  query.returnGeometry = true;
+  query.groupByFieldsForStatistics = ["CP"];
 
-var cpS01 = [];
-var cpS01_a = [];
+  var cpS01 = [];
+  var cpS01_a = [];
 
-var cpS02 = [];
-var cpS02_a = [];
+  var cpS02 = [];
+  var cpS02_a = [];
 
-var cpS03 = [];
-var cpS03_a = [];
+  var cpS03 = [];
+  var cpS03_a = [];
 
-var cpS04 = [];
-var cpS04_a = [];
+  var cpS04 = [];
+  var cpS04_a = [];
 
-var cpS05 = [];
-var cpS05_a = [];
+  var cpS05 = [];
+  var cpS05_a = [];
 
-var cpS06 = [];
-var cpS06_a = [];
+  var cpS06 = [];
+  var cpS06_a = [];
 
-var cpS07 = [];
-var cpS07_a = [];
+  var cpS07 = [];
+  var cpS07_a = [];
 
-return treeLayer.queryFeatures(query).then(function(response) {
-stats = response.features;
+  return treeLayer.queryFeatures(query).then(function(response) {
+  stats = response.features;
 
-stats.forEach((result, index) => {
-const attributes = result.attributes;
-const cpPackage = result.attributes.CP;
-const compensated = attributes.total_compensated_tree;
-const totalCompen = attributes.total_number_tree;
-const TREE_COMPEN_PERC = (compensated/totalNumber)*100;
-const tree_compen = (compensated/totalCompen)*100;
+  stats.forEach((result, index) => {
+  const attributes = result.attributes;
+  const cpPackage = result.attributes.CP;
+  const compensated = attributes.total_compensated_tree;
+  const totalCompen = attributes.total_number_tree;
 
-if (cpPackage === 'S-01') {
-  cpS01.push(TREE_COMPEN_PERC);
-  cpS01_a.push(tree_compen);
+  const temp = (compensated/totalNumber)*100;
+  const TREE_COMPEN_PERC = isNaN(temp) ? 0 : (compensated/totalNumber)*100;
 
-} else if (cpPackage === 'S-02') {
-  cpS02.push(TREE_COMPEN_PERC);
-  cpS02_a.push(tree_compen);
+  const temp1 = (compensated/totalCompen)*100;
+  const tree_compen = isNaN(temp1) ? 0 : (compensated/totalCompen)*100;
 
-} else if (cpPackage === 'S-03') {
-  cpS03.push(TREE_COMPEN_PERC);
-  cpS03_a.push(tree_compen);
+  if (cpPackage === 'S-01') {
+    cpS01.push(TREE_COMPEN_PERC);
+    cpS01_a.push(tree_compen);
 
-} else if (cpPackage === 'S-04') {
-  cpS04.push(TREE_COMPEN_PERC);
-  cpS04_a.push(0); // no applicable: all trees in S-04 are Non-Compensable (i.e., not subject to this)
+  } else if (cpPackage === 'S-02') {
+    cpS02.push(TREE_COMPEN_PERC);
+    cpS02_a.push(tree_compen);
 
-} else if (cpPackage === 'S-05') {
-  cpS05.push(TREE_COMPEN_PERC);
-  cpS05_a.push(tree_compen);
+  } else if (cpPackage === 'S-03') {
+    cpS03.push(TREE_COMPEN_PERC);
+    cpS03_a.push(tree_compen);
 
-} else if (cpPackage === 'S-06') {
-  cpS06.push(TREE_COMPEN_PERC);
-  cpS06_a.push(tree_compen);
+  } else if (cpPackage === 'S-04') {
+    cpS04.push(TREE_COMPEN_PERC);
+    cpS04_a.push(0); // no applicable: all trees in S-04 are Non-Compensable (i.e., not subject to this)
 
-} else if (cpPackage === 'S-07') {
-  cpS07.push(TREE_COMPEN_PERC);
-  cpS07_a.push(tree_compen);
-}
+  } else if (cpPackage === 'S-05') {
+    cpS05.push(TREE_COMPEN_PERC);
+    cpS05_a.push(tree_compen);
 
-});
-return [cpS01, cpS02, cpS03, cpS04, cpS05, cpS06, cpS07, cpS01_a, cpS02_a, cpS03_a, cpS04_a, cpS05_a, cpS06_a, cpS07_a];
-});
+  } else if (cpPackage === 'S-06') {
+    cpS06.push(TREE_COMPEN_PERC);
+    cpS06_a.push(tree_compen);
 
-} // End of treeCompenSummary function
+  } else if (cpPackage === 'S-07') {
+    cpS07.push(TREE_COMPEN_PERC);
+    cpS07_a.push(tree_compen);
+  }
 
-function treeCompenFigure([cpS01, cpS02, cpS03, cpS04, cpS05, cpS06, cpS07, cpS01_a, cpS02_a, cpS03_a, cpS04_a, cpS05_a, cpS06_a, cpS07_a]) {
-  var totalScore = Number(cpS01) + Number(cpS02) + Number(cpS03) + Number(cpS04) + Number(cpS05) + Number(cpS06) + Number(cpS07);
+  });
+  return [cpS01, cpS02, cpS03, cpS04, cpS05, cpS06, cpS07, cpS01_a, cpS02_a, cpS03_a, cpS04_a, cpS05_a, cpS06_a, cpS07_a];
+  });
 
-var S01 = Number(cpS01);
-var S02 = Number(cpS01) + Number(cpS02);
-var S03 = Number(cpS01) + Number(cpS02) + Number(cpS03);
-var S04 = Number(cpS01) + Number(cpS02) + Number(cpS03) + Number(cpS04);
-var S05 = Number(cpS01) + Number(cpS02) + Number(cpS03) + Number(cpS04) + Number(cpS05);
-var S06 = Number(cpS01) + Number(cpS02) + Number(cpS03) + Number(cpS04) + Number(cpS05) + Number(cpS06);
-var S07 = Number(cpS01) + Number(cpS02) + Number(cpS03) + Number(cpS04) + Number(cpS05) + Number(cpS06) + Number(cpS07);
+  } // End of treeCompenSummary function
 
-
-var chartMin = 0;
-var chartMax = 100;
-
-// #ffea8c|#b3ab60|#4b595e|#6693c8|#aadbff
-// const colors = ["#ffea8c", "#b3ab60", "#4b595e", "#6693c8", "#aadbff"];
-
-var data = {
-score: totalScore,
-gradingData: [
-{
-  title: isNaN(cpS01_a) ? "" : Number(cpS01_a).toFixed(0),
-  color: color_101,
-  lowScore: 0,
-  highScore: S01
-},
-{
-  title: isNaN(cpS02_a) ? "" : Number(cpS02_a).toFixed(0),
-  color: color_102,
-  lowScore: S01,
-  highScore: S02
-},
-{
-  title: isNaN(cpS03_a) ? "" : Number(cpS03_a).toFixed(0),
-  color: color_103,
-  lowScore: S02,
-  highScore: S03
-},
-{
-  title: isNaN(cpS04_a) ? "" : Number(cpS04_a).toFixed(0),
-  color: color_104,
-  lowScore: S03,
-  highScore: S04
-},
-{
-  title: isNaN(cpS05_a) ? "" : Number(cpS05_a).toFixed(0),
-  color: color_105,
-  lowScore: S04,
-  highScore: S05
-},
-{
-  title: isNaN(cpS06_a) ? "" : Number(cpS06_a).toFixed(0),
-  color: color_106,
-  lowScore: S05,
-  highScore: S06
-},
-{
-  title: isNaN(cpS07_a) ? "" : Number(cpS07_a).toFixed(0),
-  color: color_107,
-  lowScore: S06,
-  highScore: S07
-},
-{
-  title: "",
-  color: "#C5C5C5",
-  lowScore: S07,
-  highScore: 100
-}
-]
-};
-
-/**
-Grading Lookup
-*/
-function lookUpGrade(lookupScore, grades) {
-// Only change code below this line
-for (var i = 0; i < grades.length; i++) {
-if (
-  grades[i].lowScore < lookupScore &&
-  grades[i].highScore >= lookupScore
-) {
-  return grades[i];
-}
-}
-return null;
-}
-
-// create chart
-var chart = am4core.create("treeCompenChartDiv", am4charts.GaugeChart);
-chart.hiddenState.properties.opacity = 0;
-chart.fontSize = 11;
-chart.innerRadius = am4core.percent(80);
-chart.resizable = true;
-chart.responsive.enabled = true;
-/**
-* Chart Title
-*/
-// Title Color
-var title = chart.titles.create();
-title.text = "TREE COMPENSATION";
-//title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Tree_Cutting/index.html" target="_blank">TREE COMPENSATION</a>';
-title.fontSize = titleFontSize;
-title.align = "center";
-title.marginBottom = -10;
-title.marginTop = 0;
-title.fill = TOP_TITLE_COL;
-
-// Add bottom label
-var label = chart.chartContainer.createChild(am4core.Label);
-label.text = "[bold]COMPENSATED";
-label.fontSize = bottomLabelFontSize;
-label.align = "center";
-label.marginTop = labelMarginTop;
-label.fill = BOTTOM_LABEL_COL;
-
-/**
-* Normal axis
-*/
-
-var axis = chart.xAxes.push(new am4charts.ValueAxis());
-axis.min = chartMin;
-axis.max = chartMax;
-axis.strictMinMax = true;
-axis.renderer.radius = am4core.percent(80);
-axis.renderer.inside = true;
-axis.renderer.line.strokeOpacity = 0.5; // line opacity inside curve line
-axis.renderer.ticks.template.disabled = false;
-axis.renderer.ticks.template.strokeOpacity = 1;
-//axis.renderer.ticks.template.strokeWidth = 1;
-axis.renderer.ticks.template.length = 10;
-axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
-//axis.renderer.grid.template.disabled = true;
-axis.renderer.labels.template.radius = am4core.percent(40);
-axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em inner radius axis percent labels (0 to 100%)
-axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
-
-/**
-* Axis for ranges
-*/
-
-var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
-axis2.min = chartMin;
-axis2.max = chartMax;
-axis2.strictMinMax = true;
-axis2.renderer.labels.template.disabled = true;
-axis2.renderer.ticks.template.disabled = true;
-axis2.renderer.grid.template.disabled = true; // when true inside tick marks will disappear
-axis2.renderer.grid.template.opacity = 0.5;
-axis2.renderer.labels.template.bent = true;
-axis2.renderer.labels.template.fill = am4core.color("#000");
-axis2.renderer.labels.template.fontWeight = "bold";
-axis2.renderer.labels.template.fillOpacity = 0.7;
+  function treeCompenFigure([cpS01, cpS02, cpS03, cpS04, cpS05, cpS06, cpS07, cpS01_a, cpS02_a, cpS03_a, cpS04_a, cpS05_a, cpS06_a, cpS07_a]) {
+    var totalScore = Number(cpS01) + Number(cpS02) + Number(cpS03) + Number(cpS04) + Number(cpS05) + Number(cpS06) + Number(cpS07);
+    
+  var S01 = Number(cpS01);
+  var S02 = Number(cpS01) + Number(cpS02);
+  var S03 = Number(cpS01) + Number(cpS02) + Number(cpS03);
+  var S04 = Number(cpS01) + Number(cpS02) + Number(cpS03) + Number(cpS04);
+  var S05 = Number(cpS01) + Number(cpS02) + Number(cpS03) + Number(cpS04) + Number(cpS05);
+  var S06 = Number(cpS01) + Number(cpS02) + Number(cpS03) + Number(cpS04) + Number(cpS05) + Number(cpS06);
+  var S07 = Number(cpS01) + Number(cpS02) + Number(cpS03) + Number(cpS04) + Number(cpS05) + Number(cpS06) + Number(cpS07);
 
 
+  var chartMin = 0;
+  var chartMax = 100;
 
-/**
-Ranges
-*/
+  // #ffea8c|#b3ab60|#4b595e|#6693c8|#aadbff
+  // const colors = ["#ffea8c", "#b3ab60", "#4b595e", "#6693c8", "#aadbff"];
 
-for (let grading of data.gradingData) {
-var range = axis2.axisRanges.create();
-range.axisFill.fill = am4core.color(grading.color);
-range.axisFill.fillOpacity = 1;
-range.axisFill.zIndex = -1;
-range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
-range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
-range.grid.strokeOpacity = 0; // changes opacity of inside tick mark
-range.stroke = am4core.color(grading.color).lighten(-0.1);
-range.label.inside = true;
-range.label.text = grading.title.toUpperCase();
-range.label.inside = true;
-range.label.location = 0.5;
-range.label.inside = true;
-range.label.radius = am4core.percent(10);
-range.label.paddingBottom = -5; // ~half font size
-range.label.fontSize = "1.4em"; // category label (i.e., N-01, N-02, ....)
-}
+  var data = {
+  score: totalScore,
+  gradingData: [
+  {
+    title: isNaN(cpS01_a) ? "" : Number(cpS01_a).toFixed(0),
+    color: color_101,
+    lowScore: 0,
+    highScore: S01
+  },
+  {
+    title: isNaN(cpS02_a) ? "" : Number(cpS02_a).toFixed(0),
+    color: color_102,
+    lowScore: S01,
+    highScore: S02
+  },
+  {
+    title: isNaN(cpS03_a) ? "" : Number(cpS03_a).toFixed(0),
+    color: color_103,
+    lowScore: S02,
+    highScore: S03
+  },
+  {
+    title: isNaN(cpS04_a) ? "" : Number(cpS04_a).toFixed(0),
+    color: color_104,
+    lowScore: S03,
+    highScore: S04
+  },
+  {
+    title: isNaN(cpS05_a) ? "" : Number(cpS05_a).toFixed(0),
+    color: color_105,
+    lowScore: S04,
+    highScore: S05
+  },
+  {
+    title: isNaN(cpS06_a) ? "" : Number(cpS06_a).toFixed(0),
+    color: color_106,
+    lowScore: S05,
+    highScore: S06
+  },
+  {
+    title: isNaN(cpS07_a) ? "" : Number(cpS07_a).toFixed(0),
+    color: color_107,
+    lowScore: S06,
+    highScore: S07
+  },
+  {
+    title: "",
+    color: "#C5C5C5",
+    lowScore: S07,
+    highScore: 100
+  }
+  ]
+  };
 
-var matchingGrade = lookUpGrade(data.score, data.gradingData);
+  /**
+  Grading Lookup
+  */
+  function lookUpGrade(lookupScore, grades) {
+  // Only change code below this line
+  for (var i = 0; i < grades.length; i++) {
+  if (
+    grades[i].lowScore < lookupScore &&
+    grades[i].highScore >= lookupScore
+  ) {
+    return grades[i];
+  }
+  }
+  return null;
+  }
 
-/**
-* Label 1 (total Percent)
-*/
+  // create chart
+  var chart = am4core.create("treeCompenChartDiv", am4charts.GaugeChart);
+  chart.hiddenState.properties.opacity = 0;
+  chart.fontSize = 11;
+  chart.innerRadius = am4core.percent(80);
+  chart.resizable = true;
+  chart.responsive.enabled = true;
+  /**
+  * Chart Title
+  */
+  // Title Color
+  var title = chart.titles.create();
+  title.text = "TREE COMPENSATION";
+  //title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Tree_Cutting/index.html" target="_blank">TREE COMPENSATION</a>';
+  title.fontSize = titleFontSize;
+  title.align = "center";
+  title.marginBottom = -10;
+  title.marginTop = 0;
+  title.fill = TOP_TITLE_COL;
 
-var label = chart.radarContainer.createChild(am4core.Label);
-label.isMeasured = false;
-label.fontSize = "3.5em";
-label.x = am4core.percent(50);
-label.y = am4core.percent(100);
-label.paddingBottom = -5;
-label.horizontalCenter = "middle";
-label.verticalCenter = "bottom";
-//label.dataItem = data;
-label.text = data.score.toFixed(0).toString() + "%"; //data.score.toFixed(0).toString() + "%"
-//label.text = "{score}";
-//label.fill = am4core.color(matchingGrade.color);
-label.fill =  am4core.color("#00C3FF");
+  // Add bottom label
+  var label = chart.chartContainer.createChild(am4core.Label);
+  label.text = "[bold]COMPENSATED";
+  label.fontSize = bottomLabelFontSize;
+  label.align = "center";
+  label.marginTop = labelMarginTop;
+  label.fill = BOTTOM_LABEL_COL;
 
-/**
-* Label 2
-*/
+  /**
+  * Normal axis
+  */
 
-/*
-var label2 = chart.radarContainer.createChild(am4core.Label);
-label2.isMeasured = false;
-label2.fontSize = "2em";
-label2.horizontalCenter = "middle";
-label2.verticalCenter = "bottom";
-label2.text = matchingGrade.title.toUpperCase();
-//label2.fill = am4core.color(matchingGrade.color);
-label2.fill =  am4core.color("#00C3FF");
-*/
-/**
-* Hand
-*/
+  var axis = chart.xAxes.push(new am4charts.ValueAxis());
+  axis.min = chartMin;
+  axis.max = chartMax;
+  axis.strictMinMax = true;
+  axis.renderer.radius = am4core.percent(80);
+  axis.renderer.inside = true;
+  axis.renderer.line.strokeOpacity = 0.5; // line opacity inside curve line
+  axis.renderer.ticks.template.disabled = false;
+  axis.renderer.ticks.template.strokeOpacity = 1;
+  //axis.renderer.ticks.template.strokeWidth = 1;
+  axis.renderer.ticks.template.length = 10;
+  axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
+  //axis.renderer.grid.template.disabled = true;
+  axis.renderer.labels.template.radius = am4core.percent(40);
+  axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em inner radius axis percent labels (0 to 100%)
+  axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
 
-var hand = chart.hands.push(new am4charts.ClockHand());
-hand.axis = axis2;
-hand.innerRadius = am4core.percent(55);
-hand.startWidth = 8;
-hand.pin.disabled = true;
-hand.value = data.score;
-hand.fill = am4core.color("#000000"); // inner color of needle
-//hand.stroke = am4core.color("#000");
-hand.fillOpacity = 0.5;
+  /**
+  * Axis for ranges
+  */
 
-/*
-hand.events.on("positionchanged", function(){
-label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
-var value2 = axis.positionToValue(hand.currentPosition);
-var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
-label2.text = matchingGrade.title.toUpperCase();
-label2.fill = am4core.color(matchingGrade.color);
-label2.stroke = am4core.color(matchingGrade.color);  
-label.fill = am4core.color(matchingGrade.color);
-})
-*/
-/*
-setInterval(function() {
-var value = chartMin + Math.random() * (chartMax - chartMin);
-hand.showValue(value, 1000, am4core.ease.cubicOut);
-}, 2000);
-*/
+  var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+  axis2.min = chartMin;
+  axis2.max = chartMax;
+  axis2.strictMinMax = true;
+  axis2.renderer.labels.template.disabled = true;
+  axis2.renderer.ticks.template.disabled = true;
+  axis2.renderer.grid.template.disabled = true; // when true inside tick marks will disappear
+  axis2.renderer.grid.template.opacity = 0.5;
+  axis2.renderer.labels.template.bent = true;
+  axis2.renderer.labels.template.fill = am4core.color("#000");
+  axis2.renderer.labels.template.fontWeight = "bold";
+  axis2.renderer.labels.template.fillOpacity = 0.7;
 
-}
-treeCompenTotal()
-.then(treeCompenSummary)
-.then(treeCompenFigure);
+
+
+  /**
+  Ranges
+  */
+
+  for (let grading of data.gradingData) {
+  var range = axis2.axisRanges.create();
+  range.axisFill.fill = am4core.color(grading.color);
+  range.axisFill.fillOpacity = 1;
+  range.axisFill.zIndex = -1;
+  range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
+  range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
+  range.grid.strokeOpacity = 0; // changes opacity of inside tick mark
+  range.stroke = am4core.color(grading.color).lighten(-0.1);
+  range.label.inside = true;
+  range.label.text = grading.title.toUpperCase();
+  range.label.inside = true;
+  range.label.location = 0.5;
+  range.label.inside = true;
+  range.label.radius = am4core.percent(10);
+  range.label.paddingBottom = -5; // ~half font size
+  range.label.fontSize = "1.4em"; // category label (i.e., N-01, N-02, ....)
+  }
+
+  var matchingGrade = lookUpGrade(data.score, data.gradingData);
+
+  /**
+  * Label 1 (total Percent)
+  */
+
+  var label = chart.radarContainer.createChild(am4core.Label);
+  label.isMeasured = false;
+  label.fontSize = "3.5em";
+  label.x = am4core.percent(50);
+  label.y = am4core.percent(100);
+  label.paddingBottom = -5;
+  label.horizontalCenter = "middle";
+  label.verticalCenter = "bottom";
+  //label.dataItem = data;
+  label.text = data.score.toFixed(0).toString() + "%"; //data.score.toFixed(0).toString() + "%"
+  //label.text = "{score}";
+  //label.fill = am4core.color(matchingGrade.color);
+  label.fill =  am4core.color("#00C3FF");
+
+  /**
+  * Label 2
+  */
+
+  /*
+  var label2 = chart.radarContainer.createChild(am4core.Label);
+  label2.isMeasured = false;
+  label2.fontSize = "2em";
+  label2.horizontalCenter = "middle";
+  label2.verticalCenter = "bottom";
+  label2.text = matchingGrade.title.toUpperCase();
+  //label2.fill = am4core.color(matchingGrade.color);
+  label2.fill =  am4core.color("#00C3FF");
+  */
+  /**
+  * Hand
+  */
+
+  var hand = chart.hands.push(new am4charts.ClockHand());
+  hand.axis = axis2;
+  hand.innerRadius = am4core.percent(55);
+  hand.startWidth = 8;
+  hand.pin.disabled = true;
+  hand.value = data.score;
+  hand.fill = am4core.color("#000000"); // inner color of needle
+  //hand.stroke = am4core.color("#000");
+  hand.fillOpacity = 0.5;
+
+  /*
+  hand.events.on("positionchanged", function(){
+  label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
+  var value2 = axis.positionToValue(hand.currentPosition);
+  var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
+  label2.text = matchingGrade.title.toUpperCase();
+  label2.fill = am4core.color(matchingGrade.color);
+  label2.stroke = am4core.color(matchingGrade.color);  
+  label.fill = am4core.color(matchingGrade.color);
+  })
+  */
+  /*
+  setInterval(function() {
+  var value = chartMin + Math.random() * (chartMax - chartMin);
+  hand.showValue(value, 1000, am4core.ease.cubicOut);
+  }, 2000);
+  */
+
+  }
+  treeCompenTotal()
+  .then(treeCompenSummary)
+  .then(treeCompenFigure);
 
 
 // Utility Point + Line Total Number
