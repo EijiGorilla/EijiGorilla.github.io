@@ -2608,8 +2608,6 @@ async function initialization() {
           fontSize: "0em",
         });
 
-
-
         yAxis.data.setAll(data);
 
         var xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root5, {
@@ -2732,7 +2730,7 @@ async function initialization() {
   // Time series chart for progress monitoring of viaduct components
   var root6 = am5.Root.new("timeSeriesChart");
 
-  function timeSeriesChart() {
+  function timeSeriesChart(cpValue) {
     root6.container.children.clear();
 
     var total_complete_pile = {
@@ -2766,10 +2764,10 @@ async function initialization() {
     };
 
     var query = viaductLayer.createQuery();
-    query.where = "end_date IS NOT NULL";
+    query.where = "end_date IS NOT NULL" + " AND " + "CP = '" + cpValue + "'";
     query.outStatistics = [total_complete_pile, total_complete_pilecap,
                            total_complete_pier, total_complete_pierhead, total_complete_precast];
-    query.outFields = ["end_date"];
+    query.outFields = ["end_date", "CP"];
     query.orderByFields = ["end_date"];
     query.groupByFieldsForStatistics = ["end_date"];
 
@@ -2959,7 +2957,7 @@ async function initialization() {
 
     });
   }
-  timeSeriesChart();
+  timeSeriesChart("N-01");
 
 // Default label
 if (document.getElementById("N-01").checked = true) {
@@ -2975,39 +2973,15 @@ if (document.getElementById("N-01").checked = true) {
   cpButtonElement.addEventListener("click", filterByTest);
   function filterByTest(event) {
     const selectedID = event.target.id;
-  
-    if(selectedID === "N-01") {
+
       viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
       PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
    
       zoomToLayer(viaductLayer);
       chartAllViaduct();
       perCpProgress();
-  
-    } else if (selectedID === "N-02") {
-      viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
-      PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
-  
-      zoomToLayer(viaductLayer);
-      chartAllViaduct();
-      perCpProgress();
-  
-    } else if (selectedID === "N-03") {
-      viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
-      PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
-  
-      zoomToLayer(viaductLayer);
-      chartAllViaduct();
-      perCpProgress();
-  
-    } else if (selectedID === "N-04") {
-      viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
-      PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
-   
-      zoomToLayer(viaductLayer);
-      chartAllViaduct();
-      perCpProgress();
-  }
+      timeSeriesChart(selectedID);
+
   }
 
   }); // end am5 chart
