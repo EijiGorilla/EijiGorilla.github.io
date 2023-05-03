@@ -572,7 +572,7 @@ function disableZooming(overView) {
         outFields: ["*"],
         popupEnabled: false,
     });
-    map.add(n2CenterlineLayer);
+    //map.add(n2CenterlineLayer);
 
     var n2CenterlineOverView = new FeatureLayer({
         portalItem: {
@@ -709,6 +709,75 @@ function disableZooming(overView) {
     n2StationLayer.listMode = "hide";
     map.add(n2StationLayer);
 
+    // Construction Status using centerline
+    // field name: 'Construction Status'
+    // 'To Be Constructed', 'On-going', 'Completed'
+    const construction_lineWidth = "5px";
+    const lineSymbol_construction = {
+      type: "unique-value",  // autocasts as new SimpleLineSymbol(),
+      field: "construcStat",
+      legendOptions: {
+        title: "Construction Status"
+      },
+      uniqueValueInfos: [
+        {
+          value: "To Be Constructed",
+          label: "To be Constructed",
+          symbol: {
+            type: "simple-line",
+            color: "#dc4b00",
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+        {
+          value: "On-going",
+          label: "Under Construction",
+          symbol: {
+            type: "simple-line",
+            color: "#e8ff00",
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+        {
+          value: "Completed",
+          label: "Completed",
+          symbol: {
+            type: "simple-line",
+            color: centerlineProjectColor.nscrex_hex,
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+      ]
+    };
+
+    var n2CenterlineConstruction = new FeatureLayer({
+      portalItem: {
+            id: "17eb4236364d482ca4c31f44b05f1d9a",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        definitionExpression: "Extension = 'N2'",
+        popupEnabled: false,
+        renderer: lineSymbol_construction,
+        outFields: ["*"]
+    });
+    map.add(n2CenterlineConstruction, 0);
+
+    var legend_construction = new Legend({
+      view,
+      container: "construction-legend",
+      layerInfos: [
+        {
+          layer: n2CenterlineConstruction,
+          title: ""
+        }
+      ]
+    });
+    view.ui.add(legend_construction, "bottom-left");
 
     //----------------------------------------------------------------//
     const fontSizeAirport = 12;
@@ -1202,7 +1271,7 @@ function zoomToLayer(layer) {
     });
 
     // adds the compass to the top left corner of the MapView
-    view.ui.add(compass, "bottom-right");
+    view.ui.add(compass, "top-left");
     });
   </script>
 </html>
