@@ -569,7 +569,7 @@ function disableZooming(overView) {
         outFields: ["*"],
         popupEnabled: false,
     });
-    map.add(scCenterlineLayer);
+    //map.add(scCenterlineLayer);
 
     var scCenterlineOverView = new FeatureLayer({
         portalItem: {
@@ -721,6 +721,76 @@ function disableZooming(overView) {
     });
     scStationLayer.listMode = "hide";
     map.add(scStationLayer);
+
+        // Construction Status using centerline
+    // field name: 'Construction Status'
+    // 'To Be Constructed', 'On-going', 'Completed'
+    const construction_lineWidth = "5px";
+    const lineSymbol_construction = {
+      type: "unique-value",  // autocasts as new SimpleLineSymbol(),
+      field: "construcStat",
+      legendOptions: {
+        title: "Construction Status"
+      },
+      uniqueValueInfos: [
+        {
+          value: "To Be Constructed",
+          label: "To be Constructed",
+          symbol: {
+            type: "simple-line",
+            color: "#dc4b00",
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+        {
+          value: "On-going",
+          label: "Under Construction",
+          symbol: {
+            type: "simple-line",
+            color: "#e8ff00",
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+        {
+          value: "Completed",
+          label: "Completed",
+          symbol: {
+            type: "simple-line",
+            color: centerlineProjectColor.nscrex_hex,
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+      ]
+    };
+
+    var scCenterlineConstruction = new FeatureLayer({
+      portalItem: {
+            id: "17eb4236364d482ca4c31f44b05f1d9a",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        definitionExpression: "Extension = 'SC'",
+        popupEnabled: false,
+        renderer: lineSymbol_construction,
+        outFields: ["*"]
+    });
+    map.add(scCenterlineConstruction, 0);
+
+    var legend_construction = new Legend({
+      view,
+      container: "construction-legend",
+      layerInfos: [
+        {
+          layer: scCenterlineConstruction,
+          title: ""
+        }
+      ]
+    });
+    view.ui.add(legend_construction, "bottom-left");
 
      //----------------------------------------------------------------//
     const fontSizeAirport = 12;
