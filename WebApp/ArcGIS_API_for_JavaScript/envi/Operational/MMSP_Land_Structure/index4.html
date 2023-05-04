@@ -390,6 +390,11 @@
                 <calcite-checkbox slot="actions-start" id="structure-check" style="margin-left: 5px"></calcite-checkbox>
                 <div id="structure-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
             </calcite-list-item>
+            <calcite-list-item label="Demolished Structure" description="" value="demolished-structure-acquisition">
+              <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                <calcite-checkbox slot="actions-start" id="demolished-structure-check" style="margin-left: 5px"></calcite-checkbox>
+                <div id="demolished-structure-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+            </calcite-list-item>
             <calcite-list-item label="Informal Settlers Families (ISF)" description="" value="isf-acquisition">
               <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
                 <calcite-checkbox slot="actions-start" id="isf-check" style="margin-left: 5px"></calcite-checkbox>
@@ -1044,7 +1049,7 @@
       // Structure demolished
       let structureDemolishedRenderer = {
         type: "unique-value",
-        field: "Demolished_",
+        field: "REMARKS",
         defaultSymbol: defaultLotSymbolBoundary,  // autocasts as new SimpleFillSymbol()
         uniqueValueInfos: [
           {
@@ -1054,7 +1059,7 @@
             symbol: {
               type: "simple-fill",
               color: "#FFAA00",
-              style: "diagonal-cross", // "backward-diagonal"
+              style: "solid", // "backward-diagonal"
               outline: {
                 color: "#6E6E6E",
                 width: 0.7
@@ -1063,12 +1068,12 @@
           },
           {
             // All features with value of "North" will be blue
-            value: "Occupied",
+            value: "Not Yet",
             label: "Occupied",
             symbol: {
               type: "simple-fill",
               color: "#99A5A2",
-              style: "diagonal-cross",
+              style: "solid",
               outline: {
                 color: "#6E6E6E",
                 width: 0.7
@@ -1113,7 +1118,6 @@
           ]
         }
       });
-      structureDemolishedLayer.visible = false;
       map.add(structureDemolishedLayer);
 
       // ISF Layer----------------------------------
@@ -2013,12 +2017,14 @@
           if (cpValue === 'None') {
             lotLayer.definitionExpression = null;
             structureLayer.definitionExpression = null;
+            structureDemolishedLayer.definitionExpression = null;
             isfLayer.definitionExpression = null;
             constBoundary.definitionExpression = null;
 
           } else {
             lotLayer.definitionExpression = definitionExpression;
             structureLayer.definitionExpression = definitionExpression;
+            structureDemolishedLayer.definitionExpression = definitionExpression;
             isfLayer.definitionExpression = definitionExpression;
             constBoundary.definitionExpression = definitionExpression;
           }
@@ -2045,42 +2051,50 @@
           if (cpValue == 'None' && landTypeValue == 'None' && sectionValue == 'None') {
             lotLayer.definitionExpression = null;
             structureLayer.definitionExpression = null;
+            structureDemolishedLayer.definitionExpression = null;
             isfLayer.definitionExpression = null;
             isfLayer.visible = true;
 
           } else if (cpValue !== 'None' && landTypeValue == 'None' && sectionValue == 'None') {
             lotLayer.definitionExpression = packageDefinition;
             structureLayer.definitionExpression = packageDefinition;
+            structureDemolishedLayer.definitionExpression = packageDefinition;
             isfLayer.definitionExpression = packageDefinition;
 
           } else if (cpValue == 'None' && landTypeValue !== 'None' && sectionValue == 'None') {
             lotLayer.definitionExpression = landTypeDefinition;
             structureLayer.definitionExpression = landTypeDefinition;
+            structureDemolishedLayer.definitionExpression = landTypeDefinition;
             isfLayer.definitionExpression = structureLayer.definitionExpression = landTypeDefinition;
 
           } else if (cpValue == 'None' && landTypeValue == 'None' && sectionValue !== 'None') {
             lotLayer.definitionExpression = sectionDefinition;
             structureLayer.definitionExpression = sectionDefinition;
+            structureDemolishedLayer.definitionExpression = sectionDefinition;
             isfLayer.definitionExpression = sectionDefinition;
 
           } else if (cpValue !== 'None' && landTypeValue !== 'None' && sectionValue == 'None') {
             lotLayer.definitionExpression = packageLandTypeDefinition;
             structureLayer.definitionExpression = packageLandTypeDefinition;
+            structureDemolishedLayer.definitionExpression = packageLandTypeDefinition;
             isfLayer.definitionExpression = packageLandTypeDefinition;
 
           } else if (cpValue !== 'None' && landTypeValue == 'None' && sectionValue !== 'None') {
             lotLayer.definitionExpression = packageSectionDefinition;
             structureLayer.definitionExpression = packageSectionDefinition;
+            structureDemolishedLayer.definitionExpression = packageSectionDefinition;
             isfLayer.definitionExpression = packageSectionDefinition;
 
           } else if (cpValue == 'None' && landTypeValue !== 'None' && sectionValue !== 'None') {
             lotLayer.definitionExpression = landTypeSectionDefinition;
             structureLayer.definitionExpression = landTypeSectionDefinition;
+            structureDemolishedLayer.definitionExpression = landTypeSectionDefinition;
             isfLayer.definitionExpression = landTypeSectionDefinition;
 
           }  else if (cpValue !== 'None' && landTypeValue !== 'None' && sectionValue !== 'None') {
             lotLayer.definitionExpression = packageLandTypeSectionDefinition;
             structureLayer.definitionExpression = packageLandTypeSectionDefinition;
+            structureDemolishedLayer.definitionExpression = packageLandTypeSectionDefinition;
             isfLayer.definitionExpression = packageLandTypeSectionDefinition;
           }
           zoomToLayer(lotLayer);
@@ -4156,6 +4170,17 @@ updateChartLot();
       ]
     });
 
+    var legend_demolished_structure = new Legend({
+      view,
+      container: "demolished-structure-legend",
+      layerInfos: [
+        {
+          layer: structureDemolishedLayer,
+          title: ""
+        }
+      ]
+    });
+
     var legend_depotBuilding = new Legend({
       view,
       container: "depotbuilding-legend",
@@ -4214,6 +4239,7 @@ updateChartLot();
     // Default setting
     lotLayer.visible = true;
     structureLayer.visible = false;
+    structureDemolishedLayer.visible = false;
     isfLayer.visible = false;
     depotBuildingLayer.visible = false;
     bssDepotBuildingLayer.visible = true;
@@ -4225,6 +4251,7 @@ updateChartLot();
     // 1. Checkbox
     const landCheckbox = document.getElementById("land-check");
     const structureCheckbox = document.getElementById("structure-check");
+    const DemolishedStructureCheckbox = document.getElementById("demolished-structure-check");
     const isfCheckbox = document.getElementById("isf-check");
     const depotBuildingCheckbox = document.getElementById("depotBuilding-check");
     const bssDepotBuildingCheckbox = document.getElementById("bssDepotBuilding-check");
@@ -4235,6 +4262,7 @@ updateChartLot();
     // 2. Legend
     const landLegend = document.getElementById("land-legend");
     const structureLegend = document.getElementById("structure-legend");
+    const DemolishedStructureLegend = document.getElementById("demolished-structure-legend");
     const isfLegend = document.getElementById("isf-legend");
     const depotBuildingLegend = document.getElementById("depotbuilding-legend");
     const bssDepotBuildingLegend = document.getElementById("bssdepotbuilding-legend");
@@ -4289,6 +4317,30 @@ updateChartLot();
         }
       }
       structureCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Demolished Structure Layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        DemolishedStructureLegend.hidden = !DemolishedStructureLegend.hidden;
+        
+        // Visible/unvisible structure layer
+        if (activeWidget) {
+          structureDemolishedLayer.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          structureDemolishedLayer.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      DemolishedStructureCheckbox.addEventListener("click", checkBoxClick);
     });
 
     // ISF Layer
