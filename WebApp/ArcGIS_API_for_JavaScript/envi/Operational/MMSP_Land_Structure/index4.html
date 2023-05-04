@@ -145,6 +145,7 @@
     .structureNumber-container,
     .isfNumber-container,
     .handOverLot-container,
+    .demolishedStructure-container,
     .pteStructure-container {
       display: flex;
       height: 70px;
@@ -152,6 +153,7 @@
 
     #lotNumberDiv,
     #handedOverLotNumberDiv,
+    #demolishedStructureNumberDiv,
     #structureNumberDiv,
     #isfNumberDiv {
       width: 52%;
@@ -164,6 +166,7 @@
 
     #lotNumberDiv b,
     #handedOverLotNumberDiv b,
+    #demolishedStructureNumberDiv b,
     #structureNumberDiv b,
     #isfNumberDiv b {
       font-size: 2.5vw;
@@ -173,7 +176,8 @@
       margin: auto;
     }
 
-    #handedOverLotNumberDiv label {
+    #handedOverLotNumberDiv label,
+    #demolishedStructureNumberDiv label {
       font-size: 1.7vw;
       font-family: 'Calibri';
       color: #6ede00; /*#d4ff33;*/
@@ -185,7 +189,8 @@
     #isfNumberImage,
     #structureImage,
     #handedOverImage,
-    #structureNumberImage {
+    #structureNumberImage,
+    #demolishedStructureImage {
       width: 60;
       height: 60;
       margin-left: auto;
@@ -486,6 +491,10 @@
                 <img id="structureNumberImage" src="https://EijiGorilla.github.io/Symbols/House_Logo.svg">
               </div>
               <div class="boxStructure" id="pieChartStructureDiv"></div>
+              <div class="demolishedStructure-container">
+                <div id="demolishedStructureNumberDiv"></div>
+                <img id="demolishedStructureImage" src="https://EijiGorilla.github.io/Symbols/Structure_Demolished.svg">
+              </div>
               <div id="chartMoaStructureDiv"></div>
             </calcite-tab>
             <calcite-tab>
@@ -1032,6 +1041,81 @@
       });
       map.add(structureLayer);
 
+      // Structure demolished
+      let structureDemolishedRenderer = {
+        type: "unique-value",
+        field: "Demolished_",
+        defaultSymbol: defaultLotSymbolBoundary,  // autocasts as new SimpleFillSymbol()
+        uniqueValueInfos: [
+          {
+            // All features with value of "North" will be blue
+            value: "Demolished",
+            label: "Demolished",
+            symbol: {
+              type: "simple-fill",
+              color: "#FFAA00",
+              style: "diagonal-cross", // "backward-diagonal"
+              outline: {
+                color: "#6E6E6E",
+                width: 0.7
+              }
+            }
+          },
+          {
+            // All features with value of "North" will be blue
+            value: "Occupied",
+            label: "Occupied",
+            symbol: {
+              type: "simple-fill",
+              color: "#99A5A2",
+              style: "diagonal-cross",
+              outline: {
+                color: "#6E6E6E",
+                width: 0.7
+              }
+            }
+          }
+        ]
+      }
+
+      var structureDemolishedLayer = new FeatureLayer({
+        portalItem: {
+            id: "ec9dac0c16af4797bb917a0babc735e9",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        title: "Demolished Structure",
+        outFields: ["*"],
+        renderer: structureDemolishedRenderer,
+        popupTemplate: {
+          title: "Structure ID: <b>{STRUCTURE_TAG_NO_}</b>" ,
+          lastEditInfoEnabled: false,
+          returnGeometry: true,
+          content: [
+            {
+              type: "fields",
+              fieldInfos: [
+                {
+                  fieldName: "STATION",
+                  label: "Station"
+                },
+                {
+                  fieldName: "Status",
+                  label: "<b>Status of Structure</b>"
+                },
+                {
+                  fieldName: "LOT_OWNER",
+                  label: "Lot Owner"
+                }
+              ]
+            }
+          ]
+        }
+      });
+      structureDemolishedLayer.visible = false;
+      map.add(structureDemolishedLayer);
+
       // ISF Layer----------------------------------
       const ISF_COLOR = ["#267300", "#FF0000"];
       const OUTLINE_COLOR = "white";
@@ -1403,6 +1487,7 @@
       const lotNumberDiv = document.getElementById("lotNumberDiv");
       const handedOverLotNumberDiv = document.getElementById("handedOverLotNumberDiv");
       const structureNumberDiv = document.getElementById("structureNumberDiv");
+      const demolishedStructureNumberDiv = document.getElementById("demolishedStructureNumberDiv");
       const isfNumberDiv = document.getElementById("isfNumberDiv");
       const handedOverButton = document.getElementById("handedOverButton");
 
@@ -1688,10 +1773,41 @@
 
             //structureNumberDiv.innerHTML = dark.disabled ? `<b style="color:black">Number of Structures</b><br><br>${STRUCTURE_TOTAL}` : `<b>Number of Structures</b><br><br>${STRUCTURE_TOTAL}`;
             structureNumberDiv.innerHTML =  `TOTAL STRUCTURES<br><br><b>${structureValue}</b><br><br>(${total_structure})`;
-
+          
           })
         }
         totalNumberOfStructures().then(totalNumberOfStructureAll);
+
+        // Total number of demolished structures
+        function totalNumberOfDemolishedStructure() {
+          var total_structure_all = {
+            onStatisticField: "CASE WHEN REMARKS IS NOT NULL THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_structure_all",
+            statisticType: "sum"
+          }
+
+          var total_demolished_structure = {
+            onStatisticField: "CASE WHEN REMARKS = 'Demolished' THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_demolished_structure",
+            statisticType: "sum"
+          }
+
+          var query = structureDemolishedLayer.createQuery();
+          query.outStatistics = [total_structure_all ,total_demolished_structure];
+          query.outFields = ["*"];
+          query.returnGeometry = true;
+
+          structureDemolishedLayer.queryFeatures(query).then(function(response) {
+            var stats = response.features[0].attributes;
+            const total = stats.total_structure_all;
+            const demolished = stats.total_demolished_structure;
+            const demolished_total = thousands_separators(demolished);
+            const remaining = total - demolished;
+            const percent_demolished = ((demolished / total)*100).toFixed(0); 
+            demolishedStructureNumberDiv.innerHTML = `DEMOLISHED<br><br><b>${demolished_total}</b> <label>(${percent_demolished} %)</label>`;
+          });
+        }
+        totalNumberOfDemolishedStructure();
 
         // Total number of ISF
         function isfNumber() {
@@ -2004,6 +2120,7 @@
           totalNumberOfLots().then(handedOverNumberLot);
           updateChartStructure(cpValue, landTypeValue, sectionValue);
           totalNumberOfStructures().then(totalNumberOfStructureAll);
+          totalNumberOfDemolishedStructure();
           updateMoaChartStructure(cpValue, landTypeValue, sectionValue);
           isfNumber();
           updateChartISF(cpValue, landTypeValue, sectionValue);
@@ -2034,6 +2151,7 @@
           totalNumberOfLots().then(handedOverNumberLot);
           updateChartStructure(cpValue, landTypeValue, sectionValue);
           totalNumberOfStructures().then(totalNumberOfStructureAll);
+          totalNumberOfDemolishedStructure();
           updateMoaChartStructure(cpValue, landTypeValue, sectionValue);
           isfNumber();
           updateChartISF(cpValue, landTypeValue, sectionValue);
@@ -2057,6 +2175,7 @@
           totalNumberOfLots().then(handedOverNumberLot);
           updateChartStructure(cpValue, landTypeValue, sectionValue);
           totalNumberOfStructures().then(totalNumberOfStructureAll);
+          totalNumberOfDemolishedStructure();
           updateMoaChartStructure(cpValue, landTypeValue, sectionValue);
           isfNumber();
           updateChartISF(cpValue, landTypeValue, sectionValue);
