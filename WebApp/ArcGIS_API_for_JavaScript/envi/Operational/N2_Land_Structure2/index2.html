@@ -2299,9 +2299,28 @@
           num_parts[0] = num_parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
           return num_parts.join(".");
         }
-        
+
+        // 0. Total Number of Lots including PNR (i.e., lands which do not belong to any StatusLA)
+        function totalNumberOfAllLots(){
+          var totalLot = {
+            onStatisticField: "CASE WHEN LotID IS NOT NULL THEN 1 ELSE 0 END",
+            outStatisticFieldName: "totalLot",
+            statisticType: "sum"
+          };
+          var query = lotLayer.createQuery();
+          query.outStatistics = [totalLot];
+          query.returnGeometry = true;
+
+          return lotLayer.queryFeatures(query).then(function(response){
+            var stats = response.features[0].attributes;
+            const totalLotAll = stats.totalLot;
+
+            return totalLotAll;
+          });
+        }
+
         // 1. Total Number of Lots
-        function totalNumberOfLots(){
+        function totalNumberOfLots(totalLotAll){
           var totalLot = {
             onStatisticField: "CASE WHEN StatusLA >= 0 THEN 1 ELSE 0 END",
             outStatisticFieldName: "totalLot",
@@ -2314,12 +2333,13 @@
           lotLayer.queryFeatures(query).then(function(response){
             var stats = response.features[0].attributes;
             const LOT_TOTAL = thousands_separators(stats.totalLot);
+            const totalLotAlls = thousands_separators(totalLotAll);
 
-            lotNumberDiv.innerHTML = `TOTAL LOTS<br><br><b>${LOT_TOTAL}</b>`;
+            lotNumberDiv.innerHTML = `TOTAL LOTS<br><br><b>${LOT_TOTAL}</b> (${totalLotAlls})`;
           });
         }
 
-        totalNumberOfLots();
+        totalNumberOfAllLots().then(totalNumberOfLots);
 
         // Total number of handed-over lots
         function pteNumberLot(){
@@ -2603,7 +2623,7 @@
 
         barangayFilterList(municipal);
 
-        totalNumberOfLots();
+        totalNumberOfAllLots().then(totalNumberOfLots);
         pteNumberLot();
         totalNumberOfStructures();
         pteNumberStructure();
@@ -2625,7 +2645,7 @@
 
             //barangayFilterList(municipal);
 
-            totalNumberOfLots();
+            totalNumberOfAllLots().then(totalNumberOfLots);
             pteNumberLot();
             totalNumberOfStructures();
             pteNumberStructure();
