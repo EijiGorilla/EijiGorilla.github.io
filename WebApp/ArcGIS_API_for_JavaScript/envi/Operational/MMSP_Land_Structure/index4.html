@@ -1085,10 +1085,10 @@
 
       var structureDemolishedLayer = new FeatureLayer({
         portalItem: {
-            id: "ec9dac0c16af4797bb917a0babc735e9",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
+          id: "ec9dac0c16af4797bb917a0babc735e9",
+          portal: {
+              url: "https://gis.railway-sector.com/portal"
+          }
         },
         title: "Demolished Structure",
         outFields: ["*"],
@@ -1706,7 +1706,7 @@
            var stats = response.features[0].attributes;
            const LOT_TOTAL = stats.totalLot;
            const totalValue = thousands_separators(LOT_TOTAL);
-           lotNumberDiv.innerHTML =  `TOTAL LOTS<br><br><b>${totalLotValue}</b><br><br>(${totalValue})`;
+           lotNumberDiv.innerHTML =  `TOTAL LOTS<br><br><b>${totalLotValue}</b> (${totalValue})`;
          });
        }
         totalNumberOfLots().then(totalNumberOfLotsAll);
@@ -1776,7 +1776,7 @@
             //const totalValue = thousands_separators(total) + " (" + structureValue + ")";
 
             //structureNumberDiv.innerHTML = dark.disabled ? `<b style="color:black">Number of Structures</b><br><br>${STRUCTURE_TOTAL}` : `<b>Number of Structures</b><br><br>${STRUCTURE_TOTAL}`;
-            structureNumberDiv.innerHTML =  `TOTAL STRUCTURES<br><br><b>${structureValue}</b><br><br>(${total_structure})`;
+            structureNumberDiv.innerHTML =  `TOTAL STRUCTURES<br><br><b>${structureValue}</b> (${total_structure})`;
           
           })
         }
@@ -1798,16 +1798,18 @@
 
           var query = structureDemolishedLayer.createQuery();
           query.outStatistics = [total_structure_all ,total_demolished_structure];
-          query.outFields = ["*"];
+          query.outFields = ["REMARKS"];
           query.returnGeometry = true;
 
           structureDemolishedLayer.queryFeatures(query).then(function(response) {
             var stats = response.features[0].attributes;
+            
             const total = stats.total_structure_all;
+            console.log("demolish stru: " + total);
             const demolished = stats.total_demolished_structure;
-            const demolished_total = thousands_separators(demolished);
+            const demolished_total = total === null ? 0 : thousands_separators(demolished);
             const remaining = total - demolished;
-            const percent_demolished = ((demolished / total)*100).toFixed(0); 
+            const percent_demolished = total === null ? 0 : ((demolished / total)*100).toFixed(0); 
             demolishedStructureNumberDiv.innerHTML = `DEMOLISHED<br><br><b>${demolished_total}</b> <label>(${percent_demolished} %)</label>`;
           });
         }
@@ -2030,9 +2032,6 @@
           }
           zoomToLayer(lotLayer);
 
-          if (!lotLayer.visible) {
-            lotLayer.visible = true;
-          }
           return queryForLotGeometries;
         }
 
@@ -2099,9 +2098,6 @@
           }
           zoomToLayer(lotLayer);
 
-          if (!lotLayer.visible) {
-            lotLayer.visible = true;
-          }
           return queryForLotGeometries();
         }
 
