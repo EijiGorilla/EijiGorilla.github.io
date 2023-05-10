@@ -399,9 +399,6 @@
           <div id="basemaps-container"></div>
         </calcite-panel>
         <calcite-panel class="timeSeries-panel" heading="Progress Chart" height-scale="l" data-panel-id="charts" hidden>
-          <calcite-label layout="inline" id="land-timeSeries-label">
-            <calcite-checkbox id="land-checkbox"></calcite-checkbox>Haded-Over Lots (Coming Soon..)
-          </calcite-label>
         </calcite-panel>
 
         <!-- Info panel (populates with info from the web map) -->
@@ -4827,8 +4824,10 @@ zoomToLayer(stationLayer);
                                                                  5. Click/unclick widgets icon for viewing Layer list, legend, basemaps, and locate widgets under the main title.<br>
                                                                  6. <b>Toggle a checkbox</b> above the Land pie chart to view <b>handed-over areas</b> (m2) of Contract Packages.`
                                                                  ;
-        
+
+        const timeSeriesChartDiv = document.getElementById("timeSeriesChart");
         let activeWidget;
+        
         const handleActionBarClick = ({ target }) => {
           if (target.tagName !== "CALCITE-ACTION") {
             return;
@@ -4837,6 +4836,12 @@ zoomToLayer(stationLayer);
           if (activeWidget) {
             document.querySelector(`[data-action-id=${activeWidget}]`).active = false;
             document.querySelector(`[data-panel-id=${activeWidget}]`).hidden = true;
+
+            // Close the progress time series chart when chart widget is closed
+            if (`${activeWidget}` === "charts") {
+              //document.getElementById("land-checkbox").checked = false;
+              timeSeriesChartDiv.style.display = "none";
+            }
           }
 
           const nextWidget = target.dataset.actionId;
@@ -4844,6 +4849,13 @@ zoomToLayer(stationLayer);
             document.querySelector(`[data-action-id=${nextWidget}]`).active = true;
             document.querySelector(`[data-panel-id=${nextWidget}]`).hidden = false;
             activeWidget = nextWidget;
+
+            // Open the time series chart when chart widget is opened.
+            if (`${activeWidget}` === "charts") {
+              //document.getElementById("land-checkbox").checked = true;
+              timeSeriesChartDiv.style.display = "block";
+            }
+            
           } else {
             activeWidget = null;
           }
@@ -4859,14 +4871,6 @@ zoomToLayer(stationLayer);
           };
         });
 
-        // Progress Chart
-        document.getElementById("land-checkbox").addEventListener("click", function(event) {
-          const timeSeriesChartDiv = document.getElementById("timeSeriesChart");
-          const checked = event;
-          console.log(event);
-          timeSeriesChartDiv.hidden = !timeSeriesChartDiv.hidden;
-        });
-        
         // Switch theme
         document.querySelector("calcite-shell").hidden = false;
         document.querySelector("calcite-loader").hidden = true;
