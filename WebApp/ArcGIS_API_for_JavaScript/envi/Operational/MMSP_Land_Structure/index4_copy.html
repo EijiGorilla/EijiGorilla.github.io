@@ -430,7 +430,7 @@
               <calcite-segmented-control-item id="stationLot-off" value="stationlotoff"  checked>OFF</calcite-segmented-control-item>
             </calcite-segmented-control>
             <calcite-label id="handedoverlot-label">
-              Subterranean:
+              Subterranean (PTE):
             </calcite-label>
             <calcite-segmented-control>
               <calcite-segmented-control-item id="subteLot-on" value="subteloton">ON</calcite-segmented-control-item>
@@ -591,7 +591,7 @@
 
     let lotLayerRenderer = {
         type: "unique-value",
-        field: "StatusNVS3", //"High_Level",
+        field: "H_Level", //"High_Level",
         defaultSymbol: lotDefaultSymbol,  // autocasts as new SimpleFillSymbol()
         uniqueValueInfos: [
             {
@@ -649,8 +649,9 @@
         2: "With Budget for Obligation",
         3: "Accounting for issuance of CAF",
         4: "For DOTr signing",
-        5: "DV with CS for issuance of check",
-        6: "Paid"
+        5: "For Submission to CS",
+        6: "DV with CS for issuance of check",
+        7: "Paid",
       }
 
       const Expro = 
@@ -658,25 +659,31 @@
         1: "PMO",
         2: "OSG",
         3: "Court",
-        4: "WOP"
+        4: "WOP",
+        5: "WOP with COT"
       }
-
-
-    
 
     // Custom popup for lot layer
     let customContentLot = new CustomContent({
       outFields: ["*"],
       creator: function(event) {
-        const lotNo = event.graphic.attributes.ID;
-        const status_id = event.graphic.attributes.StatusNVS3;
+        const status_id = event.graphic.attributes.LA;
         const status = landAcquisition[status_id];
-        const owner = event.graphic.attributes.OWNER;
+        const status_final = status === undefined ? "" : status;
+
+        const payP_id = event.graphic.attributes.PP;
+        const paymentP = paymentProcessing[payP_id];
+        const paymentP_final = paymentP === undefined ? "" : paymentP;
+
+
+        const expro_id = event.graphic.attributes.Expro;
+        const expro = Expro[expro_id];
+        const expro_final = expro === undefined ? "" : expro;
 
         return `<h4 style="color: #00B0F0;">Operations Level</h4>
-                <ul><li>Lot No.: <b>${lotNo}</b></li><br>
-                <li>Status: <b>${status}</b></li><br>
-                <li>Owner: <b>${owner}</b></li><br>`
+                <ul><li>Land Acquisition: <b>${status_final}</b></li><br>
+                <li>Payment Processing: <b>${paymentP_final}</b></li><br>
+                <li>Exrpo: <b>${expro_final}</b></li><br>`
       }
     });
 
@@ -1732,13 +1739,13 @@
           root.container.children.clear();
 
         var total_acquired_lot = {
-        onStatisticField: "CASE WHEN StatusNVS3 = 1 THEN 1 ELSE 0 END",
+        onStatisticField: "CASE WHEN H_Level = 1 THEN 1 ELSE 0 END",
         outStatisticFieldName: "total_acquired_lot",
         statisticType: "sum"
         };
 
         var total_unacquired_lot = {
-        onStatisticField: "CASE WHEN StatusNVS3 = 2 THEN 1 ELSE 0 END",
+        onStatisticField: "CASE WHEN H_Level = 2 THEN 1 ELSE 0 END",
         outStatisticFieldName: "total_unacquired_lot",
         statisticType: "sum"
         };
@@ -1832,7 +1839,7 @@
           const cpExpression = "Package = '" + cpValue + "'";
           const landtypeExpression = "Type = '" + landTypeValue + "'";
           const sectionExpression = "Station1 = '" + sectionValue + "'";
-          const statusExpression = "StatusNVS3 = " + selectedStatus;
+          const statusExpression = "H_Level = " + selectedStatus;
 
           if (cpValue === 'None' && landTypeValue === 'None' && sectionValue === 'None') {
             query.where = statusExpression;
@@ -1897,7 +1904,7 @@
                 });
               }); // End of queryFeatures
               layerView.filter = {
-                where: "StatusNVS3 = " + selectedStatus
+                where: "H_Level = " + selectedStatus
               }
             }); // End of view.whenLayerView
           }); // End of view.when
