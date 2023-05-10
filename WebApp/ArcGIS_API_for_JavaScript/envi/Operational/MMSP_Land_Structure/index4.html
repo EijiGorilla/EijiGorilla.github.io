@@ -431,9 +431,6 @@
           <div id="basemaps-container"></div>
         </calcite-panel>
         <calcite-panel class="timeSeries-panel" heading="Progress Chart" height-scale="l" data-panel-id="charts" hidden>
-          <calcite-label layout="inline" id="land-timeSeries-label">
-            <calcite-checkbox id="land-checkbox"></calcite-checkbox>Handed-Over Lots
-          </calcite-label>
         </calcite-panel>
         <calcite-panel heading="View Handed Over/PTE Lots" height-scale="l" data-panel-id="handedover" hidden>
           <div id="viewHandedOverLot">
@@ -4074,8 +4071,9 @@ updateChartLot();
                                                                  8. <b>ROWUA</b> stands for <b>'Right-of-Way Usage Agreement'.</b><br>
                                                                  `
                                                                  ;
-        
+        const timeSeriesChartDiv = document.getElementById("timeSeriesChart");
         let activeWidget;
+        
         const handleActionBarClick = ({ target }) => {
           if (target.tagName !== "CALCITE-ACTION") {
             return;
@@ -4084,6 +4082,11 @@ updateChartLot();
           if (activeWidget) {
             document.querySelector(`[data-action-id=${activeWidget}]`).active = false;
             document.querySelector(`[data-panel-id=${activeWidget}]`).hidden = true;
+
+            // Close the progress time series chart when chart widget is closed
+            if (`${activeWidget}` === "charts") {
+              timeSeriesChartDiv.style.display = "none";
+            }
           }
 
           const nextWidget = target.dataset.actionId;
@@ -4091,6 +4094,12 @@ updateChartLot();
             document.querySelector(`[data-action-id=${nextWidget}]`).active = true;
             document.querySelector(`[data-panel-id=${nextWidget}]`).hidden = false;
             activeWidget = nextWidget;
+
+            // Open the time series chart when chart widget is opened.
+            if (`${activeWidget}` === "charts") {
+              timeSeriesChartDiv.style.display = "block";
+            }
+
           } else {
             activeWidget = null;
           }
@@ -4106,13 +4115,6 @@ updateChartLot();
           };
         });
 
-        // Progress Chart
-        document.getElementById("land-checkbox").addEventListener("click", function(event) {
-          const timeSeriesChartDiv = document.getElementById("timeSeriesChart");
-          const checked = event;
-          console.log(event);
-          timeSeriesChartDiv.hidden = !timeSeriesChartDiv.hidden;
-        });
         
         // Switch theme
         document.querySelector("calcite-shell").hidden = false;
