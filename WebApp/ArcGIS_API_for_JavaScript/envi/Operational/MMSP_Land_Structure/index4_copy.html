@@ -532,7 +532,6 @@
     require([
       "esri/WebMap",
       "esri/views/MapView",
-      "esri/views/SceneView",
       "esri/Map",
       "esri/layers/FeatureLayer",
       "esri/widgets/Bookmarks",
@@ -557,7 +556,7 @@
       "esri/widgets/Locate",
       "esri/widgets/BasemapToggle",
       "esri/widgets/Print"
-    ], function(WebMap, MapView, SceneView, Map, FeatureLayer, Bookmarks, BasemapGallery, LayerList, Legend, 
+    ], function(WebMap, MapView, Map, FeatureLayer, Bookmarks, BasemapGallery, LayerList, Legend, 
                 Query, Fullscreen, FeatureFilter, TableList, PortalItem, Portal, geometryService,
                 StatisticDefinition, WebStyleSymbol, Expand, UniqueValueRenderer, Ground,
                 RelationshipQuery, GraphicsLayer, Search, Locate, BasemapToggle, Print
@@ -569,11 +568,10 @@
         ground: "world-elevation",
     }); 
 
-    var view = new SceneView({
+    var view = new MapView({
         map: map,
         center: [121.0194387, 14.6972616],
         zoom: 14,
-        viewingMode: "local",
         container: "viewDiv",
         environment: {
           background: {
@@ -904,173 +902,111 @@
     }
       
       // Structure Layer----------------------------------
-      const height = 5;
-      const edgeSize = 0.3;
-
-      const paid = {
-        type: "polygon-3d",
-        symbolLayers: [
-          {
-            type: "extrude",
-            size: height,
-            material: {
-              color: [112, 173, 71, 0.3]
-            },
-            edges: {
-              type: "solid",
-              color: "#4E4E4E",
-              size: edgeSize
-            }
-          }
-        ]
-      };
-
-      const payp = {
-      type: "polygon-3d",
-      symbolLayers: [
-        {
-          type: "extrude",
-          size: height,
-          material: {
-            color: [0, 112, 255, 0.3]
-          },
-          edges: {
-            type: "solid",
-            color: "#4E4E4E",
-            size: edgeSize
-          }
+      function colorStructureReqs(){
+        return {
+          1: [112, 173, 71], // Paid #70AD47
+          2: [0, 112, 255], // For Payment Processing #0070FF
+          3: [255, 255, 0], // For Legal Pass #FFFF00
+          4: [255, 170, 0], // For Appraisal/Offer to Compensate #FFAA00
+          5: [255, 0, 0], // For Expro #FF0000
+          6: [0, 115, 76] //Quit Claim #00734C
         }
-      ]
-    }
+      }
 
-    const legalpass = {
-      type: "polygon-3d",
-      symbolLayers: [
-        {
-          type: "extrude",
-          size: height,
-          material: {
-            color: [255, 255, 0, 0.3]
-          },
-          edges: {
-            type: "solid",
-            color: "#4E4E4E",
-            size: edgeSize
-          }
-        }
-      ]
-    };
-
-    const otb = {
-      type: "polygon-3d",
-      symbolLayers: [
-        {
-          type: "extrude",
-          size: height,
-          material: {
-            color: [255, 170, 0, 0.3]
-          },
-          edges: {
-            type: "solid",
-            color: "#4E4E4E",
-            size: edgeSize
-          }
-        }
-      ]
-    };
-
-    const expro = {
-      type: "polygon-3d",
-      symbolLayers: [
-        {
-          type: "extrude",
-          size: height,
-          material: {
-            color: [255, 0, 0, 0.3]
-          },
-          edges: {
-            type: "solid",
-            color: "#4E4E4E",
-            size: edgeSize
-          }
-        }
-      ]
-    };
-
-    const claim = {
-      type: "polygon-3d",
-      symbolLayers: [
-        {
-          type: "extrude",
-          size: height,
-          material: {
-            color: [255, 0, 0, 0.3]
-          },
-          edges: {
-            type: "solid",
-            color: "#4E4E4E",
-            size: edgeSize
-          }
-        }
-      ]
-    };
-
-      const structureRenderer = {
+      let structureLayerRenderer = {
         type: "unique-value",
-        defaultSymbol: {
-        type: "polygon-3d",
-        symbolLayers: [
+        //field: "StatusLA",
+        defaultSymbol: defaultLotSymbolBoundary,  // autocasts as new SimpleFillSymbol()
+        valueExpression: "When($feature.Status == 1, '1',$feature.Status == 2, '2', \
+                          $feature.Status == 3, '3', \
+                          $feature.Status == 4, '4', $feature.Status == 5, '5', \
+                          $feature.Status == 6, '6', $feature.Status)",
+        uniqueValueInfos: [
           {
-            type: "extrude",
-            size: 5, // in meters
-            material: {
-              color: [0, 0, 0, 0.4]
-            },
-            edges: {
-              type: "solid",
-              color: "#4E4E4E",
-              size: edgeSize
+            // All features with value of "North" will be blue
+            value: "1",
+            label: "Paid",
+            symbol: {
+              type: "simple-fill",
+              color: colorStructureReqs()[1],
+              style: "backward-diagonal",
+              outline: {
+                color: "#6E6E6E",
+                width: 0.7
+              }
+            }
+          },
+          {
+            // All features with value of "North" will be blue
+            value: "2",
+            label: "For Payment Processing",
+            symbol: {
+              type: "simple-fill",
+              color: colorStructureReqs()[2],
+              style: "backward-diagonal",
+              outline: {
+                color: "#6E6E6E",
+                width: 0.7
+              }
+            }
+          },
+          {
+            // All features with value of "North" will be blue
+            value: "3",
+            label: "For Legal Pass",
+            symbol: {
+              type: "simple-fill",
+              color: colorStructureReqs()[3],
+              style: "backward-diagonal",
+              outline: {
+                color: "#6E6E6E",
+                width: 0.7
+              }
+            }
+          },
+          {
+            // All features with value of "North" will be blue
+            value: "4",
+            label: "For Appraisal/Offer to Buy",
+            symbol: {
+              type: "simple-fill",
+              color: colorStructureReqs()[4],
+              style: "backward-diagonal",
+              outline: {
+                color: "#6E6E6E",
+                width: 0.7
+              }
+            }
+          },
+        {
+            // All features with value of "North" will be blue
+            value: "5",
+            label: "For Expro",
+            symbol: {
+              type: "simple-fill",
+              color: colorStructureReqs()[5],
+              style: "backward-diagonal",
+              outline: {
+                color: "#6E6E6E",
+                width: 0.7
+              }
+            }
+          },
+          {
+            // All features with value of "North" will be blue
+            value: "6",
+            label: "Quit Claim",
+            symbol: {
+              type: "simple-fill",
+              color: colorStructureReqs()[6],
+              style: "backward-diagonal",
+              outline: {
+                color: "#6E6E6E",
+                width: 0.7
+              }
             }
           }
         ]
-      },
-      defaultLabel: "Other",
-      field: "Status",
-      legendOptions: {
-        title: "Status of Structure"
-      },
-      uniqueValueInfos: [
-        {
-          value: 1,
-          symbol: paid,
-          label: "Paid"
-        },
-        {
-          value: 2,
-          symbol: payp,
-          label: "For Payment Processing"
-        },
-        {
-          value: 3,
-          symbol: legalpass,
-          label: "For Legal Pass"
-        },
-        {
-          value: 4,
-          symbol: otb,
-          label: "Appraisal/Offer to Buy"
-        },
-        {
-          value: 5,
-          symbol: expro,
-          label: "For Expro"
-        },
-        {
-          value: 6,
-          symbol: claim,
-          label: "Quit Claim"
-        },
-      ]
       }
 
       var structureLayer = new FeatureLayer({
@@ -1082,7 +1018,7 @@
         },
         title: "Existing Structure",
         outFields: ["*"],
-        renderer: structureRenderer,
+        renderer: structureLayerRenderer,
         popupTemplate: {
           title: "Structure ID: <b>{STRUCTURE_TAG_NO_}</b>" ,
           lastEditInfoEnabled: false,
@@ -1564,9 +1500,6 @@
       var packageSelect = document.getElementById("packageSelect");
       
       am5.ready(function() {
-        
-
-
         // Expropriation List----------------------------------
         view.when(function() {
             var expropriationList = document.getElementById("expropriationListDiv");
