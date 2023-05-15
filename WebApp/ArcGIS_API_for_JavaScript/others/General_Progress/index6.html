@@ -221,6 +221,14 @@
         -->
           <img id="train-Operation-schedule" src="https://EijiGorilla.github.io/Symbols/Gallery/Train_Operation1.png">
       </div>
+      <calcite-card id="alingment-progress-switch"> <!-- original was <calcite-card hidden>-->
+        <div id="progress-switch-project">
+          <calcite-segmented-control>
+            <calcite-segmented-control-item id="Alignment" value="alignment" checked>Alignment</calcite-segmented-control-item>
+            <calcite-segmented-control-item id="Progress" value="progress">Progress</calcite-segmented-control-item>
+          </calcite-segmented-control>
+        </div>
+      </calcite-card>
     </calcite-shell>
   </body>
   <script>
@@ -847,6 +855,76 @@ function disableZooming(overView) {
     n2StationLayer.listMode = "hide";
     map.add(n2StationLayer);
 
+    // Construction Status using centerline
+    // field name: 'Construction Status'
+    // 'To Be Constructed', 'On-going', 'Completed'
+    const construction_lineWidth = "5px";
+    const lineSymbol_construction = {
+      type: "unique-value",  // autocasts as new SimpleLineSymbol(),
+      field: "construcStat",
+      legendOptions: {
+        title: "Construction Status"
+      },
+      uniqueValueInfos: [
+        {
+          value: "To Be Constructed",
+          label: "To be Constructed",
+          symbol: {
+            type: "simple-line",
+            color: "#dc4b00",
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+        {
+          value: "On-going",
+          label: "Under Construction",
+          symbol: {
+            type: "simple-line",
+            color: "#e8ff00",
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+        {
+          value: "Completed",
+          label: "Completed",
+          symbol: {
+            type: "simple-line",
+            color: centerlineProjectColor.nscrex_hex,
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+      ]
+    };
+
+    var n2CenterlineConstruction = new FeatureLayer({
+      portalItem: {
+            id: "17eb4236364d482ca4c31f44b05f1d9a",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        definitionExpression: "Extension = 'N2'",
+        popupEnabled: false,
+        renderer: lineSymbol_construction,
+        outFields: ["*"]
+    });
+    map.add(n2CenterlineConstruction, 0);
+
+    var legend_construction = new Legend({
+      view,
+      container: "construction-legend",
+      layerInfos: [
+        {
+          layer: n2CenterlineConstruction,
+          title: ""
+        }
+      ]
+    });
+    view.ui.add(legend_construction, "bottom-left");
+
     // SC Station point layer
     var labelStationSC = new LabelClass({
         symbol: {
@@ -884,6 +962,38 @@ function disableZooming(overView) {
     });
     scStationLayer.listMode = "hide";
     map.add(scStationLayer);
+
+    // Construction Status using centerline
+    // field name: 'Construction Status'
+    // 'To Be Constructed', 'On-going', 'Completed'
+
+    var scCenterlineConstruction = new FeatureLayer({
+      portalItem: {
+            id: "17eb4236364d482ca4c31f44b05f1d9a",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        definitionExpression: "Extension = 'SC'",
+        popupEnabled: false,
+        renderer: lineSymbol_construction,
+        outFields: ["*"]
+    });
+    map.add(scCenterlineConstruction, 0);
+
+    /*
+    var legend_construction = new Legend({
+      view,
+      container: "construction-legend",
+      layerInfos: [
+        {
+          layer: scCenterlineConstruction,
+          title: ""
+        }
+      ]
+    });
+    view.ui.add(legend_construction, "bottom-left");
+*/
 
     // MMSP Station point layer
     var mmspLabelStation = new LabelClass({
@@ -1904,6 +2014,81 @@ function zoomToLayer(layer) {
           scGraphicsLayer.add(scProjectLabelGraphic); // Do not use graphicslayer.addMany. 
     }); // end of queryFeatures
 
+    ///////////////////////////////////////////
+    function homeExtentRenderer() {
+      view.rotation = home_rotation;
+      view.scale = 577790.5542885;
+      view.center = home_center;
+    }
+
+    alignmentRenderer();
+
+    function alignmentRenderer() {
+      n2StationLayer.visible = true;
+      scStationLayer.visible = true;
+      mmspStationLayer.visible = true;
+      n1StationLayer.visible = true;
+
+      n2BreakPointsCP.visible = true;
+      scBreakPointsCP.visible = true;
+      n1BreakPointsCP.visible = true;
+
+      n2GraphicsLayer.visible = true;
+      scGraphicsLayer.visible = true;
+      mmspGraphicsLayer.visible = true;
+      n1GraphicsLayer.visible = true;
+
+      n2GraphicsLayer_cpLabel.visible = true;
+      scGraphicsLayer_cpLabel.visible = true;
+      mmspGraphicsLayer_cpLabel.visible = true;
+      n1GraphicsLayer_cpLabel.visible = true;
+
+      n2CenterlineLayer.visible = true;
+      scCenterlineLayer.visible = true;
+      mmspCenterlineLayer.visible = true;
+      n1CenterlineLayer.visible = true;
+
+      n2CenterlineConstruction.visible = false;
+      scCenterlineConstruction.visible = false;
+
+      legend_construction.visible = false;
+      document.getElementById("train-Operation-schedule").style.display = 'block';
+      document.getElementById("information").style.display = 'block';
+    }
+
+    function progressRenderer() {
+      n2StationLayer.visible = true;
+      scStationLayer.visible = true;
+      mmspStationLayer.visible = false;
+      n1StationLayer.visible = true;
+
+      n2BreakPointsCP.visible = true;
+      scBreakPointsCP.visible = true;
+      n1BreakPointsCP.visible = true;
+
+      n2GraphicsLayer.visible = true;
+      scGraphicsLayer.visible = true;
+      mmspGraphicsLayer.visible = false;
+      n1GraphicsLayer.visible = false;
+
+      n2GraphicsLayer_cpLabel.visible = true;
+      scGraphicsLayer_cpLabel.visible = true;
+      mmspGraphicsLayer_cpLabel.visible = false;
+      n1GraphicsLayer_cpLabel.visible = false;
+
+      n2CenterlineLayer.visible = false;
+      scCenterlineLayer.visible = false;
+      mmspCenterlineLayer.visible = false;
+      n1CenterlineLayer.visible = false;
+
+      n2CenterlineConstruction.visible = true;
+      scCenterlineConstruction.visible = true;
+
+      legend_construction.visible = true;
+      document.getElementById("train-Operation-schedule").style.display = 'none';
+      document.getElementById("information").style.display = 'none';
+    }
+
 
 
     document.getElementById("Project").addEventListener("click", changeProject);
@@ -2020,9 +2205,7 @@ function zoomToLayer(layer) {
         zoomToLayer(scStationLayer);
 
       } else if (value === 'All') {
-       view.rotation = home_rotation;
-        view.scale = 577790.5542885;
-        view.center = home_center;
+        homeExtentRenderer();
         
         //view.goTo({
         //  extent: fixedExtent
@@ -2051,6 +2234,24 @@ function zoomToLayer(layer) {
       }
     }
 
+
+    // Switch a map interface between Alignment and Progress
+    document.getElementById("progress-switch-project").addEventListener("click", changeAlignmentProgress);
+    function changeAlignmentProgress(event) {
+      const value = event.srcElement.id;
+      console.log(value);
+
+      if (value === 'Alignment') {
+        alignmentRenderer();
+        homeExtentRenderer();
+
+      } else if (value === 'Progress') {
+        progressRenderer();
+        homeExtentRenderer();
+      }
+    }
+
+
         ///////////////////////////////
     view.ui.add(
         new Expand({
@@ -2065,6 +2266,8 @@ function zoomToLayer(layer) {
     let compass = new Compass({
       view: view
     });
+
+    view.ui.add(document.getElementById("alingment-progress-switch"), "bottom-right");
 
     // adds the compass to the top left corner of the MapView
     view.ui.add(compass, "top-left");
