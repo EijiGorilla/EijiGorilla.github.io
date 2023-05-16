@@ -178,6 +178,19 @@ symbol: osmSymbol
     field: "Station",
     defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
   };
+
+  var rowLayer = new FeatureLayer ({
+    portalItem: {
+      id: "460af2e4c56547538d9ccc44db65bb6f",  
+    },
+    elevationInfo: {
+      mode: "on-the-ground" //absolute-height, relative-to-ground
+    },
+    layerId: 1,
+    title: "ROW",
+    popupEnabled: false
+  });
+  map.add(rowLayer);
   
 // Station Layer
 var stationLayer = new SceneLayer({
@@ -200,7 +213,7 @@ var stationLayer = new SceneLayer({
 // Station structures
 const buildingLayer = new BuildingSceneLayer({
 portalItem: {
-id: "d377e8049a0f4f56ab0f3fe61978682c"
+id: "2b76422d61a845e59cd11156e1d1410f"
 },
 outFields: ["*"],
 title: "N2 Station Structures"
