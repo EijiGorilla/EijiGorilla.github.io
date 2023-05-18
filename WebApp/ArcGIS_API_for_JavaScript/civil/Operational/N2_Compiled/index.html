@@ -352,6 +352,10 @@
       margin-left: -10;
     }
 
+    .esri-widget {
+      overflow-y: auto;
+    }
+
     /*
     .esri-legend__layer-cell {
       min-width: 100px;
@@ -425,11 +429,6 @@
             <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
               <calcite-checkbox slot="actions-start" id="strucOwnership-check" style="margin-left: 5px"></calcite-checkbox>
               <div id="strucOwnership-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
-            </calcite-list-item>
-            <calcite-list-item label="Free-and-Clear Land" description="" value="fnc-acquisition">
-            <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
-              <calcite-checkbox slot="actions-start" id="fnc-check" style="margin-left: 5px" checked></calcite-checkbox>
-              <div id="fnc-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
             </calcite-list-item>
             <calcite-list-item label="PNR Land" description="" value="pnr-acquisition">
             <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
@@ -2516,20 +2515,6 @@
     });
     map.add(prowLayer,2);
 
-    // Free and Clear Lot
-    var fncLayer = new FeatureLayer ({
-      portalItem: {
-        id: "dca1d785da0f458b8f87638a76918496",
-        portal: {
-          url: "https://gis.railway-sector.com/portal"
-        }
-      },
-      layerId: 2,
-      title: "Free-and-Clear Area",
-      //popupEnabled: false
-    });
-    map.add(fncLayer,1);
-
     // PNR
     let pnrRenderer = {
         type: "unique-value",
@@ -2690,15 +2675,23 @@
     // Tree Cutting
     function colorsCut(){
         return {
-            1: [113, 171, 72, 0.8],
-            2: [0, 115, 255, 0.8],
-            3: [255, 255, 0, 0.8],
-            4: [255, 170, 0, 0.8],
-            5: [255, 0, 0, 0.8]
+            1: [113, 171, 72, 0.8], //#71AB48
+            //2: [0, 115, 255, 0.8], //#0073FF
+            2: [255, 255, 0, 0.8], //#FFFF00
+            3: [255, 170, 0, 0.8], //#FFAA00
+            4: [255, 0, 0, 0.8] //#FF0000
         }
     }
 
-    let treeCuttingRenderer = {
+    function treeCutting3DSymbol(name) {
+      return {
+        type: "web-style",
+        name: name,
+        styleName: "EsriThematicTreesStyle"
+      };
+    }
+
+    const treeCuttingRenderer = {
         type: "unique-value",
         valueExpression: "When($feature.Status == 1, 'cutearthb', \
                         $feature.Status == 2, 'permit', $feature.Status == 3, 'submit', \
@@ -2708,59 +2701,50 @@
                 value: "cutearthb",
                 label: "Cut/Earthballed",
                 type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: colorsCut()[1], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: treeCutting3DSymbol("Larix")
+  
             },
             {
                 value: "permit",
                 label: "Permit Acquired",
                 type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: colorsCut()[3], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: treeCutting3DSymbol("Larix")
             },
             {
                 value: "submit",
                 label: "Submitted to DENR",
                 type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 4,
-                    color: colorsCut()[4], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: treeCutting3DSymbol("Larix")
             },
             {
                 value: "ongoing",
                 label: "Ongoing Acquisition of Application Documents",
                 type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: colorsCut()[5], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: treeCutting3DSymbol("Larix")
             }
-        ]
+        ],
+        visualVariables: [
+        {
+          type: "size",
+          axis: "height",
+          valueExpression: "When($feature.Status >= 1, 5, 0)",
+          valueUnit: "meters"
+        },
+        {
+          type: "color",
+          valueExpression: "$feature.Status",
+          valueExpressionTitle: "Status Color",
+          stops: [
+            { value:1, color: "#71AB48"},
+            { value:2, color: "#FFFF00"},
+            { value:3, color: "#FFAA00"},
+            { value:4, color: "#FF0000"},
+          ],
+          legendOptions: {
+            showLegend: false
+          }
+        },
+      ]
     };
 
     var treeCuttingLayer = new FeatureLayer ({
@@ -2774,12 +2758,21 @@
         title: "Status of Tree Cutting",
         renderer: treeCuttingRenderer,
         popupTemplate: {
+          title: "Tree No. {TreeNo}, <b>{Status}</b>",
             lastEditInfoEnabled: false,
             returnGeometry: true,
             content: [
                 {
                     type: "fields",
                     fieldInfos: [
+                    {
+                            fieldName: "Compensation",
+                            label: "Status of Tree Compensation"
+                        },
+                        {
+                            fieldName: "Conservation",
+                            label: "Conservation Status"
+                        },
                         {
                             fieldName: "ScientificName",
                             label: "Scientific Name"
@@ -2793,10 +2786,6 @@
                         },
                         {
                             fieldName: "Municipality"
-                        },
-                        {
-                            fieldName: "TreeNo",
-                            label: "Tree No."
                         },
                         {
                             fieldName: "CP",
@@ -2820,61 +2809,58 @@
     // Tree Compensation
     function colorsCompen(){
         return {
-            1: [0, 112, 255, 0.8],
-            2: [255, 255, 0, 0.8],
-            3: [113, 171, 72, 0.8]
+            1: [0, 112, 255, 0.8], //#0070FF
+            2: [255, 255, 0, 0.8], //#FFFF00
+            3: [113, 171, 72, 0.8] //#71AB48
         }
     }
 
-
-    let treeCompensationRenderer = {
+    const treeCompensationRenderer = {
         type: "unique-value",
         valueExpression: "When($feature.Compensation == 1, 'nonCompensable', $feature.Compensation == 2, 'payp', \
                         $feature.Compensation == 3, 'compensated', $feature.Compensation)",
-        uniqueValueInfos: [ //[1:Non-Compensable, 2:For Processing, 3:Compensated]
+        uniqueValueInfos: [
             {
-                value: "nonCompensable",
+              value: "nonCompensable",
                 label: "Non-Compensable",
                 type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: colorsCompen()[1], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: treeCutting3DSymbol("Larix")
+  
             },
             {
-                value: "payp",
+              value: "payp",
                 label: "For Processing",
                 type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: colorsCompen()[2], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: treeCutting3DSymbol("Larix")
             },
             {
-                value: "compensated",
+              value: "compensated",
                 label: "Compensated",
                 type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: colorsCompen()[3], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
-            }
-        ]
+                symbol: treeCutting3DSymbol("Larix")
+            },
+        ],
+        visualVariables: [
+        {
+          type: "size",
+          axis: "height",
+          valueExpression: "When($feature.Compensation >= 1, 5, 0)",
+          valueUnit: "meters"
+        },
+        {
+          type: "color",
+          valueExpression: "$feature.Compensation",
+          valueExpressionTitle: "Status Color",
+          stops: [
+            { value:1, color: "#0070FF"},
+            { value:2, color: "#FFFF00"},
+            { value:3, color: "#71AB48"},
+          ],
+          legendOptions: {
+            showLegend: false
+          }
+        },
+      ]
     };
 
     var treeCompensationLayer = new FeatureLayer ({
@@ -2888,13 +2874,21 @@
         title: "Status of Tree Compensation",
         renderer: treeCompensationRenderer,
         popupTemplate: {
-            title: "<h5>{Compensation}</h5>",
+            title: "Tree No. {TreeNo}, <b>{Compensation}</b>",
             lastEditInfoEnabled: false,
             returnGeometry: true,
             content: [
                 {
                     type: "fields",
                     fieldInfos: [
+                    {
+                            fieldName: "Status",
+                            label: "Status of Tree Cutting"
+                        },
+                        {
+                            fieldName: "Conservation",
+                            label: "Conservation Status"
+                        },
                         {
                             fieldName: "ScientificName",
                             label: "Scientific Name"
@@ -2916,14 +2910,6 @@
                         {
                             fieldName: "CP",
                             label: "<h5>CP</h5>"
-                        },
-                        {
-                            fieldName: "Status",
-                            label: "Status of Tree Cutting"
-                        },
-                        {
-                            fieldName: "Conservation",
-                            label: "Conservation Status"
                         },
                     ]
                 }
@@ -7906,17 +7892,6 @@
       ]
     });
 
-    var legend_fnc = new Legend({
-      view,
-      container: "fnc-legend",
-      layerInfos: [
-        {
-          layer: fncLayer,
-          title: ""
-        }
-      ]
-    });
-
     var legend_pnr = new Legend({
       view,
       container: "pnr-legend",
@@ -8033,7 +8008,6 @@
     nloLayer.visible = false;
     occupancyLayer.visible = false;
     strucOwnershipLayer.visible = false;
-    fncLayer.visible = true;
     pnrLayer.visible = true;
     treeCuttingLayer.visible = false;
     treeCompensationLayer.visible = false;
@@ -8207,30 +8181,6 @@
         }
       }
       strucOwnershipCheckbox.addEventListener("click", checkBoxClick);
-    });
-
-    // Free-and-Clear Land Layer
-    view.when(() => {
-      let activeWidget;
-      const checkBoxClick = ({ target }) => {
-
-        // Hide/Unhide legend
-        fncLegend.hidden = !fncLegend.hidden;
-        
-        // Visible/unvisible fnc layer
-        if (activeWidget) {
-          fncLayer.visible = true;
-        }
-
-        const nextWidget = target.id;
-        if (nextWidget !== activeWidget) {
-          fncLayer.visible = false;
-          activeWidget = nextWidget
-        } else {
-          activeWidget = null;
-        }
-      }
-      fncCheckbox.addEventListener("click", checkBoxClick);
     });
 
     // PNR Land Layer
