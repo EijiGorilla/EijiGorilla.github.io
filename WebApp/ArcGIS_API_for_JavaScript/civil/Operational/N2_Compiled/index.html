@@ -3799,6 +3799,8 @@
   }
 
   const viaductChartDiv = document.getElementById("viaductChartDiv");
+  const timeSeriesChartViaductDiv = document.getElementById("timeSeriesChartViaduct");
+
   document.getElementById("contractPackageDiv").addEventListener("click", changeProject);
     function changeProject(event) {
       const value = event.srcElement.id;
@@ -3829,6 +3831,9 @@
 
         updateSummary(value);
 
+        timeSeriesChartViaductDiv.style.display = 'block';
+        timeSeriesChartViaduct(value);
+
         zoomToLayer(pierAccessLayer);
 
       } else if (value === "N-05") {
@@ -3854,6 +3859,9 @@
 
         updateSummary(value);
 
+        timeSeriesChartViaductDiv.style.display = 'none';
+        timeSeriesChartViaduct(cpValue);
+
         zoomToLayer(lotLayer);
 
       } else {
@@ -3876,6 +3884,9 @@
         viaductNumberDiv.style.display = 'block';
         
         updateSummary(value);
+
+        timeSeriesChartViaductDiv.style.display = 'block';
+        timeSeriesChartViaduct(value);
 
         zoomToLayer(pierAccessLayer);
       }
@@ -7301,7 +7312,7 @@
   var root_ts = am5.Root.new("timeSeriesChartViaduct");
   root_ts._logo.dispose();
 
-  function timeSeriesChartViaduct() {
+  function timeSeriesChartViaduct(cpValue) {
     root_ts.container.children.clear();
 
     var total_complete_pile = {
@@ -7335,7 +7346,15 @@
     };
 
     var query = viaductLayer.createQuery();
-    query.where = "end_date IS NOT NULL";
+
+    const defaulExpression = "end_date IS NOT NULL";
+    if (cpValue === "All") {
+      query.where = defaulExpression;
+
+    } else {
+      query.where = defaulExpression + " AND " + "CP = '" + cpValue + "'";
+    }
+    
     query.outStatistics = [total_complete_pile, total_complete_pilecap,
                            total_complete_pier, total_complete_pierhead, total_complete_precast];
     query.outFields = ["end_date"];
@@ -7528,7 +7547,7 @@
 
     });
   }
-  timeSeriesChartViaduct();
+  timeSeriesChartViaduct("All");
 
 
   //----------------------------------------------------------------------------------//
@@ -8518,10 +8537,9 @@
         // IMPORTANT NOTE:
         // You need to include progress chart and see-through-ground inside widget calcite-panel; otherwise,
         // when you click the checkbox, toggling action will be reversed for this activation.
-
+        
         // Progress Chart
         document.getElementById("viaduct-checkbox").addEventListener("click", function(event) {
-          const timeSeriesChartViaductDiv = document.getElementById("timeSeriesChartViaduct");
           const checked = event;
           timeSeriesChartViaductDiv.hidden = !timeSeriesChartViaductDiv.hidden;
         });
