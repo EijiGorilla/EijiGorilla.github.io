@@ -490,6 +490,11 @@
               <calcite-checkbox slot="actions-start" id="viaduct-check" style="margin-left: 5px"></calcite-checkbox>
               <div id="viaduct-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
             </calcite-list-item>
+            <calcite-list-item label="Station Structure" description="" value="stationstructure">
+              <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+              <calcite-checkbox slot="actions-start" id="stationstructure-check" style="margin-left: 5px"></calcite-checkbox>
+              <div id="stationstructure-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+            </calcite-list-item>
           </calcite-list>
         </calcite-panel>
         <calcite-panel heading="Basemaps" height-scale="l" data-panel-id="basemaps" hidden>
@@ -693,6 +698,7 @@
       "esri/symbols/SimpleMarkerSymbol",
       "esri/symbols/SimpleLineSymbol",
       "esri/geometry/SpatialReference",
+      "esri/layers/BuildingSceneLayer"
     ], function(WebMap, MapView, SceneView, Map, FeatureLayer, SceneLayer, Bookmarks, BasemapGallery, LayerList, Legend, 
                 Query, Fullscreen, FeatureFilter, TableList, PortalItem, Portal, geometryService,
                 StatisticDefinition, WebStyleSymbol, Expand, UniqueValueRenderer, Ground,
@@ -700,7 +706,7 @@
                 LabelClass, CustomContent, TileLayer, reactiveUtils, 
                 FieldInfoFormat, geometryEngine, route, RouteParameters, Accessor, Graphic,
                 Point, Polyline, externalRenderers, FeatureSet, SimpleMarkerSymbol, SimpleLineSymbol,
-                SpatialReference
+                SpatialReference, BuildingSceneLayer
                  ) {
       
 
@@ -2263,6 +2269,7 @@
     },{utcOffset: 300});
     map.add(pierAccessLayer, 3);
 
+    /*
     // we first need to obtain unique values of date because valueExpression does not allow
     // date'2021-10-01' notation
     const queryDate = "AccessDate IS NOT NULL";
@@ -2306,6 +2313,7 @@
         console.log(dates);
     }
     DateValues().then(uniqueDateValues).then(uniqueValuesInfos);
+    */
 
     const pierAccessRenderer = {
       type: "unique-value", // autocasts as new UniqueValueRenderer()
@@ -2631,7 +2639,7 @@
     },
     labelPlacement: "above-center",
     labelExpressionInfo: {
-      expression: "$feature.Station"
+      expression: "IIF($feature.Station == 'NCC', '',$feature.Station)"
               //value: "{TEXTSTRING}"
     }
   });
@@ -2651,7 +2659,6 @@
   };
 
   // Station Layer
-
   var stationLayer = new SceneLayer({
     portalItem: {
       id: "207cb34b8a324b40985b5805862c4b29",
@@ -3770,6 +3777,74 @@
       renderer: viaductRenderer
     });
     map.add(viaductLayer);
+
+    // Station structures
+    const structureStatusColor = {
+    1: [225, 225, 225, 0.1],
+    2: [0, 112, 255, 0.8],
+  }
+
+  const structureStatusRenderer = {
+    type: "unique-value",
+    field: "Status",
+    uniqueValueInfos: [
+      {
+        value: 1,
+        label: "To be Constructed",
+        symbol: {
+            type: "mesh-3d",
+            symbolLayers: [
+              {
+                type: "fill",
+                material: {
+                  color: structureStatusColor[1],
+                  colorMixMode: "replace"
+                },
+                edges: {
+                  type: "solid", // autocasts as new SolidEdges3D()
+                  color: [225, 225, 225, 0.3]
+                }
+              }
+            ]
+          }
+      },
+      {
+        value: 4,
+        label: "Completed",
+        symbol: {
+            type: "mesh-3d",
+            symbolLayers: [
+              {
+                type: "fill",
+                material: {
+                  color: structureStatusColor[2],
+                  colorMixMode: "replace"
+                },
+                edges: {
+                  type: "solid", // autocasts as new SolidEdges3D()
+                  color: [225, 225, 225, 0.3]
+                }
+              }
+            ]
+          }
+      }
+    ]
+  }
+
+    var buildingLayer = new SceneLayer({ 
+      portalItem: {
+        id: "753d01dc377440ee8c3d35ec8fe10d6d", 
+        portal: {
+          url: "https://gis.railway-sector.com/portal"
+        }
+      },
+    outFields: ["*"],
+    title: "N2 Station Structures",
+    renderer: structureStatusRenderer
+    });
+    map.add(buildingLayer);
+
+    // End of Layer import
     
   // Filter by Contract Package
 
@@ -3821,6 +3896,7 @@
         utilityLineLayer1.definitionExpression = null;
         pierAccessLayer.definitionExpression = null;
         viaductLayer.definitionExpression = null;
+        buildingLayer.definitionExpression = null;
         pnrLayer.definitionExpression = null;
 
         pierAccessLayer.visible = true;
@@ -3855,6 +3931,8 @@
         viaductChartDiv.style.display = 'none';
         viaductNumberDiv.style.display = 'none';
 
+        buildingLayer.visible = false;
+
         updateSummary(value);
         timeSeriesChartViaduct(value);
 
@@ -3874,6 +3952,7 @@
         utilityLineLayer1.definitionExpression = cpExpression;
         pierAccessLayer.definitionExpression = cpExpression;
         viaductLayer.definitionExpression = cpExpression;
+        buildingLayer.definitionExpression = cpExpression;
         pnrLayer.definitionExpression = cpExpression;
 
         viaductChartDiv.style.display = 'block';
@@ -5802,7 +5881,7 @@
         //pieSeries.appear(1000, 100)
         pieSeries.slices.template.events.on("click", function(ev) {
         const SELECTED = ev.target.dataItem.dataContext.category;
-        console.log(SELECTED)
+   
         if (SELECTED == treeCutStatus[0]) {
             selectedStatus = 1;
         } else if (SELECTED == treeCutStatus[1]) {
@@ -6076,7 +6155,7 @@
         //pieSeries.appear(1000, 100)
         pieSeries.slices.template.events.on("click", function(ev) {
             const SELECTED = ev.target.dataItem.dataContext.category;
-                console.log(SELECTED)
+             
                 if (SELECTED == treeCompen[0]) {
                     selectedStatus = 1;
                 } else if (SELECTED == treeCompen[1]) {
@@ -7386,7 +7465,7 @@
         });
       });
 
-      console.log(data);
+     
 
       // 6. Add to Chart
 
@@ -8017,6 +8096,17 @@
       ]
     });
 
+    var legend_stationstructure = new Legend({
+      view,
+      container: "stationstructure-legend",
+      layerInfos: [
+        {
+          layer: buildingLayer,
+          title: ""
+        }
+      ]
+    });
+
     // Default setting
     lotLayer.visible = true;
     structureLayer.visible = false;
@@ -8035,6 +8125,7 @@
     prowLayer.visible = true;
     chainageLayer.visible = false;
     viaductLayer.visible = false;
+    buildingLayer.visible = false;
 
     // Hide and Unhide of Legend + layerList + lotLayer
     // 1. Checkbox
@@ -8056,6 +8147,7 @@
     const prowCheckbox = document.getElementById("prow-check");
     const chainageCheckbox = document.getElementById("chainage-check");
     const viaductCheckbox = document.getElementById("viaduct-check");
+    const stationStructureCheckbox = document.getElementById("stationstructure-check");
 
     // 2. Legend
     const landLegend = document.getElementById("land-legend");
@@ -8076,6 +8168,7 @@
     const prowLegend = document.getElementById("prow-legend");
     const chainageLegend = document.getElementById("chainage-legend");
     const viaductLegend = document.getElementById("viaduct-legend");
+    const stationStructureLegend = document.getElementById("stationstructure-legend");
 
     // Lot Layer
     view.when(() => {
@@ -8485,6 +8578,30 @@
         }
       }
       viaductCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    // Building layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        stationStructureLegend.hidden = !stationStructureLegend.hidden;
+        
+        // Visible/unvisible chainage layer
+        if (activeWidget) {
+          buildingLayer.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          buildingLayer.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      stationStructureCheckbox.addEventListener("click", checkBoxClick);
     });
  
     // view.when

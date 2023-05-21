@@ -2,7 +2,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <title>Sample</title>
+    <title>N2 Work Progress</title>
     
         <!-- https://www.esri.com/arcgis-blog/products/arcgis-living-atlas/public-safety/wildfire-aware-app-design-and-implementation/-->
 
@@ -91,6 +91,7 @@
     #contractPackageDiv {
       margin-top: auto;
       margin-bottom: auto;
+      margin-left: auto;
 
     }
 
@@ -202,7 +203,7 @@
     #structureNumberImage,
     #treeNumberImage,
     #utilityNumberImage {
-      width: 20%;
+      width: 17.5%;
       height: auto;
       margin-left: auto;
       margin-right: auto;
@@ -211,8 +212,8 @@
     }
 
     #viaductNumberImage {
-      width: 18%;
-      height: 18%;
+      width: 17%;
+      height: 17%;
       margin-left: auto;
       margin-right: auto;
       margin-top: 5;
@@ -260,7 +261,8 @@
       color: #f7f5f7;
     }
 
-    #timeSeriesChart {
+    #timeSeriesChartViaduct,
+    #timeSeriesChartLand {
       position: absolute;
       z-index: 1;
       height: 40vh;
@@ -350,6 +352,10 @@
       margin-left: -10;
     }
 
+    .esri-widget {
+      overflow-y: auto;
+    }
+
     /*
     .esri-legend__layer-cell {
       min-width: 100px;
@@ -369,16 +375,7 @@
 
         <!-- Title -->
         <h2 id="header-title" slot="header"></h2>
-        <div id="dateDiv">As of March, 2023</div>
-
-        <calcite-button
-        icon-end="dashboard"
-        id="dashboard-link"
-        href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/others/N2_General_Progress/index3.html"
-        target="_blank"
-        >
-        Pre-Const. Work Prog. 
-      </calcite-button>
+        <div id="dateDiv">As of April 30, 2023</div>
 
         <!-- Dropdown Lists -->
         <div id="contractPackageDiv">
@@ -432,11 +429,6 @@
             <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
               <calcite-checkbox slot="actions-start" id="strucOwnership-check" style="margin-left: 5px"></calcite-checkbox>
               <div id="strucOwnership-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
-            </calcite-list-item>
-            <calcite-list-item label="Free-and-Clear Land" description="" value="fnc-acquisition">
-            <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
-              <calcite-checkbox slot="actions-start" id="fnc-check" style="margin-left: 5px" checked></calcite-checkbox>
-              <div id="fnc-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
             </calcite-list-item>
             <calcite-list-item label="PNR Land" description="" value="pnr-acquisition">
             <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
@@ -498,6 +490,11 @@
               <calcite-checkbox slot="actions-start" id="viaduct-check" style="margin-left: 5px"></calcite-checkbox>
               <div id="viaduct-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
             </calcite-list-item>
+            <calcite-list-item label="Station Structure" description="" value="stationstructure">
+              <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+              <calcite-checkbox slot="actions-start" id="stationstructure-check" style="margin-left: 5px"></calcite-checkbox>
+              <div id="stationstructure-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+            </calcite-list-item>
           </calcite-list>
         </calcite-panel>
         <calcite-panel heading="Basemaps" height-scale="l" data-panel-id="basemaps" hidden>
@@ -508,14 +505,16 @@
             <calcite-checkbox id="myLink"></calcite-checkbox> Ground color becomes transparent
           </calcite-label>
         </calcite-panel>
+
         <calcite-panel class="timeSeries-panel" heading="Progress Chart" height-scale="l" data-panel-id="charts" hidden>
           <calcite-label layout="inline" id="viaduct-timeSeries-label">
             <calcite-checkbox id="viaduct-checkbox"></calcite-checkbox>Viaduct
           </calcite-label>
           <calcite-label layout="inline" id="land-timeSeries-label">
-            <calcite-checkbox id="land-checkbox"></calcite-checkbox>Land Acquisition (Coming Soon..)
+            <calcite-checkbox id="land-checkbox"></calcite-checkbox>Handed-Over Lot
           </calcite-label>
         </calcite-panel>
+
         <calcite-panel heading="Links to Individual Smart Maps" height-scale="l" data-panel-id="smartmaps" hidden>
           <calcite-list>
             <calcite-list-item label="Land Acqusition" description="Structure/NLO included">
@@ -563,7 +562,8 @@
         </calcite-panel>
       </calcite-shell-panel>
       <div id="container">
-        <div id="timeSeriesChart" hidden></div>
+        <div id="timeSeriesChartViaduct" hidden></div>
+        <div id="timeSeriesChartLand" hidden></div>
       <div id="viewDiv">
       </div>
       <!-- Tabs "https://esri.github.io/calcite-web/documentation/patterns/#tabs" -->
@@ -698,6 +698,7 @@
       "esri/symbols/SimpleMarkerSymbol",
       "esri/symbols/SimpleLineSymbol",
       "esri/geometry/SpatialReference",
+      "esri/layers/BuildingSceneLayer"
     ], function(WebMap, MapView, SceneView, Map, FeatureLayer, SceneLayer, Bookmarks, BasemapGallery, LayerList, Legend, 
                 Query, Fullscreen, FeatureFilter, TableList, PortalItem, Portal, geometryService,
                 StatisticDefinition, WebStyleSymbol, Expand, UniqueValueRenderer, Ground,
@@ -705,7 +706,7 @@
                 LabelClass, CustomContent, TileLayer, reactiveUtils, 
                 FieldInfoFormat, geometryEngine, route, RouteParameters, Accessor, Graphic,
                 Point, Polyline, externalRenderers, FeatureSet, SimpleMarkerSymbol, SimpleLineSymbol,
-                SpatialReference
+                SpatialReference, BuildingSceneLayer
                  ) {
       
 
@@ -746,6 +747,8 @@
           
         }
     });
+
+    view.ui.components = [];
 
     const basemaps = new BasemapGallery({
       view,
@@ -1865,7 +1868,7 @@
       elevationInfo: {
         mode: "relative-to-scene"
       },
-      minScale: 10000,
+      minScale: 150000,
       maxScale: 0,
       popupTemplate: {
         title: "<p>{StrucID}</p>",
@@ -2266,6 +2269,7 @@
     },{utcOffset: 300});
     map.add(pierAccessLayer, 3);
 
+    /*
     // we first need to obtain unique values of date because valueExpression does not allow
     // date'2021-10-01' notation
     const queryDate = "AccessDate IS NOT NULL";
@@ -2309,6 +2313,7 @@
         console.log(dates);
     }
     DateValues().then(uniqueDateValues).then(uniqueValuesInfos);
+    */
 
     const pierAccessRenderer = {
       type: "unique-value", // autocasts as new UniqueValueRenderer()
@@ -2518,20 +2523,6 @@
     });
     map.add(prowLayer,2);
 
-    // Free and Clear Lot
-    var fncLayer = new FeatureLayer ({
-      portalItem: {
-        id: "dca1d785da0f458b8f87638a76918496",
-        portal: {
-          url: "https://gis.railway-sector.com/portal"
-        }
-      },
-      layerId: 2,
-      title: "Free-and-Clear Area",
-      //popupEnabled: false
-    });
-    map.add(fncLayer,1);
-
     // PNR
     let pnrRenderer = {
         type: "unique-value",
@@ -2648,7 +2639,7 @@
     },
     labelPlacement: "above-center",
     labelExpressionInfo: {
-      expression: "$feature.Station"
+      expression: "IIF($feature.Station == 'NCC', '',$feature.Station)"
               //value: "{TEXTSTRING}"
     }
   });
@@ -2668,7 +2659,6 @@
   };
 
   // Station Layer
-
   var stationLayer = new SceneLayer({
     portalItem: {
       id: "207cb34b8a324b40985b5805862c4b29",
@@ -2692,15 +2682,23 @@
     // Tree Cutting
     function colorsCut(){
         return {
-            1: [113, 171, 72, 0.8],
-            2: [0, 115, 255, 0.8],
-            3: [255, 255, 0, 0.8],
-            4: [255, 170, 0, 0.8],
-            5: [255, 0, 0, 0.8]
+            1: [113, 171, 72, 0.8], //#71AB48
+            //2: [0, 115, 255, 0.8], //#0073FF
+            2: [255, 255, 0, 0.8], //#FFFF00
+            3: [255, 170, 0, 0.8], //#FFAA00
+            4: [255, 0, 0, 0.8] //#FF0000
         }
     }
 
-    let treeCuttingRenderer = {
+    function treeCutting3DSymbol(name) {
+      return {
+        type: "web-style",
+        name: name,
+        styleName: "EsriThematicTreesStyle"
+      };
+    }
+
+    const treeCuttingRenderer = {
         type: "unique-value",
         valueExpression: "When($feature.Status == 1, 'cutearthb', \
                         $feature.Status == 2, 'permit', $feature.Status == 3, 'submit', \
@@ -2710,59 +2708,50 @@
                 value: "cutearthb",
                 label: "Cut/Earthballed",
                 type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: colorsCut()[1], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: treeCutting3DSymbol("Larix")
+  
             },
             {
                 value: "permit",
                 label: "Permit Acquired",
                 type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: colorsCut()[3], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: treeCutting3DSymbol("Larix")
             },
             {
                 value: "submit",
                 label: "Submitted to DENR",
                 type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 4,
-                    color: colorsCut()[4], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: treeCutting3DSymbol("Larix")
             },
             {
                 value: "ongoing",
                 label: "Ongoing Acquisition of Application Documents",
                 type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: colorsCut()[5], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: treeCutting3DSymbol("Larix")
             }
-        ]
+        ],
+        visualVariables: [
+        {
+          type: "size",
+          axis: "height",
+          valueExpression: "When($feature.Status >= 1, 5, 0)",
+          valueUnit: "meters"
+        },
+        {
+          type: "color",
+          valueExpression: "$feature.Status",
+          valueExpressionTitle: "Status Color",
+          stops: [
+            { value:1, color: "#71AB48"},
+            { value:2, color: "#FFFF00"},
+            { value:3, color: "#FFAA00"},
+            { value:4, color: "#FF0000"},
+          ],
+          legendOptions: {
+            showLegend: false
+          }
+        },
+      ]
     };
 
     var treeCuttingLayer = new FeatureLayer ({
@@ -2776,12 +2765,21 @@
         title: "Status of Tree Cutting",
         renderer: treeCuttingRenderer,
         popupTemplate: {
+          title: "Tree No. {TreeNo}, <b>{Status}</b>",
             lastEditInfoEnabled: false,
             returnGeometry: true,
             content: [
                 {
                     type: "fields",
                     fieldInfos: [
+                    {
+                            fieldName: "Compensation",
+                            label: "Status of Tree Compensation"
+                        },
+                        {
+                            fieldName: "Conservation",
+                            label: "Conservation Status"
+                        },
                         {
                             fieldName: "ScientificName",
                             label: "Scientific Name"
@@ -2795,10 +2793,6 @@
                         },
                         {
                             fieldName: "Municipality"
-                        },
-                        {
-                            fieldName: "TreeNo",
-                            label: "Tree No."
                         },
                         {
                             fieldName: "CP",
@@ -2822,61 +2816,58 @@
     // Tree Compensation
     function colorsCompen(){
         return {
-            1: [0, 112, 255, 0.8],
-            2: [255, 255, 0, 0.8],
-            3: [113, 171, 72, 0.8]
+            1: [0, 112, 255, 0.8], //#0070FF
+            2: [255, 255, 0, 0.8], //#FFFF00
+            3: [113, 171, 72, 0.8] //#71AB48
         }
     }
 
-
-    let treeCompensationRenderer = {
+    const treeCompensationRenderer = {
         type: "unique-value",
         valueExpression: "When($feature.Compensation == 1, 'nonCompensable', $feature.Compensation == 2, 'payp', \
                         $feature.Compensation == 3, 'compensated', $feature.Compensation)",
-        uniqueValueInfos: [ //[1:Non-Compensable, 2:For Processing, 3:Compensated]
+        uniqueValueInfos: [
             {
-                value: "nonCompensable",
+              value: "nonCompensable",
                 label: "Non-Compensable",
                 type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: colorsCompen()[1], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: treeCutting3DSymbol("Larix")
+  
             },
             {
-                value: "payp",
+              value: "payp",
                 label: "For Processing",
                 type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: colorsCompen()[2], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
+                symbol: treeCutting3DSymbol("Larix")
             },
             {
-                value: "compensated",
+              value: "compensated",
                 label: "Compensated",
                 type: "simple",
-                symbol: {
-                    type: "simple-marker",
-                    size: 5,
-                    color: colorsCompen()[3], // the first two letters dictate transparency.
-                    outline: {
-                        width: 0.5,
-                        color: outlineColor
-                    }
-                }
-            }
-        ]
+                symbol: treeCutting3DSymbol("Larix")
+            },
+        ],
+        visualVariables: [
+        {
+          type: "size",
+          axis: "height",
+          valueExpression: "When($feature.Compensation >= 1, 5, 0)",
+          valueUnit: "meters"
+        },
+        {
+          type: "color",
+          valueExpression: "$feature.Compensation",
+          valueExpressionTitle: "Status Color",
+          stops: [
+            { value:1, color: "#0070FF"},
+            { value:2, color: "#FFFF00"},
+            { value:3, color: "#71AB48"},
+          ],
+          legendOptions: {
+            showLegend: false
+          }
+        },
+      ]
     };
 
     var treeCompensationLayer = new FeatureLayer ({
@@ -2890,13 +2881,21 @@
         title: "Status of Tree Compensation",
         renderer: treeCompensationRenderer,
         popupTemplate: {
-            title: "<h5>{Compensation}</h5>",
+            title: "Tree No. {TreeNo}, <b>{Compensation}</b>",
             lastEditInfoEnabled: false,
             returnGeometry: true,
             content: [
                 {
                     type: "fields",
                     fieldInfos: [
+                    {
+                            fieldName: "Status",
+                            label: "Status of Tree Cutting"
+                        },
+                        {
+                            fieldName: "Conservation",
+                            label: "Conservation Status"
+                        },
                         {
                             fieldName: "ScientificName",
                             label: "Scientific Name"
@@ -2918,14 +2917,6 @@
                         {
                             fieldName: "CP",
                             label: "<h5>CP</h5>"
-                        },
-                        {
-                            fieldName: "Status",
-                            label: "Status of Tree Cutting"
-                        },
-                        {
-                            fieldName: "Conservation",
-                            label: "Conservation Status"
                         },
                     ]
                 }
@@ -3719,7 +3710,7 @@
       1: [225, 225, 225, 0.1], // To be Constructed (white)
       2: [130, 130, 130, 0.5], // Under Construction
       3: [255, 0, 0, 0.8], // Delayed
-      4: [0, 112, 255, 0.8], // Completed
+      4: [0, 112, 255, 0.8], // Completed #0070FF
     };
 
     let viaductRenderer = {
@@ -3786,6 +3777,74 @@
       renderer: viaductRenderer
     });
     map.add(viaductLayer);
+
+    // Station structures
+    const structureStatusColor = {
+    1: [225, 225, 225, 0.1],
+    2: [0, 112, 255, 0.8],
+  }
+
+  const structureStatusRenderer = {
+    type: "unique-value",
+    field: "Status",
+    uniqueValueInfos: [
+      {
+        value: 1,
+        label: "To be Constructed",
+        symbol: {
+            type: "mesh-3d",
+            symbolLayers: [
+              {
+                type: "fill",
+                material: {
+                  color: structureStatusColor[1],
+                  colorMixMode: "replace"
+                },
+                edges: {
+                  type: "solid", // autocasts as new SolidEdges3D()
+                  color: [225, 225, 225, 0.3]
+                }
+              }
+            ]
+          }
+      },
+      {
+        value: 4,
+        label: "Completed",
+        symbol: {
+            type: "mesh-3d",
+            symbolLayers: [
+              {
+                type: "fill",
+                material: {
+                  color: structureStatusColor[2],
+                  colorMixMode: "replace"
+                },
+                edges: {
+                  type: "solid", // autocasts as new SolidEdges3D()
+                  color: [225, 225, 225, 0.3]
+                }
+              }
+            ]
+          }
+      }
+    ]
+  }
+
+    var buildingLayer = new SceneLayer({ 
+      portalItem: {
+        id: "753d01dc377440ee8c3d35ec8fe10d6d", 
+        portal: {
+          url: "https://gis.railway-sector.com/portal"
+        }
+      },
+    outFields: ["*"],
+    title: "N2 Station Structures",
+    renderer: structureStatusRenderer
+    });
+    map.add(buildingLayer);
+
+    // End of Layer import
     
   // Filter by Contract Package
 
@@ -3799,18 +3858,23 @@
     pteNumberLot();
     pteNumberStructure();
 
-    updateChartLot();
-    updateChartStructure();
-    updateChartNLO();
-    updateChartCutting();
-    updateChartTreeComp();
+    updateChartLot(cpValue);
+    updateChartStructure(cpValue);
+    updateChartNLO(cpValue);
+    updateChartCutting(cpValue);
+    updateChartTreeComp(cpValue);
     updateChartUtilityPoint(cpValue);
     updateChartUtilityLine(cpValue);
-    updateChartViaduct();
+    updateChartViaduct(cpValue);
 
-    updateMoaChartLot();
-    updateMoaChartStructure();
+    updateMoaChartLot(cpValue);
+    updateMoaChartStructure(cpValue);
+
+    timeSeriesChartLand(cpValue);
   }
+
+  const viaductChartDiv = document.getElementById("viaductChartDiv");
+  const timeSeriesChartViaductDiv = document.getElementById("timeSeriesChartViaduct");
 
   document.getElementById("contractPackageDiv").addEventListener("click", changeProject);
     function changeProject(event) {
@@ -3832,12 +3896,17 @@
         utilityLineLayer1.definitionExpression = null;
         pierAccessLayer.definitionExpression = null;
         viaductLayer.definitionExpression = null;
+        buildingLayer.definitionExpression = null;
         pnrLayer.definitionExpression = null;
 
         pierAccessLayer.visible = true;
+        viaductChartDiv.style.display = 'block';
+        viaductNumberDiv.style.display = 'block';
+
         pnrLayer.visible = true;
 
-        updateSummary();
+        updateSummary(value);
+        timeSeriesChartViaduct(value);
 
         zoomToLayer(pierAccessLayer);
 
@@ -3853,11 +3922,19 @@
         utilityPointLayer1.definitionExpression = cpExpression;
         utilityLineLayer.definitionExpression = cpExpression;
         utilityLineLayer1.definitionExpression = cpExpression;
+
         pierAccessLayer.visible = false;
-        viaductLayer.visible = false;
         pnrLayer.definitionExpression = false;
 
-        updateSummary();
+        // Viaduct layer has no N-05 so need to hide its chart
+        viaductLayer.visible = false;
+        viaductChartDiv.style.display = 'none';
+        viaductNumberDiv.style.display = 'none';
+
+        buildingLayer.visible = false;
+
+        updateSummary(value);
+        timeSeriesChartViaduct(value);
 
         zoomToLayer(lotLayer);
 
@@ -3875,9 +3952,14 @@
         utilityLineLayer1.definitionExpression = cpExpression;
         pierAccessLayer.definitionExpression = cpExpression;
         viaductLayer.definitionExpression = cpExpression;
+        buildingLayer.definitionExpression = cpExpression;
         pnrLayer.definitionExpression = cpExpression;
 
+        viaductChartDiv.style.display = 'block';
+        viaductNumberDiv.style.display = 'block';
+        
         updateSummary(value);
+        timeSeriesChartViaduct(value);
 
         zoomToLayer(pierAccessLayer);
       }
@@ -4111,12 +4193,13 @@
     // CHART PANEL FOR LOT
     const LEGEND_FONT_SIZE = "0.9em";
     var root = am5.Root.new("landPieChartDiv");
+    root._logo.dispose();
 
     const statusLot = ["Handed-Over", "Paid", "For Payment Processing",
                        "For Legal Pass", "For Appraisal/Offer to Buy",
                        "For Expro"];
 
-    function updateChartLot(municipal, barangay) {
+    function updateChartLot(cpValue) {
         root.container.children.clear();
         // First, define statuses
         var total_handedover_lot = {
@@ -4241,26 +4324,15 @@
           }
 
           var query = lotLayer.createQuery();
-          const municipalExpression = "Municipality = '" + municipal + "'";
-          const barangayExpression = "Barangay ='" + barangay + "'";
+          const cpExpression = "CP = '" + cpValue + "'";
           const statusExpression = "StatusLA = " + selectedStatus;
 
-          if (municipal === undefined && barangay === undefined) {
+          if (cpValue === undefined || cpValue === "All") {
             query.where = statusExpression;
-
-          } else if (municipal !== 'None' && barangay === 'None') {
-            query.where = municipalExpression + " AND " + statusExpression;
-
-          } else if (municipal === 'None' && barangay !== 'None') {
-            query.where = barangayExpression + " AND " + statusExpression;
-
-          } else if (municipal === 'None' && barangay === 'None') {
-            query.where = "1=1";
-
-          } else if (municipal !== 'None' && barangay !== 'None') {
-            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
-
+          } else {
+            query.where = cpExpression + " AND " + statusExpression;
           } 
+
           view.when(function() {
             view.whenLayerView(lotLayer).then(function (layerView) {
               //chartLayerView = layerView;
@@ -4425,6 +4497,7 @@
     updateChartLot();
 
     var root2 = am5.Root.new("chartMoaLotDiv");
+    root2._logo.dispose();
         var myTheme = am5.Theme.new(root2);
 
         myTheme.rule("Grid", ["base"]).setAll({
@@ -4437,7 +4510,7 @@
                             "No Need to Acquire"
                           ];
 
-    function updateMoaChartLot(municipal, barangay) {
+    function updateMoaChartLot(cpValue) {
         root2.container.children.clear();
 
         var total_nego_lot = {
@@ -4620,25 +4693,13 @@
           }
 
           var query = lotLayer.createQuery();
-          const municipalExpression = "Municipality = '" + municipal + "'";
-          const barangayExpression = "Barangay ='" + barangay + "'";
+          const cpExpression = "CP = '" + cpValue + "'";
           const statusExpression = "MoA = " + selectedStatus;
 
-          if (municipal === undefined && barangay === undefined) {
+          if (cpValue === undefined || cpValue === "All") {
             query.where = statusExpression;
-
-          } else if (municipal !== 'None' && barangay === 'None') {
-            query.where = municipalExpression + " AND " + statusExpression;
-
-          } else if (municipal === 'None' && barangay !== 'None') {
-            query.where = barangayExpression + " AND " + statusExpression;
-
-          } else if (municipal === 'None' && barangay === 'None') {
-            query.where = statusExpression;
-
-          } else if (municipal !== 'None' && barangay !== 'None') {
-            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
-
+          } else {
+            query.where = cpExpression + " AND " + statusExpression;
           } 
           
           view.whenLayerView(lotLayer).then(function (layerView) {
@@ -4684,7 +4745,7 @@
         // Chart title
         chart.children.unshift(am5.Label.new(root2, {
           text: "MODE OF ACQUISITION",
-          fontSize: 14,
+          fontSize: 16,
           fontWeight: "normal",
           textAlign: "left",
           fill: am5.color("#f7f5f7"),
@@ -4731,6 +4792,8 @@
 
     // CHART PANEL FOR STRUCTURE
     var root3 = am5.Root.new("structurePieChartDiv");
+    root3._logo.dispose();
+
     class MyTheme extends am5.Theme {
           setupDefaultRules() {
             var theme = this;
@@ -4824,7 +4887,7 @@
                                  "For Legal Pass", "For Appraisal/Offer to Compensate",
                                 "LBP Account Opening"];
 
-    async function updateChartStructure(municipal, barangay) {
+    async function updateChartStructure(cpValue) {
         root3.container.children.clear();
 
         var total_clear_lot = {
@@ -4906,7 +4969,7 @@
             valueField: "value",
             //legendLabelText: "[{fill}]{category}[/]",
             legendValueText: "{valuePercentTotal.formatNumber('#.')}% ({value})",
-            radius: am5.percent(90), // outer radius
+            radius: am5.percent(85), // outer radius
             innerRadius: am5.percent(40),
           })
         );
@@ -4947,25 +5010,13 @@
           }
 
           var query = structureLayer.createQuery();
-          const municipalExpression = "Municipality = '" + municipal + "'";
-          const barangayExpression = "Barangay ='" + barangay + "'";
+          const cpExpression = "CP = '" + cpValue + "'";
           const statusExpression = "StatusStruc = " + selectedStatus;
 
-          if (municipal === undefined && barangay === undefined) {
+          if (cpValue === undefined || cpValue === "All") {
             query.where = statusExpression;
-
-          } else if (municipal !== 'None' && barangay === 'None') {
-            query.where = municipalExpression + " AND " + statusExpression;
-
-          } else if (municipal === 'None' && barangay !== 'None') {
-            query.where = barangayExpression + " AND " + statusExpression;
-
-          } else if (municipal === 'None' && barangay === 'None') {
-            query.where = statusExpression;
-
-          } else if (municipal !== 'None' && barangay !== 'None') {
-            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
-
+          } else {
+            query.where = cpExpression + " AND " + statusExpression;
           } 
 
           // Zoom, filter, and highlight selected chart categories 
@@ -5113,6 +5164,8 @@
 
 
     var root4 = am5.Root.new("chartMoaStructureDiv");
+    root4._logo.dispose();
+
     var myTheme = am5.Theme.new(root4);
     myTheme.rule("Grid", ["base"]).setAll({
           strokeOpacity: 0,
@@ -5124,7 +5177,7 @@
                                 "No Need to Acquire"
                                 ];
 
-    async function updateMoaChartStructure(municipal, barangay) {
+    async function updateMoaChartStructure(cpValue) {
         root4.container.children.clear();
 
         var total_nego_lot = {
@@ -5300,25 +5353,15 @@
             }
 
           var query = structureLayer.createQuery();
-          const municipalExpression = "Municipality = '" + municipal + "'";
-          const barangayExpression = "Barangay ='" + barangay + "'";
+          const cpExpression = "CP = '" + cpValue + "'";
           const statusExpression = "MoA = " + selectedStatus;
 
-          if (municipal === undefined && barangay === undefined) {
+          if (cpValue === undefined || cpValue === "All") {
             query.where = statusExpression;
-          } else if (municipal !== 'None' && barangay === 'None') {
-            query.where = municipalExpression + " AND " + statusExpression;
-          } else if (municipal === 'None' && barangay !== 'None') {
-            query.where = barangayExpression + " AND " + statusExpression;
-          } else if (municipal === 'None' && barangay === 'None') {
-            query.where = statusExpression;
+          } else {
+            query.where = cpExpression + " AND " + statusExpression;
+          } 
 
-          } else if (municipal !== 'None' && barangay !== 'None') {
-            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
-          } else if (municipal !== 'None' && barangay !== 'None') {
-            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
-          }
-          
           view.whenLayerView(structureLayer).then(function (layerView) {
           //CHART_ELEMENT.style.visibility = "visible";
 
@@ -5403,11 +5446,13 @@
     updateMoaChartStructure();
 
     var root5 = am5.Root.new("nloPieChartDiv");
+    root5._logo.dispose();
+
     const statusISF = ["Relocated", "Paid", "For Payment Processing",
                       "For Legal Pass", "For Appraisal/OtC/Requirements for Other Entitlements",
                     "LBP Account Opening"]
 
-    async function updateChartNLO(municipal, barangay) {
+    async function updateChartNLO(cpValue) {
         root5.container.children.clear();
 
         var total_relocated_lot = {
@@ -5548,30 +5593,20 @@
           }
 
           var query = nloLayer.createQuery();
-          const municipalExpression = "Municipality = '" + municipal + "'";
-          const barangayExpression = "Barangay ='" + barangay + "'";
+          const cpExpression = "CP = '" + cpValue + "'";
           const statusExpression = "StatusRC = " + selectedStatus;
 
-          if (municipal === undefined && barangay === undefined) {
+          if (cpValue === undefined || cpValue === "All") {
             query.where = statusExpression;
-          } else if (municipal !== 'None' && barangay === 'None') {
-            query.where = municipalExpression + " AND " + statusExpression;
-          } else if (municipal === 'None' && barangay !== 'None') {
-            query.where = barangayExpression + " AND " + statusExpression;
-          } else if (municipal === 'None' && barangay === 'None') {
-            query.where = statusExpression;
-
-          } else if (municipal !== 'None' && barangay !== 'None') {
-            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
-          } else if (municipal !== 'None' && barangay !== 'None') {
-            query.where = municipalExpression + " AND " + barangayExpression + " AND " + statusExpression;
-          }
+          } else {
+            query.where = cpExpression + " AND " + statusExpression;
+          } 
 
           view.when(function() {
             view.whenLayerView(nloLayer).then(function (layerView) {
               //chartLayerView = layerView;
 
-              nloLayer.queryFeatures().then(function(results) {
+              nloLayer.queryFeatures(query).then(function(results) {
                 const RESULT_LENGTH = results.features;
                 const ROW_N = RESULT_LENGTH.length;
 
@@ -5733,11 +5768,12 @@
     updateChartNLO();
 
     var root6 = am5.Root.new("treeCuttingPieChartDiv");
+    root6._logo.dispose();
 
     const treeCutStatus = ["Cut/Earthballed", "Permit Acquired", "Submitted to DENR",
                     "Ongoing Acquisition of Application Documents"];
 
-    function updateChartCutting() {
+    function updateChartCutting(cpValue) {
         root6.container.children.clear();
 
         var total_cutearthb = {
@@ -5845,7 +5881,7 @@
         //pieSeries.appear(1000, 100)
         pieSeries.slices.template.events.on("click", function(ev) {
         const SELECTED = ev.target.dataItem.dataContext.category;
-        console.log(SELECTED)
+   
         if (SELECTED == treeCutStatus[0]) {
             selectedStatus = 1;
         } else if (SELECTED == treeCutStatus[1]) {
@@ -5858,11 +5894,21 @@
             selectedStatus = null;
         }
 
+        var query = treeCuttingLayer.createQuery();
+          const cpExpression = "CP = '" + cpValue + "'";
+          const statusExpression = "Status = " + selectedStatus;
+
+          if (cpValue === undefined || cpValue === "All") {
+            query.where = statusExpression;
+          } else {
+            query.where = cpExpression + " AND " + statusExpression;
+          } 
+
         view.when(function() {
             view.whenLayerView(treeCuttingLayer).then(function (layerView) {
             //chartLayerView = layerView;
 
-            treeCuttingLayer.queryFeatures().then(function(results) {
+            treeCuttingLayer.queryFeatures(query).then(function(results) {
                 const RESULT_LENGTH = results.features;
                 const ROW_N = RESULT_LENGTH.length;
 
@@ -6008,10 +6054,11 @@
     updateChartCutting();
 
     var root7 = am5.Root.new("treeCompensationPieChartDiv");
+    root7._logo.dispose();
 
     const treeCompen = ["Non-Compensable", "For Processing", "Compensated"];
 
-    function updateChartTreeComp() {
+    function updateChartTreeComp(cpValue) {
         root7.container.children.clear();
 
         var total_noncompen = {
@@ -6108,7 +6155,7 @@
         //pieSeries.appear(1000, 100)
         pieSeries.slices.template.events.on("click", function(ev) {
             const SELECTED = ev.target.dataItem.dataContext.category;
-                console.log(SELECTED)
+             
                 if (SELECTED == treeCompen[0]) {
                     selectedStatus = 1;
                 } else if (SELECTED == treeCompen[1]) {
@@ -6119,11 +6166,21 @@
                     selectedStatus = null;
                 }
 
+                var query = treeCompensationLayer.createQuery();
+                const cpExpression = "CP = '" + cpValue + "'";
+                const statusExpression = "Compensation = " + selectedStatus;
+
+                if (cpValue === undefined || cpValue === "All") {
+                  query.where = statusExpression;
+                } else {
+                  query.where = cpExpression + " AND " + statusExpression;
+                } 
+
             view.when(function() {
                 view.whenLayerView(treeCompensationLayer).then(function (layerView) {
                 //chartLayerView = layerView;
 
-                treeCompensationLayer.queryFeatures().then(function(results) {
+                treeCompensationLayer.queryFeatures(query).then(function(results) {
                     const RESULT_LENGTH = results.features;
                     const ROW_N = RESULT_LENGTH.length;
 
@@ -6313,6 +6370,7 @@
     const chartPaddingRightIconLabel = 45;
 
     var root_pt = am5.Root.new("utilityPointChartDiv");
+    root_pt._logo.dispose();
 
     function updateChartUtilityPoint(cpValue) {
       root_pt.container.children.clear();
@@ -6647,6 +6705,7 @@
 
   // 1.2. Line
   var root_line = am5.Root.new("utilityLineChartDiv");
+  root_line._logo.dispose();
 
   function updateChartUtilityLine(cpValue) {
     root_line.container.children.clear();
@@ -7002,8 +7061,9 @@
     },
   ]
   var root_via = am5.Root.new("viaductChartDiv");
+  root_via._logo.dispose();
 
-  function updateChartViaduct() {
+  function updateChartViaduct(cpValue) {
     root_via.container.children.clear();
     var total_pile_incomp = {
       onStatisticField: "CASE WHEN (Type = 1 and Status1 = 1) THEN 1 ELSE 0 END",
@@ -7215,7 +7275,7 @@
       });
 
       chart.get("colors").set("colors", [
-        am5.color("#008c1a"), //
+        am5.color("#0070ff"), //
         am5.color("#000000"),
       ]);
 
@@ -7267,19 +7327,23 @@
           const typeSelect = find.value;
       
           const selectedStatus = fieldName == 'incomp' ? 1 : 4;
-          console.log(typeSelect + "; " + selectedStatus);
-
+          
           var highlight = null;
+          var query = viaductLayer.createQuery();
+          query.outFields = ["*"]
           const sqlExpression = "Type = " + typeSelect + " AND " +  "Status1 = " + selectedStatus;
+          const cpExpression = "CP = '" + cpValue + "'" + " AND " + "Type = " + typeSelect + " AND " +  "Status1 = " + selectedStatus;
 
+          if (cpValue === undefined || cpValue === "All") {
+            query.where = sqlExpression;
+          } else {
+            query.where = cpExpression;
+          } 
             // Update layerView based on viaduct components being selected
             view.whenLayerView(viaductLayer).then(function (viaductLayerView) {
-              viaductLayerView.filter = {
-                  where: "Type = " + typeSelect + " AND " +  "Status1 = " + selectedStatus
-                  //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
-              };
+
                 
-              viaductLayerView.queryFeatures().then(function(results) {
+              viaductLayerView.queryFeatures(query).then(function(results) {
                 const ggg = results.features;
                 const rowN = ggg.length;
                 
@@ -7300,6 +7364,10 @@
                   highlight.remove();
                 });
               });
+              viaductLayerView.filter = {
+                  where: "Type = " + typeSelect + " AND " +  "Status1 = " + selectedStatus
+                  //where: "Status1 = '" + selectedC + "'" + " AND " + "Layer = '" + selectedStatus + "'" 
+              };
             }); // whenLayerView
         });// End of filterByChart
 
@@ -7314,9 +7382,10 @@
   }
   updateChartViaduct();
 
-  var root_ts = am5.Root.new("timeSeriesChart");
+  var root_ts = am5.Root.new("timeSeriesChartViaduct");
+  root_ts._logo.dispose();
 
-  function timeSeriesChart() {
+  function timeSeriesChartViaduct(cpValue) {
     root_ts.container.children.clear();
 
     var total_complete_pile = {
@@ -7350,7 +7419,15 @@
     };
 
     var query = viaductLayer.createQuery();
-    query.where = "end_date IS NOT NULL";
+
+    const defaulExpression = "end_date IS NOT NULL";
+    if (cpValue === "All") {
+      query.where = defaulExpression;
+
+    } else {
+      query.where = defaulExpression + " AND " + "CP = '" + cpValue + "'";
+    }
+    
     query.outStatistics = [total_complete_pile, total_complete_pilecap,
                            total_complete_pier, total_complete_pierhead, total_complete_precast];
     query.outFields = ["end_date"];
@@ -7387,6 +7464,8 @@
           precast: precastCount
         });
       });
+
+     
 
       // 6. Add to Chart
 
@@ -7543,9 +7622,232 @@
 
     });
   }
-  timeSeriesChart();
+  timeSeriesChartViaduct("All");
 
 
+  //----------------------------------------------------------------------------------//
+    /// Time series chart EXPERIMENT
+    var root8 = am5.Root.new("timeSeriesChartLand");
+    root8._logo.dispose();
+
+    function timeSeriesChartLand(cpValue) {
+      root8.container.children.clear();
+
+      var query = lotLayer.createQuery();
+      const cpExpression = "CP = '" + cpValue + "'";
+      const statusExpression = "HandedOverDate IS NOT NULL";
+
+      if (cpValue === 'All' || cpValue === undefined) {
+        query.where = statusExpression;
+
+      } else {
+        query.where = cpExpression + " AND " + statusExpression;
+      }
+
+      var total_count_handedOver_private = {
+        onStatisticField: "CASE WHEN (LandOwner <> 'BASES CONVERSION DEVELOPMENT AUTHORITY' and LandOwner <> 'MANILA RAILROAD COMPANY') THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_count_handedOver_private",
+        statisticType: "sum"
+      }
+
+      var total_count_handedOver_public = {
+        onStatisticField: "CASE WHEN (LandOwner = 'BASES CONVERSION DEVELOPMENT AUTHORITY' or LandOwner = 'MANILA RAILROAD COMPANY') THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_count_handedOver_public",
+        statisticType: "sum"
+      }
+
+      query.outStatistics = [total_count_handedOver_private, total_count_handedOver_public];
+      query.outFields = ["HandedOverDate"];
+      query.orderByFields = ["HandedOverDate"];
+      query.groupByFieldsForStatistics = ["HandedOverDate"];
+
+      const private = [];
+      const public = [];
+
+      lotLayer.queryFeatures(query).then(function(response) {
+        var stats = response.features;
+        ////
+        // collect all dates
+        const data = stats.map((result, index) => {
+          const attributes = result.attributes;
+          const date = attributes.HandedOverDate;
+
+          const privateCount = attributes.total_count_handedOver_private;
+          const publicCount = attributes.total_count_handedOver_public;
+
+          // compile in object array
+          return Object.assign({}, {
+            date,
+            private: privateCount,
+            public: publicCount
+          });
+        });
+
+        // set themes
+        root8.setThemes([
+          am5themes_Animated.new(root8)
+        ]);
+
+      // Create chart
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/
+        var chart = root8.container.children.push(am5xy.XYChart.new(root8, {
+          panX: false,
+          panY: false,
+          wheelX: "panX",
+          wheelY: "zoomX",
+          paddingBottom: 35,
+        }));
+
+        chart.get("colors").set("colors", [
+          am5.color("#e8ff00"),
+          am5.color("#4a99ff"),
+        ]);
+
+        // Chart title
+        chart.children.unshift(am5.Label.new(root8, {
+          text: "Monthly Progress of Handed-Over Lots",
+          fontSize: 14,
+          fontWeight: "bold",
+          textAlign: "center",
+          fill: am5.color("#ffffff"),
+          x: am5.percent(50),
+          centerX: am5.percent(50),
+          paddingTop: 0,
+          paddingBottom: 0,
+        }));
+
+        // Add cursor
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
+        var cursor = chart.set("cursor", am5xy.XYCursor.new(root8, {
+          behavior: "zoomX"
+        }));
+        cursor.lineY.set("visible", false);
+
+        // Create axes
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+        var xAxis = chart.xAxes.push(am5xy.DateAxis.new(root8, {
+          maxDeviation: 0,
+          groupData: true,
+          baseInterval: {
+            timeUnit: "day",
+            count: 1
+          },
+          groupIntervals: [{timeUnit: "month", count: 1}],
+          renderer: am5xy.AxisRendererX.new(root8, {
+            minGridDistance: 60,
+            strokeOpacity: 1,
+            strokeWidth: 1,
+            stroke: am5.color("#ffffff"),
+          }),
+          //tooltip: am5.Tooltip.new(root8, {})
+        }));
+
+        // Label properties for yAxis (category axis)
+        xAxis.get("renderer").labels.template.setAll({
+          //oversizedBehavior: "wrap",
+          textAlign: "center",
+          fill: am5.color("#ffffff"),
+          //maxWidth: 150,
+          fontSize: 12
+        });
+
+        var yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root8, {
+          calculateTotals: true,
+          min: 0,
+          renderer: am5xy.AxisRendererY.new(root8, {
+            minGridDistance: 60,
+            strokeOpacity: 1,
+            strokeWidth: 1,
+            stroke: am5.color("#ffffff"),
+          })
+        }));
+
+        yAxis.get("renderer").labels.template.setAll({
+          //oversizedBehavior: "wrap",
+          textAlign: "center",
+          fill: am5.color("#ffffff"),
+          //maxWidth: 150,
+          fontSize: 12
+        });
+
+        // Add yaxix title
+        yAxis.children.unshift(
+          am5.Label.new(root8, {
+            rotation: -90,
+            text: "No. of handed-over lots",
+            y: am5.p50,
+            centerX: am5.p50,
+            fill: am5.color("#ffffff"),
+            fontSize: 11
+          })
+        );
+
+      // Add legend
+      // https://www.amcharts.com/docs/v5/charts/xy-chart/legend-xy-series/
+      var legend = chart.children.push(am5.Legend.new(root8, {
+        centerX: am5.p50,
+        centerY: am5.percent(50),
+        x: am5.p50,
+        y: am5.percent(108),
+
+      }));
+
+      legend.labels.template.setAll({
+        oversizedBehavior: "truncate",
+        fill: am5.color("#ffffff"),
+        fontSize: 17,
+        scale: 0.8,
+        //textDecoration: "underline"
+        //width: am5.percent(200)
+        //fontWeight: "300"
+      });
+
+
+      function makeSeries(name, fieldName) {
+        // Add series
+        // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+        var series = chart.series.push(am5xy.ColumnSeries.new(root8, {
+          name: name,
+          stacked: true,
+          xAxis: xAxis,
+          yAxis: yAxis,
+          valueYField: fieldName,
+          valueXField: "date",
+          valueYGrouped: "sum"
+        }));
+
+        series.columns.template.setAll({
+          tooltipText: "{name}, {categoryX}: {valueY}",
+          tooltipY: am5.percent(10),
+          strokeOpacity: 0 
+        });
+        series.data.setAll(data);
+        series.appear(1000);
+
+        // Add Label bullet
+        series.bullets.push(function () {
+          return am5.Bullet.new(root8, {
+            locationY: 1,
+            locationX: 0.5,
+            sprite: am5.Label.new(root8, {
+              text: "{valueYTotal}",
+              fill: root8.interfaceColors.get("alternativeText"),
+              centerY: 0,
+              centerX: am5.p50,
+              populateText: true,
+              fontSize: 10
+            })
+          });
+        });
+        legend.data.push(series);
+      }
+      makeSeries("Private Land", "private");
+      makeSeries("Public Land", "public");
+      
+      chart.appear(1000, 100);
+      }); 
+    }
+    timeSeriesChartLand();
     /////////////////// END Of LAYER IMPORT ////////////////////////////
 
     // Zoom
@@ -7684,17 +7986,6 @@
       ]
     });
 
-    var legend_fnc = new Legend({
-      view,
-      container: "fnc-legend",
-      layerInfos: [
-        {
-          layer: fncLayer,
-          title: ""
-        }
-      ]
-    });
-
     var legend_pnr = new Legend({
       view,
       container: "pnr-legend",
@@ -7805,13 +8096,23 @@
       ]
     });
 
+    var legend_stationstructure = new Legend({
+      view,
+      container: "stationstructure-legend",
+      layerInfos: [
+        {
+          layer: buildingLayer,
+          title: ""
+        }
+      ]
+    });
+
     // Default setting
     lotLayer.visible = true;
     structureLayer.visible = false;
     nloLayer.visible = false;
     occupancyLayer.visible = false;
     strucOwnershipLayer.visible = false;
-    fncLayer.visible = true;
     pnrLayer.visible = true;
     treeCuttingLayer.visible = false;
     treeCompensationLayer.visible = false;
@@ -7824,6 +8125,7 @@
     prowLayer.visible = true;
     chainageLayer.visible = false;
     viaductLayer.visible = false;
+    buildingLayer.visible = false;
 
     // Hide and Unhide of Legend + layerList + lotLayer
     // 1. Checkbox
@@ -7845,6 +8147,7 @@
     const prowCheckbox = document.getElementById("prow-check");
     const chainageCheckbox = document.getElementById("chainage-check");
     const viaductCheckbox = document.getElementById("viaduct-check");
+    const stationStructureCheckbox = document.getElementById("stationstructure-check");
 
     // 2. Legend
     const landLegend = document.getElementById("land-legend");
@@ -7865,6 +8168,7 @@
     const prowLegend = document.getElementById("prow-legend");
     const chainageLegend = document.getElementById("chainage-legend");
     const viaductLegend = document.getElementById("viaduct-legend");
+    const stationStructureLegend = document.getElementById("stationstructure-legend");
 
     // Lot Layer
     view.when(() => {
@@ -7939,7 +8243,6 @@
       nloCheckbox.addEventListener("click", checkBoxClick);
     });
 
-
     // Occupancy Layer
     view.when(() => {
       let activeWidget;
@@ -7986,30 +8289,6 @@
         }
       }
       strucOwnershipCheckbox.addEventListener("click", checkBoxClick);
-    });
-
-    // Free-and-Clear Land Layer
-    view.when(() => {
-      let activeWidget;
-      const checkBoxClick = ({ target }) => {
-
-        // Hide/Unhide legend
-        fncLegend.hidden = !fncLegend.hidden;
-        
-        // Visible/unvisible fnc layer
-        if (activeWidget) {
-          fncLayer.visible = true;
-        }
-
-        const nextWidget = target.id;
-        if (nextWidget !== activeWidget) {
-          fncLayer.visible = false;
-          activeWidget = nextWidget
-        } else {
-          activeWidget = null;
-        }
-      }
-      fncCheckbox.addEventListener("click", checkBoxClick);
     });
 
     // PNR Land Layer
@@ -8300,6 +8579,30 @@
       }
       viaductCheckbox.addEventListener("click", checkBoxClick);
     });
+
+    // Building layer
+    view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+
+        // Hide/Unhide legend
+        stationStructureLegend.hidden = !stationStructureLegend.hidden;
+        
+        // Visible/unvisible chainage layer
+        if (activeWidget) {
+          buildingLayer.visible = false;
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          buildingLayer.visible = true;
+          activeWidget = nextWidget
+        } else {
+          activeWidget = null;
+        }
+      }
+      stationStructureCheckbox.addEventListener("click", checkBoxClick);
+    });
  
     // view.when
     view.when(() => {
@@ -8347,14 +8650,21 @@
         // IMPORTANT NOTE:
         // You need to include progress chart and see-through-ground inside widget calcite-panel; otherwise,
         // when you click the checkbox, toggling action will be reversed for this activation.
-
+        
         // Progress Chart
         document.getElementById("viaduct-checkbox").addEventListener("click", function(event) {
-          const timeSeriesChartDiv = document.getElementById("timeSeriesChart");
           const checked = event;
-          console.log(event);
-          timeSeriesChartDiv.hidden = !timeSeriesChartDiv.hidden;
+          timeSeriesChartViaductDiv.hidden = !timeSeriesChartViaductDiv.hidden;
         });
+
+        document.getElementById("land-checkbox").addEventListener("click", function(event) {
+          const timeSeriesChartLandDiv = document.getElementById("timeSeriesChartLand");
+          const checked = event;
+          timeSeriesChartLandDiv.hidden = !timeSeriesChartLandDiv.hidden;
+        });
+
+
+        //////////////////////////////////////////////////////////////////////////////////
 
         // See-through-Ground
         view.when(function() {
