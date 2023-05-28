@@ -102,7 +102,7 @@ var allStationsBIM = null;
 view.when(function() {
     // get the BuildingSceneLayer from the webscene
     webscene.allLayers.forEach(function(layer) {
-      if (layer.title === "N03CRKS BIM sample") {
+      if (layer.title === "Clark Station") {
         n03BIM = layer;
         // This only allows buildingExplorer widget for the specific buildingSceneLayer
         // explore components in the layer using the BuildingExplorer widget
@@ -154,7 +154,7 @@ view.when(function() {
   .getElementById("opacityInput")
   .addEventListener("change", function(event) {
     //webscene.ground.opacity = event.target.checked ? 0.1 : 0.9;
-    webscene.ground.opacity = event.target.checked ? 0.1 : 0.6;
+    webscene.ground.opacity = event.target.checked ? 0 : 1;
   });
   
   view.ui.add("menu", "bottom-left");
