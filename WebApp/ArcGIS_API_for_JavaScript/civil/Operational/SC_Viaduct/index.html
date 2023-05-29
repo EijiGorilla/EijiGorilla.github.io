@@ -519,7 +519,8 @@
   "esri/widgets/Compass",
   "esri/TimeExtent",
   "esri/widgets/Search",
-  "esri/widgets/BasemapToggle"
+  "esri/widgets/BasemapToggle",
+  "esri/widgets/BasemapGallery",
 ], function(Basemap, Map, MapView, SceneView, FeatureLayer, FeatureFilter,
             SceneLayer, Layer, TileLayer, VectorTileLayer,
             LabelClass, LabelSymbol3D, WebMap,
@@ -528,7 +529,7 @@
             geometryService, Query,
             StatisticDefinition, WebStyleSymbol,
             TimeExtent, Expand, Editor, UniqueValueRenderer,
-            DatePicker, FeatureTable, Compass, TimeExtent, Search, BasemapToggle) {
+            DatePicker, FeatureTable, Compass, TimeExtent, Search, BasemapToggle, BasemapGallery,) {
 
   const timeSeries = document.querySelector("calcite-button");
   timeSeries.addEventListener("click", function(event) {
@@ -537,19 +538,9 @@
   });
   
   // Basemap
-  var basemap = new Basemap({
-    baseLayers: [
-      new VectorTileLayer({
-        portalItem: {
-          id: "8a9ef2a144e8423786f6139408ac3424"
-        }
-      })
-    ]
-  });
-
   // Add Map
   var map = new Map({
-    basemap: basemap, // "streets-night-vector"
+    basemap: "satellite",//basemap, // "streets-night-vector"
     ground: "world-elevation" // ground: "no"
   }); 
   //map.ground.surfaceColor = "#FFFF";
@@ -585,11 +576,7 @@
   view.ui.components = [];
 
   // Basemap Toggle
-  const toggle = new BasemapToggle({
-    view: view,
-    nextBaseMap: "hybrid"
-  });
-  view.ui.add(toggle, "top-right");
+
         
   // Error Abort function 
   function catchAbortError(error) {
@@ -1002,6 +989,11 @@
     const linePatternFillOpacityIncomplet = 1;
     const linePatternStrokeOpacityIncomplet = 0;
 
+    const chartIconWidth = 40;
+    const chartIconHeight = 40;
+    const chartIconPositionX = -27;
+    const chartPaddingRightIconLabel = 45;
+
     class MyTheme extends am5.Theme {
       setupDefaultRules() {
         var theme = this;
@@ -1110,11 +1102,11 @@
           return am5xy.AxisBullet.new(root, {
             location: 0.5,
             sprite: am5.Picture.new(root, {
-              width: am5.percent(70),
-              height: am5.percent(70),
+              width: chartIconWidth,
+              height: chartIconHeight,
               centerY: am5.p50,
               centerX: am5.p50,
-              x: -30,
+              x: chartIconPositionX,
               src: dataItem.dataContext.icon
             })
           });
@@ -1339,11 +1331,11 @@
           return am5xy.AxisBullet.new(root2, {
             location: 0.5,
             sprite: am5.Picture.new(root2, {
-              width: am5.percent(70),
-              height: am5.percent(70),
+              width: chartIconWidth,
+              height: chartIconHeight,
               centerY: am5.p50,
               centerX: am5.p50,
-              x: -30,
+              x: chartIconPositionX,
               src: dataItem.dataContext.icon
             })
           });
@@ -1571,11 +1563,11 @@
           return am5xy.AxisBullet.new(root3, {
             location: 0.5,
             sprite: am5.Picture.new(root3, {
-              width: am5.percent(70),
-              height: am5.percent(70),
+              width: chartIconWidth,
+              height: chartIconHeight,
               centerY: am5.p50,
               centerX: am5.p50,
-              x: -30,
+              x: chartIconPositionX,
               src: dataItem.dataContext.icon
             })
           });
@@ -1802,11 +1794,11 @@
           return am5xy.AxisBullet.new(root4, {
             location: 0.5,
             sprite: am5.Picture.new(root4, {
-              width: am5.percent(70),
-              height: am5.percent(70),
+              width: chartIconWidth,
+              height: chartIconHeight,
               centerY: am5.p50,
               centerX: am5.p50,
-              x: -30,
+              x: chartIconPositionX,
               src: dataItem.dataContext.icon
             })
           });
@@ -2035,11 +2027,11 @@
           return am5xy.AxisBullet.new(root5, {
             location: 0.5,
             sprite: am5.Picture.new(root5, {
-              width: am5.percent(70),
-              height: am5.percent(70),
+              width: chartIconWidth,
+              height: chartIconHeight,
               centerY: am5.p50,
               centerX: am5.p50,
-              x: -30,
+              x: chartIconPositionX,
               src: dataItem.dataContext.icon
             })
           });
@@ -2264,11 +2256,11 @@
           return am5xy.AxisBullet.new(root7, {
             location: 0.5,
             sprite: am5.Picture.new(root7, {
-              width: am5.percent(70),
-              height: am5.percent(70),
+              width: chartIconWidth,
+              height: chartIconHeight,
               centerY: am5.p50,
               centerX: am5.p50,
-              x: -30,
+              x: chartIconPositionX,
               src: dataItem.dataContext.icon
             })
           });
@@ -2824,6 +2816,23 @@
       searchWidget.searchTerm = null;
     }
   });
+
+  // Basemap Gallery
+  let basemapGallery = new BasemapGallery({
+    view: view
+  });
+
+  const basemapGalleryExpand = new Expand({
+    view,
+    content: basemapGallery,
+    expandIconClass: "esri-icon-basemap",
+    group: "top-right"
+  });
+  // Add widget to the top right corner of the view
+  view.ui.add(basemapGalleryExpand, {
+    position: "top-right"
+  });
+
 
 
   // Compass

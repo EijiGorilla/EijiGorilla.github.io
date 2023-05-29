@@ -47,13 +47,6 @@
     width: 100%;
   }
 
-  calcite-button {
-    position: fixed;
-    z-index: 1;
-    bottom: 5%;
-    right: 1%;
-  }
-
   calcite-label {
     position: fixed;
     z-index: 1;
@@ -458,14 +451,16 @@
         <calcite-label layout="inline" id="see-through-label">
           <calcite-checkbox id="myLink"></calcite-checkbox>See-through-Ground
         </calcite-label>
-        <div class="overlay">
-          <div>
-            <span id="play" class="button esri-icon-play" style="display: block;" />
-          </div>
-          <div>
-            <span id="pause" class="button esri-icon-pause" style="display: none;" />
-          </div>
-        </div>
+        <calcite-button
+          icon-end="play"
+          id="play"
+          >
+        </calcite-button>
+        <calcite-button
+          icon-end="pause"
+          id="pause"
+          >
+        </calcite-button>
       </div>
     </calcite-shell>
   </body>
@@ -514,7 +509,8 @@
       "esri/layers/GroupLayer",
       "esri/geometry/Point",
       "esri/Camera",
-      "esri/core/reactiveUtils"
+      "esri/core/reactiveUtils",
+      "esri/widgets/BasemapGallery",
       ], function(Basemap, Map, MapView, SceneView, 
                 FeatureLayer, FeatureFilter,
                 SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -526,22 +522,13 @@
                 TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
                 FeatureTable, Compass, ElevationLayer, Ground,
                 BuildingSceneLayer, BuildingExplorer, Slice, SlicePlane,
-                SimpleRenderer, MeshSymbol3D, SolidEdges3D, GroupLayer, Point, Camera, reactiveUtils) {
+                SimpleRenderer, MeshSymbol3D, SolidEdges3D, GroupLayer, Point, Camera, reactiveUtils, BasemapGallery) {
 
 
 ////////////////////////////////////////////////////
-  var basemap = new Basemap({
-    baseLayers: [
-      new VectorTileLayer({
-        portalItem: {
-          id: "8a9ef2a144e8423786f6139408ac3424" 
-        }
-      })
-    ]
-  });
 
   var map = new Map({
-    basemap: basemap, // "streets-night-vector", 
+    basemap: "satellite",//basemap, // "streets-night-vector", 
     ground: "world-elevation"
   }); 
 
@@ -819,6 +806,10 @@
     });
   }
 
+  const play = document.getElementById("play");
+  const pause = document.getElementById("pause");
+  pause.style.display = 'none';
+
   let abort = false;
   let center = null;
   function rotate() {
@@ -843,10 +834,21 @@
     }
   } // end
 
-  play.onclick = rotate;
-  pause.onclick = function() {
-    abort = true;
-  };
+
+  play.addEventListener("click",() => {
+      play.onclick = rotate;
+      pause.onclick = function() {
+        abort = true;
+      };
+  });
+    // Animation play button
+    view.ui.add(play,{
+      position: "top-right"
+    });
+
+    view.ui.add(pause, {
+      position: "top-right"
+    });
 
   function totalProgressStFoundation() {
     // structural Foundation
@@ -2016,6 +2018,23 @@
     }
 
   }); // End of am5
+
+      // Basemap Gallery
+      let basemapGallery = new BasemapGallery({
+    view: view
+  });
+
+  const basemapGalleryExpand = new Expand({
+    view,
+    content: basemapGallery,
+    expandIconClass: "esri-icon-basemap",
+    group: "top-right"
+  });
+  // Add widget to the top right corner of the view
+  view.ui.add(basemapGalleryExpand, {
+    position: "top-right"
+  });
+
 
   // See-through-Ground
   view.when(function() {
