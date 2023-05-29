@@ -330,15 +330,6 @@
     }
     */
 
-    /*
-    .esri-view-width-xlarge .esri-popup__main-container,
-    .esri-view-width-large .esri-popup__main-container,
-    .esri-view-width-medium .esri-popup__main-container
-    {
-      max-height: 400px !important;
-      max-width: 700px !important;
-    }
-    */
     .esri-legend {
       overflow: hidden;
       overflow-y: auto;
@@ -590,8 +581,8 @@
 
     const acquiredStatus = 
       {
-        1: "Ready for Handover / Handed Over",
-        2: "Pending Delivery"
+        1: "Acquired / test /test /test test",
+        2: "Not Yet Acquired"
       }
 
     const colorLot = 
@@ -639,91 +630,62 @@
     });
     map.add(lotLayer);
 
-    const landAcquisition1 = 
+    const landAcquisition = 
       {
-        1: "On-going validation",
-        2: "Pending Appraisal",
-        3: "Pending Compilation of Documents",
-        4: "OTB for Serving",
-        5: "Pending OTB reply (within 30 days)",
-        6: "Pending OTB reply beyond 30 days (uncooperative)",
-        7: "Pending OTB reply beyond 30 days (cooperative)",
+        1: "Pending documents from LO",
+        2: "Pending Compilation of documents",
+        3: "OTB for serving",
+        4: "Pending OTB reply (within 30 days)",
+        5: "Pending OTB reply beyond 30 days (uncooperative)",
+        6: "Pending OTB reply beyond 30 days (cooperative)",
+        7: "OTB Accepted",
         8: "OTB Accepted with Pending Documents from PO or other agencies",
-        9: "OTB Accepted",
-        10: "Expropriation",
-        11: "ROWA / TUA"
-      }
-
-      const landAcquisition2 = 
-      {
-        1: "For Submissioin to Legal",
-        2: "Pending Legal Pass",
-        3: "Ongoing Payment Processing",
-        4: "Paid",
-        5: "N/A",
+        9: "For submission to Legal",
+        10: "Pending Legal Pass",
+        11: "Legal Pass Issued"
       }
 
       const paymentProcessing = 
       {
         1: "For Submission to Budget",
-        2: "For Signing of ORS, DV and RFPP",
-        3: "With Budget for Obligation",
-        4: "With Accounting for CAF Issuance",
-        5: "For DOTr signing",
-        6: "For Notarization",
-        7: "For Submission to CS",
-        8: "DV with CS",
-        9: "Paid / Checks Issued",
-        10: "N/A"
+        2: "With Budget for Obligation",
+        3: "Accounting for issuance of CAF",
+        4: "For DOTr signing",
+        5: "For Submission to CS",
+        6: "DV with CS for issuance of check",
+        7: "Paid",
       }
 
       const Expro = 
       {
-        1: "With PMO/RRE",
-        2: "With OSG",
-        3: "With Court",
-        4: "Issuance of WOP",
-        5: "WOP with COT",
-        6: "N/A"
-      }
-
-      const rowua  = 
-      {
-        1: "On-going finalization",
-        2: "Signed ROWUA",
-        3: "N/A"
+        1: "PMO",
+        2: "OSG",
+        3: "Court",
+        4: "WOP",
+        5: "WOP with COT"
       }
 
     // Custom popup for lot layer
     let customContentLot = new CustomContent({
       outFields: ["*"],
       creator: function(event) {
-        const status1_id = event.graphic.attributes.LA;
-        const status1 = landAcquisition1[status1_id];
-        const status1_final = status1 === undefined ? "" : status1;
-
-        const status2_id = event.graphic.attributes.LA2;
-        const status2 = landAcquisition2[status2_id];
-        const status2_final = status2 === undefined ? "" : status2;
+        const status_id = event.graphic.attributes.LA;
+        const status = landAcquisition[status_id];
+        const status_final = status === undefined ? "" : status;
 
         const payP_id = event.graphic.attributes.PP;
         const paymentP = paymentProcessing[payP_id];
         const paymentP_final = paymentP === undefined ? "" : paymentP;
 
+
         const expro_id = event.graphic.attributes.Expro;
         const expro = Expro[expro_id];
         const expro_final = expro === undefined ? "" : expro;
 
-        const rowua_id = event.graphic.attributes.ROWUA;
-        const rowua = Expro[rowua_id];
-        const rowua_final = rowua === undefined ? "" : rowua;
-
         return `<h4 style="color: #00B0F0;">Operations Level</h4>
-                <ul><li>Land Acquisition: <b>${status1_final}</b></li><br>
-                <li>Land Acquisition2: <b>${status2_final}</b></li><br>
+                <ul><li>Land Acquisition: <b>${status_final}</b></li><br>
                 <li>Payment Processing: <b>${paymentP_final}</b></li><br>
-                <li>Exrpopriation: <b>${expro_final}</b></li><br>
-                <li>ROWUA: <b>${expro_final}</b></li><br>`
+                <li>Exrpo: <b>${expro_final}</b></li><br>`
       }
     });
 
@@ -1183,7 +1145,7 @@
           const mm = month[lastEdit.getMonth()];
           const dd = lastEdit.getDate();
           const lastEditedDate = `As of ${mm} ${dd}, ${yyyy}`;
-          document.getElementById("dateDiv").innerHTML = "As of May 29, 2023";
+          document.getElementById("dateDiv").innerHTML = "As of May 22, 2023";
         });
       }
       getEditedDateValue();
@@ -1982,7 +1944,6 @@
           x: am5.percent(50),
           layout: root.verticalLayout,
           marginBottom: 10,
-          
         }));
         legend.data.setAll(pieSeries.dataItems);
 
@@ -2008,23 +1969,26 @@
         // 1. fix width of valueLabels
         // 2. dynamically change width of labels by screen size
 
-        const valueLabelsWidth = 80; //50
+        const valueLabelsWidth = 50;
 
         // Responsive legend 
         // https://www.amcharts.com/docs/v5/tutorials/pie-chart-with-a-legend-with-dynamically-sized-labels/
         chart.onPrivate("width", function(width) {
           let box = document.querySelector('.box');
           const boxWidth = box.offsetWidth;
-          var availableSpace = Math.max(width - chart.width() - 150, 180);
-          var availableSpace = (boxWidth - valueLabelsWidth) * 0.7
-          //legend.labels.template.setAll({
-          //  width: availableSpace,
-          //  maxWidth: availableSpace
-          //});
+          var availableSpace = Math.max(width - chart.width() - 150, 200);
+          //var availableSpace = (boxWidth - valueLabelsWidth) * 0.7
+          legend.labels.template.setAll({
+            width: availableSpace,
+            maxWidth: availableSpace,
+            oversizedBehavior: "truncate",
+            fill: am5.color("#ffffff"),
+          });
         });
 
         // Change legend labelling properties
         // To have responsive font size, do not set font size
+        /*
         legend.labels.template.setAll({
           oversizedBehavior: "truncate",
           fill: am5.color("#ffffff"),
@@ -2033,6 +1997,7 @@
           //width: am5.percent(200)
           //fontWeight: "300"
         });
+        */
 
         legend.valueLabels.template.setAll({
           textAlign: "right",
@@ -2044,7 +2009,7 @@
         legend.itemContainers.template.setAll({
           // set space between legend items
           paddingTop: 1.1,
-          paddingBottom: 2,
+          paddingBottom: 10,
         });
         
         pieSeries.appear(1000, 100);
