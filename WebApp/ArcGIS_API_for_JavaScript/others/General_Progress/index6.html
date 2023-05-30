@@ -181,7 +181,7 @@
       position: fixed;
       z-index: 1;
       bottom: 0;
-      left: 0;
+      left: 1%;
       margin: 15;
     }
 
@@ -227,7 +227,7 @@
           <img id="gcr-img" src="https://EijiGorilla.github.io/Symbols/Projec_Logo/GCR_Logo_nobackground.png">  
         </div>
         -->
-      <!--<img id="train-Operation-schedule" src="https://EijiGorilla.github.io/Symbols/Gallery/Train_Operation1.png"> -->   
+      <img id="train-Operation-schedule" src="https://EijiGorilla.github.io/Symbols/Gallery/Train_Operation_2.png"> 
       </div>
       <calcite-card id="alingment-progress-switch"> <!-- original was <calcite-card hidden>-->
         <div id="progress-switch-project" class="selectionClass"> <!--"progress-switch-project"-->
@@ -509,7 +509,7 @@ function disableZooming(overView) {
     const centerlineProjectColor = {
       nscr_hex: "#a3cc52",
       mmsp_hex: "#d9dc00",
-      nscrex_hex: "#00b3ff",
+      nscrex_hex: "#15C2FF",//"#00b3ff","#00B0F0", "#15C2FF"
     }
 
     const lineWidth = "5px";
@@ -1113,6 +1113,7 @@ function disableZooming(overView) {
       const x0 = stats.geometry.longitude;
       const y0 = stats.geometry.latitude;
       const x1 = x0 - 0.10; // Offset
+      const y1 = y0 - 0.15;
 
       const point = {
                     type: "point",
@@ -1125,7 +1126,7 @@ function disableZooming(overView) {
         color: "white",
         //backgroundColor: projectBackgroundColor,
         text: "Clark Int. Airport",
-        horizontalAlignment: "left",
+        horizontalAlignment: "right",
         //yoffset: -5,
         font: {  // autocasts as new Font()
             size: fontSizeAirport,
@@ -1407,6 +1408,19 @@ function zoomToLayer(layer) {
 
     const cpLineWidth = 0.3;
     const cpFontSize = 10;
+
+    // Position of Train Operation Schedule
+    function trainOperationSchedulePositionOriginal(){
+      document.getElementById("train-Operation-schedule").style.position='fixed';
+      document.getElementById("train-Operation-schedule").style.left='1%';
+    }
+
+    function trainOperationSchedulePositionOthers(){
+      document.getElementById("train-Operation-schedule").style.position='fixed';
+      document.getElementById("train-Operation-schedule").style.left='15%';
+    }
+
+
 
 
     // NSCR
@@ -1723,152 +1737,176 @@ function zoomToLayer(layer) {
     n2GraphicsLayer_cpLabel.listMode = 'hide';
     map.add(n2GraphicsLayer_cpLabel);
 
-    var query = n2BreakPointsCP.createQuery();
-    query.orderByFields = ["Id"];
-    n2BreakPointsCP.queryFeatures(query).then(function(response) {
-        var stats = response.features;
-        const paths = [];
-        const points = [];
-        const CPs = [];
+    function n2Graphics(xoffset, yoffset){
+      var query = n2BreakPointsCP.createQuery();
+      query.orderByFields = ["Id"];
+      n2BreakPointsCP.queryFeatures(query).then(function(response) {
+          var stats = response.features;
+          const paths = [];
+          const points = [];
+          const CPs = [];
 
-        stats.forEach((result, index) => {
-            const attributes = result.attributes;
-            const cp = attributes.CP;
-            CPs.push(cp);
+          stats.forEach((result, index) => {
+              const attributes = result.attributes;
+              const cp = attributes.CP;
+              CPs.push(cp);
 
-            // Collect geometry of each break point
-            const pointX0 = result.geometry.longitude;
-            const pointY0 = result.geometry.latitude;
+              // Collect geometry of each break point
+              const pointX0 = result.geometry.longitude;
+              const pointY0 = result.geometry.latitude;
 
-            // Calculate end poins and store it in a path for line generation
-            const pointX1 = pointX0 + 0.05;
-            const path = [
-                [pointX0, pointY0],
-                [pointX1, pointY0]
-            ]
+              // Calculate end poins and store it in a path for line generation
+              const pointX1 = pointX0 + 0.05;
+              const path = [
+                  [pointX0, pointY0],
+                  [pointX1, pointY0]
+              ]
 
-            // Append each path to paths
-            paths.push(path);
+              // Append each path to paths
+              paths.push(path);
 
-            // Calculate a point for text symbol
-            const point = [pointX1, pointY0];
-            points.push(point);
-        });
+              // Calculate a point for text symbol
+              const point = [pointX1, pointY0];
+              points.push(point);
+          });
 
-        // 1. Draw a horizontal line at break points of individual CPs
-        // Define polyline paths and type
-        const polyline = {
-            type: "polyline",
-            paths: paths
-        };
+          // 1. Draw a horizontal line at break points of individual CPs
+          // Define polyline paths and type
+          const polyline = {
+              type: "polyline",
+              paths: paths
+          };
 
-        // Set line properties
-        const simpleLineSymbol = {
-            type: "simple-line",
-            color: cpLineColor,
-            width: cpLineWidth
-        };
+          // Set line properties
+          const simpleLineSymbol = {
+              type: "simple-line",
+              color: cpLineColor,
+              width: cpLineWidth
+          };
 
-        // Add to Graphic
-        const n2PolylineGraphic = new Graphic({
-            geometry: polyline,
-            symbol: simpleLineSymbol
-        });
-        n2GraphicsLayer_cpLabel.add(n2PolylineGraphic);
+          // Add to Graphic
+          const n2PolylineGraphic = new Graphic({
+              geometry: polyline,
+              symbol: simpleLineSymbol
+          });
+          n2GraphicsLayer_cpLabel.add(n2PolylineGraphic);
 
-        // 2. Add text symbol
-        for(var i=0; i < points.length; i++){
-            if(i <= points.length-2){
-                const pointTextX = points[i][0] + 0.03;
-                const pointTextY0 = points[i][1];
-                const pointTextY1 = points[i+1][1];
-                const pointTextY = (pointTextY0 + pointTextY1) / 2;
+          // 2. Add text symbol
+          for(var i=0; i < points.length; i++){
+              if(i <= points.length-2){
+                  const pointTextX = points[i][0] + 0.03;
+                  const pointTextY0 = points[i][1];
+                  const pointTextY1 = points[i+1][1];
+                  const pointTextY = (pointTextY0 + pointTextY1) / 2;
 
-                const point = {
-                    type: "point",
-                    longitude: pointTextX,
-                    latitude: pointTextY
-                };
+                  const point = {
+                      type: "point",
+                      longitude: pointTextX,
+                      latitude: pointTextY
+                  };
 
-                let textSymbol = {
-                    type: "text",  // autocasts as new TextSymbol()
-                    color: cpLabelColor,
-                    //haloColor: "black",
-                    //haloSize: "1px",
-                    text: CPs[i],
-                    //xoffset: 3,
-                    //yoffset: -5,
-                    font: {  // autocasts as new Font()
-                        size: cpFontSize,
-                        //family: "Josefin Slab",
-                        weight: "bold"
-                    }
-                };
+                  let textSymbol = {
+                      type: "text",  // autocasts as new TextSymbol()
+                      color: cpLabelColor,
+                      //haloColor: "black",
+                      //haloSize: "1px",
+                      text: CPs[i],
+                      //xoffset: 3,
+                      //yoffset: -5,
+                      font: {  // autocasts as new Font()
+                          size: cpFontSize,
+                          //family: "Josefin Slab",
+                          weight: "bold"
+                      }
+                  };
 
-                const simpleMarkerSymbol = {
-                    type: "simple-marker",
-                    color: [226, 119, 40],
-                    size: 12,
-                    style: "circle",
-                    outline: {
-                        width: 1,
-                        color: [255, 255, 255, 1]
-                    }
-                };
+                  const simpleMarkerSymbol = {
+                      type: "simple-marker",
+                      color: [226, 119, 40],
+                      size: 12,
+                      style: "circle",
+                      outline: {
+                          width: 1,
+                          color: [255, 255, 255, 1]
+                      }
+                  };
 
-                const n2PointGraphic = new Graphic({
-                    geometry: point,
-                    symbol: textSymbol
-                });
+                  const n2PointGraphic = new Graphic({
+                      geometry: point,
+                      symbol: textSymbol
+                  });
 
-                n2GraphicsLayer_cpLabel.add(n2PointGraphic);
-            }
+                  n2GraphicsLayer_cpLabel.add(n2PointGraphic);
+              }
+          }
+      
+      // Project Label
+      // Add Project label (N2)
+      let n2ProjectLableSymbol = {
+        type: "text",  // autocasts as new TextSymbol()
+        color: centerlineProjectColor.nscrex_hex,
+        //backgroundColor: projectBackgroundColor,
+        //haloColor: "black",
+        //haloSize: "1px",
+        text: "North-South Commuter Railway Ext.\n(Malolos-Clark)\n51km",
+        horizontalAlignment: "right",
+        //xoffset: 3,
+        //yoffset: -5,
+        font: {  // autocasts as new Font()
+          size: projectLabelFontSize,
+          //family: "Calibri",
+          //style: "italic",
+          weight: "bold"
         }
-    
-    // Project Label
-    // Add Project label (N2)
-    let n2ProjectLableSymbol = {
-      type: "text",  // autocasts as new TextSymbol()
-      color: centerlineProjectColor.nscrex_hex,
-      //backgroundColor: projectBackgroundColor,
-      //haloColor: "black",
-      //haloSize: "1px",
-      text: "North-South Commuter Railway Ext.\n(Malolos-Clark)\n51km",
-      horizontalAlignment: "right",
-      //xoffset: 3,
-      //yoffset: -5,
-      font: {  // autocasts as new Font()
-        size: projectLabelFontSize,
-        //family: "Calibri",
-        //style: "italic",
-        weight: "bold"
-      }
-    };
+      };
 
-    const j = 4;
-    const pointTextX_pLabel = points[j][0] - 0.17;
-    const pointTextY0_pLabel = points[j][1];
-    const pointTextY1_pLabel = points[j+1][1] + 0.25;
-    const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
+      const j = 4;
+      const pointTextX_pLabel = points[j][0] - 0.17 + xoffset;
+      const pointTextY0_pLabel = points[j][1];
+      const pointTextY1_pLabel = points[j+1][1] + 0.25 + yoffset;
+      const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
 
-    const projectPoint = {
-        type: "point",
-        longitude: pointTextX_pLabel,
-        latitude: pointTextY_pLabel
-    };
+      const projectPoint = {
+          type: "point",
+          longitude: pointTextX_pLabel,
+          latitude: pointTextY_pLabel
+      };
 
-      const n2ProjectLabelGraphic = new Graphic({
-        geometry: projectPoint,
-        symbol: n2ProjectLableSymbol
+        const n2ProjectLabelGraphic = new Graphic({
+          geometry: projectPoint,
+          symbol: n2ProjectLableSymbol
+        });
+
+        n2GraphicsLayer.add(n2ProjectLabelGraphic);
       });
+    }
+  // Initial
+  n2Graphics(0,0);
+  
+  // Move SC graphicsLayer position when Progress2 is clicked
+  function n2GraphicsLayerMove(xoffset, yoffset) {
+    //const xoffset = -0.1;
+    //const yoffset = 0;
 
-      n2GraphicsLayer.add(n2ProjectLabelGraphic);
-    });
+    n2GraphicsLayer_cpLabel.removeAll();
+    n2GraphicsLayer.removeAll();
+    n2Graphics(xoffset, yoffset);
+  }
+
+  // Return position of SC graphicsLayer to original state
+  function n2GraphicsLayerReturnToOriginal(){
+    const xoffset_0 = 0;
+    const yoffset_0 = 0;
+
+    n2GraphicsLayer_cpLabel.removeAll();
+    n2GraphicsLayer.removeAll();
+    n2Graphics(xoffset_0, yoffset_0);
+  }
 
 
 
     // SC
-      const scGraphicsLayer = new GraphicsLayer();
+    const scGraphicsLayer = new GraphicsLayer();
       scGraphicsLayer.listMode = "hide";
       map.add(scGraphicsLayer);
 
@@ -1879,150 +1917,173 @@ function zoomToLayer(layer) {
       scGraphicsLayer_cpLabel.listMode = "hide";
       map.add(scGraphicsLayer_cpLabel);
 
-    var query = scBreakPointsCP.createQuery();
-    query.orderByFields = ["Id"];
+    function scGraphics(xoffset, yoffset){
+      var query = scBreakPointsCP.createQuery();
+      query.orderByFields = ["Id"];
 
-      scBreakPointsCP.queryFeatures(query).then(function(response) {
-        var stats = response.features;
-        const paths = [];
-        const points = [];
-        const CPs = [];
+        scBreakPointsCP.queryFeatures(query).then(function(response) {
+          var stats = response.features;
+          const paths = [];
+          const points = [];
+          const CPs = [];
 
-        stats.forEach((result, index) => {
-            // Collect geometry of each break point
-            const attributes = result.attributes;
-            const cp = attributes.CP;
-            CPs.push(cp);
-            const pointX0 = result.geometry.longitude;
-            const pointY0 = result.geometry.latitude;
+          stats.forEach((result, index) => {
+              // Collect geometry of each break point
+              const attributes = result.attributes;
+              const cp = attributes.CP;
+              CPs.push(cp);
+              const pointX0 = result.geometry.longitude;
+              const pointY0 = result.geometry.latitude;
 
-            // Calculate end poins and store it in a path for line generation
-            const pointX1 = pointX0 - 0.05;
-            const path = [
-                [pointX0, pointY0],
-                [pointX1, pointY0]
-            ]
+              // Calculate end poins and store it in a path for line generation
+              const pointX1 = pointX0 - 0.05;
+              const path = [
+                  [pointX0, pointY0],
+                  [pointX1, pointY0]
+              ]
 
-            // Append each path to paths
-            paths.push(path);
+              // Append each path to paths
+              paths.push(path);
 
-            // Calculate a point for text symbol
-            const point = [pointX1, pointY0];
-            points.push(point);
-        });
-
-        // 1. Draw a horizontal line at break points of individual CPs
-        // Define polyline paths and type
-        const polyline = {
-            type: "polyline",
-            paths: paths
-        };
-
-        // Set line properties
-        const simpleLineSymbol = {
-            type: "simple-line",
-            color: cpLineColor,
-            width: cpLineWidth
-        };
-
-        // Add to Graphic
-        const scPolylineGraphic = new Graphic({
-            geometry: polyline,
-            symbol: simpleLineSymbol
-        });
-        scGraphicsLayer_cpLabel.add(scPolylineGraphic);
-        // Dispaly grapchicsLayer
-
-
-        // 2. Add text symbol
-        for(var i=0; i < points.length; i++){
-            //console.log(i);
-            if(i <= points.length-2 && i !== 8){
-                const pointTextX = points[i][0] - 0.01;
-                const pointTextY0 = points[i][1] - 0.05;
-                const pointTextY1 = points[i+1][1];
-                const pointTextY = (pointTextY0 + pointTextY1) / 2;
-
-                const point = {
-                    type: "point",
-                    longitude: pointTextX,
-                    latitude: pointTextY
-                };
-
-                let textSymbol = {
-                    type: "text",  // autocasts as new TextSymbol()
-                    color: cpLabelColor,
-                    //haloColor: "black",
-                    //haloSize: "1px",
-                    text: CPs[i],
-                    //xoffset: 3,
-                    //yoffset: -5,
-                    font: {  // autocasts as new Font()
-                        size: cpFontSize,
-                        //family: "Josefin Slab",
-                        weight: "bold"
-                    }
-                };
-
-                const simpleMarkerSymbol = {
-                    type: "simple-marker",
-                    color: [226, 119, 40],
-                    size: 12,
-                    style: "circle",
-                    outline: {
-                        width: 1,
-                        color: [255, 255, 255, 1]
-                    }
-                };
-
-                const scPointGraphic = new Graphic({
-                    geometry: point,
-                    symbol: textSymbol
-                });
-                scGraphicsLayer_cpLabel.add(scPointGraphic);
-            }
-        }
-
-        // Add Project label (SC)
-        let scProjectLableSymbol = {
-          type: "text",  // autocasts as new TextSymbol()
-          color: centerlineProjectColor.nscrex_hex,
-          //backgroundColor: projectBackgroundColor,
-          //haloColor: "black",
-          //haloSize: "1px",
-          text: "North-South Commuter Railway Ext.\n(Solis-Calamba)\n55km",
-          horizontalAlignment: "right",
-          //xoffset: 3,
-          //yoffset: -5,
-          font: {  // autocasts as new Font()
-            size: projectLabelFontSize,
-            //family: "Merriweather",
-            //style: "italic",
-            weight: "bold"
-          }
-        };
-        const j = 5;
-        //console.log("SC label: " + points);
-        const pointTextX_pLabel = points[j][0] + 0.39;
-        const pointTextY0_pLabel = points[j][1] - 0.15;
-        const pointTextY1_pLabel = points[j+1][1];
-        const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
-
-        const projectPoint = {
-            type: "point",
-            longitude: pointTextX_pLabel,
-            latitude: pointTextY_pLabel
-        };
-
-          const scProjectLabelGraphic = new Graphic({
-            geometry: projectPoint,
-            symbol: scProjectLableSymbol
+              // Calculate a point for text symbol
+              const point = [pointX1, pointY0];
+              points.push(point);
           });
 
-          scGraphicsLayer.add(scProjectLabelGraphic); // Do not use graphicslayer.addMany. 
-    }); // end of queryFeatures
+          // 1. Draw a horizontal line at break points of individual CPs
+          // Define polyline paths and type
+          const polyline = {
+              type: "polyline",
+              paths: paths
+          };
 
+          // Set line properties
+          const simpleLineSymbol = {
+              type: "simple-line",
+              color: cpLineColor,
+              width: cpLineWidth
+          };
+
+          // Add to Graphic
+          const scPolylineGraphic = new Graphic({
+              geometry: polyline,
+              symbol: simpleLineSymbol
+          });
+          scGraphicsLayer_cpLabel.add(scPolylineGraphic);
+          // Dispaly grapchicsLayer
+
+
+          // 2. Add text symbol
+          for(var i=0; i < points.length; i++){
+              //console.log(i);
+              if(i <= points.length-2 && i !== 8){
+                  const pointTextX = points[i][0] - 0.01;
+                  const pointTextY0 = points[i][1] - 0.05;
+                  const pointTextY1 = points[i+1][1];
+                  const pointTextY = (pointTextY0 + pointTextY1) / 2;
+
+                  const point = {
+                      type: "point",
+                      longitude: pointTextX,
+                      latitude: pointTextY
+                  };
+
+                  let textSymbol = {
+                      type: "text",  // autocasts as new TextSymbol()
+                      color: cpLabelColor,
+                      //haloColor: "black",
+                      //haloSize: "1px",
+                      text: CPs[i],
+                      //xoffset: 3,
+                      //yoffset: -5,
+                      font: {  // autocasts as new Font()
+                          size: cpFontSize,
+                          //family: "Josefin Slab",
+                          weight: "bold"
+                      }
+                  };
+
+                  const simpleMarkerSymbol = {
+                      type: "simple-marker",
+                      color: [226, 119, 40],
+                      size: 12,
+                      style: "circle",
+                      outline: {
+                          width: 1,
+                          color: [255, 255, 255, 1]
+                      }
+                  };
+
+                  const scPointGraphic = new Graphic({
+                      geometry: point,
+                      symbol: textSymbol
+                  });
+                  scGraphicsLayer_cpLabel.add(scPointGraphic);
+              }
+          }
+
+          // Add Project label (SC)
+          let scProjectLableSymbol = {
+            type: "text",  // autocasts as new TextSymbol()
+            color: centerlineProjectColor.nscrex_hex,
+            //backgroundColor: projectBackgroundColor,
+            //haloColor: "black",
+            //haloSize: "1px",
+            text: "North-South Commuter Railway Ext.\n(Solis-Calamba)\n55km",
+            horizontalAlignment: "right",
+            //xoffset: 3,
+            //yoffset: -5,
+            font: {  // autocasts as new Font()
+              size: projectLabelFontSize,
+              //family: "Merriweather",
+              //style: "italic",
+              weight: "bold"
+            }
+          };
+          const j = 5;
+          //console.log("SC label: " + points);
+          const pointTextX_pLabel = points[j][0] + 0.39 + xoffset;
+          const pointTextY0_pLabel = points[j][1] - 0.15 + yoffset;
+          const pointTextY1_pLabel = points[j+1][1];
+          const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
+
+          const projectPoint = {
+              type: "point",
+              longitude: pointTextX_pLabel,
+              latitude: pointTextY_pLabel
+          };
+
+            const scProjectLabelGraphic = new Graphic({
+              geometry: projectPoint,
+              symbol: scProjectLableSymbol
+            });
+
+            scGraphicsLayer.add(scProjectLabelGraphic); // Do not use graphicslayer.addMany. 
+      }); // end of queryFeatures
+  }
+  // Initial
+  scGraphics(0,0);
   
+  // Move SC graphicsLayer position when Progress2 is clicked
+  function scGraphicsLayerMove(xoffset, yoffset) {
+    //const xoffset = -0.1;
+    //const yoffset = 0;
+
+    scGraphicsLayer_cpLabel.removeAll();
+    scGraphicsLayer.removeAll();
+    scGraphics(xoffset, yoffset);
+  }
+
+  // Return position of SC graphicsLayer to original state
+  function scGraphicsLayerReturnToOriginal(){
+    const xoffset_0 = 0;
+    const yoffset_0 = 0;
+
+    scGraphicsLayer_cpLabel.removeAll();
+    scGraphicsLayer.removeAll();
+    scGraphics(xoffset_0, yoffset_0);
+  }
+
 
     ///////////////////////////////////////////
     const projectDiv = document.getElementById("Project");
@@ -2170,13 +2231,20 @@ function zoomToLayer(layer) {
         alignmentRenderer();
         homeExtentRenderer();
 
+        // SC label position
+        scGraphicsLayerReturnToOriginal();
+
       } else if (value === 'Progress') {
         progressRenderer();
         homeExtentRenderer();
         document.getElementById("All").checked = true;
 
+        // SC label position
+        scGraphicsLayerReturnToOriginal();
 
       } else if (value === 'Progress2') {
+        scGraphicsLayerMove(-0.1, 0);
+
         progress2Renderer();
         document.getElementById("All").checked = true;
 
@@ -2240,6 +2308,7 @@ function zoomToLayer(layer) {
         n1CenterlineLayer.visible = false;
 
         zoomToLayer(mmspStationLayer);
+        trainOperationSchedulePositionOthers();
 
       } else if (value === 'N2') {
 
@@ -2270,6 +2339,8 @@ function zoomToLayer(layer) {
         n1CenterlineLayer.visible = false;
 
         zoomToLayer(n2CenterlineLayer);
+        n2GraphicsLayerMove(0.3, 0.35);
+        trainOperationSchedulePositionOthers();
 
       } else if (value === 'SC') {
 
@@ -2298,10 +2369,15 @@ function zoomToLayer(layer) {
         n1GraphicsLayer_cpLabel.visible = false;
 
         zoomToLayer(scStationLayer);
+        scGraphicsLayerMove(-0.1, 0.5);
+        trainOperationSchedulePositionOthers();
 
       } else if (value === 'All') {
         homeExtentRenderer();
-        
+        scGraphicsLayerReturnToOriginal();
+        n2GraphicsLayerReturnToOriginal();
+
+        trainOperationSchedulePositionOriginal();
         //view.goTo({
         //  extent: fixedExtent
         //});
