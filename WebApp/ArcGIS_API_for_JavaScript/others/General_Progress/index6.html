@@ -294,14 +294,15 @@
       baseLayers: [
           new VectorTileLayer({
           portalItem: {
-              id: "824fe99ab989479f83b9a6d7f2da0bcb" // 824fe99ab989479f83b9a6d7f2da0bcb
+              id: "824fe99ab989479f83b9a6d7f2da0bcb" // Light-gray:"75cf54bd051041c0a6244958cee3ab5c"
+              // Dark-gray: "824fe99ab989479f83b9a6d7f2da0bcb"
           }
           })
       ]
     });
     
     var map = new Map({
-        basemap: basemap, // "streets-night-vector", basemap
+        basemap: basemap,//basemap, // "streets-night-vector", basemap
         ground: "world-elevation"
     }); 
     //map.basemap.baseLayers.getItemAt(0).opacity = 1;
@@ -507,9 +508,9 @@ function disableZooming(overView) {
     // Centerline
     // Color based on project
     const centerlineProjectColor = {
-      nscr_hex: "#a3cc52",
-      mmsp_hex: "#d9dc00",
-      nscrex_hex: "#15C2FF",//"#00b3ff","#00B0F0", "#15C2FF"
+      nscr_hex: "#ff5f22",
+      mmsp_hex: "#0000ff",
+      nscrex_hex: "#ff5f22",//"#00b3ff","#00B0F0", "#15C2FF"
     }
 
     const lineWidth = "5px";
@@ -878,7 +879,7 @@ function disableZooming(overView) {
           label: "To be Constructed",
           symbol: {
             type: "simple-line",
-            color: "#dc4b00",
+            color: "#ffffff",
             width: construction_lineWidth,
             style: "solid"
           }
@@ -898,7 +899,7 @@ function disableZooming(overView) {
           label: "Completed",
           symbol: {
             type: "simple-line",
-            color: centerlineProjectColor.nscrex_hex,
+            color: "#ff0000",
             width: construction_lineWidth,
             style: "solid"
           }
@@ -1417,11 +1418,8 @@ function zoomToLayer(layer) {
 
     function trainOperationSchedulePositionOthers(){
       document.getElementById("train-Operation-schedule").style.position='fixed';
-      document.getElementById("train-Operation-schedule").style.left='15%';
+      document.getElementById("train-Operation-schedule").style.left='1%';
     }
-
-
-
 
     // NSCR
     const n1GraphicsLayer = new GraphicsLayer();
@@ -1435,141 +1433,170 @@ function zoomToLayer(layer) {
     n1GraphicsLayer_cpLabel.listMode = 'hide';
     map.add(n1GraphicsLayer_cpLabel);
 
-    var query = n1BreakPointsCP.createQuery();
-    query.orderByFields = ["Id"];
-    query.where = "Id >= 1";
+    function n1Graphics(xoffset, yoffset) {
+      var query = n1BreakPointsCP.createQuery();
+      query.orderByFields = ["Id"];
+      query.where = "Id >= 1";
 
-    n1BreakPointsCP.queryFeatures(query).then(function(response) {
-      var stats = response.features;
-      const paths = [];
-      const points = [];
-      const CPs = [];
+      n1BreakPointsCP.queryFeatures(query).then(function(response) {
+        var stats = response.features;
+        const paths = [];
+        const points = [];
+        const CPs = [];
 
-      stats.forEach((result, index) => {
-        const attributes = result.attributes;
-        const cp = attributes.CP;
-        CPs.push(cp);
+        stats.forEach((result, index) => {
+          const attributes = result.attributes;
+          const cp = attributes.CP;
+          CPs.push(cp);
 
-        // Collect geometry of each break point
-        const pointX0 = result.geometry.longitude;
-        const pointY0 = result.geometry.latitude;
+          // Collect geometry of each break point
+          const pointX0 = result.geometry.longitude;
+          const pointY0 = result.geometry.latitude;
 
-        // Calculate end poins and store it in a path for line generation
-        const pointX1 = pointX0 - 0.04;
-        const path = [
-            [pointX0, pointY0],
-            [pointX1, pointY0]
-        ]
+          // Calculate end poins and store it in a path for line generation
+          const pointX1 = pointX0 - 0.04;
+          const path = [
+              [pointX0, pointY0],
+              [pointX1, pointY0]
+          ]
 
-        // Append each path to paths
-        paths.push(path);
+          // Append each path to paths
+          paths.push(path);
 
-        // Calculate a point for text symbol
-        const point = [pointX1, pointY0];
-        points.push(point);
-      });
-              // 1. Draw a horizontal line at break points of individual CPs
-        // Define polyline paths and type
-        const polyline = {
-            type: "polyline",
-            paths: paths
-        };
-
-        // Set line properties
-        const simpleLineSymbol = {
-            type: "simple-line",
-            color: cpLineColor,
-            width: cpLineWidth
-        };
-
-        // Add to Graphic
-        const n1PolylineGraphic = new Graphic({
-            geometry: polyline,
-            symbol: simpleLineSymbol,
+          // Calculate a point for text symbol
+          const point = [pointX1, pointY0];
+          points.push(point);
         });
-        n1GraphicsLayer_cpLabel.add(n1PolylineGraphic);
-     
-        // 2. Add text symbol
-        for(var i=0; i < points.length; i++){
-            if(i <= points.length-2){
-                const pointTextX = CPs[i] == 'CP101' ? points[i][0] - 0.1 : points[i][0] - 0.03;
-                const pointTextY0 = CPs[i] == 'CP101' ? points[i][1] : points[i][1];
-                const pointTextY1 = CPs[i] == 'CP101' || CPs[i] == 'CP105' ? points[i+1][1] - 0.02 : points[i+1][1];
-                const pointTextY = (pointTextY0 + pointTextY1) / 2;
+                // 1. Draw a horizontal line at break points of individual CPs
+          // Define polyline paths and type
+          const polyline = {
+              type: "polyline",
+              paths: paths
+          };
 
-                const point = {
-                    type: "point",
-                    longitude: pointTextX,
-                    latitude: pointTextY
-                };
+          // Set line properties
+          const simpleLineSymbol = {
+              type: "simple-line",
+              color: cpLineColor,
+              width: cpLineWidth
+          };
 
-                let textSymbol = {
-                    type: "text",  // autocasts as new TextSymbol()
-                    color: cpLabelColor,
-                    //haloColor: "black",
-                    //haloSize: "1px",
-                    text: CPs[i],
-                    //xoffset: 3,
-                    //yoffset: -5,
-                    font: {  // autocasts as new Font()
-                        size: cpFontSize,
-                        //family: "Josefin Slab",
-                        weight: "bold"
-                    }
-                };
-
-                const simpleMarkerSymbol = {
-                    type: "simple-marker",
-                    color: [226, 119, 40],
-                    size: 12,
-                    style: "circle",
-                    outline: {
-                        width: 1,
-                        color: [255, 255, 255, 1]
-                    }
-                };
-
-                const n1PointGraphic = new Graphic({
-                    geometry: point,
-                    symbol: textSymbol,
-                });
-                n1GraphicsLayer_cpLabel.add(n1PointGraphic);
-            }
-        }
-        // Add Project label (N2)
-        let n1ProjectLableSymbol = {
-          type: "text",  // autocasts as new TextSymbol()
-          color: centerlineProjectColor.nscr_hex,
-          //backgroundColor: projectBackgroundColor,
-          text: "North-South Commuter Railway\n(Malolos-Tutuban)\n37km",
-          horizontalAlignment: "left",
-          //yoffset: -5,
-          font: {  // autocasts as new Font()
-              size: projectLabelFontSize,
-              //family: "Merriweather",
-              //style: "italic",
-              weight: "bold"
-          }
-        };
-        const j = 2;
-        const pointTextX_pLabel = points[j][0] + 0.08;
-        const pointTextY0_pLabel = points[j][1];
-        const pointTextY1_pLabel = points[j+1][1] + 0.05;
-        const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
-        console.log(pointTextX_pLabel + "; " + pointTextY_pLabel)
-        const projectPoint = {
-            type: "point",
-            longitude: pointTextX_pLabel,
-            latitude: pointTextY_pLabel
-        };
-
-          const n1ProjectLabelGraphic = new Graphic({
-            geometry: projectPoint,
-            symbol: n1ProjectLableSymbol
+          // Add to Graphic
+          const n1PolylineGraphic = new Graphic({
+              geometry: polyline,
+              symbol: simpleLineSymbol,
           });
+          n1GraphicsLayer_cpLabel.add(n1PolylineGraphic);
+      
+          // 2. Add text symbol
+          for(var i=0; i < points.length; i++){
+              if(i <= points.length-2){
+                  const pointTextX = CPs[i] == 'CP101' ? points[i][0] - 0.1 : points[i][0] - 0.03;
+                  const pointTextY0 = CPs[i] == 'CP101' ? points[i][1] : points[i][1];
+                  const pointTextY1 = CPs[i] == 'CP101' || CPs[i] == 'CP105' ? points[i+1][1] - 0.02 : points[i+1][1];
+                  const pointTextY = (pointTextY0 + pointTextY1) / 2;
 
-          n1GraphicsLayer.add(n1ProjectLabelGraphic);
-    });
+                  const point = {
+                      type: "point",
+                      longitude: pointTextX,
+                      latitude: pointTextY
+                  };
+
+                  let textSymbol = {
+                      type: "text",  // autocasts as new TextSymbol()
+                      color: cpLabelColor,
+                      //haloColor: "black",
+                      //haloSize: "1px",
+                      text: CPs[i],
+                      //xoffset: 3,
+                      //yoffset: -5,
+                      font: {  // autocasts as new Font()
+                          size: cpFontSize,
+                          //family: "Josefin Slab",
+                          weight: "bold"
+                      }
+                  };
+
+                  const simpleMarkerSymbol = {
+                      type: "simple-marker",
+                      color: [226, 119, 40],
+                      size: 12,
+                      style: "circle",
+                      outline: {
+                          width: 1,
+                          color: [255, 255, 255, 1]
+                      }
+                  };
+
+                  const n1PointGraphic = new Graphic({
+                      geometry: point,
+                      symbol: textSymbol,
+                  });
+                  n1GraphicsLayer_cpLabel.add(n1PointGraphic);
+              }
+          }
+          // Add Project label (N2)
+          let n1ProjectLableSymbol = {
+            type: "text",  // autocasts as new TextSymbol()
+            color: centerlineProjectColor.nscr_hex,
+            //backgroundColor: projectBackgroundColor,
+            text: "North-South Commuter Railway\n(Malolos-Tutuban)\n37km",
+            horizontalAlignment: "left",
+            //yoffset: -5,
+            font: {  // autocasts as new Font()
+                size: projectLabelFontSize,
+                //family: "Merriweather",
+                //style: "italic",
+                weight: "bold"
+            }
+          };
+          const j = 2;
+          const pointTextX_pLabel = points[j][0] + 0.15 + xoffset;
+          const pointTextY0_pLabel = points[j][1];
+          const pointTextY1_pLabel = points[j+1][1] + 0.05 + yoffset;
+          const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
+
+          const projectPoint = {
+              type: "point",
+              longitude: pointTextX_pLabel,
+              latitude: pointTextY_pLabel
+          };
+
+            const n1ProjectLabelGraphic = new Graphic({
+              geometry: projectPoint,
+              symbol: n1ProjectLableSymbol
+            });
+
+            n1GraphicsLayer.add(n1ProjectLabelGraphic);
+      });
+    }
+
+    // Initial
+    n1Graphics(0,0);
+    
+    // Move SC graphicsLayer position when Progress2 is clicked
+    xoffset_n1 = -0.09;
+    yoffset_n1 = 0;
+
+    function n1GraphicsLayerMove(xoffset_n1, yoffset_n1) {
+      //const xoffset = -0.1;
+      //const yoffset = 0;
+
+      n1GraphicsLayer_cpLabel.removeAll();
+      n1GraphicsLayer.removeAll();
+      n1Graphics(xoffset_n1, yoffset_n1);
+    }
+
+    // Return position of SC graphicsLayer to original state
+    function n1GraphicsLayerReturnToOriginal(){
+      const xoffset_0 = 0;
+      const yoffset_0 = 0;
+
+      n1GraphicsLayer_cpLabel.removeAll();
+      n1GraphicsLayer.removeAll();
+      n1Graphics(xoffset_0, yoffset_0);
+    }
+
 
 
     // MMSP
@@ -1584,146 +1611,174 @@ function zoomToLayer(layer) {
     mmspGraphicsLayer_cpLabel.listMode = 'hide';
     map.add(mmspGraphicsLayer_cpLabel);
 
-    var query = mmspStationLayer.createQuery();
-    query.orderByFields = ["Id"];
-    query.where = "Id >= 1";
+    function mmspGraphics(xoffset, yoffset) {
+      var query = mmspStationLayer.createQuery();
+      query.orderByFields = ["Id"];
+      query.where = "Id >= 1";
 
-    mmspStationLayer.queryFeatures(query).then(function(response) {
-      var stats = response.features;
-        const paths = [];
-        const points = [];
-        const CPs = [];
+      mmspStationLayer.queryFeatures(query).then(function(response) {
+        var stats = response.features;
+          const paths = [];
+          const points = [];
+          const CPs = [];
 
-        stats.forEach((result, index) => {
-            const attributes = result.attributes;
-            const cp = attributes.CPs;
-            CPs.push(cp);
+          stats.forEach((result, index) => {
+              const attributes = result.attributes;
+              const cp = attributes.CPs;
+              CPs.push(cp);
 
-            // Collect geometry of each break point
-            const pointX0 = result.geometry.longitude;
-            const pointY0 = result.geometry.latitude;
+              // Collect geometry of each break point
+              const pointX0 = result.geometry.longitude;
+              const pointY0 = result.geometry.latitude;
 
-            // Calculate end poins and store it in a path for line generation
-            const pointX1 = pointX0 + 0.04;
-            const path = [
-                [pointX0, pointY0],
-                [pointX1, pointY0]
-            ]
+              // Calculate end poins and store it in a path for line generation
+              const pointX1 = pointX0 + 0.04;
+              const path = [
+                  [pointX0, pointY0],
+                  [pointX1, pointY0]
+              ]
 
-            // Append each path to paths
-            paths.push(path);
+              // Append each path to paths
+              paths.push(path);
 
-            // Calculate a point for text symbol
-            const point = [pointX1, pointY0];
-            points.push(point);
-        });
-
-        // 1. Draw a horizontal line at break points of individual CPs
-        // Define polyline paths and type
-        const polyline = {
-            type: "polyline",
-            paths: paths
-        };
-
-        // Set line properties
-        const simpleLineSymbol = {
-            type: "simple-line",
-            color: cpLineColor,
-            width: cpLineWidth
-        };
-
-        // Add to Graphic
-        const mmspPolylineGraphic = new Graphic({
-            geometry: polyline,
-            symbol: simpleLineSymbol,
-        });
-      
-        mmspGraphicsLayer_cpLabel.add(mmspPolylineGraphic);
-        // 2. Add text symbol
-        for(var i=0; i < points.length; i++){
-            if(i <= points.length-2){
-                const pointTextX = points[i][0] + 0.01;
-                const pointTextY0 = points[i][1];
-                const pointTextY1 = points[i+1][1];
-                const pointTextY = (pointTextY0 + pointTextY1) / 2;
-
-                const point = {
-                    type: "point",
-                    longitude: pointTextX,
-                    latitude: pointTextY
-                };
-
-                let textSymbol = {
-                    type: "text",  // autocasts as new TextSymbol()
-                    color: cpLabelColor,
-                    //haloColor: "black",
-                    //haloSize: "1px",
-                    text: CPs[i],
-                    //xoffset: 3,
-                    //yoffset: -5,
-                    font: {  // autocasts as new Font()
-                        size: cpFontSize,
-                        //family: "Josefin Slab",
-                        weight: "bold"
-                    }
-                };
-
-                const simpleMarkerSymbol = {
-                    type: "simple-marker",
-                    color: [226, 119, 40],
-                    size: 12,
-                    style: "circle",
-                    outline: {
-                        width: 1,
-                        color: [255, 255, 255, 1]
-                    }
-                };
-
-                const mmspPointGraphic = new Graphic({
-                    geometry: point,
-                    symbol: textSymbol,
-                });
-                mmspGraphicsLayer_cpLabel.add(mmspPointGraphic);
-            }
-        }
-        // Add Project label (N2)
-        let mmspProjectLableSymbol = {
-          type: "text",  // autocasts as new TextSymbol()
-          color: centerlineProjectColor.mmsp_hex,
-          //backgroundColor: projectBackgroundColor,
-          //haloColor: "black",
-          //haloSize: "0.3px",
-          text: "Metro Manila Subway Project\n33km",
-          horizontalAlignment: "left",
-          //xoffset: 3,
-          //yoffset: -5,
-          font: {  // autocasts as new Font()
-            size: projectLabelFontSize,
-            //family: "Merriweather",
-            //style: "italic",
-            weight: "bold"
-          }
-        };
-        const j = 0;
-        const pointTextX_pLabel = points[j][0] + 0.038;
-        const pointTextY0_pLabel = points[j][1];
-        const pointTextY1_pLabel = points[j+1][1] - 0.01;
-        const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
-
-        const projectPoint = {
-            type: "point",
-            longitude: pointTextX_pLabel,
-            latitude: pointTextY_pLabel
-        };
-
-          const mmspProjectLabelGraphic = new Graphic({
-            geometry: projectPoint,
-            symbol: mmspProjectLableSymbol
+              // Calculate a point for text symbol
+              const point = [pointX1, pointY0];
+              points.push(point);
           });
 
-          mmspGraphicsLayer.add(mmspProjectLabelGraphic);
-    });
-    
+          // 1. Draw a horizontal line at break points of individual CPs
+          // Define polyline paths and type
+          const polyline = {
+              type: "polyline",
+              paths: paths
+          };
+
+          // Set line properties
+          const simpleLineSymbol = {
+              type: "simple-line",
+              color: cpLineColor,
+              width: cpLineWidth
+          };
+
+          // Add to Graphic
+          const mmspPolylineGraphic = new Graphic({
+              geometry: polyline,
+              symbol: simpleLineSymbol,
+          });
+        
+          mmspGraphicsLayer_cpLabel.add(mmspPolylineGraphic);
+          // 2. Add text symbol
+          for(var i=0; i < points.length; i++){
+              if(i <= points.length-2){
+                  const pointTextX = points[i][0] + 0.01;
+                  const pointTextY0 = points[i][1];
+                  const pointTextY1 = points[i+1][1];
+                  const pointTextY = (pointTextY0 + pointTextY1) / 2;
+
+                  const point = {
+                      type: "point",
+                      longitude: pointTextX,
+                      latitude: pointTextY
+                  };
+
+                  let textSymbol = {
+                      type: "text",  // autocasts as new TextSymbol()
+                      color: cpLabelColor,
+                      //haloColor: "black",
+                      //haloSize: "1px",
+                      text: CPs[i],
+                      //xoffset: 3,
+                      //yoffset: -5,
+                      font: {  // autocasts as new Font()
+                          size: cpFontSize,
+                          //family: "Josefin Slab",
+                          weight: "bold"
+                      }
+                  };
+
+                  const simpleMarkerSymbol = {
+                      type: "simple-marker",
+                      color: [226, 119, 40],
+                      size: 12,
+                      style: "circle",
+                      outline: {
+                          width: 1,
+                          color: [255, 255, 255, 1]
+                      }
+                  };
+
+                  const mmspPointGraphic = new Graphic({
+                      geometry: point,
+                      symbol: textSymbol,
+                  });
+                  mmspGraphicsLayer_cpLabel.add(mmspPointGraphic);
+              }
+          }
+          // Add Project label (N2)
+          let mmspProjectLableSymbol = {
+            type: "text",  // autocasts as new TextSymbol()
+            color: centerlineProjectColor.mmsp_hex,
+            //backgroundColor: projectBackgroundColor,
+            //haloColor: "black",
+            //haloSize: "0.3px",
+            text: "Metro Manila Subway Project\n33km",
+            horizontalAlignment: "left",
+            //xoffset: 3,
+            //yoffset: -5,
+            font: {  // autocasts as new Font()
+              size: projectLabelFontSize,
+              //family: "Merriweather",
+              //style: "italic",
+              weight: "bold"
+            }
+          };
+          const j = 0;
+          const pointTextX_pLabel = points[j][0] + 0.038 + xoffset;
+          const pointTextY0_pLabel = points[j][1];
+          const pointTextY1_pLabel = points[j+1][1] - 0.01 + yoffset;
+          const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
+
+          const projectPoint = {
+              type: "point",
+              longitude: pointTextX_pLabel,
+              latitude: pointTextY_pLabel
+          };
+
+            const mmspProjectLabelGraphic = new Graphic({
+              geometry: projectPoint,
+              symbol: mmspProjectLableSymbol
+            });
+
+            mmspGraphicsLayer.add(mmspProjectLabelGraphic);
+      });
+    }
+
+  // Initial
+  mmspGraphics(0,0);
+  
+  // Move SC graphicsLayer position when Progress2 is clicked
+  xoffset_mmsp = 0;
+  yoffset_mmsp = 0.05;
+
+  function mmspGraphicsLayerMove(xoffset_mmsp, yoffset_mmsp) {
+    //const xoffset = -0.1;
+    //const yoffset = 0;
+
+    mmspGraphicsLayer_cpLabel.removeAll();
+    mmspGraphicsLayer.removeAll();
+    mmspGraphics(xoffset_mmsp, yoffset_mmsp);
+  }
+
+  // Return position of SC graphicsLayer to original state
+  function mmspGraphicsLayerReturnToOriginal(){
+    const xoffset_0 = 0;
+    const yoffset_0 = 0;
+
+    mmspGraphicsLayer_cpLabel.removeAll();
+    mmspGraphicsLayer.removeAll();
+    mmspGraphics(xoffset_0, yoffset_0);
+  }
+
 
     // N2
     const n2GraphicsLayer = new GraphicsLayer();
@@ -1861,9 +1916,9 @@ function zoomToLayer(layer) {
       };
 
       const j = 4;
-      const pointTextX_pLabel = points[j][0] - 0.17 + xoffset;
+      const pointTextX_pLabel = points[j][0] + 0.2 + xoffset; //- 0.17 + xoffset
       const pointTextY0_pLabel = points[j][1];
-      const pointTextY1_pLabel = points[j+1][1] + 0.25 + yoffset;
+      const pointTextY1_pLabel = points[j+1][1] + 0.28 + yoffset; //0.25 + yoffset
       const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
 
       const projectPoint = {
@@ -1884,13 +1939,16 @@ function zoomToLayer(layer) {
   n2Graphics(0,0);
   
   // Move SC graphicsLayer position when Progress2 is clicked
-  function n2GraphicsLayerMove(xoffset, yoffset) {
+  xoffset_n2 = -0.1;
+  yoffset_n2 = 0.35;
+
+  function n2GraphicsLayerMove(xoffset_n2, yoffset_n2) {
     //const xoffset = -0.1;
     //const yoffset = 0;
 
     n2GraphicsLayer_cpLabel.removeAll();
     n2GraphicsLayer.removeAll();
-    n2Graphics(xoffset, yoffset);
+    n2Graphics(xoffset_n2, yoffset_n2);
   }
 
   // Return position of SC graphicsLayer to original state
@@ -2042,8 +2100,8 @@ function zoomToLayer(layer) {
           };
           const j = 5;
           //console.log("SC label: " + points);
-          const pointTextX_pLabel = points[j][0] + 0.39 + xoffset;
-          const pointTextY0_pLabel = points[j][1] - 0.15 + yoffset;
+          const pointTextX_pLabel = points[j][0] + 0.60 + xoffset;
+          const pointTextY0_pLabel = points[j][1] - 0.65 + yoffset;
           const pointTextY1_pLabel = points[j+1][1];
           const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
 
@@ -2065,13 +2123,16 @@ function zoomToLayer(layer) {
   scGraphics(0,0);
   
   // Move SC graphicsLayer position when Progress2 is clicked
-  function scGraphicsLayerMove(xoffset, yoffset) {
+  xoffset_sc = -0.3;
+  yoffset_sc = 1.1;
+
+  function scGraphicsLayerMove(xoffset_sc, yoffset_sc) {
     //const xoffset = -0.1;
     //const yoffset = 0;
 
     scGraphicsLayer_cpLabel.removeAll();
     scGraphicsLayer.removeAll();
-    scGraphics(xoffset, yoffset);
+    scGraphics(xoffset_sc, yoffset_sc);
   }
 
   // Return position of SC graphicsLayer to original state
@@ -2231,22 +2292,38 @@ function zoomToLayer(layer) {
         alignmentRenderer();
         homeExtentRenderer();
 
-        // SC label position
+        // label position
+        n1GraphicsLayerReturnToOriginal();
         scGraphicsLayerReturnToOriginal();
+        mmspGraphicsLayerReturnToOriginal();
+
+        document.getElementById("train-Operation-schedule").style.display = 'block';
 
       } else if (value === 'Progress') {
         progressRenderer();
         homeExtentRenderer();
         document.getElementById("All").checked = true;
 
-        // SC label position
+        document.getElementById("train-Operation-schedule").style.display = 'none';
+
+        // label position
+        n1GraphicsLayerReturnToOriginal();
         scGraphicsLayerReturnToOriginal();
+        mmspGraphicsLayerReturnToOriginal();
 
       } else if (value === 'Progress2') {
-        scGraphicsLayerMove(-0.1, 0);
+        const xoffset_sn2 = -0.30;
+        const yoffset_n2 = 0.1;
+        const xoffset_sc = -0.30;
+        const yoffset_sc = 0.5;
+        n2GraphicsLayerMove(xoffset_n2, yoffset_n2);
+        scGraphicsLayerMove(xoffset_sc, yoffset_sc);
+        mmspGraphicsLayerMove(xoffset_mmsp, yoffset_mmsp);
 
         progress2Renderer();
+
         document.getElementById("All").checked = true;
+        document.getElementById("train-Operation-schedule").style.display = 'none';
 
       }
 
@@ -2279,6 +2356,7 @@ function zoomToLayer(layer) {
         n1CenterlineLayer.visible = true;
 
         zoomToLayer(n1StationLayer);
+        n1GraphicsLayerMove(xoffset_n1, yoffset_n1);
 
       } else if (value === 'MMSP') {
         view.rotation = 360;
@@ -2309,6 +2387,7 @@ function zoomToLayer(layer) {
 
         zoomToLayer(mmspStationLayer);
         trainOperationSchedulePositionOthers();
+        mmspGraphicsLayerMove(xoffset_mmsp, yoffset_mmsp);
 
       } else if (value === 'N2') {
 
@@ -2339,7 +2418,7 @@ function zoomToLayer(layer) {
         n1CenterlineLayer.visible = false;
 
         zoomToLayer(n2CenterlineLayer);
-        n2GraphicsLayerMove(0.3, 0.35);
+        n2GraphicsLayerMove(xoffset_n2, yoffset_n2);
         trainOperationSchedulePositionOthers();
 
       } else if (value === 'SC') {
@@ -2369,11 +2448,13 @@ function zoomToLayer(layer) {
         n1GraphicsLayer_cpLabel.visible = false;
 
         zoomToLayer(scStationLayer);
-        scGraphicsLayerMove(-0.1, 0.5);
+        scGraphicsLayerMove(xoffset_sc, yoffset_sc);
         trainOperationSchedulePositionOthers();
 
       } else if (value === 'All') {
         homeExtentRenderer();
+        n1GraphicsLayerReturnToOriginal();
+        mmspGraphicsLayerReturnToOriginal();
         scGraphicsLayerReturnToOriginal();
         n2GraphicsLayerReturnToOriginal();
 
