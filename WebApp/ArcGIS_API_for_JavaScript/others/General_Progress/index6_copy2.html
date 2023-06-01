@@ -204,6 +204,7 @@
                 <calcite-segmented-control id="DisplayType" width="full">
                   <calcite-segmented-control-item id="Alignment" value="alignment" checked>Alignment</calcite-segmented-control-item>
                   <calcite-segmented-control-item id="Progress" value="progress">Progress</calcite-segmented-control-item>
+                  <calcite-segmented-control-item id="Progress2" value="progress2">Progress2</calcite-segmented-control-item>
                 </calcite-segmented-control>
             </calcite-label>
             <calcite-label>
@@ -1650,12 +1651,10 @@ function disableZooming(overView) {
     // Initial
     n1Graphics(0,0);
     
-    function n1GraphicsLayerMove() {
-      //const xoffset = -0.1;
-      //const yoffset = 0;
-      const xoffset_n1 = -0.09;
-      const yoffset_n1 = 0;
+    const xoffset_n1 = -0.09;
+    const yoffset_n1 = 0;
 
+    function n1GraphicsLayerMove(xoffset_n1, yoffset_n1) {
       n1GraphicsLayer_cpLabel.removeAll();
       n1GraphicsLayer.removeAll();
 
@@ -2332,7 +2331,7 @@ function disableZooming(overView) {
     const displayType = document.getElementById("DisplayType");
   const projectType = document.getElementById("Project");
 
-  displayType.addEventListener("calciteSegmentedControlChange", async (event) => { sector = event.target.value, filterItems() });
+  displayType.addEventListener("calciteSegmentedControlChange", async (event) => { type = event.target.value, filterItems() });
   projectType.addEventListener("calciteSegmentedControlChange", async (event) => { proj = event.target.value, filterItems() });
 
   const typeDefault = "alignment";
@@ -2367,7 +2366,7 @@ function disableZooming(overView) {
         mmspCenterlineLayer.visible = false;
         n1CenterlineLayer.visible = true;
 
-        n1GraphicsLayerMove();
+        n1GraphicsLayerMove(xoffset_n1, yoffset_n1);
         zoomToLayer(n1StationLayer);
 
       } else if (proj === 'mmsp') {
@@ -2532,9 +2531,7 @@ function disableZooming(overView) {
         legend_construction_sc.visible = false;
 
         zoomToLayer(n1StationLayer);
-
-        n1GraphicsLayerMove();
-        
+        n1GraphicsLayerMove(xoffset_n1, yoffset_n1);
 
       } else if (proj === 'mmsp') {
         view.rotation = 360;
@@ -2685,13 +2682,68 @@ function disableZooming(overView) {
       }
     }
 
+    function progress2Renderer() {
+      stationLabeFontSizeForProgress2();
+
+      view.rotation = 320;
+      view.center = [120.900000, 14.7332299];
+      view.scale = 282400;
+      labelStation.labelPlacement = "above-right";
+      labelStationSC.labelPlacement = "above-right";
+      n1LabelStation.labelPlacement = "above-right";
+
+      n2StationLayer.visible = true;
+      scStationLayer.visible = true;
+      mmspStationLayer.visible = false;
+      n1StationLayer.visible = true;
+
+      n2BreakPointsCP.visible = true;
+      scBreakPointsCP.visible = true;
+      n1BreakPointsCP.visible = true;
+
+      n2GraphicsLayer.visible = true;
+      scGraphicsLayer.visible = true;
+      mmspGraphicsLayer.visible = false;
+      n1GraphicsLayer.visible = true;
+
+      n2GraphicsLayer_cpLabel.visible = false;
+      scGraphicsLayer_cpLabel.visible = false;
+      mmspGraphicsLayer_cpLabel.visible = false;
+      n1GraphicsLayer_cpLabel.visible = false;
+
+      n2CenterlineLayer.visible = false;
+      scCenterlineLayer.visible = false;
+      mmspCenterlineLayer.visible = false;
+      n1CenterlineLayer.visible = false;
+
+      n1CenterlineConstruction.visible = true;
+      n2CenterlineConstruction.visible = true;
+      scCenterlineConstruction.visible = true;
+
+      legend_construction_n1.visible = false;
+      //legend_construction_mmsp.visible = false;
+      legend_construction_n2.visible = true;
+      legend_construction_sc.visible = false;
+
+      n1GraphicsLayerMove(-0.05, 0.10);
+      n2GraphicsLayerMove(-0.20, 0.15);
+      scGraphicsLayerMove(-0.15, 0.4)
+
+      constructionProgressLegendOn();
+
+      //projectType.value = "all";
+    }
 
   function filterItems() {
     const activeSegmentedControlItem_sector = document.querySelector(`calcite-segmented-control-item[value=${typeDefault}]`);
     const activeSegmentedControlItem_project = document.querySelector(`calcite-segmented-control-item[value=${projectDefault}]`);
-
+    const activeSegmentedControlItem_progress2 = document.querySelector(`calcite-segmented-control-item[value="progress2"]`);
+    
     // Select by Sector:
-    if(activeSegmentedControlItem_sector.checked === true) {
+    if (activeSegmentedControlItem_progress2.checked === true) {
+      progress2Renderer();
+
+    } else if(activeSegmentedControlItem_sector.checked === true) {
       // Order matters: make sure to run 'alignmentRenderer' first
       // then 'alignmentFilter' function. Otherwise, view orientation will not return to 360 degrees.
       alignmentRenderer();
@@ -2704,7 +2756,6 @@ function disableZooming(overView) {
 
     } else if (activeSegmentedControlItem_sector.checked === false) {
       progressRenderer();
-      
       constructionProgressLegendOn();
 
       // Filter
