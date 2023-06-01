@@ -24,7 +24,7 @@
     #overviewDiv {
       position: fixed;
       z-index: 1;
-      top: 120px;
+      top: 200px;
       width: 170px;
       height: 170px;
       border: 1px solid black;
@@ -199,17 +199,24 @@
           target="_blank">
         </calcite-button>
           <calcite-card id="information"> <!-- original was <calcite-card hidden>-->
-            <span id="cardTitle" slot="title">Select Railway Sector to zoom in
-            </span>
-            <div id="Project" class="selectionClass">
-              <calcite-segmented-control>
-                <calcite-segmented-control-item id="All" value="all" checked>All</calcite-segmented-control-item>
-                <calcite-segmented-control-item id="N1" value="n1">NSCR</calcite-segmented-control-item>
-                <calcite-segmented-control-item id="MMSP" value="mmsp">MMSP</calcite-segmented-control-item>
-                <calcite-segmented-control-item id="N2" value="mcrp">MCRP</calcite-segmented-control-item>
-                <calcite-segmented-control-item id="SC" value="nsrp">NSRP</calcite-segmented-control-item>
-              </calcite-segmented-control>
-            </div>
+            <calcite-label>
+              Display Type
+                <calcite-segmented-control id="DisplayType" width="full">
+                  <calcite-segmented-control-item id="Alignment" value="alignment" checked>Alignment</calcite-segmented-control-item>
+                  <calcite-segmented-control-item id="Progress" value="progress">Progress</calcite-segmented-control-item>
+                  <calcite-segmented-control-item id="Progress2" value="progress2">Progress2</calcite-segmented-control-item>
+                </calcite-segmented-control>
+            </calcite-label>
+            <calcite-label>
+              Project
+                <calcite-segmented-control id="Project">
+                  <calcite-segmented-control-item id="All" value="all" checked>All</calcite-segmented-control-item>
+                  <calcite-segmented-control-item id="N1" value="n1">NSCR</calcite-segmented-control-item>
+                  <calcite-segmented-control-item id="MMSP" value="mmsp">MMSP</calcite-segmented-control-item>
+                  <calcite-segmented-control-item id="N2" value="mcrp">MCRP</calcite-segmented-control-item>
+                  <calcite-segmented-control-item id="SC" value="nsrp">NSRP</calcite-segmented-control-item>
+                </calcite-segmented-control>
+            </calcite-label>
           </calcite-card>
         <!-- Title -->
         <!-- Check out this: https://developers.arcgis.com/calcite-design-system/components/button/ -->
@@ -229,15 +236,6 @@
         -->
       <img id="train-Operation-schedule" src="https://EijiGorilla.github.io/Symbols/Gallery/Train_Operation_2.png"> 
       </div>
-      <calcite-card id="alingment-progress-switch"> <!-- original was <calcite-card hidden>-->
-        <div id="progress-switch-project" class="selectionClass"> <!--"progress-switch-project"-->
-          <calcite-segmented-control>
-            <calcite-segmented-control-item id="Alignment" value="alignment" checked>Alignment</calcite-segmented-control-item>
-            <calcite-segmented-control-item id="Progress" value="progress">Progress</calcite-segmented-control-item>
-            <calcite-segmented-control-item id="Progress2" value="progress2">Progress2</calcite-segmented-control-item>
-          </calcite-segmented-control>
-        </div>
-      </calcite-card>
     </calcite-shell>
   </body>
   <script>
@@ -509,7 +507,7 @@ function disableZooming(overView) {
     // Color based on project
     const centerlineProjectColor = {
       nscr_hex: "#ff5f22",
-      mmsp_hex: "#0000ff",
+      mmsp_hex: "#00b7ff", //"#0000ff"
       nscrex_hex: "#ff5f22",//"#00b3ff","#00B0F0", "#15C2FF"
     }
 
@@ -593,6 +591,87 @@ function disableZooming(overView) {
       } 
     }
 
+    // Construction Progress symbol
+    const construction_lineWidth = "5px";
+    const lineSymbol_construction = {
+      type: "unique-value",  // autocasts as new SimpleLineSymbol(),
+      field: "construcStat",
+      legendOptions: {
+        title: "Construction Status"
+      },
+      uniqueValueInfos: [
+        {
+          value: "To Be Constructed",
+          label: "To be Constructed",
+          symbol: {
+            type: "simple-line",
+            color: "#f2f7f5",
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+        {
+          value: "On-going",
+          label: "Under Construction",
+          symbol: {
+            type: "simple-line",
+            color: "#d9dc00",
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+        {
+          value: "Completed",
+          label: "Completed",
+          symbol: {
+            type: "simple-line",
+            color: "#ff0000",
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+      ]
+    };
+
+    const lineSymbol_construction_nscr = {
+      type: "unique-value",  // autocasts as new SimpleLineSymbol(),
+      field: "ConstrucStat",
+      legendOptions: {
+        title: "Construction Status"
+      },
+      uniqueValueInfos: [
+        {
+          value: "To Be Constructed",
+          label: "To be Constructed",
+          symbol: {
+            type: "simple-line",
+            color: "#f2f7f5",
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+        {
+          value: "On-going",
+          label: "Under Construction",
+          symbol: {
+            type: "simple-line",
+            color: "#d9dc00",
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+        {
+          value: "Completed",
+          label: "Completed",
+          symbol: {
+            type: "simple-line",
+            color: "#ff0000",
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+      ]
+    };
     // Centerline
     // NSCR
     var n1CenterlineLayer = new FeatureLayer({
@@ -602,13 +681,39 @@ function disableZooming(overView) {
                 url: "https://gis.railway-sector.com/portal"
             }
         },
-        layerId: 77,
+        layerId: 4,
         title: "NSCR Centerline",
         renderer: lineSymbol_nscr,
         outFields: ["*"],
         popupEnabled: false,
   });
   map.add(n1CenterlineLayer);
+
+  var n1CenterlineConstruction = new FeatureLayer({
+      portalItem: {
+            id: "7d9a8e1f56604535a62992999edb8f6b",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        layerId: 3,
+        popupEnabled: false,
+        renderer: lineSymbol_construction,
+        outFields: ["*"]
+    });
+    map.add(n1CenterlineConstruction, 0);
+ 
+  var legend_construction_n1 = new Legend({
+      view,
+      container: "construction-legend",
+      layerInfos: [
+        {
+          layer: n1CenterlineConstruction,
+          title: ""
+        }
+      ]
+    });
+    view.ui.add(legend_construction_n1, "bottom-left");
 
   var n1CenterlineOverView = new FeatureLayer({
       portalItem: {
@@ -617,7 +722,7 @@ function disableZooming(overView) {
                 url: "https://gis.railway-sector.com/portal"
             }
         },
-        layerId: 77,
+        layerId: 4,
         renderer: lineSymbolOverview_nscr,
         labelingInfo: false,
         popupEnabled: false,
@@ -632,7 +737,7 @@ function disableZooming(overView) {
             }
         },
         title: "N1 Break Points",
-        layerId: 79,
+        layerId: 2,
         definitionExpression: "Id >= 1",
         outFields: ["*"],
         popupEnabled: false,
@@ -655,6 +760,20 @@ function disableZooming(overView) {
         popupEnabled: false,
     });
     map.add(mmspCenterlineLayer);
+
+      /*
+  var legend_construction_mmsp = new Legend({
+      view,
+      container: "construction-legend",
+      layerInfos: [
+        {
+          layer: mmspCenterlineConstruction,
+          title: ""
+        }
+      ]
+    });
+    view.ui.add(legend_construction_mmsp, "bottom-left");
+    */
 
     var mmspCenterlineOverView = new FeatureLayer({
       portalItem: {
@@ -763,7 +882,9 @@ function disableZooming(overView) {
 
     // Station point feature
     const minScale = 577790;
+    const minScale_stNumber = minScale + 1000;
     const maxScale = 0;
+    const maxScale_stNumber = 288896;
     const opacity = 1;
     const pointSize = "10px";
     const pointColor = "white";
@@ -825,7 +946,7 @@ function disableZooming(overView) {
       }
     };
 
-    var labelStation = new LabelClass({
+    var n2LabelStation = new LabelClass({
         symbol: {
             type: "text",
             color: centerlineProjectColor.nscrex_hex,
@@ -844,6 +965,27 @@ function disableZooming(overView) {
         maxScale: maxScale,
     });
 
+    var n2LabelStation_number = new LabelClass({
+      symbol: {
+        type: "text",
+        color: centerlineProjectColor.nscr_hex,
+        haloColor: "black",
+        haloSize: 0.1,
+        font: {
+          size: labelStation_fontSize,
+          //weight: "bold"
+        }
+      },
+        deconflictionStrategy: "none", // show overlapping numbers
+        labelPlacement: "below-left",
+        labelExpressionInfo: {
+          expression: "$feature.station_number"
+        },
+        minScale: minScale_stNumber,
+        maxScale: maxScale_stNumber, //288896
+    });
+
+
     var n2StationLayer = new FeatureLayer({
         portalItem: {
             id: "590680d19f2e48fdbd8bcddce3aaedb5",
@@ -857,7 +999,7 @@ function disableZooming(overView) {
         popupEnabled: false,
         definitionExpression: "Station <> 'NCC'",
         renderer: stationPointSymbol_n2,
-        labelingInfo: [labelStation],
+        labelingInfo: [n2LabelStation_number, n2LabelStation],
         opacity: opacity
     });
     n2StationLayer.listMode = "hide";
@@ -866,47 +1008,6 @@ function disableZooming(overView) {
     // Construction Status using centerline
     // field name: 'Construction Status'
     // 'To Be Constructed', 'On-going', 'Completed'
-    const construction_lineWidth = "5px";
-    const lineSymbol_construction = {
-      type: "unique-value",  // autocasts as new SimpleLineSymbol(),
-      field: "construcStat",
-      legendOptions: {
-        title: "Construction Status"
-      },
-      uniqueValueInfos: [
-        {
-          value: "To Be Constructed",
-          label: "To be Constructed",
-          symbol: {
-            type: "simple-line",
-            color: "#ffffff",
-            width: construction_lineWidth,
-            style: "solid"
-          }
-        },
-        {
-          value: "On-going",
-          label: "Under Construction",
-          symbol: {
-            type: "simple-line",
-            color: "#e8ff00",
-            width: construction_lineWidth,
-            style: "solid"
-          }
-        },
-        {
-          value: "Completed",
-          label: "Completed",
-          symbol: {
-            type: "simple-line",
-            color: "#ff0000",
-            width: construction_lineWidth,
-            style: "solid"
-          }
-        },
-      ]
-    };
-
     var n2CenterlineConstruction = new FeatureLayer({
       portalItem: {
             id: "17eb4236364d482ca4c31f44b05f1d9a",
@@ -921,7 +1022,7 @@ function disableZooming(overView) {
     });
     map.add(n2CenterlineConstruction, 0);
 
-    var legend_construction = new Legend({
+    var legend_construction_n2 = new Legend({
       view,
       container: "construction-legend",
       layerInfos: [
@@ -931,10 +1032,10 @@ function disableZooming(overView) {
         }
       ]
     });
-    view.ui.add(legend_construction, "bottom-left");
+    view.ui.add(legend_construction_n2, "bottom-left");
 
     // SC Station point layer
-    var labelStationSC = new LabelClass({
+    var scLabelStation = new LabelClass({
         symbol: {
             type: "text",
             color: centerlineProjectColor.nscrex_hex,
@@ -953,6 +1054,26 @@ function disableZooming(overView) {
         maxScale: maxScale,
     });
 
+    var scLabelStation_number = new LabelClass({
+      symbol: {
+        type: "text",
+        color: centerlineProjectColor.nscr_hex,
+        haloColor: "black",
+        haloSize: 0.1,
+        font: {
+          size: labelStation_fontSize,
+          //weight: "bold"
+        }
+      },
+        deconflictionStrategy: "none", // show overlapping numbers
+        labelPlacement: "below-left",
+        labelExpressionInfo: {
+          expression: "\n$feature.station_number"
+        },
+        minScale: minScale_stNumber,
+        maxScale: maxScale_stNumber, //288896
+    });
+
     var scStationLayer = new FeatureLayer({
         portalItem: {
             id: "d3926383cf3548569372216edb808996",
@@ -964,7 +1085,7 @@ function disableZooming(overView) {
         title: "SC Station",
         outFields: ["*"],
         popupEnabled: false,
-        labelingInfo: [labelStationSC],
+        labelingInfo: [scLabelStation_number, scLabelStation],
         renderer: stationPointSymbol_sc,
         opacity: opacity
     });
@@ -989,8 +1110,8 @@ function disableZooming(overView) {
     });
     map.add(scCenterlineConstruction, 0);
 
-    /*
-    var legend_construction = new Legend({
+
+    var legend_construction_sc = new Legend({
       view,
       container: "construction-legend",
       layerInfos: [
@@ -1000,8 +1121,8 @@ function disableZooming(overView) {
         }
       ]
     });
-    view.ui.add(legend_construction, "bottom-left");
-*/
+    view.ui.add(legend_construction_sc, "bottom-left");
+
 
     // MMSP Station point layer
     var mmspLabelStation = new LabelClass({
@@ -1062,6 +1183,26 @@ function disableZooming(overView) {
         maxScale: maxScale,
     });
 
+    var n1LabelStation_number = new LabelClass({
+      symbol: {
+        type: "text",
+        color: centerlineProjectColor.nscr_hex,
+        haloColor: "black",
+        haloSize: 0.1,
+        font: {
+          size: labelStation_fontSize,
+          //weight: "bold"
+        }
+      },
+      deconflictionStrategy: "none", // show overlapping numbers
+        labelPlacement: "below-left",
+        labelExpressionInfo: {
+          expression: "$feature.station_number + TextFormatting.NewLine"
+        },
+        minScale: minScale_stNumber,
+        maxScale: maxScale_stNumber, //288896
+    });
+
     var n1StationLayer = new FeatureLayer({
       portalItem: {
             id: "7d9a8e1f56604535a62992999edb8f6b",
@@ -1069,11 +1210,11 @@ function disableZooming(overView) {
                 url: "https://gis.railway-sector.com/portal"
             }
         },
-        layerId: 78,
+        layerId: 1,
         title: "MMSP Station",
         outFields: ["*"],
         popupEnabled: false,
-        labelingInfo: [n1LabelStation],
+        labelingInfo: [n1LabelStation_number, n1LabelStation],
         renderer: stationPointSymbol_n1,
         opacity: opacity
     });
@@ -1379,19 +1520,35 @@ function disableZooming(overView) {
     //----------------------------------------------------------------//
 
     /////////////////// END Of LAYER IMPORT ////////////////////////////
-// Zoom
-function zoomToLayer(layer) {
-  return layer.queryExtent().then(function(response) {
-    view.goTo(response.extent, { //response.extent
-      speedFactor: 2
-    }).catch(function(error) {
-      if (error.name != "AbortError") {
-        console.error(error);
-      }
+  // Zoom
+  function zoomToLayer(layer) {
+    return layer.queryExtent().then(function(response) {
+      view.goTo(response.extent, { //response.extent
+        speedFactor: 2
+      }).catch(function(error) {
+        if (error.name != "AbortError") {
+          console.error(error);
+        }
+      });
     });
-  });
-}    
-      //legend.hideLayersNotInCurrentView = true;
+  }
+
+  // Get a list of stations for each layer
+  function n1StationQuery() {
+    var query = n1StationLayer.createQuery();
+    query.outFields = ["*"];
+    query.returnGeometry = true;
+
+    n1StationLayer.queryFeatures(query).then(function(response){
+      var stats = response.features;
+      stats.forEach((item, index) => {
+        const test = item.attributes.station_number;
+        console.log(test);
+      });
+      
+    })
+  }
+  n1StationQuery();
 
     // Project list
     // Open general progress of pre-constructions
@@ -1574,17 +1731,15 @@ function zoomToLayer(layer) {
     // Initial
     n1Graphics(0,0);
     
-    // Move SC graphicsLayer position when Progress2 is clicked
-    xoffset_n1 = -0.09;
-    yoffset_n1 = 0;
+    const xoffset_n1 = -0.09;
+    const yoffset_n1 = 0;
 
     function n1GraphicsLayerMove(xoffset_n1, yoffset_n1) {
-      //const xoffset = -0.1;
-      //const yoffset = 0;
-
       n1GraphicsLayer_cpLabel.removeAll();
       n1GraphicsLayer.removeAll();
+
       n1Graphics(xoffset_n1, yoffset_n1);
+
     }
 
     // Return position of SC graphicsLayer to original state
@@ -1757,8 +1912,8 @@ function zoomToLayer(layer) {
   mmspGraphics(0,0);
   
   // Move SC graphicsLayer position when Progress2 is clicked
-  xoffset_mmsp = 0;
-  yoffset_mmsp = 0.05;
+  const xoffset_mmsp = 0;
+  const yoffset_mmsp = 0.05;
 
   function mmspGraphicsLayerMove(xoffset_mmsp, yoffset_mmsp) {
     //const xoffset = -0.1;
@@ -1939,8 +2094,8 @@ function zoomToLayer(layer) {
   n2Graphics(0,0);
   
   // Move SC graphicsLayer position when Progress2 is clicked
-  xoffset_n2 = -0.1;
-  yoffset_n2 = 0.35;
+  const xoffset_n2 = -0.1;
+  const yoffset_n2 = 0.35;
 
   function n2GraphicsLayerMove(xoffset_n2, yoffset_n2) {
     //const xoffset = -0.1;
@@ -2123,8 +2278,8 @@ function zoomToLayer(layer) {
   scGraphics(0,0);
   
   // Move SC graphicsLayer position when Progress2 is clicked
-  xoffset_sc = -0.2;
-  yoffset_sc = 0.92;
+  const xoffset_sc = -0.2;
+  const yoffset_sc = 0.92;
 
   function scGraphicsLayerMove(xoffset_sc, yoffset_sc) {
     //const xoffset = -0.1;
@@ -2153,6 +2308,22 @@ function zoomToLayer(layer) {
       view.rotation = home_rotation;
       view.scale = 577790.5542885;
       view.center = home_center;
+    }
+
+    function trainScheduleOn() {
+      document.getElementById("train-Operation-schedule").style.display = 'block';
+      legend_construction_n1.visible = false;
+      //legend_construction_mmsp.visible = false;
+      legend_construction_n2.visible = false;
+      legend_construction_sc.visible = false;
+    }
+
+    function constructionProgressLegendOn() {
+      document.getElementById("train-Operation-schedule").style.display = 'none';
+      legend_construction_n1.visible = false;
+      //legend_construction_mmsp.visible = false;
+      legend_construction_n2.visible = true;
+      legend_construction_sc.visible = false;
     }
 
     alignmentRenderer();
@@ -2184,12 +2355,11 @@ function zoomToLayer(layer) {
       mmspCenterlineLayer.visible = true;
       n1CenterlineLayer.visible = true;
 
+      n1CenterlineConstruction.visible = false;
       n2CenterlineConstruction.visible = false;
       scCenterlineConstruction.visible = false;
 
-      legend_construction.visible = false;
-      //document.getElementById("train-Operation-schedule").style.display = 'none';
-      document.getElementById("information").style.display = 'block';
+      trainScheduleOn();
     }
 
     function progressRenderer() {
@@ -2198,137 +2368,58 @@ function zoomToLayer(layer) {
       n2StationLayer.visible = true;
       scStationLayer.visible = true;
       mmspStationLayer.visible = false;
-      n1StationLayer.visible = false;
+      n1StationLayer.visible = true;
 
       n2BreakPointsCP.visible = true;
       scBreakPointsCP.visible = true;
-      n1BreakPointsCP.visible = false;
+      n1BreakPointsCP.visible = true;
 
       n2GraphicsLayer.visible = true;
       scGraphicsLayer.visible = true;
       mmspGraphicsLayer.visible = false;
-      n1GraphicsLayer.visible = false;
+      n1GraphicsLayer.visible = true;
 
       n2GraphicsLayer_cpLabel.visible = true;
       scGraphicsLayer_cpLabel.visible = true;
       mmspGraphicsLayer_cpLabel.visible = false;
-      n1GraphicsLayer_cpLabel.visible = false;
+      n1GraphicsLayer_cpLabel.visible = true;
 
       n2CenterlineLayer.visible = false;
       scCenterlineLayer.visible = false;
       mmspCenterlineLayer.visible = false;
       n1CenterlineLayer.visible = false;
 
+      n1CenterlineConstruction.visible = true;
       n2CenterlineConstruction.visible = true;
       scCenterlineConstruction.visible = true;
 
-      legend_construction.visible = true;
-      //document.getElementById("train-Operation-schedule").style.display = 'none';
-      document.getElementById("information").style.display = 'none';
+      constructionProgressLegendOn();
     }
 
     function stationLabeFontSizeForProgress2() {
-      labelStation.symbol.font.size = 11;
-      labelStationSC.symbol.font.fize = 11;
+      n2LabelStation.symbol.font.size = 11;
+      scLabelStation.symbol.font.fize = 11;
       n1LabelStation.symbol.font.size = 11;
     }
 
     function stationLabeFontSizeDefault() {
-      labelStation.symbol.font.size = 11.5;
-      labelStationSC.symbol.font.fize = 11.5;
+      n2LabelStation.symbol.font.size = 11.5;
+      scLabelStation.symbol.font.fize = 11.5;
       n1LabelStation.symbol.font.size = 11.5;
     }
 
-    function progress2Renderer() {
-      stationLabeFontSizeForProgress2();
+    const displayType = document.getElementById("DisplayType");
+  const projectType = document.getElementById("Project");
 
-      view.rotation = 320;
-      view.center = [120.900000, 14.7332299];
-      view.scale = 282400;
-      labelStation.labelPlacement = "above-right";
-      labelStationSC.labelPlacement = "above-right";
-      n1LabelStation.labelPlacement = "above-right";
+  displayType.addEventListener("calciteSegmentedControlChange", async (event) => { type = event.target.value, filterItems() });
+  projectType.addEventListener("calciteSegmentedControlChange", async (event) => { proj = event.target.value, filterItems() });
 
-      n2StationLayer.visible = true;
-      scStationLayer.visible = true;
-      mmspStationLayer.visible = false;
-      n1StationLayer.visible = false;
+  const typeDefault = "alignment";
+  const projectDefault = "all";
 
-      n2BreakPointsCP.visible = true;
-      scBreakPointsCP.visible = true;
-      n1BreakPointsCP.visible = false;
-
-      n2GraphicsLayer.visible = true;
-      scGraphicsLayer.visible = true;
-      mmspGraphicsLayer.visible = false;
-      n1GraphicsLayer.visible = false;
-
-      n2GraphicsLayer_cpLabel.visible = false;
-      scGraphicsLayer_cpLabel.visible = false;
-      mmspGraphicsLayer_cpLabel.visible = false;
-      n1GraphicsLayer_cpLabel.visible = false;
-
-      n2CenterlineLayer.visible = false;
-      scCenterlineLayer.visible = false;
-      mmspCenterlineLayer.visible = false;
-      n1CenterlineLayer.visible = false;
-
-      n2CenterlineConstruction.visible = true;
-      scCenterlineConstruction.visible = true;
-
-      legend_construction.visible = true;
-      //document.getElementById("train-Operation-schedule").style.display = 'none';
-      document.getElementById("information").style.display = 'none';
-    }
-
-    document.querySelectorAll('.selectionClass').forEach(item => {
-      item.addEventListener("click", changeProject);
-    });
-
-    function changeProject(event) {
-      const value = event.srcElement.id;
-      
-      if (value === 'Alignment') {
-        alignmentRenderer();
-        homeExtentRenderer();
-
-        // label position
-        n1GraphicsLayerReturnToOriginal();
-        scGraphicsLayerReturnToOriginal();
-        mmspGraphicsLayerReturnToOriginal();
-
-        document.getElementById("train-Operation-schedule").style.display = 'block';
-
-      } else if (value === 'Progress') {
-        progressRenderer();
-        homeExtentRenderer();
-        document.getElementById("All").checked = true;
-
-        document.getElementById("train-Operation-schedule").style.display = 'none';
-
-        // label position
-        n1GraphicsLayerReturnToOriginal();
-        scGraphicsLayerReturnToOriginal();
-        mmspGraphicsLayerReturnToOriginal();
-
-      } else if (value === 'Progress2') {
-        const xoffset_n2 = -0.20;
-        const yoffset_n2 = 0.15
-        const xoffset_sc = -0.2;
-        const yoffset_sc = 0.4;
-        n2GraphicsLayerMove(xoffset_n2, yoffset_n2);
-        scGraphicsLayerMove(xoffset_sc, yoffset_sc);
-        mmspGraphicsLayerMove(xoffset_mmsp, yoffset_mmsp);
-
-        progress2Renderer();
-
-        document.getElementById("All").checked = true;
-        document.getElementById("train-Operation-schedule").style.display = 'none';
-
-      }
-
-      if (value === 'N1') {
-
+    // Select Project for Alingment
+    function alignmentFilter() {
+      if (proj === 'n1') {
         view.rotation = 360;
 
         n2StationLayer.visible = false;
@@ -2355,10 +2446,10 @@ function zoomToLayer(layer) {
         mmspCenterlineLayer.visible = false;
         n1CenterlineLayer.visible = true;
 
-        zoomToLayer(n1StationLayer);
         n1GraphicsLayerMove(xoffset_n1, yoffset_n1);
+        zoomToLayer(n1StationLayer);
 
-      } else if (value === 'MMSP') {
+      } else if (proj === 'mmsp') {
         view.rotation = 360;
 
         n2StationLayer.visible = false;
@@ -2389,10 +2480,10 @@ function zoomToLayer(layer) {
         trainOperationSchedulePositionOthers();
         mmspGraphicsLayerMove(xoffset_mmsp, yoffset_mmsp);
 
-      } else if (value === 'N2') {
+      } else if (proj === 'mcrp') {
 
         view.rotation = 360;
-        labelStation.labelPlacement = "below-left";
+        n2LabelStation.labelPlacement = "below-left";
         n2StationLayer.visible = true;
         scStationLayer.visible = false;
         mmspStationLayer.visible = false;
@@ -2421,8 +2512,8 @@ function zoomToLayer(layer) {
         n2GraphicsLayerMove(xoffset_n2, yoffset_n2);
         trainOperationSchedulePositionOthers();
 
-      } else if (value === 'SC') {
-
+      } else if (proj === 'nsrp') {
+        view.rotation = 360;
         n2StationLayer.visible = false;
         scStationLayer.visible = true;
         mmspStationLayer.visible = false;
@@ -2451,7 +2542,7 @@ function zoomToLayer(layer) {
         scGraphicsLayerMove(xoffset_sc, yoffset_sc);
         trainOperationSchedulePositionOthers();
 
-      } else if (value === 'All') {
+      } else if (proj === 'all') {
         homeExtentRenderer();
         n1GraphicsLayerReturnToOriginal();
         mmspGraphicsLayerReturnToOriginal();
@@ -2462,7 +2553,7 @@ function zoomToLayer(layer) {
         //view.goTo({
         //  extent: fixedExtent
         //});
-        
+
           //fixedExtent
         n2StationLayer.visible = true;
         scStationLayer.visible = true;
@@ -2482,47 +2573,311 @@ function zoomToLayer(layer) {
         scGraphicsLayer.visible = true;
         mmspGraphicsLayer.visible = true;
         n1GraphicsLayer.visible = true;
-
       }
     }
 
+    // Select Project for Progress
+    function progressFilter() {
+      if (proj === 'n1') {
+        view.rotation = 360;
 
-    // Switch a map interface between Alignment and Progress
-    /*
-    document.getElementById("progress-switch-project").addEventListener("click", changeAlignmentProgress);
-    function changeAlignmentProgress(event) {
-      const value = event.srcElement.id;
-      console.log(value);
+        n2StationLayer.visible = false;
+        scStationLayer.visible = false;
+        mmspStationLayer.visible = false;
+        n1StationLayer.visible = true;
 
-      if (value === 'Alignment') {
-        alignmentRenderer();
+        n2BreakPointsCP.visible = false;
+        scBreakPointsCP.visible = false;
+        n1BreakPointsCP.visible = true;
+
+        n2GraphicsLayer.visible = false;
+        scGraphicsLayer.visible = false;
+        mmspGraphicsLayer.visible = false;
+        n1GraphicsLayer.visible = true;
+
+        n2GraphicsLayer_cpLabel.visible = false;
+        scGraphicsLayer_cpLabel.visible = false;
+        mmspGraphicsLayer_cpLabel.visible = false;
+        n1GraphicsLayer_cpLabel.visible = true;
+
+        n1CenterlineConstruction.visible = true;
+        //mmspCenterlineConstruction.visible = true;
+        n2CenterlineConstruction.visible = false;
+        scCenterlineConstruction.visible = false;
+
+        // Legend
+        legend_construction_n1.visible = true;
+        legend_construction_n2.visible = false;
+        legend_construction_sc.visible = false;
+
+        zoomToLayer(n1StationLayer);
+        n1GraphicsLayerMove(xoffset_n1, yoffset_n1);
+
+      } else if (proj === 'mmsp') {
+        view.rotation = 360;
+
+        n2StationLayer.visible = false;
+        scStationLayer.visible = false;
+        mmspStationLayer.visible = true;
+        n1StationLayer.visible = false;
+
+        n2BreakPointsCP.visible = false;
+        scBreakPointsCP.visible = false;
+        n1BreakPointsCP.visible = false;
+
+        n2GraphicsLayer.visible = false;
+        scGraphicsLayer.visible = false;
+        mmspGraphicsLayer.visible = true;
+        n1GraphicsLayer.visible = false;
+
+        n2GraphicsLayer_cpLabel.visible = false;
+        scGraphicsLayer_cpLabel.visible = false;
+        mmspGraphicsLayer_cpLabel.visible = true;
+        n1GraphicsLayer_cpLabel.visible = false;
+
+        n1CenterlineConstruction.visible = false;
+        //mmspCenterlineConstruction.visible = true;
+        n2CenterlineConstruction.visible = false;
+        scCenterlineConstruction.visible = false;
+
+        // Legend
+        legend_construction_n2.visible = false;
+        legend_construction_sc.visible = false;
+
+        zoomToLayer(mmspStationLayer);
+        trainOperationSchedulePositionOthers();
+        mmspGraphicsLayerMove(xoffset_mmsp, yoffset_mmsp);
+
+      } else if (proj === 'mcrp') {
+
+        view.rotation = 360;
+        n2LabelStation.labelPlacement = "below-left";
+        n2StationLayer.visible = true;
+        scStationLayer.visible = false;
+        mmspStationLayer.visible = false;
+        n1StationLayer.visible = false;
+
+        n2BreakPointsCP.visible = true;
+        scBreakPointsCP.visible = false;
+        n1BreakPointsCP.visible = false;
+
+        n2GraphicsLayer.visible = true;
+        scGraphicsLayer.visible = false;
+        mmspGraphicsLayer.visible = false;
+        n1GraphicsLayer.visible = false;
+
+        n2GraphicsLayer_cpLabel.visible = true;
+        scGraphicsLayer_cpLabel.visible = false;
+        mmspGraphicsLayer_cpLabel.visible = false;
+        n1GraphicsLayer_cpLabel.visible = false;
+
+        n1CenterlineConstruction.visible = false;
+        //mmspCenterlineConstruction.visible = false;
+        n2CenterlineConstruction.visible = true;
+        scCenterlineConstruction.visible = false;
+
+        // Lenged
+        legend_construction_n2.visible = true;
+        legend_construction_sc.visible = false;
+
+        zoomToLayer(n2CenterlineLayer);
+        n2GraphicsLayerMove(xoffset_n2, yoffset_n2);
+        trainOperationSchedulePositionOthers();
+
+      } else if (proj === 'nsrp') {
+        view.rotation = 360;
+        n2StationLayer.visible = false;
+        scStationLayer.visible = true;
+        mmspStationLayer.visible = false;
+        n1StationLayer.visible = false;
+
+        n2BreakPointsCP.visible = false;
+        scBreakPointsCP.visible = true;
+        n1BreakPointsCP.visible = false;
+
+        n1CenterlineConstruction.visible = false;
+        //mmspCenterlineConstruction.visible = false;
+        n2CenterlineConstruction.visible = false;
+        scCenterlineConstruction.visible = true;
+
+        n2GraphicsLayer.visible = false;
+        scGraphicsLayer.visible = true;
+        mmspGraphicsLayer.visible = false;
+        n1GraphicsLayer.visible = false;
+
+        n2GraphicsLayer_cpLabel.visible = false;
+        scGraphicsLayer_cpLabel.visible = true;
+        mmspGraphicsLayer_cpLabel.visible = false;
+        n1GraphicsLayer_cpLabel.visible = false;
+
+        // Lenged
+        legend_construction_n2.visible = false;
+        legend_construction_sc.visible = true;
+
+        zoomToLayer(scStationLayer);
+        scGraphicsLayerMove(xoffset_sc, yoffset_sc);
+        trainOperationSchedulePositionOthers();
+
+      } else if (proj === 'all') {
         homeExtentRenderer();
+        n1GraphicsLayerReturnToOriginal();
+        mmspGraphicsLayerReturnToOriginal();
+        scGraphicsLayerReturnToOriginal();
+        n2GraphicsLayerReturnToOriginal();
 
-      } else if (value === 'Progress') {
-        progressRenderer();
-        homeExtentRenderer();
+        trainOperationSchedulePositionOriginal();
+        //view.goTo({
+        //  extent: fixedExtent
+        //});
 
-      } else if (value === 'Progress2') {
-        progress2Renderer();
+          //fixedExtent
+        n2StationLayer.visible = true;
+        scStationLayer.visible = true;
+        mmspStationLayer.visible = true;
+        n1StationLayer.visible = true;
 
+        n2BreakPointsCP.visible = true;
+        scBreakPointsCP.visible = true;
+        n1BreakPointsCP.visible = true;
+
+        n2CenterlineLayer.visible = false;
+        scCenterlineLayer.visible = false;
+        mmspCenterlineLayer.visible = false;
+        n1CenterlineLayer.visible = false;
+
+        n1CenterlineConstruction.visible = true;
+        //mmspCenterlineConstruction.visible = false;
+        n2CenterlineConstruction.visible = true;
+        scCenterlineConstruction.visible = true;
+
+        n2GraphicsLayer.visible = true;
+        scGraphicsLayer.visible = true;
+        mmspGraphicsLayer.visible = true;
+        n1GraphicsLayer.visible = true;
+
+        // Lenged
+        legend_construction_n2.visible = false;
+        legend_construction_n2.visible = true;
+        legend_construction_sc.visible = false;
       }
     }
-*/
+
+    function progress2Renderer() {
+      stationLabeFontSizeForProgress2();
+
+      view.rotation = 320;
+      view.center = [120.900000, 14.7332299];
+      view.scale = 282400;
+      
+      n2LabelStation.labelPlacement = "above-right";
+      scLabelStation.labelPlacement = "above-right";
+      n1LabelStation.labelPlacement = "above-right";
+
+      n2StationLayer.visible = true;
+      scStationLayer.visible = true;
+      mmspStationLayer.visible = false;
+      n1StationLayer.visible = true;
+
+      n2BreakPointsCP.visible = true;
+      scBreakPointsCP.visible = true;
+      n1BreakPointsCP.visible = true;
+
+      n2GraphicsLayer.visible = true;
+      scGraphicsLayer.visible = true;
+      mmspGraphicsLayer.visible = false;
+      n1GraphicsLayer.visible = true;
+
+      n2GraphicsLayer_cpLabel.visible = false;
+      scGraphicsLayer_cpLabel.visible = false;
+      mmspGraphicsLayer_cpLabel.visible = false;
+      n1GraphicsLayer_cpLabel.visible = false;
+
+      n2CenterlineLayer.visible = false;
+      scCenterlineLayer.visible = false;
+      mmspCenterlineLayer.visible = false;
+      n1CenterlineLayer.visible = false;
+
+      n1CenterlineConstruction.visible = true;
+      n2CenterlineConstruction.visible = true;
+      scCenterlineConstruction.visible = true;
+
+      legend_construction_n1.visible = false;
+      //legend_construction_mmsp.visible = false;
+      legend_construction_n2.visible = true;
+      legend_construction_sc.visible = false;
+
+      n1GraphicsLayerMove(-0.05, 0.10);
+      n2GraphicsLayerMove(-0.20, 0.15);
+      scGraphicsLayerMove(-0.15, 0.4)
+
+      constructionProgressLegendOn();
+
+      //projectType.value = "all";
+    }
+
+  function filterItems() {
+    const activeSegmentedControlItem_sector = document.querySelector(`calcite-segmented-control-item[value=${typeDefault}]`);
+    const activeSegmentedControlItem_project = document.querySelector(`calcite-segmented-control-item[value=${projectDefault}]`);
+    const activeSegmentedControlItem_progress2 = document.querySelector(`calcite-segmented-control-item[value="progress2"]`);
+    
+    // Select by Sector:
+    if (activeSegmentedControlItem_progress2.checked === true) {
+      progress2Renderer();
+
+    } else if(activeSegmentedControlItem_sector.checked === true) {
+      // Order matters: make sure to run 'alignmentRenderer' first
+      // then 'alignmentFilter' function. Otherwise, view orientation will not return to 360 degrees.
+      alignmentRenderer();
+      homeExtentRenderer();
+
+      // Filter
+      alignmentFilter();
+      trainScheduleOn();
+
+    } else if (activeSegmentedControlItem_sector.checked === false) {
+      progressRenderer();
+      constructionProgressLegendOn();
+
+      // Filter
+      progressFilter();
+    
+    }
+  }
+
 
         ///////////////////////////////
 
     view.ui.add(document.querySelector("calcite-button"), "top-left");
     
-    view.ui.add(
-        new Expand({
-          view: view,
-          expanded: true,
-          content: document.getElementById("information")
-        }),
+    const segmentedItemsExpand = new Expand({
+      view: view,
+      expanded: true,
+      content: document.getElementById("information")
+    });
+
+    view.ui.add(segmentedItemsExpand,
         "top-right"
       );
 
+    //segmentedDateDiv.style.display = 'none';
+    const overviewDiv = document.getElementById("overviewDiv");
+
+    function overviewExtentPositionMove(){
+      overviewDiv.style.position='fixed';
+      overviewDiv.style.top='50px';
+    }
+
+    function overviewExtentPositionToOriginal(){
+      overviewDiv.style.position='fixed';
+      overviewDiv.style.top='200px';
+    }
+
+    reactiveUtils.when(() => segmentedItemsExpand?.expanded === false, () => overviewExtentPositionMove());
+    reactiveUtils.when(() => segmentedItemsExpand?.expanded === true, () => overviewExtentPositionToOriginal());
+
     view.ui.add("overviewDiv", "top-right");
+
+
     let compass = new Compass({
       view: view
     });
