@@ -361,22 +361,7 @@
           </label>
         </div>
 
-        <calcite-button
-        icon-end="launch"
-        id="time-series"
-        >
-        Monthly Progress Chart
-      </calcite-button>
-
         <!-- Train Animation -->
-        <div class="overlay">
-          <div>
-            <span id="play" class="button esri-icon-play" style="display: block;" />
-          </div>
-          <div>
-            <span id="pause" class="button esri-icon-pause" style="display: none;" />
-          </div>
-        </div>  
       </div>
       <div id="filterValuesDiv"></div>
       <!-- Icon Panel for Action -->
@@ -386,6 +371,8 @@
           <calcite-action data-action-id="layers" icon="layers" text="Layers"></calcite-action>
           <calcite-action data-action-id="basemaps" icon="basemap" text="Basemaps"></calcite-action>
           <calcite-action data-action-id="legend" icon="legend" text="Legend"></calcite-action>
+          <calcite-action data-action-id="charts" icon="graph-time-series" text="Progree Chart"></calcite-action>
+          <calcite-action data-action-id="animation" icon="play" text="Animation"></calcite-action>
           <calcite-action data-action-id="information" icon="information" text="Information"></calcite-action>
         </calcite-action-bar>
         
@@ -399,6 +386,11 @@
         <calcite-panel heading="Legend" height-scale="l" data-panel-id="legend" hidden>
           <div id="legend-container"></div>
         </calcite-panel>
+
+        <calcite-panel class="timeSeries-panel" height-scale="l" data-panel-id="charts" hidden></calcite-panel>
+
+        <calcite-panel class="animation-panel"  height-scale="l" data-panel-id="animation" hidden></calcite-panel>
+
         <!-- Info panel (populates with info from the web map) -->
         <calcite-panel heading="Description" data-panel-id="information" hidden>
           <div id="info-content">
@@ -510,12 +502,6 @@ require([
               SimpleMarkerSymbol, SimpleLineSymbol, Point, Polyline,
               externalRenderers, FeatureSet, Accessor, BasemapGallery) {
   
-  const timeseries = document.querySelector("calcite-button");
-  timeseries.addEventListener("click", function(event) {
-    const timeSeriesChart = document.getElementById("timeSeriesChart");
-    timeSeriesChart.hidden = !timeSeriesChart.hidden;
-  });
-
   let chartLayerView;
   //const features = [];
   const spatialReference = SpatialReference.WebMercator;
@@ -2255,25 +2241,6 @@ let tbmStatusRenderer = {
   
   var highlightSelect;
   
-    // Play animation widget
-    function playButtonDisplay() {
-      play.style.display = "block";
-      pause.style.display = "none";
-    }
-
-    function playButtonHide() {
-      play.style.display = "none";
-      pause.style.display = "none";
-    }
-
-    play.onclick = initialization;
-    pause.onclick = function() {
-      playButtonDisplay();
-      abort = true;
-      zoomToLayer(tbmShaft);
-    };
-
-    let abort = false;
     async function initialization() {
       //play.style.display = "none";
       //pause.style.display = "block";
@@ -3050,7 +3017,7 @@ function tbmChart() {
                                                                     <p>2. <b>Filter</b> by tunnel segment No.from the 2nd dropdown list if needed.</p>
                                                                     <p>3. <b>Toggle</b> 'See through ground' at the bottom right to view underground.</p>
                                                                   `;
-          
+          const timeSeriesChartDiv = document.getElementById("timeSeriesChart");
           let activeWidget;
           const handleActionBarClick = ({ target }) => {
             if (target.tagName !== "CALCITE-ACTION") {
@@ -3060,6 +3027,12 @@ function tbmChart() {
             if (activeWidget) {
               document.querySelector(`[data-action-id=${activeWidget}]`).active = false;
               document.querySelector(`[data-panel-id=${activeWidget}]`).hidden = true;
+
+            // Close the progress time series chart when chart widget is closed
+            if (`${activeWidget}` === "charts") {
+              //document.getElementById("land-checkbox").checked = false;
+              timeSeriesChartDiv.style.display = "none";
+            }
             }
 
             const nextWidget = target.dataset.actionId;
@@ -3067,6 +3040,18 @@ function tbmChart() {
               document.querySelector(`[data-action-id=${nextWidget}]`).active = true;
               document.querySelector(`[data-panel-id=${nextWidget}]`).hidden = false;
               activeWidget = nextWidget;
+
+            // Open the time series chart when chart widget is opened.
+            if (`${activeWidget}` === "charts") {
+              //document.getElementById("land-checkbox").checked = true;
+              timeSeriesChartDiv.style.display = "block";
+            }
+
+            // Open the time series chart when chart widget is opened.
+            if (`${activeWidget}` === "animation") {
+              initialization();
+            }
+
             } else {
               activeWidget = null;
             }
