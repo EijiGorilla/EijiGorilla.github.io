@@ -593,7 +593,12 @@ function disableZooming(overView) {
     }
 
     // Construction Progress symbol
+    const tobeConstructed_color = "#f2f7f5";
+    const underConstruction_color = "#d9dc00";
+    const completedConstruction_color = "#ff0000";
+
     const construction_lineWidth = "5px";
+
     const lineSymbol_construction = {
       type: "unique-value",  // autocasts as new SimpleLineSymbol(),
       field: "construcStat",
@@ -606,7 +611,7 @@ function disableZooming(overView) {
           label: "To be Constructed",
           symbol: {
             type: "simple-line",
-            color: "#f2f7f5",
+            color: tobeConstructed_color,
             width: construction_lineWidth,
             style: "solid"
           }
@@ -616,7 +621,7 @@ function disableZooming(overView) {
           label: "Under Construction",
           symbol: {
             type: "simple-line",
-            color: "#d9dc00",
+            color: underConstruction_color,
             width: construction_lineWidth,
             style: "solid"
           }
@@ -626,7 +631,7 @@ function disableZooming(overView) {
           label: "Completed",
           symbol: {
             type: "simple-line",
-            color: "#ff0000",
+            color: completedConstruction_color,
             width: construction_lineWidth,
             style: "solid"
           }
@@ -849,11 +854,90 @@ function disableZooming(overView) {
     const maxScale = 0;
     const maxScale_stNumber = 288896;
     const opacity = 1;
+
+    // Station point color
+    // Alignment
     const pointSize = "10px";
     const pointColor = "white";
     const pointOutlineWidth = 1.5;
 
-    const stationPointSymbol_n1 = {
+    const defaultStationPoint_nscr = {
+      symbol: {
+        type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+        style: "circle",
+        color: pointColor,
+        size: pointSize,  // pixels
+        outline: {  // autocasts as new SimpleLineSymbol()
+          color: centerlineProjectColor.nscr_hex,
+          width: pointOutlineWidth  // points
+        }
+      }
+    }
+
+    const defaultStationPoint_mmsp = {
+      symbol: {
+        type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+        style: "circle",
+        color: pointColor,
+        size: pointSize,  // pixels
+        outline: {  // autocasts as new SimpleLineSymbol()
+          color: centerlineProjectColor.mmsp_hex,
+          width: pointOutlineWidth  // points
+        }
+      }
+    }
+
+    const stationPointRenderer_construction_nscr = {
+      type: "unique-value",
+      field: "construcStatus",
+      defaultSymbol: defaultStationPoint_nscr,
+      uniqueValueInfos: [
+        {
+          value: "To be Constructed",
+          label: "To be Constructed",
+          symbol: {
+            type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+            style: "circle",
+            color: tobeConstructed_color,
+            size: pointSize,  // pixels
+            outline: {  // autocasts as new SimpleLineSymbol()
+              color: centerlineProjectColor.nscr_hex,
+              width: pointOutlineWidth  // points
+            }
+          }
+        },
+        {
+          value: "On-going",
+          label: "Under Construction",
+          symbol: {
+            type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+            style: "circle",
+            color: underConstruction_color,
+            size: pointSize,  // pixels
+            outline: {  // autocasts as new SimpleLineSymbol()
+              color: centerlineProjectColor.nscr_hex,
+              width: pointOutlineWidth  // points
+            }
+          }
+        },
+        {
+          value: "Completed",
+          label: "Completed",
+          symbol: {
+            type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+            style: "circle",
+            color: completedConstruction_color,
+            size: pointSize,  // pixels
+            outline: {  // autocasts as new SimpleLineSymbol()
+              color: centerlineProjectColor.nscr_hex,
+              width: pointOutlineWidth  // points
+            }
+          }
+        },
+      ]
+    }
+
+    const stationPointSymbol_nscr = {
       type: "simple",
       symbol: {
         type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
@@ -876,34 +960,6 @@ function disableZooming(overView) {
         size: pointSize,  // pixels
         outline: {  // autocasts as new SimpleLineSymbol()
           color: centerlineProjectColor.mmsp_hex,
-          width: pointOutlineWidth  // points
-        }
-      }
-    };
-
-    const stationPointSymbol_n2 = {
-      type: "simple",
-      symbol: {
-        type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
-        style: "circle",
-        color: pointColor,
-        size: pointSize,  // pixels
-        outline: {  // autocasts as new SimpleLineSymbol()
-          color: centerlineProjectColor.nscrex_hex,
-          width: pointOutlineWidth  // points
-        }
-      }
-    };
-
-    const stationPointSymbol_sc = {
-      type: "simple",
-      symbol: {
-        type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
-        style: "circle",
-        color: pointColor,
-        size: pointSize,  // pixels
-        outline: {  // autocasts as new SimpleLineSymbol()
-          color: centerlineProjectColor.nscrex_hex,
           width: pointOutlineWidth  // points
         }
       }
@@ -961,7 +1017,7 @@ function disableZooming(overView) {
         outFields: ["*"],
         popupEnabled: false,
         definitionExpression: "Station <> 'NCC'",
-        renderer: stationPointSymbol_n2,
+        renderer: stationPointSymbol_nscr,
         labelingInfo: [n2LabelStation_number, n2LabelStation], //[n2LabelStation],
         opacity: opacity
     });
@@ -1049,7 +1105,7 @@ function disableZooming(overView) {
         outFields: ["*"],
         popupEnabled: false,
         labelingInfo: [scLabelStation_number, scLabelStation], //[scLabelStation], 
-        renderer: stationPointSymbol_sc,
+        renderer: stationPointSymbol_nscr,
         opacity: opacity
     });
     scStationLayer.listMode = "hide";
@@ -1178,7 +1234,7 @@ function disableZooming(overView) {
         outFields: ["*"],
         popupEnabled: false,
         labelingInfo: [n1LabelStation_number, n1LabelStation], //[n1LabelStation],
-        renderer: stationPointSymbol_n1,
+        renderer: stationPointSymbol_nscr,
         opacity: opacity
     });
     n1StationLayer.listMode = "hide";
@@ -2289,6 +2345,18 @@ function disableZooming(overView) {
       legend_construction_sc.visible = false;
     }
 
+    function stationPointSymbolToConstruction(){{
+      n1StationLayer.renderer = stationPointRenderer_construction_nscr;
+      n2StationLayer.renderer = stationPointRenderer_construction_nscr;
+      scStationLayer.renderer = stationPointRenderer_construction_nscr;
+    }};
+
+    function stationPointSymbolToOriginal(){
+      n1StationLayer.renderer = stationPointSymbol_nscr;
+      n2StationLayer.renderer = stationPointSymbol_nscr;
+      scStationLayer.renderer = stationPointSymbol_nscr;
+    }
+
     alignmentRenderer();
 
     function alignmentRenderer() {
@@ -2321,6 +2389,9 @@ function disableZooming(overView) {
       n1CenterlineConstruction.visible = false;
       n2CenterlineConstruction.visible = false;
       scCenterlineConstruction.visible = false;
+
+      // Station point symbol to default
+      stationPointSymbolToOriginal();
 
       trainScheduleOn();
     }
@@ -2355,6 +2426,9 @@ function disableZooming(overView) {
       n1CenterlineConstruction.visible = true;
       n2CenterlineConstruction.visible = true;
       scCenterlineConstruction.visible = true;
+
+      // Station points renderer for construction
+      stationPointSymbolToConstruction();
 
       constructionProgressLegendOn();
     }
@@ -2409,6 +2483,9 @@ function disableZooming(overView) {
         mmspCenterlineLayer.visible = false;
         n1CenterlineLayer.visible = true;
 
+        // station point symbol to original
+        n1StationLayer.renderer = stationPointSymbol_nscr;
+
         n1GraphicsLayerMove(xoffset_n1, yoffset_n1);
         zoomToLayer(n1StationLayer);
 
@@ -2471,6 +2548,9 @@ function disableZooming(overView) {
         mmspCenterlineLayer.visible = false;
         n1CenterlineLayer.visible = false;
 
+        // Station point symbol to default
+        n2StationLayer.renderer = stationPointSymbol_nscr;
+
         zoomToLayer(n2CenterlineLayer);
         n2GraphicsLayerMove(xoffset_n2, yoffset_n2);
         trainOperationSchedulePositionOthers();
@@ -2501,6 +2581,9 @@ function disableZooming(overView) {
         mmspGraphicsLayer_cpLabel.visible = false;
         n1GraphicsLayer_cpLabel.visible = false;
 
+        // station point symbol to original
+        scStationLayer.renderer = stationPointSymbol_nscr;
+
         zoomToLayer(scStationLayer);
         scGraphicsLayerMove(xoffset_sc, yoffset_sc);
         trainOperationSchedulePositionOthers();
@@ -2513,11 +2596,8 @@ function disableZooming(overView) {
         n2GraphicsLayerReturnToOriginal();
 
         trainOperationSchedulePositionOriginal();
-        //view.goTo({
-        //  extent: fixedExtent
-        //});
 
-          //fixedExtent
+        //fixedExtent
         n2StationLayer.visible = true;
         scStationLayer.visible = true;
         mmspStationLayer.visible = true;
@@ -2536,6 +2616,11 @@ function disableZooming(overView) {
         scGraphicsLayer.visible = true;
         mmspGraphicsLayer.visible = true;
         n1GraphicsLayer.visible = true;
+
+        stationPointSymbolToOriginal();
+
+        // station point symbol to original
+        stationLabeFontSizeDefault();
       }
     }
 
@@ -2573,6 +2658,9 @@ function disableZooming(overView) {
         legend_construction_n2.visible = false;
         legend_construction_sc.visible = false;
 
+        // station point symbol to original
+        n1StationLayer.renderer = stationPointRenderer_construction_nscr;
+
         zoomToLayer(n1StationLayer);
         n1GraphicsLayerMove(xoffset_n1, yoffset_n1);
 
@@ -2643,6 +2731,9 @@ function disableZooming(overView) {
         legend_construction_n2.visible = true;
         legend_construction_sc.visible = false;
 
+        // Station point renderer for construction status
+        n2StationLayer.renderer = stationPointRenderer_construction_nscr;
+
         zoomToLayer(n2CenterlineLayer);
         n2GraphicsLayerMove(xoffset_n2, yoffset_n2);
         trainOperationSchedulePositionOthers();
@@ -2676,6 +2767,9 @@ function disableZooming(overView) {
         // Lenged
         legend_construction_n2.visible = false;
         legend_construction_sc.visible = true;
+
+        // Station point renderer for construction status
+        scStationLayer.renderer = stationPointRenderer_construction_nscr;
 
         zoomToLayer(scStationLayer);
         scGraphicsLayerMove(xoffset_sc, yoffset_sc);
@@ -2722,6 +2816,10 @@ function disableZooming(overView) {
         legend_construction_n2.visible = false;
         legend_construction_n2.visible = true;
         legend_construction_sc.visible = false;
+
+        // Station point renderer for construction status
+        stationPointSymbolToConstruction();
+
       }
     }
 
@@ -2768,6 +2866,9 @@ function disableZooming(overView) {
       //legend_construction_mmsp.visible = false;
       legend_construction_n2.visible = true;
       legend_construction_sc.visible = false;
+
+      // Station point renderer for construction status
+      stationPointSymbolToConstruction();
 
       n1GraphicsLayerMove(-0.05, 0.10);
       n2GraphicsLayerMove(-0.20, 0.15);
