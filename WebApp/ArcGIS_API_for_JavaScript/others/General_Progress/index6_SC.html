@@ -2,7 +2,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <title>SC Alignment Map</title>
+    <title>General Progress (SC)</title>
     
     <link rel="stylesheet" href="https://js.arcgis.com/4.26/esri/themes/dark/main.css"/>
     <script type="module" src="https://js.arcgis.com/calcite-components/1.0.7/calcite.esm.js"></script>
@@ -22,8 +22,11 @@
     }
 
     #overviewDiv {
-      width: 190px;
-      height: 190px;
+      position: fixed;
+      z-index: 1;
+      top: 50px;
+      width: 170px;
+      height: 170px;
       border: 1px solid black;
       overflow: hidden;
     }
@@ -41,6 +44,7 @@
       calcite-button {
         padding: 3;
       }
+
     
     b {
         color: orange;
@@ -130,31 +134,23 @@
     }
 
     #legend-container-n1 {
-      color: black;
       font-weight: bold;
       width: 100%;
-      background-color:rgb(255, 255, 255, 1);
     }
 
     #legend-container-mmsp {
-      color: black;
       font-weight: bold;
       width: 100%;
-      background-color:rgb(255, 255, 255, 1);
     }
 
     #legend-container-n2 {
-      color: black;
       font-weight: bold;
       width: 100%;
-      background-color:rgb(255, 255, 255, 1);
     }
 
     #legend-container-sc {
-      color: black;
       font-weight: bold;
       width: 100%;
-      background-color:rgb(255, 255, 255, 1);
     }
     
     /*  */
@@ -164,12 +160,18 @@
     
     .sassy-theme .esri-legend .esri-legend__layer-cell--info {
       /*background-color: black;*/
-      color: black;
-      font-size: 1rem;
+      color: "#f7f7f7";
+      font-size: 0.8rem;
     }
 
+    /*
     .sassy-theme .esri-widget--button {
       color: white;
+    }
+    */
+
+    .sassy-theme .esri-compass .esri-compass__icon {
+      font-size: 30px;
     }
 
     #train-Operation-schedule {
@@ -178,16 +180,60 @@
       position: fixed;
       z-index: 1;
       bottom: 0;
-      left: 0;
+      left: 1%;
       margin: 15;
+      /*opacity: 0%;*/
+    }
+
+    #compassDiv {
+      height: 40px;
+      width: 40px;
+    }
+
+    #stationContent1 {
+        width: 10vw;
+        height: auto;
+        align-items: center;
+        color: rgba(194, 194, 194, 0.884);
+        font-size: 1.2em;
+    }
+
+    #stationContent2 {
+        width: 10vw;
+        height: auto;
+        align-items: center;
+        color: rgba(194, 194, 194, 0.884);
+        font-size: 1.2em;
+        padding-top: 2em;
+    }
+
+    #container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-gap: 5px;
+
+    }
+
+    h3 {
+        font-size: 1.3vw;
+        text-align: left;
+        font-weight: bold;
+        margin: 0%;
     }
 
   </style>
-  <body class="calcite-theme-dark">
+  <body class="sassy-theme">
     <calcite-loader></calcite-loader>
     <calcite-shell content-behind>
       <div id="overviewDiv"><div id="extentDiv"></div></div>
       <div id="viewDiv">
+        <calcite-button
+          href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/others/General_Progress/index6.html"
+          icon-end="launch"
+          scale="s"
+          label="Open Mariana Trench in map"
+          target="_blank">
+        </calcite-button>
         <!-- Title -->
         <!-- Check out this: https://developers.arcgis.com/calcite-design-system/components/button/ -->
         <h2 id="header-title"></h2>
@@ -204,6 +250,7 @@
           <img id="gcr-img" src="https://EijiGorilla.github.io/Symbols/Projec_Logo/GCR_Logo_nobackground.png">  
         </div>
         -->
+      <div id="compassDiv"></div>
       </div>
     </calcite-shell>
   </body>
@@ -257,23 +304,22 @@
                 Circle, Compass
                  ) {
 
-
-
     const basemap = new Basemap({
       baseLayers: [
           new VectorTileLayer({
           portalItem: {
-              id: "824fe99ab989479f83b9a6d7f2da0bcb" // 824fe99ab989479f83b9a6d7f2da0bcb
+              id: "824fe99ab989479f83b9a6d7f2da0bcb" // Light-gray:"75cf54bd051041c0a6244958cee3ab5c"
+              // Dark-gray: "824fe99ab989479f83b9a6d7f2da0bcb"
           }
           })
       ]
     });
     
     var map = new Map({
-        basemap: basemap, // "streets-night-vector", basemap
+        basemap: basemap,//basemap, // "streets-night-vector", basemap
         ground: "world-elevation"
     }); 
-    map.basemap.baseLayers.getItemAt(0).opacity = 1;
+    //map.basemap.baseLayers.getItemAt(0).opacity = 1;
     //map.opacity = 0.1;
 /*
       xmin: 13368016.94,
@@ -283,14 +329,18 @@
 */
 
     const fixedExtent = new Extent({
-      xmin: 13368016.94,
-      xmax: 13552077.31,
-      ymin: 1603544.28,
-      ymax: 1712543.49,
+      xmin: 13371235.35,
+      xmax: 13545817.52,
+      ymin: 1609731.16,
+      ymax: 1718730.36,
       spatialReference: {
         wkid: 3857
       }
     });
+
+    const home_rotation = 330;
+    const home_center = [120.900000, 14.7832299];
+    const home_scale = 292400;
 
     var view = new MapView({
         map: map,
@@ -303,10 +353,11 @@
           },
         },
         opacity: 0.5,
+        rotation: home_rotation,
+        center: home_center,
+        scale: home_scale
     });
-    view.rotation = 320;
-    view.center = [121.000000, 14.4332299]
-    view.scale = 150000;
+
 
     // Inset maps (overview extent map)
     //https://www.esri.com/arcgis-blog/products/js-api-arcgis/mapping/inset-maps-for-the-web/
@@ -384,41 +435,7 @@ function disableZooming(overView) {
   return overView;
 }
 
-    ///////////////////////////////////////////////////////
-       
-       //*******************************************************************
-        // Watching properties for changes
-        // 1. Watch view.stationary property
-        // 2. Watch visible property of popup
-        //*******************************************************************
-        // Watch view's stationary property for becoming true.
-        reactiveUtils.when(
-          () => view.stationary === true,
-          () => {
-            // Get the new center of the view only when view is stationary.
-            if (view.center) {
-              const info = `
-              x: ${view.center.x.toFixed(2)}
-              y: ${view.center.y.toFixed(2)}`;
-              
-        
-            }
-            // Get the new extent of the view only when view is stationary.
-            if (view.extent) {
-              const info = `
-              xmin: ${view.extent.xmin.toFixed(2)},
-              xmax: ${view.extent.xmax.toFixed(2)},
-              ymin: ${view.extent.ymin.toFixed(2)},
-              ymax: ${view.extent.ymax.toFixed(2)},`;
-              console.log(info);
-            }
 
-            if (view.scale) {
-              const info = `scale: ${view.scale}`
-              console.log(info);
-            }
-          }
-        );
         
 ///////////////////////////////////////////
     overView.when(() => {
@@ -466,14 +483,14 @@ function disableZooming(overView) {
     //------------- Layer ----------------------------- /
     // Commercial Operatino Schdule image
 
-    
+    const labelStation_fontSize = 11;
     
     // Centerline
     // Color based on project
     const centerlineProjectColor = {
-      nscr_hex: "#a3cc52",
-      mmsp_hex: "#d9dc00",
-      nscrex_hex: "#00b3ff",
+      nscr_hex: "#ff5f22",
+      mmsp_hex: "#00b7ff", //"#0000ff"
+      nscrex_hex: "#ff5f22",//"#00b3ff","#00B0F0", "#15C2FF"
     }
 
     const lineWidth = "5px";
@@ -556,20 +573,53 @@ function disableZooming(overView) {
       } 
     }
 
-    var scCenterlineLayer = new FeatureLayer({
-        portalItem: {
-            id: "d3926383cf3548569372216edb808996",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
+    // Construction Progress symbol
+    const tobeConstructed_color = "#b0c4d8"; //"#d9dc00";
+    const underConstruction_color = "#ffff00"; //#3c6ccc
+    const completedConstruction_color = "#dc4b00";
+
+    const construction_lineWidth = "5px";
+
+    const lineSymbol_construction = {
+      type: "unique-value",  // autocasts as new SimpleLineSymbol(),
+      field: "construcStat",
+      legendOptions: {
+        title: "Construction Status"
+      },
+      uniqueValueInfos: [
+        {
+          value: "To Be Constructed",
+          label: "To be Constructed",
+          symbol: {
+            type: "simple-line",
+            color: tobeConstructed_color,
+            width: construction_lineWidth,
+            style: "solid"
+          }
         },
-        layerId: 7,
-        title: "SC Centerline",
-        renderer: lineSymbol_nscrex,
-        outFields: ["*"],
-        popupEnabled: false,
-    });
-    //map.add(scCenterlineLayer);
+        {
+          value: "On-going",
+          label: "Under Construction",
+          symbol: {
+            type: "simple-line",
+            color: underConstruction_color,
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+        {
+          value: "Completed",
+          label: "Completed",
+          symbol: {
+            type: "simple-line",
+            color: completedConstruction_color,
+            width: construction_lineWidth,
+            style: "solid"
+          }
+        },
+      ]
+    };
+
 
     var scCenterlineOverView = new FeatureLayer({
         portalItem: {
@@ -584,31 +634,97 @@ function disableZooming(overView) {
     });
     overViewMap.add(scCenterlineOverView);
 
-    var scBreakPointsCP = new FeatureLayer({
-        portalItem: {
-            id: "95bd8e4739af45189f2238faf626e5a0",
-            portal: {
-                url: "https://gis.railway-sector.com/portal"
-            }
-        },
-        title: "SC Break Points",
-        definitionExpression: "Extension = 'SC'" + " AND " + "Id >= 1",
-        outFields: ["*"],
-        popupEnabled: false,
-        renderer: pointSymbol
-    });
-    scBreakPointsCP.listMode = "hide";
-    map.add(scBreakPointsCP);
 
-    // Station point feature
+     // Station point feature
     const minScale = 577790;
+    const minScale_stNumber = minScale + 1000;
     const maxScale = 0;
+    const maxScale_stNumber = 288896;
     const opacity = 1;
+
+    // Station point color
+    // Alignment
     const pointSize = "10px";
     const pointColor = "white";
     const pointOutlineWidth = 1.5;
 
-    const stationPointSymbol_n1 = {
+    const defaultStationPoint_nscr = {
+      symbol: {
+        type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+        style: "circle",
+        color: pointColor,
+        size: pointSize,  // pixels
+        outline: {  // autocasts as new SimpleLineSymbol()
+          color: centerlineProjectColor.nscr_hex,
+          width: pointOutlineWidth  // points
+        }
+      }
+    }
+
+    const defaultStationPoint_mmsp = {
+      symbol: {
+        type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+        style: "circle",
+        color: pointColor,
+        size: pointSize,  // pixels
+        outline: {  // autocasts as new SimpleLineSymbol()
+          color: centerlineProjectColor.mmsp_hex,
+          width: pointOutlineWidth  // points
+        }
+      }
+    }
+
+    const stationPointRenderer_construction_nscr = {
+      type: "unique-value",
+      field: "construcStatus",
+      defaultSymbol: defaultStationPoint_nscr,
+      uniqueValueInfos: [
+        {
+          value: "To Be Constructed",
+          label: "To Be Constructed",
+          symbol: {
+            type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+            style: "circle",
+            color: tobeConstructed_color,
+            size: pointSize,  // pixels
+            outline: {  // autocasts as new SimpleLineSymbol()
+              color: centerlineProjectColor.nscr_hex,
+              width: pointOutlineWidth  // points
+            }
+          }
+        },
+        {
+          value: "On-going",
+          label: "Under Construction",
+          symbol: {
+            type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+            style: "circle",
+            color: underConstruction_color,
+            size: pointSize,  // pixels
+            outline: {  // autocasts as new SimpleLineSymbol()
+              color: centerlineProjectColor.nscr_hex,
+              width: pointOutlineWidth  // points
+            }
+          }
+        },
+        {
+          value: "Completed",
+          label: "Completed",
+          symbol: {
+            type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+            style: "circle",
+            color: completedConstruction_color,
+            size: pointSize,  // pixels
+            outline: {  // autocasts as new SimpleLineSymbol()
+              color: centerlineProjectColor.nscr_hex,
+              width: pointOutlineWidth  // points
+            }
+          }
+        },
+      ]
+    }
+
+    const stationPointSymbol_nscr = {
       type: "simple",
       symbol: {
         type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
@@ -636,69 +752,22 @@ function disableZooming(overView) {
       }
     };
 
-    const stationPointSymbol_n2 = {
-      type: "simple",
-      symbol: {
-        type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
-        style: "circle",
-        color: pointColor,
-        size: pointSize,  // pixels
-        outline: {  // autocasts as new SimpleLineSymbol()
-          color: centerlineProjectColor.nscrex_hex,
-          width: pointOutlineWidth  // points
-        }
-      }
-    };
-
-    const stationPointSymbol_sc = {
-      type: "simple",
-      symbol: {
-        type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
-        style: "circle",
-        color: pointColor,
-        size: pointSize,  // pixels
-        outline: {  // autocasts as new SimpleLineSymbol()
-          color: centerlineProjectColor.nscrex_hex,
-          width: pointOutlineWidth  // points
-        }
-      }
-    };
-
-    var labelStation = new LabelClass({
+    // SC Station point layer
+    var scLabelStation = new LabelClass({
         symbol: {
             type: "text",
             color: centerlineProjectColor.nscrex_hex,
             haloColor: "black",
             haloSize: 0.1,
             font: {
-                size: 12,
+                size: labelStation_fontSize,
                 //weight: "bold"
             }
         },
-        labelPlacement: "center-left",
+        deconflictionStrategy: "none", // show overlapping numbers
+        labelPlacement: "center-right",
         labelExpressionInfo: {
             expression: "$feature.Station"
-        },
-        minScale: minScale,
-        maxScale: maxScale,
-    });
-
-
-    // SC Station point layer
-    var labelStationSC = new LabelClass({
-        symbol: {
-            type: "text",
-            color: centerlineProjectColor.nscrex_hex,
-            haloColor: "black",
-            haloSize: 0.1,
-            font: {
-                size: 12,
-                //weight: "bold"
-            }
-        },
-        labelPlacement: "above-right", // center-right
-        labelExpressionInfo: {
-            expression: "' ' + $feature.Station"
         },
         minScale: minScale,
         maxScale: maxScale,
@@ -715,56 +784,32 @@ function disableZooming(overView) {
         title: "SC Station",
         outFields: ["*"],
         popupEnabled: false,
-        labelingInfo: [labelStationSC],
-        renderer: stationPointSymbol_sc,
+        labelingInfo: [scLabelStation], //[scLabelStation], 
+        renderer: stationPointSymbol_nscr,
         opacity: opacity
     });
     scStationLayer.listMode = "hide";
     map.add(scStationLayer);
 
-        // Construction Status using centerline
+    var scBreakPointsCP = new FeatureLayer({
+        portalItem: {
+            id: "95bd8e4739af45189f2238faf626e5a0",
+            portal: {
+                url: "https://gis.railway-sector.com/portal"
+            }
+        },
+        title: "SC Break Points",
+        definitionExpression: "Extension = 'SC'" + " AND " + "Id >= 1",
+        outFields: ["*"],
+        popupEnabled: false,
+        renderer: pointSymbol
+    });
+    scBreakPointsCP.listMode = "hide";
+    map.add(scBreakPointsCP);
+
+    // Construction Status using centerline
     // field name: 'Construction Status'
     // 'To Be Constructed', 'On-going', 'Completed'
-    const construction_lineWidth = "5px";
-    const lineSymbol_construction = {
-      type: "unique-value",  // autocasts as new SimpleLineSymbol(),
-      field: "construcStat",
-      legendOptions: {
-        title: "Construction Status"
-      },
-      uniqueValueInfos: [
-        {
-          value: "To Be Constructed",
-          label: "To be Constructed",
-          symbol: {
-            type: "simple-line",
-            color: "#dc4b00",
-            width: construction_lineWidth,
-            style: "solid"
-          }
-        },
-        {
-          value: "On-going",
-          label: "Under Construction",
-          symbol: {
-            type: "simple-line",
-            color: "#e8ff00",
-            width: construction_lineWidth,
-            style: "solid"
-          }
-        },
-        {
-          value: "Completed",
-          label: "Completed",
-          symbol: {
-            type: "simple-line",
-            color: centerlineProjectColor.nscrex_hex,
-            width: construction_lineWidth,
-            style: "solid"
-          }
-        },
-      ]
-    };
 
     var scCenterlineConstruction = new FeatureLayer({
       portalItem: {
@@ -780,19 +825,20 @@ function disableZooming(overView) {
     });
     map.add(scCenterlineConstruction, 0);
 
-    var legend_construction = new Legend({
+
+    var legend_construction_sc = new Legend({
       view,
       container: "construction-legend",
       layerInfos: [
         {
           layer: scCenterlineConstruction,
-          title: ""
+          title: "Construction Progress"
         }
       ]
     });
-    view.ui.add(legend_construction, "bottom-left");
+    view.ui.add(legend_construction_sc, "bottom-left");
 
-     //----------------------------------------------------------------//
+    //----------------------------------------------------------------//
     const fontSizeAirport = 12;
 
     // Clark Internation Airport Pins
@@ -825,7 +871,8 @@ function disableZooming(overView) {
       // Create label point and label for 'Manila'
       const x0 = stats.geometry.longitude;
       const y0 = stats.geometry.latitude;
-      const x1 = x0 + 0.25; // Offset
+      const x1 = x0 - 0.10; // Offset
+      const y1 = y0 - 0.15;
 
       const point = {
                     type: "point",
@@ -837,10 +884,9 @@ function disableZooming(overView) {
         type: "text",  // autocasts as new TextSymbol()
         color: "white",
         //backgroundColor: projectBackgroundColor,
-        text: "Clark International Airport",
-        horizontalAlignment: "left",
-        yoffset: -50,
-        xoffset: -10,
+        text: "Clark Int. Airport",
+        horizontalAlignment: "right",
+        //yoffset: -5,
         font: {  // autocasts as new Font()
             size: fontSizeAirport,
             //family: "Merriweather",
@@ -1091,22 +1137,18 @@ function disableZooming(overView) {
     //----------------------------------------------------------------//
 
     /////////////////// END Of LAYER IMPORT ////////////////////////////
-// Zoom
-function zoomToLayer(layer) {
-  return layer.queryExtent().then(function(response) {
-    view.goTo(response.extent, { //response.extent
-      speedFactor: 2
-    }).catch(function(error) {
-      if (error.name != "AbortError") {
-        console.error(error);
-      }
+  // Zoom
+  function zoomToLayer(layer) {
+    return layer.queryExtent().then(function(response) {
+      view.goTo(response.extent, { //response.extent
+        speedFactor: 2
+      }).catch(function(error) {
+        if (error.name != "AbortError") {
+          console.error(error);
+        }
+      });
     });
-  });
-}    
-      //legend.hideLayersNotInCurrentView = true;
-
-    // Project list
-    // Open general progress of pre-constructions
+  }
 
     // Draw CP break line on the map
     // Project Label properties
@@ -1123,7 +1165,7 @@ function zoomToLayer(layer) {
     const cpFontSize = 10;
 
     // SC
-      const scGraphicsLayer = new GraphicsLayer();
+    const scGraphicsLayer = new GraphicsLayer();
       scGraphicsLayer.listMode = "hide";
       map.add(scGraphicsLayer);
 
@@ -1134,156 +1176,235 @@ function zoomToLayer(layer) {
       scGraphicsLayer_cpLabel.listMode = "hide";
       map.add(scGraphicsLayer_cpLabel);
 
-    var query = scBreakPointsCP.createQuery();
-    query.orderByFields = ["Id"];
-    scBreakPointsCP.queryFeatures(query).then(function(response) {
-        var stats = response.features;
-        const paths = [];
-        const points = [];
-        const CPs = [];
+    function scGraphics(xoffset, yoffset){
+      var query = scBreakPointsCP.createQuery();
+      query.orderByFields = ["Id"];
 
-        stats.forEach((result, index) => {
-            // Collect geometry of each break point
-            const attributes = result.attributes;
-            const cp = attributes.CP;
-            CPs.push(cp);
-            const pointX0 = result.geometry.longitude;
-            const pointY0 = result.geometry.latitude;
+        scBreakPointsCP.queryFeatures(query).then(function(response) {
+          var stats = response.features;
+          const paths = [];
+          const points = [];
+          const CPs = [];
 
-            // Calculate end poins and store it in a path for line generation
-            const pointX1 = pointX0 - 0.05;
-            const path = [
-                [pointX0, pointY0],
-                [pointX1, pointY0]
-            ]
+          stats.forEach((result, index) => {
+              // Collect geometry of each break point
+              const attributes = result.attributes;
+              const cp = attributes.CP;
+              CPs.push(cp);
+              const pointX0 = result.geometry.longitude;
+              const pointY0 = result.geometry.latitude;
 
-            // Append each path to paths
-            paths.push(path);
+              // Calculate end poins and store it in a path for line generation
+              const pointX1 = pointX0 - 0.05;
+              const path = [
+                  [pointX0, pointY0],
+                  [pointX1, pointY0]
+              ]
 
-            // Calculate a point for text symbol
-            const point = [pointX1, pointY0];
-            points.push(point);
-        });
+              // Append each path to paths
+              paths.push(path);
 
-        // 1. Draw a horizontal line at break points of individual CPs
-        // Define polyline paths and type
-        const polyline = {
-            type: "polyline",
-            paths: paths
-        };
-
-        // Set line properties
-        const simpleLineSymbol = {
-            type: "simple-line",
-            color: cpLineColor,
-            width: cpLineWidth
-        };
-
-        // Add to Graphic
-        const scPolylineGraphic = new Graphic({
-            geometry: polyline,
-            symbol: simpleLineSymbol
-        });
-        scGraphicsLayer_cpLabel.add(scPolylineGraphic);
-        // Dispaly grapchicsLayer
-
-
-        // 2. Add text symbol
-        for(var i=0; i < points.length; i++){
-            //console.log(i);
-            if(i <= points.length-2 && i !== 8){
-                const pointTextX = points[i][0] - 0.01;
-                const pointTextY0 = points[i][1];
-                const pointTextY1 = points[i+1][1];
-                const pointTextY = (pointTextY0 + pointTextY1) / 2;
-
-                const point = {
-                    type: "point",
-                    longitude: pointTextX,
-                    latitude: pointTextY
-                };
-
-                let textSymbol = {
-                    type: "text",  // autocasts as new TextSymbol()
-                    color: cpLabelColor,
-                    //haloColor: "black",
-                    //haloSize: "1px",
-                    text: CPs[i],
-                    //xoffset: 3,
-                    //yoffset: -5,
-                    font: {  // autocasts as new Font()
-                        size: cpFontSize,
-                        //family: "Josefin Slab",
-                        weight: "bold"
-                    }
-                };
-
-                const simpleMarkerSymbol = {
-                    type: "simple-marker",
-                    color: [226, 119, 40],
-                    size: 12,
-                    style: "circle",
-                    outline: {
-                        width: 1,
-                        color: [255, 255, 255, 1]
-                    }
-                };
-
-                const scPointGraphic = new Graphic({
-                    geometry: point,
-                    symbol: textSymbol
-                });
-                scGraphicsLayer_cpLabel.add(scPointGraphic);
-            }
-        }
-
-        // Add Project label (SC)
-        let scProjectLableSymbol = {
-          type: "text",  // autocasts as new TextSymbol()
-          color: centerlineProjectColor.nscrex_hex,
-          //backgroundColor: projectBackgroundColor,
-          //haloColor: "black",
-          //haloSize: "1px",
-          text: "North-South Commuter Railway Ext.\n(Solis-Calamba)\n55km",
-          horizontalAlignment: "right",
-          xoffset: -10,
-          yoffset: -50,
-          font: {  // autocasts as new Font()
-            size: projectLabelFontSize,
-            //family: "Merriweather",
-            //style: "italic",
-            weight: "bold"
-          }
-        };
-        const j = 5;
-        console.log("SC label: " + points);
-        const pointTextX_pLabel = points[j][0] - 0.04;
-        const pointTextY0_pLabel = points[j][1] + 0;
-        const pointTextY1_pLabel = points[j+1][1];
-        const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
-
-        const projectPoint = {
-            type: "point",
-            longitude: pointTextX_pLabel,
-            latitude: pointTextY_pLabel
-        };
-
-          const scProjectLabelGraphic = new Graphic({
-            geometry: projectPoint,
-            symbol: scProjectLableSymbol
+              // Calculate a point for text symbol
+              const point = [pointX1, pointY0];
+              points.push(point);
           });
 
-          scGraphicsLayer.add(scProjectLabelGraphic); // Do not use graphicslayer.addMany. 
-    }); // end of queryFeatures
+          // 1. Draw a horizontal line at break points of individual CPs
+          // Define polyline paths and type
+          const polyline = {
+              type: "polyline",
+              paths: paths
+          };
+
+          // Set line properties
+          const simpleLineSymbol = {
+              type: "simple-line",
+              color: cpLineColor,
+              width: cpLineWidth
+          };
+
+          // Add to Graphic
+          const scPolylineGraphic = new Graphic({
+              geometry: polyline,
+              symbol: simpleLineSymbol
+          });
+          scGraphicsLayer_cpLabel.add(scPolylineGraphic);
+          // Dispaly grapchicsLayer
 
 
-    view.ui.add("overviewDiv", "top-right");
-    let compass = new Compass({
-      view: view
+          // 2. Add text symbol
+          for(var i=0; i < points.length; i++){
+              //console.log(i);
+              if(i <= points.length-2 && i !== 8){
+                  const pointTextX = points[i][0] - 0.01;
+                  const pointTextY0 = points[i][1] - 0.05;
+                  const pointTextY1 = points[i+1][1];
+                  const pointTextY = (pointTextY0 + pointTextY1) / 2;
+
+                  const point = {
+                      type: "point",
+                      longitude: pointTextX,
+                      latitude: pointTextY
+                  };
+
+                  let textSymbol = {
+                      type: "text",  // autocasts as new TextSymbol()
+                      color: cpLabelColor,
+                      //haloColor: "black",
+                      //haloSize: "1px",
+                      text: CPs[i],
+                      //xoffset: 3,
+                      //yoffset: -5,
+                      font: {  // autocasts as new Font()
+                          size: cpFontSize,
+                          //family: "Josefin Slab",
+                          weight: "bold"
+                      }
+                  };
+
+                  const simpleMarkerSymbol = {
+                      type: "simple-marker",
+                      color: [226, 119, 40],
+                      size: 12,
+                      style: "circle",
+                      outline: {
+                          width: 1,
+                          color: [255, 255, 255, 1]
+                      }
+                  };
+
+                  const scPointGraphic = new Graphic({
+                      geometry: point,
+                      symbol: textSymbol
+                  });
+                  scGraphicsLayer_cpLabel.add(scPointGraphic);
+              }
+          }
+
+          // Add Project label (SC)
+          let scProjectLableSymbol = {
+            type: "text",  // autocasts as new TextSymbol()
+            color: centerlineProjectColor.nscrex_hex,
+            //backgroundColor: projectBackgroundColor,
+            //haloColor: "black",
+            //haloSize: "1px",
+            text: "North-South Commuter Railway Ext.\n(Solis-Calamba)\n55km",
+            horizontalAlignment: "right",
+            //xoffset: 3,
+            //yoffset: -5,
+            font: {  // autocasts as new Font()
+              size: projectLabelFontSize,
+              //family: "Merriweather",
+              //style: "italic",
+              weight: "bold"
+            }
+          };
+          const j = 5;
+          //console.log("SC label: " + points);
+          const pointTextX_pLabel = points[j][0] + 0.50 + xoffset;
+          const pointTextY0_pLabel = points[j][1] - 0.55 + yoffset;
+          const pointTextY1_pLabel = points[j+1][1];
+          const pointTextY_pLabel = (pointTextY0_pLabel + pointTextY1_pLabel) / 2;
+
+          const projectPoint = {
+              type: "point",
+              longitude: pointTextX_pLabel,
+              latitude: pointTextY_pLabel
+          };
+
+            const scProjectLabelGraphic = new Graphic({
+              geometry: projectPoint,
+              symbol: scProjectLableSymbol
+            });
+
+            scGraphicsLayer.add(scProjectLabelGraphic); // Do not use graphicslayer.addMany. 
+      }); // end of queryFeatures
+  }
+  // Initial
+  scGraphics(-0.15,0.9);
+  
+
+   function homeExtentRenderer() {
+      view.rotation = home_rotation;
+      view.scale = 577790.5542885;
+      view.center = home_center;
+    }
+
+
+
+
+        ///////////////////////////////
+
+    view.ui.add(document.querySelector("calcite-button"), "top-left");
+    
+    const segmentedItemsExpand = new Expand({
+      view: view,
+      expanded: true,
+      content: document.getElementById("information")
     });
 
+
+    //segmentedDateDiv.style.display = 'none';
+    const overviewDiv = document.getElementById("overviewDiv");
+    view.ui.add("overviewDiv", "top-right");
+
+    // Legend
+
+    // Compass
+    let compass = new Compass({
+      view: view,
+      container: document.getElementById("compassDiv")
+    });
+
+    view.ui.add(document.getElementById("alingment-progress-switch"), "bottom-right");
+
     // adds the compass to the top left corner of the MapView
-    view.ui.add(compass, "bottom-right");
+    view.ui.add(compass, "top-left");
+
+    ///////////////////////////////////////////////////////
+       //*******************************************************************
+        // Watching properties for changes
+        // 1. Watch view.stationary property
+        // 2. Watch visible property of popup
+        //*******************************************************************
+        // Watch view's stationary property for becoming true.
+        reactiveUtils.when(
+          () => view.stationary === true,
+          () => {
+            zoomToLayer(scStationLayer);
+            view.rotation = 360;
+
+            // Get the new center of the view only when view is stationary.
+            if (view.center) {
+              const info = `
+              x: ${view.center.x.toFixed(2)}
+              y: ${view.center.y.toFixed(2)}`;
+              
+        
+            }
+            // Get the new extent of the view only when view is stationary.
+            if (view.extent) {
+              const info = `
+              xmin: ${view.extent.xmin.toFixed(2)},
+              xmax: ${view.extent.xmax.toFixed(2)},
+              ymin: ${view.extent.ymin.toFixed(2)},
+              ymax: ${view.extent.ymax.toFixed(2)},`;
+              console.log(info);
+            }
+
+            if (view.scale) {
+              const info = `scale: ${view.scale}`
+              console.log(info);
+            }
+
+            /*
+            if (view.scale > maxScale_stNumber || view.scale < minScale_stNumber) {
+              stationExpand.expanded = !stationExpand.expanded;
+            }
+            */
+          }
+        );
+
     });
   </script>
 </html>
