@@ -10,7 +10,7 @@
   For more information about the views-switch-2d-3d sample, read the original sample description at developers.arcgis.com.
   https://developers.arcgis.com/javascript/latest/sample-code/views-switch-2d-3d/index.html
   -->
-<title>MMSP Tunnel</title>
+<title>SC Tunnel</title>
     <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"/>
     
     <script type="module" src="https://js.arcgis.com/calcite-components/1.0.7/calcite.esm.js"></script>
@@ -24,12 +24,8 @@
     <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
     <script src="https://cdn.amcharts.com/lib/5/themes/Micro.js"></script>
     <script src="https://cdn.amcharts.com/lib/5/themes/Responsive.js"></script>
-    <script src="https://unpkg.com/three@0.144.0/build/three.js"></script>
-    <script src="https://unpkg.com/three@0.144.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/7/Stats.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
     <script src="https://js.arcgis.com/4.26/"></script>
-    <script src="js/animepoint.js"></script>
+
 
   </head>
   <style>
@@ -341,6 +337,13 @@
   ::-webkit-scrollbar {
     display: none;
   }
+
+  #segmentNo {
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: auto;
+  }
+
   </style>
   <body class="calcite-theme-dark">
     <calcite-loader></calcite-loader>
@@ -351,17 +354,10 @@
         <!-- Title -->
         <h2 id="header-title" slot="header"></h2>
 
-        <!-- Dropdown list -->
-        <div class="esri-widget" id="dropdownDiv">
-          <label for="sel-options" style="font-weight: bold;">CP
-            <select id="cpSelect" class="esri-widget"></select>
-          </label>
-          <label for="sel-options" style="font-weight: bold;">SEGMENT No.
-            <select id="tbmSelect" class="esri-widget"></select>
-          </label>
-        </div>
-
-        <!-- Train Animation -->
+        <calcite-segmented-control id="segmentNo">
+          <calcite-segmented-control-item id="NB" value="NB" checked>North-bound</calcite-segmented-control-item>
+          <calcite-segmented-control-item id="SB" value="SB">South-bound</calcite-segmented-control-item>
+        </calcite-segmented-control>
       </div>
       <div id="filterValuesDiv"></div>
       <!-- Icon Panel for Action -->
@@ -372,7 +368,6 @@
           <calcite-action data-action-id="basemaps" icon="basemap" text="Basemaps"></calcite-action>
           <calcite-action data-action-id="legend" icon="legend" text="Legend"></calcite-action>
           <calcite-action data-action-id="charts" icon="graph-time-series" text="Progree Chart"></calcite-action>
-          <calcite-action data-action-id="animation" icon="play" text="Animation"></calcite-action>
           <calcite-action data-action-id="information" icon="information" text="Information"></calcite-action>
         </calcite-action-bar>
         
@@ -485,6 +480,8 @@ require([
     "esri/rest/support/FeatureSet",
     "esri/core/Accessor",
     "esri/widgets/BasemapGallery",
+    "esri/popup/content/CustomContent",
+    "esri/PopupTemplate",
   ], function(Basemap, Map, MapView, SceneView, 
               FeatureLayer, FeatureFilter,
               SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -500,468 +497,83 @@ require([
               ElevationProfile, ElevationProfileLineQuery,
               GraphicsLayer, Graphic, RouteParameters,
               SimpleMarkerSymbol, SimpleLineSymbol, Point, Polyline,
-              externalRenderers, FeatureSet, Accessor, BasemapGallery) {
+              externalRenderers, FeatureSet, Accessor, BasemapGallery, CustomContent,
+              PopupTemplate) {
   
   let chartLayerView;
-  //const features = [];
+
   const spatialReference = SpatialReference.WebMercator;
-  
-  // Route Layer for animatioin
-  // The stops and route result will be stored in this layer
-  var routeLyr = new GraphicsLayer();
-
-  // Setup the route parameters
-  var routeParams = new RouteParameters({
-      stops: new FeatureSet(),
-      outSpatialReference: { // autocasts as new SpatialReference()
-          wkid: 3857
-      }
-  });
-
-  // Define the symbology used to display the stops
-  var stopSymbol = new SimpleMarkerSymbol({
-      style: "cross",
-      size: 0, // 15
-      outline: { // autocasts as new SimpleLineSymbol()
-          width: 0 // 4
-      }
-  });
-
-  // Define the symbology used to display the route
-  var routeSymbol = new SimpleLineSymbol({
-      color: [0, 0, 255, 0], // [0, 0, 255, 0.5]
-      width: 5
-  });
-
-
-  
+   
   // Add custom DEM to the default elevation layer of esri
   const worldElevation = new ElevationLayer({
     url: "//elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
     });
     
-  const dem = new ElevationLayer({
-    portalItem: {
-      id: "dd2e85411a504182adb99215aa98ab68",
-      portal: {
-          url: "https://gis.railway-sector.com/portal"
-      },
-    }
-    });
-  
+ 
     var map = new Map({
-          basemap: "satellite",//basemap, // "streets-night-vector", basemap, topo-vector
-          ground: new Ground({
-            layers: [worldElevation, dem]
-          })
+      basemap: "satellite",//basemap, // "streets-night-vector", basemap, topo-vector
+      ground: new Ground({
+        layers: [worldElevation]
+      })
     });
     //map.ground.surfaceColor = "#FFFF";
     //map.ground.opacity = 0.1;
      
     var view = new SceneView ({
-        map: map,
-        container: "viewDiv",
-        viewingMode: "local",
-        camera: {
-            position: {
-                x: 121.0322874,
-                y: 14.6750462,
-                z: 1000
-                },
-                tilt: 65
-                },
-        environment: {
-            background: {
-                type: "color", // autocasts as new ColorBackground()
-                color: [0, 0, 0, 1]
-                },
-                // disable stars
-                starsEnabled: false,
-                //disable atmosphere
-                atmosphereEnabled: false
-                }
+      map: map,
+      container: "viewDiv",
+      viewingMode: "local",
+      camera: {
+        position: {
+          x: 121.0322874,
+          y: 14.6750462,
+          z: 1000
+        },
+      tilt: 65
+      },
+      environment: {
+        background: {
+          type: "color", // autocasts as new ColorBackground()
+          color: [0, 0, 0, 1]
+        },
+        // disable stars
+        starsEnabled: false,
+        //disable atmosphere
+        atmosphereEnabled: false
+      }
     });
   
     view.ui.components = [];
-  // OpenStreetMap 3D Buildings
+  
+    // OpenStreetMap 3D Buildings
   let osmSymbol = {
-  type: "mesh-3d",
-  symbolLayers: [
-  {
-  type: "fill",
-  material: {
-    color: [74, 80, 87, 0.5],
-    colorMixMode: "replace"
-  },
-  edges: {
-    type: "solid", // autocasts as new SolidEdges3D()
-    color: [225, 225, 225, 0.3]
-  }
-  }
-  ]
+    type: "mesh-3d",
+    symbolLayers: [
+      {
+      type: "fill",
+      material: {
+        color: [74, 80, 87, 0.5],
+        colorMixMode: "replace"
+      },
+      edges: {
+        type: "solid", // autocasts as new SolidEdges3D()
+        color: [225, 225, 225, 0.3]
+      }
+      }
+    ]
   };
   
-  
   var osm3D = new SceneLayer({
-  portalItem: {
-  id: "ca0470dbbddb4db28bad74ed39949e25"
-  },
-  title: "OpenStreetMap 3D Buildings"
+    portalItem: {
+      id: "ca0470dbbddb4db28bad74ed39949e25"
+    },
+    title: "OpenStreetMap 3D Buildings"
   });
   map.add(osm3D);
   osm3D.renderer = {
-  type: "simple",
-  symbol: osmSymbol
+    type: "simple",
+    symbol: osmSymbol
   }
-////// Train Animation using externalRenderers
-  
-      // Adds a graphic when the user clicks the map. If 2 or more points exist, route is solved.
-      //on(view, "click", addStop);
-      /*
-      view.on("click", function() {
-        addStop();
-
-    });
-    */
-
-    function addStop(event) {
-
-        // Add a point at the location of the map click
-        //var stop = new Graphic({
-        //    geometry: event.mapPoint,
-        //    symbol: stopSymbol
-        //});
-
-        var stop1 = new Graphic({
-            geometry: new Point(
-                {x: polylinePoints[0][0], 
-                 y: polylinePoints[0][1],
-                 z: polylinePoints[0][2],
-                 spatialReference: SpatialReference.WebMercator}),
-            symbol: stopSymbol
-        });
-        routeLyr.add(stop1);
-
-        const lengthAnimeLine = polylinePoints.length;
-        var stop2 = new Graphic({
-            geometry: new Point(
-                {x: polylinePoints[lengthAnimeLine - 1][0],
-                 y: polylinePoints[lengthAnimeLine - 1][1],
-                 z: polylinePoints[lengthAnimeLine - 1][2],
-                 spatialReference: SpatialReference.WebMercator }),
-            symbol: stopSymbol
-        });
-        routeLyr.add(stop2);
-
-        routeParams.stops.features.push(stop1);
-        routeParams.stops.features.push(stop2);
-
-        // Execute the route task if 2 or more stops are input
-        //routeParams.stops.features.push(stop);
-        if (routeParams.stops.features.length >= 2) {
-            //routeTask.solve(routeParams).then(showRoute);
-            showRoute();
-        }
-    }
-
-    // Adds the solved route to the map as a graphic
-    function showRoute(data) {
-        
-        //var routeResult = data.routeResults[0].route;
-
-        var polyline = new Polyline(polylinePoints);
-        polyline.spatialReference = SpatialReference.WebMercator;
-
-        var routeResult = new Graphic({
-            geometry: polyline,
-            symbol: routeSymbol
-        });
-        routeResult.symbol = routeSymbol;
-
-        routeLyr.add(routeResult);
-      
-      // the speed of the object becomes low with maximum segment of length
-      var pl = geometryEngine.densify(routeResult.geometry, 0.1, "meters");
-        // register the external renderer
-        const myExternalRenderer = new skeletonRenderer(view, pl);
-        externalRenderers.add(view, myExternalRenderer);
-
-    }
-    // Disable lighting based on the current camera position.
-    // We want to display the lighting according to the current time of day.
-    //view.environment.lighting.cameraTrackingEnabled = false;
-
-    // Create our custom external renderer
-   //////////////////////////////////////////////////////////////////////////////////////
-    //https://github.nicogis.it/externalRendererSkeleton/
-    var skeletonRenderer = Accessor.createSubclass({ // if '|| {}' is not added beside null,
-    // you will receive the following error 'Cannot destructure property of xx of 'null' as it is null'
-        view: null,
-        //pl: null,
-        renderer: null,     // three.js renderer
-        camera: null,       // three.js camera
-        scene: null,        // three.js scene
-        vertexIdx: 0,
-        ambient: null,      // three.js ambient light source
-        sun: null,          // three.js sun light source
-        mixer: null,
-        mixer2: null,
-        clock: null,
-        clips: null,
-        animate: null,
-        light: null,
-        iss: null, 
-        iss2: null,                                                   // ISS model
-        issScale: 0.7,                                     // scale for the iss model
-        issScale2: 10,
-        path: null,
-      count: null,
-      up: null,
-      timeDelta: null,
-      markerMaterial: null,    // material for the markers left by the ISS
-      markerGeometry: null,    // geometry for the markers left by the ISS
-      issMaterial: new THREE.MeshLambertMaterial({ color: 0x2194ce, transparent: true, opacity: 0.5 }), 
-
-        cameraPositionInitialized: false, // we focus the view on the ISS once we receive our first data point
-        positionHistory: [],
-      
-        constructor: function (view, pl) {
-          this.view = view;
-            this.path = pl.paths[0]; //pl.paths[0];
-        },
-        /**
-         * Setup function, called once by the ArcGIS JS API.
-         */
-        setup: function (context) {
-
-            // initialize the three.js renderer
-            /////////////////////////////////////////////////////////////////////////////////////
-            this.renderer = new THREE.WebGLRenderer({
-                context: context.gl,
-                premultipliedAlpha: false
-            });
-            this.renderer.setPixelRatio(window.devicePixelRatio);
-            this.renderer.setSize(context.camera.fullWidth, context.camera.fullHeight);
-            this.renderer.setViewport(0, 0, view.width, view.height);
-
-            // prevent three.js from clearing the buffers provided by the ArcGIS JS API.
-            this.renderer.autoClearDepth = false;
-            this.renderer.autoClearStencil = false;
-            this.renderer.autoClearColor = false;
-
-            // The ArcGIS JS API renders to custom offscreen buffers, and not to the default framebuffers.
-            // We have to inject this bit of code into the three.js runtime in order for it to bind those
-            // buffers instead of the default ones.
-            var originalSetRenderTarget = this.renderer.setRenderTarget.bind(this.renderer);
-            this.renderer.setRenderTarget = function (target) {
-                originalSetRenderTarget(target);
-                if (target == null) {
-                    context.bindRenderTarget();
-                }
-            }
-
-            // setup the three.js scene
-            //////////////////////////////////////////////////////////////////////////////////////         
-            this.scene = new THREE.Scene();
-
-            // setup the camera
-            this.camera = new THREE.PerspectiveCamera();
-
-            // setup scene lighting
-            this.ambient = new THREE.AmbientLight(0xffffff, 0.5);
-            this.scene.add(this.ambient);
-            this.sun = new THREE.DirectionalLight(0xffffff, 0.5);
-            this.scene.add(this.sun);
-
-          // setup markers
-            this.markerGeometry = new THREE.SphereBufferGeometry(12*1000, 16, 16);
-            this.markerMaterial = new THREE.MeshBasicMaterial({ color: 0xe03110, transparent: true, opacity: 0.5});
-
-            this.clock = new THREE.Clock();
-
-            var issMeshUrl = "https://EijiGorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/Sample/Three_js/3d-model-gltf/assets/TBM2.glb"; 
-            var loaderGLTF = new THREE.GLTFLoader(); // check this: https://qgenhate.hatenablog.com/ [object not an instance of THREE.Object3D]
-            let example = new THREE.Object3D();
-
-            loaderGLTF.load(issMeshUrl,
-            function(gltf) {
-                console.log("ISS mesh loaded.");
-               
-                example = gltf.scene;
-                this.iss = example;
-
-                // apply ISS material to all nodes in the geometry
-                /*
-                this.iss.traverse( function ( child ) {
-                    if ( child instanceof THREE.Mesh ) {
-                        child.material = this.issMaterial;
-                    }
-                }.bind(this));
-                */
-
-                // set the specified scale for the model
-                this.iss.scale.set(this.issScale, this.issScale, this.issScale);
-                
-                // add the model
-                this.scene.add(this.iss); // original: this.iss
-                console.log("ISS mesh added.");
-
-                // Mixer for animation
-                this.mixer = new THREE.AnimationMixer(this.iss);
-                this.mixer.clipAction(gltf.animations[0]).play();
-                
-            
-            }.bind(this), undefined, function(error) {
-                console.error("Error loading ISS mesh. ", error);
-            });
-
-            this.light = new THREE.DirectionalLight(0xffffff, 1);
-            this.light.position.set(0, 1, 0);
-            this.scene.add(this.light);
-          
-          // rotation 
-              this.up = new THREE.Vector3(0, 0, 1); // used with lookAt: look at the next point at x-axis
-              this.axis = new THREE.Vector3();
-              this.n  = new THREE.Vector3( ); // normal,
-              this.b  = new THREE.Vector3( ); // binormal
-              this.M3 = new THREE.Matrix3( );
-              this.M4 = new THREE.Matrix4( );
-              this.pp = new THREE.Vector3( );
-              this.quaternion = new THREE.Quaternion();
-
-            // cleanup after ourselfs
-            context.resetWebGLState();
-        },
-        render: function (context) {
-
-            // update camera parameters
-            ///////////////////////////////////////////////////////////////////////////////////
-            var cam = context.camera;
-
-            this.camera.position.set(cam.eye[0], cam.eye[1], cam.eye[2]);
-            this.camera.up.set(cam.up[0], cam.up[1], cam.up[2]);
-            this.camera.lookAt(new THREE.Vector3(cam.center[0], cam.center[1], cam.center[2]));
-
-            // Projection matrix can be copied directly
-            this.camera.projectionMatrix.fromArray(cam.projectionMatrix);
-          
-            if (this.iss) {
-                     
-                // Add this.mixer.update first; otherwise, the object will not be animated.s
-                if (this.mixer) {
-                    var scale = 0.0001; //this.gui.getTimeScale();
-                    var delta = this.clock.getDelta();
-
-                  this.mixer.update(delta);
-                }
-
-                    if (this.path.length == (this.vertexIdx + 1))
-                {
-                    this.vertexIdx = 0;
-                }
-              
-                var p = this.path[this.vertexIdx]; // vertexIdx = 0
-              var p1 = this.path[this.vertexIdx + 1];
-              
-            
-              // Define Z:
-              // It is important that the same Z values are set for both current (pt) and next points (pt1)
-              // Otherwise, the object will be tilted.
-              const changeZ = 0;
-              const offset = 0;
-              const offsetZ = 0.5;
-
-                var pt = new Point({
-                    x: p[0] + offset, // longitude
-                    y: p[1], // latitude
-                    z: p[2] + offsetZ
-                });
-
-                pt.spatialReference = SpatialReference.WebMercator;
-
-                //z = offsetZ; // view.basemapTerrain.getElevation(p);
-
-                pos = [pt.x, pt.y, pt.z];
-
-                this.vertexIdx++;
-
-                if (this.path.length == (this.vertexIdx)) {
-                    this.vertexIdx--;
-                }
-              
-                var transform = new THREE.Matrix4();
-                transform.fromArray(externalRenderers.renderCoordinateTransformAt(view, pos, SpatialReference.WebMercator, new Array(16)));
-
-               this.iss.position.set(transform.elements[12], transform.elements[13], transform.elements[14]);
-              
-                this.count ++;
-                if (this.count === 1) {
-                  console.log(transform.elements[12], transform.elements[13], transform.elements[14]);
-                }
-
-                var p0;
-                var p1;
-
-                if ((this.path.length - 1) == (this.vertexIdx))
-                {
-                    p0 = this.path[--this.vertexIdx];
-                    p1 = this.path[this.vertexIdx];
-                }
-                else
-                {
-                    p0 = this.path[this.vertexIdx];
-                    p1 = this.path[++this.vertexIdx];
-                }
-                            
-              var rotation = new THREE.Matrix4();
-              
-                var pt1 = new Point({
-                    x: p1[0] + offset, // longitude
-                    y: p1[1], // latitude
-                    z: p1[2] + offsetZ
-                });
-              posR = [pt1.x, pt1.y, pt1.z];
-              rotation.fromArray(externalRenderers.renderCoordinateTransformAt(view, posR, SpatialReference.WebMercator, new Array(16)));
-              // https://answers.unity.com/questions/36255/lookat-to-only-rotate-on-y-axis-how.html
-              // how to use '.up' with lookAt?
-              //geometry.applyMatrix4( new THREE.Matrix4().makeRotationX( Math.PI / 2 ) );
-              this.iss.up = this.up;
-              
-              this.iss.lookAt(rotation.elements[12], rotation.elements[13], rotation.elements[14]);
- 
-            }
-
-
-            // update lighting
-            /////////////////////////////////////////////////////////////////////////////////////////////////////
-            //view.environment.lighting.date = Date.now();
-
-            var l = context.sunLight;
-            this.sun.position.set(
-              l.direction[0],
-              l.direction[1],
-              l.direction[2]
-            );
-            this.sun.intensity = l.diffuse.intensity;
-            this.sun.color = new THREE.Color(l.diffuse.color[0], l.diffuse.color[1], l.diffuse.color[2]);
-
-            this.ambient.intensity = l.ambient.intensity;
-            this.ambient.color = new THREE.Color(l.ambient.color[0], l.ambient.color[1], l.ambient.color[2]);
-
-            // draw the scene
-            /////////////////////////////////////////////////////////////////////////////////////////////////////
-            this.renderer.resetState();
-            context.bindRenderTarget();
-            this.renderer.render(this.scene, this.camera);
-            externalRenderers.requestRender(view);
-
-            // cleanup
-            context.resetWebGLState();
-        },
-    })
-    externalRenderers.add(view, skeletonRenderer);
-    // End of externalRenderers
-
 
     //
     function shiftCamera(deg) {
@@ -979,661 +591,289 @@ require([
     // Setup UI
     var headerTitleDiv = document.getElementById("headerTitleDiv");
     const chartTbmDiv = document.getElementById("chartTbmDiv");
-  
-  
-  
-  
-  //*******************************//
-  // Label Class Property Settings //
-  //*******************************//
-  
-  //********* Define LabelingInfo *************//
-  // Station labels
-  var stationLabelClass = new LabelClass({
-      symbol: {
-        type: "label-3d",// autocasts as new LabelSymbol3D()
-        symbolLayers: [
-          {
-            type: "text", // autocasts as new TextSymbol3DLayer()
-            material: {
-              color: "white"
-            },
-            size: 10,
-            color: "black",
-            haloColor: "black",
-            haloSize: 1,
-            font: {
-              family: "Ubuntu Mono",
-              //weight: "bold"
-            },
-          }
-        ],
-        verticalOffset: {
-          screenLength: 40,
-          maxWorldLength: 100,
-          minWorldLength: 20
-        },
-  
-      },
-      labelPlacement: "above-center",
-      labelExpressionInfo: {
-        expression: 'DefaultValue($feature.Station, "no data")'
-      }
-    });
-  
-  // TBM spot label class using transit layer
-  /*
-  var tbmSpotLabel2 = new LabelClass({
-  symbol: {
-  type: "label-3d", // autocast as new LabelSymbol3D()
-  symbolLayers: [
-  {
-    type: "text",
-    material: {
-      color: "#E83618"
-    },
-    size: 15,
-    haloColor: "black",
-    haloSize: 1,
-    font: {
-      family: "Ubuntu Mono",
-      weight: "bold"
-    },
-  }
-  ],
-  verticalOffset: {
-  screenLength: 100,
-  maxWorldLength: 500,
-  minWorldLength: 10
-  },
-  callout: {
-  type: "line",
-  size: 3,
-  color: "#E83618",
-  border: {
-    color: "#E83618"
-  }
-  }
-  },
-  labelPlacement: "above-center",
-  labelExpressionInfo: {
-  expression: "IIF($feature.tbmSpot == 1, $feature.line, '')"
-  //'DefaultValue($feature.GeoTechName, "no data")'
-  //"IIF($feature.Score >= 13, '', '')"
-  //value: "{Type}"
-  },
-  maxScale: 200,
-  minScale: 1000,
-  });
-  */
-  
-  
-  // monitor buildings Label
-    var monitorBuillabelClass = new LabelClass({
-      symbol: {
-        type: "label-3d", // autocast as new LabelSymbol3D()
-        symbolLayers: [
-          {
-            type: "text",
-            material: {
-              color: [137, 205, 102]
-            },
-            size: 9,
-            color: "black",
-            haloColor: "black",
-            haloSize: 1,
-            font: {
-              family: "Ubuntu Mono",
-              weight: "normal"
-            },
-          }
-        ],
-        verticalOffset: {
-          screenLength: 80,
-          maxWorldLength: 500,
-          minWorldLength: 30
-        },
-        callout: {
-          type: "line",
-          size: 0.5,
-          color: [0, 0, 0],
-          border: {
-            color: [255, 255, 255, 0.7]
-          }
-        }
-      },
-      labelPlacement: "above-center",
-      labelExpressionInfo: {
-        expression: "IIF($feature.Type == 'Hospital' || $feature.Type == 'School' || $feature.Type == 'Government', $feature.Type, '')"
-        //'DefaultValue($feature.GeoTechName, "no data")'
-        //"IIF($feature.Score >= 13, '', '')"
-        //value: "{Type}"
-      }
-    });
-  
-  
-  //*****************************//
-  //      Renderer Settings      //
-  //*****************************//        
-    // convenience function to retrieve the WebStyleSymbols based on their name
-    function stationsSymbol(name) {
-      return {
-        type: "web-style", // autocasts as new WebStyleSymbol()
-        name: name,
-        styleName: "EsriIconsStyle"//EsriRealisticTransportationStyle, EsriIconsStyle
-      };
-    }
-  
-    function tbmspotSymbol(name) { // TBM Spot 
-      return {
-        type: "web-style",
-        name: name,
-        styleName: "EsriRealisticTransportationStyle"
-      };
-    }
-  
-  // Statin Renderer
-    var stationsRenderer = {
-      type: "unique-value", // autocasts as new UniqueValueRenderer()
-      field: "Name",
-      defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
-    };
-   
-  // Geotechnical information Renderer:-------------------
-    ///-- Profile Options for rendering geotechnical informatino (polyline Z)
-    const options_g = {
-      profile: "circle",
-      cap: "none",
-      join: "miter",
-      width: 6,
-      height: 6,
-      color: [200, 200, 200],
-      profileRotation: "all"
-    };
-  
-    ///-- Color
-    const colors_g = {
-      'Sandy Sand': [0, 112, 255, 1],
-      'Silty Sand': [230, 230, 0, 1],
-      'Rock Type': [197, 0, 255, 1]
-    };
 
-  
-  // Bridge: -----------
-  const colorsBridge = {
-      'Minor': [112, 168, 0, 0.4], // To be Constructed (white)
-      'Moderate': [230, 230, 0, 0.4], // Excavation (Dark brown)
-      'Severe': [230, 0, 0, 0.7], // Rebar (Yellow)
-    };
-  
-  // Monitored Buildings:-----
-  /*****************************************************************
-     * Define symbols for each unique type of building. One each for
-     * Government, Septic Tank, Ordinary House, Gas Station, Hospital, School, Pedestrian.
-     * Good, Fair, and Dilapidated
-     *****************************************************************/
-  
-     var goodSym = {
-      type: "polygon-3d", // autocasts as new PolygonSymbol3D()
-      symbolLayers: [
-        {
-          type: "extrude", // autocasts as new ExtrudeSymbol3DLayer()
-          material: {
-            color: [112, 168, 0, 0.4]
-          },
-          edges: {
-            type: "solid",
-            color: "#4E4E4E",
-            size: 1.0
-          }
-        }
-      ]
-    };
-  
-    var fairSym = {
-      type: "polygon-3d", // autocasts as new PolygonSymbol3D()
-      symbolLayers: [
-        {
-          type: "extrude", // autocasts as new ExtrudeSymbol3DLayer()
-          material: {
-            color: [230, 230, 0, 0.4]
-          },
-          edges: {
-            type: "solid",
-            color: "#4E4E4E",
-            size: 1.0
-          }
-        }
-      ]
-    };
-  
-    var dilapSym = {
-      type: "polygon-3d", // autocasts as new PolygonSymbol3D()
-      symbolLayers: [
-        {
-          type: "extrude", // autocasts as new ExtrudeSymbol3DLayer()
-          material: {
-            color: [230, 0, 0, 0.7]
-          },
-          edges: {
-            type: "solid",
-            color: "#4E4E4E",
-            size: 1.0
-          }
-        }
-      ]
-    };
-  
-  
-  var obstructionRenderer = {
-      type: "unique-value", // autocasts as new UniqueValueRenderer()
-      defaultSymbol: {
-        type: "polygon-3d", // autocasts as new PolygonSymbol3D()
-        symbolLayers: [
-          {
-            type: "extrude", // autocasts as new ExtrudeSymbol3DLayer()
-            material: {
-              color: "#E1E1E1"
-            },
-            edges: {
-              type: "solid",
-              color: "#4E4E4E",
-              size: 1.0
-            }
-          }
-        ]
-      },
-      defaultLabel: "Other",
-      field: "Rating",
-      legendOptions: {
-        title: "Rating for Defects"
-        },
-      uniqueValueInfos: [
-        {
-          value: "Good",
-          symbol: goodSym,
-          label: "Good"
-        },
-        {
-          value: "Fair",
-          symbol: fairSym,
-          label: "Fair"
-        },
-        {
-          value: "Dilapidated",
-          symbol: dilapSym,
-          label: "Dilapidated"
-        }          
-      ],
-      visualVariables: [
-        {
-          type: "size",
-          field: "Height",
-          valueUnit: "meters" // Converts and extrudes all data values in feet
-        }
-      ]
-    };
-  
-  
+
   //*******************************//
   // Import Layers                 //
   //*******************************//
-  // Land and Structure
-  // Lot Layer Renderer ---------
-  let defaultLotSymbolBoundary = {
-      type: "simple-fill",
-      color: [0, 0, 0, 0],
-      style: "solid",
-      outline: {
-        style: "short-dash",
-        color: [215, 215, 158],
-        width: 1.5
-      }
-    };
-  
-  let lotDefaultSymbol = {
-      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-      color: [0,0,0,0],
-      style: "solid",
-      outline: {  // autocasts as new SimpleLineSymbol()
-        color: [110, 110, 110],
-        width: 0.7
-      }
-    };
-    
-    function colorLotReqs(){
-      return {
-        1: [112,173,71, 0.5],
-        2: [0,112,255, 0.5],
-        3: [255,255,0, 0.5],
-        4: [255,170,0, 0.5],
-        5: [255,0,0, 0.5],
-        6: [0,115,76, 0.5]
-      }
-    }
-    
-    
-    let lotLayerRenderer = {
-      type: "unique-value",
-      //field: "StatusLA",
-      defaultSymbol: lotDefaultSymbol,  // autocasts as new SimpleFillSymbol()
-      valueExpression: "When($feature.StatusNVS3 == 1, '1',$feature.StatusNVS3 == 2, '2', $feature.StatusNVS3 == 3, '3', \
-                             $feature.StatusNVS3 == 4, '4', $feature.StatusNVS3 == 5, '5', \
-                             $feature.StatusNVS3 == 6, '6', $feature.StatusNVS3)",
-      uniqueValueInfos: [
-      {
-        // All features with value of "North" will be blue
-        value: "1",
-        label: "Paid",
-        symbol: {
-          type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-          color: colorLotReqs()[1],
-        }
-      },
-      {
-        // All features with value of "North" will be blue
-        value: "2",
-        label: "For Payment Processing",
-        symbol: {
-          type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-          color: colorLotReqs()[2],
-        }
-      },
-      {
-        // All features with value of "North" will be blue
-        value: "3",
-        label: "For Legal Pass",
-        symbol: {
-          type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-          color: colorLotReqs()[3],
-        }
-      },
-      {
-        // All features with value of "North" will be blue
-        value: "4",
-        label: "For Appraisal/Offer to Buy",
-        symbol: {
-          type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-          color: colorLotReqs()[4],
-        }
-      },
-      {
-        // All features with value of "North" will be blue
-        value: "5",
-        label: "For Expro",
-        symbol: {
-          type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-          color: colorLotReqs()[5],
-        }
-      },
-      {
-        // All features with value of "North" will be blue
-        value: "6",
-        label: "with WOP Fully Turned-over",
-        symbol: {
-          type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-          color: colorLotReqs()[6],
-        }
-      }
-      /*
-      {
-        // All features with value of "North" will be blue
-        value: "others",
-        label: "Others",
-        symbol: {
-          type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-          color: colorLotReqs()[6],
-          outline: {
-            width: 2,
-            color: "grey"
-          }
-        }
-      }
-      */
-      ]
-    }
-    
-     const LOT_LABEL_CLASS = {
-      // autocasts as new LabelClass()
-      symbol: {
-        type: "text",  // autocasts as new TextSymbol()
-        color: "black",
-        font: {  // autocast as new Font()
-          family: "Gill Sans",
-          size: 8
-        }
-      },
-      labelPlacement: "above-center",
-      labelExpressionInfo: {
-        expression: "$feature.CN"
-      }
-    };
-  
-    var lotLayer = new FeatureLayer({
-      portalItem: {
-        id: "032432d931624de9bf5ff03f1f9d7016",
-        portal: {
+  // ROW //
+  var prowLayer = new FeatureLayer ({
+    portalItem: {
+      id: "d3926383cf3548569372216edb808996",
+      portal: {
           url: "https://gis.railway-sector.com/portal"
+      }
+    },
+    layerId: 1,
+    title: "PROW",
+    popupEnabled: false
+  });
+  map.add(prowLayer,0);
+
+    // Lot Layer----------------------------------
+    function colorLotReqs(){
+        return {
+            0: [0, 197, 255], 
+            1: [112,173,71],
+            2: [0,112,255],
+            3: [255,255,0],
+            4: [255,170,0],
+            5: [255,0,0],
+            6: [0,0,0,0]
         }
-      },
-      layerId: 1,
-      outFields: ["*"],
-      title: "Status of Land Acquisition",
-            
-    //labelsVisible: false,
-      labelingInfo: [LOT_LABEL_CLASS],
-      renderer: lotLayerRenderer,
-      popupTemplate: {
-        title: "<p>{Id}</p>",
-        lastEditInfoEnabled: false,
-        returnGeometry: true,
-        content: [
-          {
-            type: "fields",
-            fieldInfos: [
-              {
-                fieldName: "OWNER",
-                label: "Land Owner"
-              },
-              {
-                fieldName: "Station1"
-              },
-              {
-                fieldName: "StatusNVS3",
-                label: "<p>Status of Land Acquisition</p>"
-              }
-            ]
-          }
+    }
+
+    let defaultSymbol = {
+        type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+        color: [0,0,0,0],
+        style: "solid",
+        outline: {  // autocasts as new SimpleLineSymbol()
+            color: [110, 110, 110],
+            width: 0.7
+        }
+    };
+      
+
+    let lotLayerRenderer = {
+        type: "unique-value",
+        defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
+        valueExpression: "When($feature.StatusLA == 0, '0',$feature.StatusLA == 1, '1', $feature.StatusLA == 2, '2', \
+                               $feature.StatusLA == 3, '3', $feature.StatusLA == 4, '4', \
+                               $feature.StatusLA == 5, '5', $feature.StatusLA)",
+        uniqueValueInfos: [
+            {
+                value: "0",
+                label: "Handed-Over",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[0],
+                }
+            },
+            {
+                value: "1",
+                label: "Paid",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[1],
+                }
+            },
+            {
+                value: "2",
+                label: "For Payment Processing",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[2],
+                }
+            },
+            {
+                value: "3",
+                label: "For Legal Pass",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[3],
+                }
+            },
+            {
+                value: "4",
+                label: "For Appraisal/Offer to Buy",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[4],
+                }
+            },
+            {
+                value: "5",
+                label: "For Expro",
+                symbol: {
+                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                    color: colorLotReqs()[5],
+                }
+            }
         ]
+    }
+
+    var lotIdLabel = new LabelClass({
+      labelExpressionInfo: {expression: "$feature.LotID"},
+      symbol: {
+        type: "text",
+        color: "black",
+        haloColor: "white",
+        haloSize: 0.5,
+        font: {
+          size: 11,
+          weight: "bold"
+        }
       }
     });
-    map.add(lotLayer, 0);
-    
-    
-  // Construction boundary
-  // Construction boundary
-  let ConstructionBoundaryFill = {
-            type: "unique-value",
-            valueExpression: "When($feature.MappingBoundary == 1, 'Boundary',$feature.MappingBoundary)",
-            uniqueValueInfos: [
-                {
-                    value: "Boundary",
-                    symbol: {
-                        type: "simple-fill",
-                        color: [0, 0, 0,0],
-                        outline: {
-                            width: 2.5,
-                            color: [220,220,220],
-                            style: "short-dash"
-                        }
-                    }
-                }
-  
-            ]
+
+    var lotLayer = new FeatureLayer({
+      portalItem: {
+        id: "c38a7320b34b45b580778d7363f4e4c3",
+        portal: {
+            url: "https://gis.railway-sector.com/portal"
+        }
+      },
+      title: "Land Acquisition",
+      layerId: 14,
+      labelingInfo: [lotIdLabel],
+      renderer:lotLayerRenderer,
+      outFields: ["*"],
+      minScale: 150000,
+      maxScale: 0,
+      //labelsVisible: false,
+    });
+    map.add(lotLayer,0);
+
+    /// Popup for lot layer
+    const lotStatusArray = [
+        "Handed-Over",
+        "Paid",
+        "For Payment Processing",
+        "For Legal Pass",
+        "For Appraisal/Offer to Buy",
+        "For Expro"
+    ];
+
+    const landUseArray = [
+        "Agricultural",
+        "Agricultural & Commercial",
+        "Agricultural / Residential",
+        "Commercial",
+        "Industrial",
+        "Irrigation",
+        "Residential",
+        "Road",
+        "Road Lot",
+        "Special Exempt"
+    ]
+
+    let customContentLot = new CustomContent({
+        outFields: ["*"],
+        creator: function(event) {
+
+            // Extract AsscessDate of clicked pierAccessLayer
+            const lotNo = event.graphic.attributes.LotID;
+            const handOverDate = event.graphic.attributes.HandOverDate;
+            const handOverArea = event.graphic.attributes.percentHandedOver;
+            const statusLot = event.graphic.attributes.StatusLA;
+            const landUse = event.graphic.attributes.LandUse;
+            const municipal = event.graphic.attributes.Municipality;
+            const barangay = event.graphic.attributes.Barangay;
+            const landOwner = event.graphic.attributes.LandOwner;
+            const cpNo = event.graphic.attributes.CP;
+
+            // Convert numeric to date format
+
+            var date = new Date(handOverDate);
+            var DATES = dateFormat(date, 'MM-dd-yyyy');
+
+            if (DATES === '01-01-1970') {
+                var finalDate = "Undefined"
+            } else {
+                var finalDate = dateFormat(date, 'MM-dd-yyyy');
+            }
+            // Convert domain code to domain name
+            /// 1. Status
+            if (statusLot >= 0) {
+                //headerTitleDiv.innerHTML = lotStatusArray[statusLot];
+                var statusLotTemp = lotStatusArray[statusLot];
+            }
+
+            if (landUse >=1 ) {
+                var landUseTemp = landUseArray[landUse - 1];
+            }
+
+            return `<ul><li>Handed-Over Area: <b>${handOverArea} %</b></li><br>
+                    <li>Status:           <b>${statusLotTemp}</b></li><br>
+                    <li>Land Use:         <b>${landUseTemp}</b></li><br>
+                    <li>Municipality:     <b>${municipal}</b></li><br>
+                    <li>Barangay:         <b>${barangay}</b></li><br>
+                    <li>Land Owner:       <b>${landOwner}</b>
+                    <li>CP:               <b>${cpNo}</b></li></ul>`;
+
+        }
+    });
+
+    const templateLot = new PopupTemplate({
+        outFields: ["*"],
+        title: "Lot No.: <b>{LotID}</b>",
+        lastEditInfoEnabled: false,
+        content: [customContentLot]
+    });
+    lotLayer.popupTemplate = templateLot;
+
+
+  // Station Layer:-------------------
+  // Station labels
+  var labelClass = new LabelClass({
+    symbol: {
+      type: "label-3d",// autocasts as new LabelSymbol3D()
+      symbolLayers: [
+        {
+          type: "text", // autocasts as new TextSymbol3DLayer()
+          material: {
+            color: [255, 170, 0]
+          },
+          size: 20,
+          color: "black",
+          haloColor: "black",
+          haloSize: 1,
+          font: {
+            family: "Ubuntu Mono",
+            //weight: "bold"
+          },
+        }
+      ],
+      verticalOffset: {
+        screenLength: 40,
+        maxWorldLength: 100,
+        minWorldLength: 20
+      },
+    },
+    labelPlacement: "above-center",
+    labelExpressionInfo: {
+      expression: "$feature.Station"
+      //value: "{TEXTSTRING}"
+    }
+  });
+
+  // Station Symbol
+  function stationsSymbol(name) {
+    return {
+      type: "web-style", // autocasts as new WebStyleSymbol()
+      name: name,
+      styleName: "EsriIconsStyle"//EsriRealisticTransportationStyle, EsriIconsStyle
+    };
+  }
+
+  // Station Renderer
+  var stationsRenderer = {
+    type: "unique-value", // autocasts as new UniqueValueRenderer()
+    field: "Station",
+    defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
   };
-  
-  
-  // Construction Boundary
-  var constBoundary = new FeatureLayer({
+
+  var stationLayer = new SceneLayer({
     portalItem: {
-      id: "b0cf28b499a54de7b085725bca08deee",
+      id: "87903f4d1859454a837d68e18a27ad4c",
       portal: {
         url: "https://gis.railway-sector.com/portal"
       }
-  },
-  layerId: 4,
-  outFields: ["*"],
-  renderer: ConstructionBoundaryFill,
-  definitionExpression: "MappingBoundary = 1",
-  title: "Construction Boundary",
-  elevationInfo: {
-  mode: "on-the-ground",
-  },
-  popupEnabled: false
-  });
-  constBoundary.listMode = "hide";
-  map.add(constBoundary);
-  
-  // Station Layer:-------------------
-  var stationLayer = new SceneLayer({
-      portalItem: {
-        id: "6d8d606fee5841ea80fa133adbb028fc",
-        portal: {
-          url: "https://gis.railway-sector.com/portal"
-        },
-      },
-         labelingInfo: [stationLabelClass],
-         renderer: stationsRenderer,
-         definitionExpression: "sector = 'MMSP'",
-         popupEnabled: false,
-         elevationInfo: {
-             // this elevation mode will place points on top of
-             // buildings or other SceneLayer 3D objects
-             mode: "relative-to-ground"
-             },
-          //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
-    });
-    stationLayer.listMode = "hide";
-    map.add(stationLayer);
-  
-  // Geotechnical information:-------------------
-  var geotech = new FeatureLayer({
-    portalItem: {
-        id: "30cdb9f9775146308a05dd17cfbfa87a",
-        portal: {
-          url: "https://gis.railway-sector.com/portal"
-        }
-      },
-      layerId: 3,
-      elevationInfo: {
-      mode: "absolute-height", //absolute-height
-      offset: 0,
     },
-    hasZ: true,
-     //renderer: roundTubeSymbol,
-     title: "Soil Profile",
-     //definitionExpression: "sens='Aller'",
-     outFields: ["*"]
-    });
-    map.add(geotech);
-  
-    function renderGeotechLayer() {
-      const renderer = new UniqueValueRenderer({
-        field: "Class"
-      });
-  
-      for (let property in colors_g) {
-        if (colors_g.hasOwnProperty(property)) {
-          renderer.addUniqueValueInfo({
-            value: property,
-            symbol: {
-              type: "line-3d",
-              symbolLayers: [
-                {
-                  type: "path",
-                  profile: options_g.profile,
-                  material: {
-                    color: colors_g[property]
-                  },
-                  width: options_g.width,
-                  height: options_g.height,
-                  join: options_g.join,
-                  cap: options_g.cap,
-                  anchor: "bottom",
-                  profileRotation: options_g.profileRotation
-                }
-              ]
-            }
-          });
-        }
-      }
-  
-      geotech.renderer = renderer;
-    }
-    renderGeotechLayer();
-  
-  // NATM
-  
-  const colors_NATM = {
-      1: [225, 225, 225, 0.1], // To be Constructed (white)
-      2: [130, 130, 130, 0.5], // Under Construction
-      3: [255, 0, 0, 0.8], // Delayed
-      4: [0, 112, 255, 0.8], // Completed
-    };
-  
-  var natmLayer = new SceneLayer({
-    portalItem: {
-      id: "d8a87f380b69495a9906fb7035ca84a9",
-      portal: {
-    url: "https://gis.railway-sector.com/portal"
-  }
-    },
+    labelingInfo: [labelClass],
+    renderer: stationsRenderer,
     elevationInfo: {
-      mode: "absolute-height",//"on-the-ground", relative-to-ground, absolute-height
-      offset: 0
+      // this elevation mode will place points on top of
+      // buildings or other SceneLayer 3D objects
+      mode: "relative-to-ground"
     },
-  
-     //renderer: roundTubeSymbol,
-     title: "NATM",
-     //definitionExpression: "sens='Aller'",
-     outFields: ["*"]
-    });
-    map.add(natmLayer);
-  
-  // Symbology for natmLayer
-  function renderNATMLayer() {
-  // Obtain unique values from Status1
-  const renderer = new UniqueValueRenderer({
-  field: "status"
+    definitionExpression: "Extension = 'SC'"
+    //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
   });
+  stationLayer.listMode = "hide";
+  map.add(stationLayer, 0);
   
-  for (let property in colors_NATM) {
-  if (colors_NATM.hasOwnProperty(property)) {
-  renderer.addUniqueValueInfo({
-    value: property,
-    symbol: {
-      type: "mesh-3d",
-      symbolLayers: [
-        {
-          type: "fill",
-          material: {
-            color: colors_NATM[property],
-            colorMixMode: "replace"
-          },
-          edges: {
-            type: "solid", // autocasts as new SolidEdges3D()
-            color: [225, 225, 225, 0.3]
-          }
-        }
-      ]
-    }
-  });
-  }
-  }
-  natmLayer.renderer = renderer;
-  }
-  renderNATMLayer();
-  
+
   
   // TBM segmented line:-------------------
     // TBM Alignment:-------------------
@@ -1656,7 +896,7 @@ const colors = {
 
 let tbmStatusRenderer = {
   type: "unique-value",
-  field: "status",
+  field: "Status",
   uniqueValueInfos: [
     {
       value: 1,
@@ -1729,366 +969,28 @@ let tbmStatusRenderer = {
 
   var tbmTunnelLayer = new FeatureLayer({
     portalItem: {
-      id: "af9539f5e41e4bd8b694973972e3faf4",
+      id: "697cf5e1ab5a46eb870986d906bfc50b",
       portal: {
     url: "https://gis.railway-sector.com/portal"
   }
     },
     elevationInfo: {
       mode: "absolute-height",//"on-the-ground", relative-to-ground, absolute-height
-      offset: -2
+      //offset: -2
     },
     hasZ: true,
-    layerId: 2,
     renderer: tbmStatusRenderer,
     //labelingInfo: [tbmSpotLabel2],
      title: "TBM Segment",
      outFields: ["*"],
      popupTemplate: {
-        title: "Ring No.: <b>{segmentno}</b> (<b>{line}</b>)",
+        title: "Ring No.: <b>{RingNo}</b> (<b>{Line}</b>)",
         lastEditInfoEnabled: false,
         returnGeometry: true,
       }
 
     });
     map.add(tbmTunnelLayer);
-
-    // Muck Pit
-    const muckPitRenderer = {
-      type: "simple",
-      symbol: {
-        type: "mesh-3d",  // autocasts as new MeshSymbol3D()
-        symbolLayers: [
-          {
-          type: "fill",  // autocasts as new FillSymbol3DLayer()
-          material: { color: [0, 112, 255, 0.5] },
-          edges: {
-            type: "solid",
-            color: "#4E4E4E",
-            size: 1
-          }
-          }
-        ]
-      }
-    };
-
-    const muckPitLayer = new SceneLayer({
-      portalItem: {
-        id: "a55358f858994df69f3dea4246a37020",
-        portal: {
-          url: "https://gis.railway-sector.com/portal"
-        }
-      },
-      title: "Muck Pit",
-      renderer: muckPitRenderer
-    });
-    map.add(muckPitLayer);
-  
-
-  // River Layer:-------------------
-    const riverLayer = new FeatureLayer({
-      portalItem: {
-        id: "5ebdee597f3540d1baed240034532883",
-        portal: {
-          url: "https://gis.railway-sector.com/portal"
-        },
-      },
-      layerId: 1,
-    elevationInfo: {
-      mode: "on-the-ground",
-      offset: 0
-    },
-    renderer: {
-        type: "simple",
-        symbol: {
-            type: "polygon-3d",
-            symbolLayers: [
-                {
-                    type: "water",
-                    waveDirection: 260,
-                    color: "#005B66", //#005B66, #25427c
-                    waveStrength: "moderate",
-                    waterbodySize: "medium"
-                }
-            ]
-        }
-    }
-    });
-    riverLayer.listMode = "hide";
-    map.add(riverLayer, 0);
-  
-  // Station structure: reference only
-  const colors3D = {
-      1: [225, 225, 225, 0.1], // To be Constructed (white)
-      2: [225, 225, 225, 0.1], // Under Construction
-      3: [225, 225, 225, 0.1], // Delayed
-      4: [225, 225, 225, 0.1], // Completed
-    };
-  
-  var stationStructure = new SceneLayer({ //structureLayer
-      portalItem: {
-        id: "09f1e6d86cf34567bebcd22afcad8b4b",
-        portal: {
-          url: "https://gis.railway-sector.com/portal"
-        }
-      },
-      definitionExpression: "Type = 1",
-      popupEnabled: false,
-        elevationInfo: {
-            mode: "absolute-height",
-            offset: 0
-        },
-        title: "Station Structure",
-        outFields: ["*"]
-        // when filter using date, example below. use this format
-        //definitionExpression: "EndDate = date'2020-6-3'"
-    });
-    //stationStructure.listMode = "hide";
-    map.add(stationStructure, 1);
-  
-    function renderStructureLayer() {
-      const renderer = new UniqueValueRenderer({
-        field: "Status"
-      });
-  
-      for (let property in colors3D) {
-        if (colors3D.hasOwnProperty(property)) {
-          renderer.addUniqueValueInfo({
-            value: property,
-            symbol: {
-              type: "mesh-3d",
-              symbolLayers: [
-                {
-                  type: "fill",
-                  material: {
-                    color: colors3D[property],
-                    colorMixMode: "replace"
-                  },
-                  edges: {
-                    type: "solid", // autocasts as new SolidEdges3D()
-                    color: [225, 225, 225, 0.8]
-                    }
-                }
-              ]
-             }
-          });
-        }
-      }
-  
-      stationStructure.renderer = renderer;
-    }
-  
-    renderStructureLayer();
-
-    // TBM Shaft
-    var tbmShaft = new SceneLayer({ //structureLayer
-      portalItem: {
-        id: "0bba3bc8c087412b89a3d72a47a1c6aa",
-        portal: {
-          url: "https://gis.railway-sector.com/portal"
-        }
-      },
-      popupEnabled: false,
-        elevationInfo: {
-            mode: "absolute-height",
-            offset: 0
-        },
-        title: "TBM Shaft"
-        // when filter using date, example below. use this format
-        //definitionExpression: "EndDate = date'2020-6-3'"
-    });
-    map.add(tbmShaft, 1);
-  
-    function renderTbmShaftLayer() {
-      const renderer = new UniqueValueRenderer({
-        field: "Status"
-      });
-  
-      for (let property in colors3D) {
-        if (colors3D.hasOwnProperty(property)) {
-          renderer.addUniqueValueInfo({
-            value: property,
-            symbol: {
-              type: "mesh-3d",
-              symbolLayers: [
-                {
-                  type: "fill",
-                  material: {
-                    color: colors3D[property],
-                    colorMixMode: "replace"
-                  },
-                  edges: {
-                    type: "solid", // autocasts as new SolidEdges3D()
-                    color: [225, 225, 225, 0.8], //225, 225, 225, 0.3
-                    size: 1
-                    }
-                }
-              ]
-             }
-          });
-        }
-      }
-  
-      tbmShaft.renderer = renderer;
-    }
-  
-    renderTbmShaftLayer();
-  
-  
-  // Bridge Layer:-------------------        
-    var bridgeLayer = new SceneLayer({
-      portalItem: {
-        id: "33801e0fd57a420e8f2dfc814b4fbf96", //8d867de4d0034e08afed516372f8dd86
-        portal: {
-            url: "https://gis.railway-sector.com/portal"
-        },
-      },
-      /*
-      portalItem: {
-      id: "e01d0321d29f4239a383be1ba056d2aa",  
-      portal: {
-        url: "https://mmspgc-gis.mmspgc.local/portal"
-      }
-      },
-      */
-      elevationInfo: {
-        mode: "absolute-height",
-        offset: 0
-      },
-      title: "Monitoring Bridge",
-      outFields: ["*"],
-    });
-    map.add(bridgeLayer, 0);
-  
-    function renderBridgeLayer() {
-      const renderer = new UniqueValueRenderer({
-        field: "Rating",
-        legendOptions: {
-        title: "Rating for Defects"
-        }
-      });
-  
-      for (let property in colorsBridge) {
-        if (colorsBridge.hasOwnProperty(property)) {
-          renderer.addUniqueValueInfo({
-            value: property,
-            symbol: {
-              type: "mesh-3d",
-              symbolLayers: [
-                {
-                  type: "fill",
-                  material: {
-                    color: colorsBridge[property],
-                    colorMixMode: "replace"
-                  },
-                  edges: {
-                    type: "solid", // autocasts as new SolidEdges3D()
-                    color: [225, 225, 225, 0.3]
-                    }
-                }
-              ]
-             }
-          });
-        }
-      }
-  
-      bridgeLayer.renderer = renderer;
-    }
-  
-    renderBridgeLayer();
-  
-  
-  // Monitored Buildings:-----------
-    /*****************************************************************
-     * Set each unique value directly in the renderer's constructor.
-     * At least one field must be used (in this case the "DESCLU" field).
-     * The label property of each unique value will be used to indicate
-     * the field value and symbol in the legend.
-     *
-     * The size visual variable sets the height of each building as it
-     * exists in the real world according to the "ELEVATION" field.
-     *****************************************************************/
-  var obstructionLayer = new FeatureLayer({
-  portalItem: {
-        id: "5ebdee597f3540d1baed240034532883",
-        portal: {
-          url: "https://gis.railway-sector.com/portal"
-        },
-      },
-      layerId: 2,
-      elevationInfo: {
-        mode: "on-the-ground",
-        offset: 0
-      },
-      title: "Monitoring Structures",
-      labelingInfo: [monitorBuillabelClass],
-      renderer: obstructionRenderer,
-      popupTemplate: {
-        // autocasts as new PopupTemplate()
-        title: "{Rating}",
-        content: [
-          {
-            type: "fields",
-            fieldInfos: [
-              {
-                fieldName: "Type",
-                label: "Type of Building"
-              },
-              {
-                fieldName: "Score",
-                label: "Score"
-              },
-              {
-                fieldName: "Rating",
-                label: "Rating"
-              }
-            ]
-          }
-        ]
-      },
-      outFields: ["*"],
-      definitionExpression: "Remarks IS NULL" // show only buildings with height, 
-    });
-    map.add(obstructionLayer, 0);
-  
-  // Dilapidation survey Extent line
-  var dilapSurveyExtent = new FeatureLayer({
-  portalItem: {
-  id: "30cdb9f9775146308a05dd17cfbfa87a",
-  portal: {
-    url: "https://gis.railway-sector.com/portal"
-  },
-  },
-  layerId: 2,
-    /*
-      portalItem: {
-      id: "8f53ab5eed324f5d9272a09b243198a6",
-      portal: {
-        url: "https://mmspgc-gis.mmspgc.local/portal"
-      }
-      },
-      */
-      elevationInfo: {
-        mode: "on-the-ground",
-        offset: 0
-      },
-      title: "Survey Extent Line"
-    });
-    map.add(dilapSurveyExtent, 0);
-  
-  // TBM Alignment reference line:--------------
-  let defaultTBMAlign = {
-            type: "simple-line",
-            color: [211, 211, 211, 0.5],
-            style: "solid",
-            width: 0.5
-  };
-  
-  let tbmAlignRenderer = {
-  type: "unique-value",
-  field: "LAYER",
-  defaultSymbol: defaultTBMAlign
-  };
 
 
   //*******************************//
@@ -2104,31 +1006,22 @@ let tbmStatusRenderer = {
   });
   map.add(graphicsLayer);
 
-  function tbmPositionSymbol(cpValue, tbmValue) {
+  function tbmPositionSymbol(segmentLineValue) {
     graphicsLayer.removeAll();
     var query = tbmTunnelLayer.createQuery();
     query.returnGeometry = true;
-
-    const packageExpression = "Package = '" + cpValue + "'";
-    const tbmExpression = "line = '" + tbmValue + "'";
-
-    if (tbmValue === undefined || tbmValue === 'None') {
-      query.where = "tbmSpot = 1" + " AND " + packageExpression; // to be constructed
-    } else {
-      query.where = "tbmSpot = 1" + " AND " + packageExpression + " AND " + tbmExpression;
-    }
+    const tbmExpression = "Line = '" + segmentLineValue + "'";
     
-    query.groupByFieldsForStatistics = ["line"];
+    query.where = "tbmSpot = 1" + " AND " + tbmExpression;
+    //query.groupByFieldsForStatistics = ["Line"];
     
     tbmTunnelLayer.queryFeatures(query).then(function(response) {
-    const stats = response.features;   
-    
-    stats.forEach((result, index) => {
-      const attributes = result.attributes;
-      const lineType = attributes.line;
-      const segmentNo = attributes.segmentno;
-      const vertex = result.geometry.paths[0];
-      
+      const stats = response.features[0];
+      const attributes = stats.attributes;
+      const lineType = attributes.Line;
+      const segmentNo = attributes.RingNo;
+      const vertex = stats.geometry.paths[0];
+  
       const long = (vertex[0][0] + vertex[1][0]) / 2;
       const lat = (vertex[0][1] + vertex[1][1]) / 2;
       // longitude: vertex[0][0]
@@ -2139,37 +1032,37 @@ let tbmStatusRenderer = {
         type: "point",
         x: long,
         y: lat,
-        z: 15
+        z: -5
       }
 
       const symbol = {
         type: "point-3d",
-              symbolLayers: [
-                  {
-                      type: "icon",
-                      resource: {
-                        href: "https://EijiGorilla.github.io/Symbols/TBM_LOGO2.png"
-                      },
-                      size: 30
-                      //resource: {primitive: "circle"},
-                      //material: {color: "green"}
-                  }
-              ],
-              verticalOffset: {
-                  screenLength: 100,
-                  maxWorldLength: 500,
-                  minWorldLength: 40
+          symbolLayers: [
+            {
+              type: "icon",
+              resource: {
+                href: "https://EijiGorilla.github.io/Symbols/TBM_LOGO2.png"
               },
-              callout: {
-                  type: "line",
-                  size: 1.5,
-                  color: "#E83618",
-                  border: {
-                      color: "#E83618"
-                  }
-              },
-              maxScale: 1000,
-              minScale: 25000000
+              size: 30
+              //resource: {primitive: "circle"},
+              //material: {color: "green"}
+            }
+          ],
+          verticalOffset: {
+            screenLength: 100,
+            maxWorldLength: 500,
+            minWorldLength: 40
+          },
+          callout: {
+            type: "line",
+            size: 1.5,
+            color: "#E83618",
+            border: {
+              color: "#E83618"
+            }
+          },
+          maxScale: 1000,
+          minScale: 25000000
       }
 
       const myGraphic = new Graphic({
@@ -2178,47 +1071,6 @@ let tbmStatusRenderer = {
       });
 
       graphicsLayer.add(myGraphic);
-    /*
-          view.graphics.add({
-              geometry: {
-                  spatialReference: spatialReference,
-                  type: "point",
-                  x: long,
-                  y: lat,
-                  z: 15
-              },
-              symbol: {
-              type: "point-3d",
-              symbolLayers: [
-                  {
-                      type: "icon",
-                      resource: {
-                        href: "https://EijiGorilla.github.io/Symbols/TBM_LOGO2.png"
-                      },
-                      size: 30
-                      //resource: {primitive: "circle"},
-                      //material: {color: "green"}
-                  }
-              ],
-              verticalOffset: {
-                  screenLength: 100,
-                  maxWorldLength: 500,
-                  minWorldLength: 40
-              },
-              callout: {
-                  type: "line",
-                  size: 1.5,
-                  color: "#E83618",
-                  border: {
-                      color: "#E83618"
-                  }
-              },
-              maxScale: 1000,
-              minScale: 25000000
-          }
-          });
-    */
-    });
     });
   }
   
@@ -2228,28 +1080,19 @@ let tbmStatusRenderer = {
   
   /* Function for zooming to selected layers */
   function zoomToLayer(layer) {
-  return layer.queryExtent().then(function(response) {
-  view.goTo(response.extent, { //response.extent
-  speedFactor: 2
-  }).catch(function(error) {
-  if (error.name != "AbortError") {
-    console.error(error);
-  }
-  });
-  });
+    return layer.queryExtent().then(function(response) {
+      view.goTo(response.extent, { //response.extent
+        speedFactor: 2
+      }).catch(function(error) {
+        if (error.name != "AbortError") {
+          console.error(error);
+        }
+      });
+    });
   }
   
   var highlightSelect;
-  
-    async function initialization() {
-      //play.style.display = "none";
-      //pause.style.display = "block";
-      document.getElementById("myLink").checked = true;
-      map.ground.opacity = 0;
-      abort = false;
-      addStop();
-      //zoomToLayer(tbmShaft);
-    }
+
 
     // Get last edited date
     const month = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -2257,7 +1100,7 @@ let tbmStatusRenderer = {
       var tempDates = [];
 
       var query = tbmTunnelLayer.createQuery();
-      //query.fields = ["enddate"];
+      //query.fields = ["endDate"];
       query.where = "last_edited_date IS NOT NULL";
       return tbmTunnelLayer.queryFeatures(query).then(function(response) {
         var stats = response.features;
@@ -2272,7 +1115,7 @@ let tbmStatusRenderer = {
         const mm = month[lastEdit.getMonth()];
         const dd = lastEdit.getDate();
         const lastEditedDate = `${mm} ${dd}, ${yyyy}`;
-        document.getElementById("dateDiv").innerHTML = "As of June 5, 2023";//lastEditedDate;
+        document.getElementById("dateDiv").innerHTML = "As of June xx, 2023";//lastEditedDate;
       });
     }
     getEditedDateValue();
@@ -2296,20 +1139,13 @@ let tbmStatusRenderer = {
     // Count the total number of rings
     const totalSegmentNoDiv = document.getElementById("totalSegmentNoDiv");
 
-    function totalNumberRings(cpValue, tbmValue) {
-      const cpExpression = "Package = '" + cpValue + "'";
-      const tbmExpression = "line = '" + tbmValue + "'";
-
+    function totalNumberRings(segmentLineValue) {
+      const tbmExpression = "Line = '" + segmentLineValue + "'";
       var query = tbmTunnelLayer.createQuery();
-
-      if (tbmValue == 'None' || tbmValue == undefined) {
-        query.where = "Package = '" + cpValue + "'";
-      } else {
-        query.where = cpExpression + " AND " + tbmExpression;
-      }
+      query.where = tbmExpression;
 
       var total_number_ring = {
-        onStatisticField: "line",
+        onStatisticField: "Line",
         outStatisticFieldName: "total_number_ring",
         statisticType: "count"
       };
@@ -2334,13 +1170,13 @@ let tbmStatusRenderer = {
   root._logo.dispose();
 function tbmChart() {
   var total_number = {
-      onStatisticField: "line",
+      onStatisticField: "Line",
       outStatisticFieldName: "total_number",
       statisticType: "count"
     }
     
     var total_complete = {
-      onStatisticField: "CASE WHEN status = 3 THEN 1 ELSE 0 END",
+      onStatisticField: "CASE WHEN Status = 3 THEN 1 ELSE 0 END",
       outStatisticFieldName: "total_complete",
       statisticType: "sum"
     }
@@ -2566,69 +1402,57 @@ function tbmChart() {
 }); 
 }
 
-  tbmTunnelLayer.definitionExpression = "Package = 'CP101'";
-  
-  // When CP is selected, reset tbm value is 'None'
-  const changeSelected = (e) => {
-    const $select = document.querySelector('#tbmSelect');
-    $select.value = 'None'
-    };
-
   // Selected Value Labels above gauge
   const filterValuesDiv = document.getElementById("filterValuesDiv");
-  function selectedValuesLabel(cpValue, tbmValue) {
-    if (tbmValue === 'None' || tbmValue === undefined) {
-      filterValuesDiv.innerHTML = `<b>${cpValue} - All Segments</b>`;
-    } else {
-      filterValuesDiv.innerHTML = `<b>${cpValue} - ${tbmValue}</b>`;
-    }
+  function selectedValuesLabel(segmentLineValue) {
+   filterValuesDiv.innerHTML = `<b>${segmentLineValue}`;
   }
 
     // Default
     const cutterHeadPositionDiv = document.getElementById("cutterHeadPositionDiv");
     function defaultRender(){
-      const defaultCP = 'CP101';
-
-      tbmTunnelLayer.definitionExpression = "Package = 'CP101'";
       tbmTunnelLayer.visible = true;
-      natmLayer.visible = false;
+      tbmTunnelLayer.definitionExpression = "Line = 'NB'";
+
       tbmChart();
 
+      defaultSegementedLine = "NB";
+
       // cutter head position symbol
-      tbmPositionSymbol(defaultCP);
+      tbmPositionSymbol(defaultSegementedLine);
 
-      // As default, change tbm No = 'None'
-      tbmFilterList(defaultCP)
-      changeSelected();
+      // Cutter head position
+      cutterHeadPosition(defaultSegementedLine);
 
-      //selectedValuesLabel("CP101")
-      selectedValuesLabel(defaultCP)
+      //selectedValuesLabel
+      selectedValuesLabel(defaultSegementedLine)
 
       // Total Number of rings
-      totalNumberRings(defaultCP);
+      totalNumberRings(defaultSegementedLine);
 
-      //surveyChart();
-      cutterHeadPositionDiv.innerHTML = `
-                                    <b>Cutter Head Position</b><br>
-                                    <h6>-----</h6>
-                                  `;
+      // timeSeriesChart
+      timeSeriesChart(defaultSegementedLine);
     }
-    defaultRender();
+
+    view.when(() => {
+      defaultRender();
+      zoomToLayer(tbmTunnelLayer);
+    })
 
        // Cutter head position for each TBM
   // note that cutter head position = permanently cased segment No. + 7
   // E.g., if segment no. 10 is casted, cutter head position = 10 + 7 = No. 17
   // In the attribute table, tbmSpot = 1
 
-  function cutterHeadPosition(tbmValue) {
+  function cutterHeadPosition(segmentLineValue) {
     var query = tbmTunnelLayer.createQuery();
-    query.where = "tbmSpot = 1" + " AND " + "line = '" + tbmValue + "'";
+    query.where = "tbmSpot = 1" + " AND " + "Line = '" + segmentLineValue + "'";
 
     // when TBM dropdown is 'None': ---
     // otherwise, 
     // this message is automatically overwritten if we have progress of casted segement
     // i.e., tbmSpot = 1
-    if (tbmValue === 'None') {
+    if (segmentLineValue === 'None') {
       cutterHeadPositionDiv.innerHTML = `
                                           <b>Cutter Head Position</b><br>
                                           <h6>-----</h6>
@@ -2643,8 +1467,8 @@ function tbmChart() {
 
     tbmTunnelLayer.queryFeatures(query).then(function(response) {
       var stats = response.features[0].attributes;
-      const segmentNo = stats.segmentno;
-      const tbmNo = stats.line;
+      const segmentNo = stats.RingNo;
+      const tbmNo = stats.Line;
       
       cutterHeadPositionDiv.innerHTML = `
                                           <b>Cutter Head Position</b><br>
@@ -2657,21 +1481,21 @@ function tbmChart() {
   var root2 = am5.Root.new("timeSeriesChart");
   root2._logo.dispose();
   
-  function timeSeriesChart() {
+  function timeSeriesChart(segmentLineValue) {
     root2.container.children.clear();
 
     var total_complete_segment = {
-      onStatisticField: "CASE WHEN status = 3 THEN 1 ELSE 0 END",
+      onStatisticField: "CASE WHEN Status = 3 THEN 1 ELSE 0 END",
       outStatisticFieldName: "total_complete_segment",
       statisticType: "sum"
     };
 
     var query = tbmTunnelLayer.createQuery();
-    query.where = "enddate IS NOT NULL";
+    query.where = "endDate IS NOT NULL" + " AND " + "Line = '" + segmentLineValue + "'";
     query.outStatistics = [total_complete_segment];
-    query.outFields = ["enddate"];
-    query.orderByFields = ["enddate"];
-    query.groupByFieldsForStatistics = ["enddate"];
+    query.outFields = ["endDate"];
+    query.orderByFields = ["endDate"];
+    query.groupByFieldsForStatistics = ["endDate"];
 
     tbmTunnelLayer.queryFeatures(query).then(function(response) {
       var stats = response.features;
@@ -2679,7 +1503,7 @@ function tbmChart() {
       // collect all dates for each viaduct type
       const data = stats.map((result, index) => {
         const attributes = result.attributes;
-        const date = attributes.enddate;
+        const date = attributes.endDate;
         const value = attributes.total_complete_segment;
  
         // compile in object
@@ -2829,185 +1653,80 @@ function tbmChart() {
       chart.appear(1000, 100);
     }); 
   }
-  timeSeriesChart();
 
-  
+  // Segment No list
+  const segmentType = document.getElementById("segmentNo");
+  segmentType.addEventListener("calciteSegmentedControlChange", async (event) => { segmentLineValue = event.target.value, filterItems() });
 
-  // Define 
-  var cpSelect = document.getElementById("cpSelect");
-  var tbmSelect = document.getElementById("tbmSelect");
+  function filterItems(){
+    tbmTunnelLayer.definitionExpression = "Line = '" + segmentLineValue + "'";
 
-  // Add Section and tunnel type to drop-down lists
-  /// 1. Section
-  function contractPackageValues() {
-    var cpArray = [];
-    var query = tbmTunnelLayer.createQuery();
-    query.outField = ["Package"];
-    query.where = "Package IS NOT NULL";
-    query.returnGeometry = true;
-    return tbmTunnelLayer.queryFeatures(query).then(function(response) {
-      var stats = response.features;
-      stats.forEach((result, index) => {
-      var attributes = result.attributes;
-      const SectionValues = attributes.Package;
-      cpArray.push(SectionValues);
-    });
-    return cpArray;
-  });
-  }
-  
-  function getUniqueValueSection(values) {
-  var uniqueValues = [];
-  values.forEach(function(item, i) {
-  if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
-    uniqueValues.push(item);
-  }
-  });
-  return uniqueValues;
-  }
-  
-  function addToSelectSection(values) {
-    values.sort();
-    //values.unshift('None');
-    values.forEach(function(value) {
-      var option = document.createElement("option");
-      option.text = value;
-      cpSelect.add(option);
-    });
-  }
+    selectedValuesLabel(segmentLineValue);
 
-  function cpListQuery(){
-    contractPackageValues()
-  .then(getUniqueValueSection)
-  .then(addToSelectSection)
-  }
-  cpListQuery();
-
-  /// 3. TBM
-  function tbmFilterList(cpValue) {
-  function tbmQuery() {
-    const tbmArray = [];
-    var query = tbmTunnelLayer.createQuery();
-    query.where = "Package = '" + cpValue + "'";
-    query.returnGeometry = true;
-    return tbmTunnelLayer.queryFeatures(query).then(function(response) {
-      var stats = response.features;
-      stats.forEach((result, index) => {
-      var attributes = result.attributes;
-      const tbmNo = attributes.line;
-      tbmArray.push(tbmNo);
-    });
-    return tbmArray;
-  });
-  }
-
-  function getUniqueValueTBM(values) {
-  var uniqueValues = [];
-  values.forEach(function(item, i) {
-  if ((uniqueValues.length < 1 || uniqueValues.indexOf(item) === -1) && item !== "") {
-    uniqueValues.push(item);
-  }
-  });
-  return uniqueValues;
-  }
-
-  function addToSelectTBM(values) {
-    tbmSelect.options.length = 0;
-    values.sort();
-    values.unshift('None');
-    values.forEach(function(value) {
-      var option = document.createElement("option");
-      option.text = value;
-      tbmSelect.add(option);
-    });
-  }
-    tbmQuery()
-    .then(getUniqueValueTBM)
-    .then(addToSelectTBM)
-  }
-  //tbmFilterList();
-
-
-  ////////////////// Expression based on the selected from dropdown list
-  function sectionOnlyExpression(cpValue) {
-      tbmTunnelLayer.definitionExpression = "Package = '" + cpValue + "'";
-      natmLayer.definitionExpression = "Package = '" + cpValue + "'";
-      natmLayer.visible = true;
-
-      zoomToLayer(tbmTunnelLayer);
-  }
-  
-  function sectionTbmExpression(cpValue, tbmValue) {
-    map.ground.opacity = 0.5;
-
-
-    const packageExpression = "Package = '" + cpValue + "'";
-    const tbmExpression = "line = '" + tbmValue + "'";
-
-    if (tbmValue === 'None') {
-      tbmTunnelLayer.definitionExpression = packageExpression;
-    } else {
-      tbmTunnelLayer.definitionExpression = packageExpression + " AND " + tbmExpression;
-    }
-    zoomToLayer(tbmTunnelLayer);
-  }
-  
-
-  // Dropdown List
-  // When section is changed, tunnel type is reset to 'None'
-
-  
-  /// 1. Section dropdown list ('PO', 'Remaining')
-  cpSelect.addEventListener("change", function(event) {
-    var cpValue = event.target.value;
-    changeSelected();
-    tbmFilterList(cpValue);
-    sectionOnlyExpression(cpValue);
-
-    selectedValuesLabel(cpValue);
+    // Cutter head position
+    cutterHeadPosition(segmentLineValue);
 
     // char title 
     tbmChart();
 
     // Cutter head position 3D point symbol
-    tbmPositionSymbol(cpValue);
+    tbmPositionSymbol(segmentLineValue);
 
     // Total number of rings
-    totalNumberRings(cpValue);
+    totalNumberRings(segmentLineValue);
 
-    // Cutter head position label
+    // timeSeriesChart
+    timeSeriesChart(segmentLineValue);
 
-    cutterHeadPositionDiv.innerHTML = `
-                                          <b>Cutter Head Position</b><br>
-                                          <h6>-----</h6>
-                                      `;
+    //
+    highlightSegment(segmentLineValue);
 
-  });
 
-  // 2. TBM No select
-  tbmSelect.addEventListener("change", function(event) {
-    var tbmValue = event.target.value;
-    var cpValue = cpSelect.value;
-    sectionTbmExpression(cpValue, tbmValue);
+  }
 
-    const tbmno = tbmValue == 'None' ? "TBM" : tbmValue; 
-    tbmChart(tbmno);
-    cutterHeadPosition(tbmValue);
+  // highlight function
+  function highlightSegment(segmentLineValue){
+    // Highlight selected segment Lines
+    var highlight = null;
 
-    // Cutter head position 3D point symbol
-    tbmPositionSymbol(cpValue, tbmValue);
+    // Update layerView based on viaduct components being selected
+    view.whenLayerView(tbmTunnelLayer).then(function (tbmTunnelLayerView) {
+        tbmTunnelLayerView.filter = {
+            where: "Line = '" + segmentLineValue + "'"
+        };
 
-    // selected value lable above gauge
-    selectedValuesLabel(cpValue, tbmValue);
+        var query = new Query();
+        query.returnGeometry = true;
+        tbmTunnelLayerView.queryFeatures(query).then(function(results) {
+            const ggg = results.features;
+            const rowN = ggg.length;
+            
+            // Extract and obtain OBJECTID
+            let objID = [];
+            for (var i=0; i< rowN; i++) {
+                var obj = results.features[i].attributes.OBJECTID;
+                objID.push(obj);
+            }
+            
+            if (highlight) {
+              highlightSelect.remove();
+            }
+            highlight = tbmTunnelLayerView.highlight(objID);
 
-    // Total number of rings
-    totalNumberRings(cpValue, tbmValue);
+            // Reset selection by clicking anywhere on the map
+            view.on("click", function() {
+                tbmTunnelLayerView.filter = null;
+                highlight.remove();
+            });
+        });
+    }); // whenLayerView
 
-  });
+  }
 
+ 
         // view.when
         view.when(() => {
-          document.querySelector("#header-title").textContent = "MMSP TUNNEL CONSTRUCTION";
+          document.querySelector("#header-title").textContent = "SC TUNNEL CONSTRUCTION";
           document.querySelector("#item-description").innerHTML = `
                                                                     <p>1. <b>Filter</b> by contract package from the dropdown list in the header panel.</p>
                                                                     <p>2. <b>Filter</b> by tunnel segment No.from the 2nd dropdown list if needed.</p>
@@ -3043,11 +1762,6 @@ function tbmChart() {
               timeSeriesChartDiv.style.display = "block";
             }
 
-            // Open the time series chart when chart widget is opened.
-            if (`${activeWidget}` === "animation") {
-              initialization();
-            }
-
             } else {
               activeWidget = null;
             }
@@ -3078,13 +1792,7 @@ function tbmChart() {
     container: "layers-container",
     listItemCreatedFunction: function(event) {
       const item = event.item;
-      if (item.title === "Monitoring Structures" ||
-          item.title === "Monitoring Bridge" ||
-          item.title === "Soil Profile" ||
-          item.title === "Survey Extent Line" ||
-          item.title === "OpenStreetMap 3D Buildings" ||
-          item.title === "Status of Land Acquisition" ||
-          item.title === "Status of Structure"){
+      if (item.title === "Land Acquisition" || item.title === "OpenStreetMap 3D Buildings"){
         item.visible = false
       }
     }
@@ -3100,39 +1808,13 @@ function tbmChart() {
         title: "TBM Tunnel"
       },
       {
-        layer: muckPitLayer,
-        title: "Muck Pit"
-      },
-      {
-        layer: geotech,
-        title: "Soil Profile"
-      },
-      {
-        layer: obstructionLayer,
-        title: "OBS Structure"
-      },
-      {
-        layer: bridgeLayer,
-        title: "OBS Bridge"
-      },
-      {
-        layer: riverLayer,
-        title: "Creek or River"
-      },
-      {
-          layer: natmLayer,
-          title: "NATM"
-      },
-      {
-          layer: lotLayer,
-          title: "Land Acquisition Status"
+        layer: lotLayer,
+        title: "Land Acquisition"
       },
     ]
   });
   
   view.ui.empty("top-left");
-
- // 
 
   // See-through-Ground        
   view.when(function() {
@@ -3150,6 +1832,7 @@ function tbmChart() {
       const checked = event.srcElement.checked;
       map.ground.opacity = event.srcElement.checked ? 0.1 : 0.6;
     });
+
 
   });
   </script>
