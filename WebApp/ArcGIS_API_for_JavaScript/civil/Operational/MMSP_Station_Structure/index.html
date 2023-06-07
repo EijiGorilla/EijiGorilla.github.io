@@ -57,6 +57,7 @@
           <calcite-action data-action-id="layers" icon="layers" text="Layers"></calcite-action>
           <calcite-action data-action-id="basemaps" icon="basemap" text="Basemaps"></calcite-action>
           <calcite-action data-action-id="legend" icon="legend" text="Legend"></calcite-action>
+          <calcite-action data-action-id="charts" icon="graph-time-series" text="Progree Chart"></calcite-action>
           <calcite-action data-action-id="information" icon="information" text="Information"></calcite-action>
         </calcite-action-bar>
         
@@ -69,6 +70,9 @@
         </calcite-panel>
         <calcite-panel heading="Legend" height-scale="l" data-panel-id="legend" hidden>
           <div id="legend-container"></div>
+        </calcite-panel>
+
+        <calcite-panel class="timeSeries-panel" height-scale="l" data-panel-id="charts" hidden>
         </calcite-panel>
         
         <!-- Info panel (populates with info from the web map) -->
@@ -90,13 +94,8 @@
         <calcite-label layout="inline" id="see-through-label">
           <calcite-checkbox id="myLink"></calcite-checkbox>See-through-Ground
         </calcite-label>
-        <calcite-button
-          icon-end="launch"
-          id="time-series"
-          >
-          Progress Chart
-        </calcite-button>
-        <div id="timeSeriesChart" class="esri-widget" hidden></div>
+
+        <div id="timeSeriesChart" hidden></div>
       </div>
     </calcite-shell>
   </body>
@@ -229,6 +228,7 @@
       width: 70%;
       bottom: 20;
       left: 5%;
+      background-color: rgb(37, 37, 37);
     }
 
     #time-series {
@@ -324,11 +324,7 @@
 
   let chartLayerView;
   ////////////////////////////////////////////////////
-  const timeSeries = document.querySelector("calcite-button");
-    timeSeries.addEventListener("click", function(event) {
-      const timeSeriesChart = document.getElementById("timeSeriesChart");
-      timeSeriesChart.hidden = !timeSeriesChart.hidden
-    });
+
   
   // Add custom DEM to the default elevation layer of esri
   const worldElevation = new ElevationLayer({
@@ -1372,7 +1368,7 @@ var sitePhotoLabelClass = new LabelClass({
  // Time series chart for progress monitoring of viaduct components
  var root2 = am5.Root.new("timeSeriesChart");
 root2._logo.dispose();
-function timeSeriesChart() {
+function timeSeriesChart(stationValue) {
   root2.container.children.clear();
 
   var total_complete_dwall = {
@@ -1416,7 +1412,10 @@ function timeSeriesChart() {
   const cutDateValue = '2022-01-01';
   const numberDate = new Date(cutDateValue);
   const cutDate = numberDate.toLocaleDateString('en-US');
-  const queryDate = "end_date IS NOT NULL" + " AND " + "end_date >= date'" + cutDate + "'";
+  const undefinedExpression = "end_date IS NOT NULL" + " AND " + "end_date >= date'" + cutDate + "'";
+  const stationExpression = "end_date IS NOT NULL" + " AND " + "end_date >= date'" + cutDate + "'" + " AND " + "Station1 = '" + stationValue + "'";
+  const queryDate = stationValue === undefined? undefinedExpression : stationExpression;
+ 
   query.where = queryDate;
   query.outStatistics = [total_complete_dwall, total_complete_column,
                          total_complete_slab, total_complete_kingpost, total_complete_secant,
@@ -1674,11 +1673,13 @@ timeSeriesChart();
       zoomToLayer(structureLayer);
       updateChart(); 
       perStationProgress();
+      timeSeriesChart();
     } else {
       structureLayer.definitionExpression = "Station1 = '" + selectedID + "'";
       zoomToLayer(structureLayer);
       updateChart();
       perStationProgress();
+      timeSeriesChart(selectedID);
     }
   } // End of filterByTest
 
@@ -1693,7 +1694,7 @@ timeSeriesChart();
                                                               <br>5. Click/unclick widgets icon for viewing Layer list, legend, basemaps, and locate widgets under the main title.<br>
                                                             `
                                                               ;
-    
+    const timeSeriesChartDiv = document.getElementById("timeSeriesChart");
     let activeWidget;
     const handleActionBarClick = ({ target }) => {
       if (target.tagName !== "CALCITE-ACTION") {
@@ -1705,11 +1706,24 @@ timeSeriesChart();
         document.querySelector(`[data-panel-id=${activeWidget}]`).hidden = true;
       }
 
+      // Close the progress time series chart when chart widget is closed
+      if (`${activeWidget}` === "charts") {
+        //document.getElementById("land-checkbox").checked = false;
+        timeSeriesChartDiv.style.display = "none";
+      }
+
       const nextWidget = target.dataset.actionId;
       if (nextWidget !== activeWidget) {
         document.querySelector(`[data-action-id=${nextWidget}]`).active = true;
         document.querySelector(`[data-panel-id=${nextWidget}]`).hidden = false;
         activeWidget = nextWidget;
+
+      // Open the time series chart when chart widget is opened.
+      if (`${activeWidget}` === "charts") {
+        //document.getElementById("land-checkbox").checked = true;
+        timeSeriesChartDiv.style.display = "block";
+      }
+
       } else {
         activeWidget = null;
       }
