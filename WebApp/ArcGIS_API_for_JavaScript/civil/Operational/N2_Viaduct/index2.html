@@ -13,7 +13,7 @@
 <title>N2 Viaduct</title>
 
 
-<link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"/>
+<link rel="stylesheet" href="https://js.arcgis.com/4.26/esri/themes/dark/main.css"/>
 <script type="module" src="https://js.arcgis.com/calcite-components/1.0.7/calcite.esm.js"></script>
 <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.0.7/calcite.css" />
 
@@ -45,30 +45,40 @@
       width: 100%; 
   }
 
+  /*
   calcite-button {
     position: fixed;
     z-index: 1;
     bottom: 5%;
     right: 1%;
   }
+  */
 
   calcite-label {
+    color: white;
     position: fixed;
     z-index: 1;
-    bottom: 10%;
+    bottom: 2%;
     right: 1%;
     vertical-align: middle;
     background-color: rgb(52, 52, 52);
     text-align: center;
-    padding: 7;
+    padding-right: 7;
+    padding-left: 7;
   }
 
   #see-through-label {
+    color: white;
     padding-top: 10;
     padding-bottom: 0;
     display: flex;
     align-self: center;
   }
+
+  #see-through-label b {
+    font-weight: normal;
+  }
+
 
   #headerTitleDiv {
     font-size: 2.2rem;
@@ -359,59 +369,31 @@
     margin-top: 7%;
   }
 
-  /* Others */
-  br{content:' ';}
-  br:after{content:' ';}
+      /* SCROLL BAR */
+    /* ESRI POPUP */
 
-  .esri-layer-list__item-toggle-icon,
-  .esri-layer-list__item-title {
-    color: white;
-  }
-
-  /** sassy-theme to change properties of esri's box**/
-  .sassy-theme .esri-menu,
-  .sassy-theme .esri-popup__main-container,
-  .sassy-theme .esri-popup .esri-popup__pointer-direction,
-  .sassy-theme .esri-popup .esri-popup__button,
-  .sassy-theme .esri-button,
-  .sassy-theme .esri-input,
-  .sassy-theme .esri-legend,
-  .sassy-theme .esri-layer-list,
-  .sassy-theme .esri-widget a {
-    background-color: rgb(0, 0, 0, 0.7);
-    color: #fff;
-  }
-
-  .overlay {
-    position: fixed;
-    z-index: 1;
-    width: 2%;
-    bottom: 0;
-    right: 7;
-    background-color: rgba(80, 80, 80, 0);
-    padding: 0;
-    /*text-align: center;*/
+    ::-webkit-scrollbar {
+      width: 5px;
+      
     }
-  
-  .button {
-    cursor: pointer;
-    font-size: 1vw !important;
-    font-weight: bold !important;
-    color: rgb(230, 230, 230);
-    padding: 0;
-  }
-  
-  .button:hover, #label {
-    color: white;
-  }
-  
-  .button, #label {
-    margin: 15px;
-  }
-  
-  .esri-view-surface--inset-outline:focus::after {
-      outline: none !important;
-  }
+
+    /* Track */
+    ::-webkit-scrollbar-track {
+      background: #00032235; /*#032235*/
+    }
+
+    /* Handle */
+    ::-webkit-scrollbar-thumb {
+      background: #FFBA1F;
+    }
+
+    /* Handle on hover */
+    ::-webkit-scrollbar-thumb:hover {
+      background: #b98816;
+    }
+
+
+
 
 </style>
 <body class="calcite-theme-dark">
@@ -420,15 +402,12 @@
   <div id="viewDiv">
   <div id="dateDiv"></div>
   <div id="headerTitleDiv">N2 VIADUCT</div>
-  <div class="cpButtonBox">
-      <div id="cpButton" class="cpButtonClass">
-        <label for="cpButton"></label>
-        <input type="radio" id="N-01" name="cpButton" checked/> N-01
-        <input type="radio" id="N-02" name="cpButton"> N-02
-        <input type="radio" id="N-03" name="cpButton"> N-03
-        <input type="radio" id="N-04" name="cpButton"> N-04
-      </div>
-  </div>
+  <calcite-segmented-control id="contractPackage">
+    <calcite-segmented-control-item id="N-01" value="N-01" checked>N-01</calcite-segmented-control-item>
+    <calcite-segmented-control-item id="N-02" value="N-02">N-02</calcite-segmented-control-item>
+    <calcite-segmented-control-item id="N-03" value="N-03">N-03</calcite-segmented-control-item>
+    <calcite-segmented-control-item id="N-04" value="N-04">N-04</calcite-segmented-control-item>
+  </calcite-segmented-control>
   <div id="boxBoredPile">
       <div id="labelBoredPile">Bored Pile</div>
       <div class="lowerPanelBox">
@@ -476,23 +455,24 @@
       </div>
     </div>
     <calcite-label layout="inline" id="see-through-label">
-      <calcite-checkbox id="myLink"></calcite-checkbox>See-through-Ground
+      <calcite-checkbox id="myLink"></calcite-checkbox><b style="color:white;">See-through-ground</b>
     </calcite-label>
     <calcite-button
-      icon-end="launch"
+      icon-end="graph-time-series"
       id="time-series"
       >
-      Progress Chart
     </calcite-button>
     <div id="timeSeriesChart" hidden></div>
-    <div class="overlay">
-      <div>
-        <span id="play" class="button esri-icon-play" style="display: block;" />
-      </div>
-      <div>
-        <span id="pause" class="button esri-icon-pause" style="display: none;" />
-      </div>
-    </div>  
+    <calcite-button
+      icon-end="play"
+      id="play"
+      >
+    </calcite-button>
+    <calcite-button
+      icon-end="pause"
+      id="pause"
+      >
+    </calcite-button>
 </div>
 </calcite-shell>
 </body>
@@ -1005,6 +985,9 @@ require([
 
 
 
+  const play = document.getElementById("play");
+  const pause = document.getElementById("pause");
+  pause.style.display = 'none';
 
 /// Camera animation
 const camera = view.camera.clone();
@@ -1060,7 +1043,7 @@ pause.onclick = function() {
 async function initialization() {
   abort = false;
 
-  document.getElementById("N-04").checked = true;
+  //document.getElementById("N-04").checked = true;
   viaductLayer.definitionExpression = "CP = 'N-04'";
   PierNoLayer.definitionExpression = "CP = 'N-04'";
 
@@ -1072,8 +1055,6 @@ async function initialization() {
     }, 1)
     */
 }
-
-
 ////////// 
 
 
@@ -1513,6 +1494,7 @@ async function initialization() {
   //
   // All commands related to chart must fall inside am4core
   //*******************************************************************//
+  const contractPackage = document.getElementById("contractPackage");
   var highlightSelect;
    // Create a Bar chart to calculate % completion for each viaduct sample
    am5.ready(function() {
@@ -2951,33 +2933,34 @@ async function initialization() {
   }
   timeSeriesChart("N-01");
 
-// Default label
-if (document.getElementById("N-01").checked = true) {
-      viaductLayer.definitionExpression = "CP = 'N-01'";
-      PierNoLayer.definitionExpression = "CP = 'N-01'";
-      zoomToLayer(viaductLayer);
-      chartAllViaduct();
-      
-      perCpProgress();
-  }
+
+  //
+  contractPackage.addEventListener("calciteSegmentedControlChange", async (event) => { cpValue = event.target.value, filterItems()});
+
+  function filterItems() {
+    viaductLayer.definitionExpression = "CP = '" + cpValue + "'";
+    PierNoLayer.definitionExpression = "CP = '" + cpValue + "'";
   
-  // click event handler for contract packages
-  cpButtonElement.addEventListener("click", filterByTest);
-  function filterByTest(event) {
-    const selectedID = event.target.id;
-
-      viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
-      PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
-   
-      zoomToLayer(viaductLayer);
-      chartAllViaduct();
-      perCpProgress();
-      timeSeriesChart(selectedID);
-
+    zoomToLayer(viaductLayer);
+    chartAllViaduct();
+    perCpProgress();
+    timeSeriesChart(cpValue);
   }
+
+  function defaultRenderer(){
+    viaductLayer.definitionExpression = "CP = 'N-01'";
+    PierNoLayer.definitionExpression = "CP = 'N-01'";
+    zoomToLayer(viaductLayer);
+    chartAllViaduct();
+    
+    perCpProgress();
+};
+defaultRenderer();
+
 
   }); // end am5 chart
   
+  view.ui.add(contractPackage,"top-right");
   // Editor: enable when necessary
   /*
   view.when(function () {
@@ -3081,7 +3064,7 @@ if (document.getElementById("N-01").checked = true) {
       const checked = event.srcElement.checked;
       map.ground.opacity = event.srcElement.checked ? 0.1 : 0.6;
   });
-  
+  //document.getElementById("see-through-label").innerHTML = `<b style="color:white;">See-through-ground</b>`;
   
   
   //Search Widget 
@@ -3160,7 +3143,23 @@ if (document.getElementById("N-01").checked = true) {
     view: view
   });
   view.ui.add(compassWidget, "top-right");
-  });
   
+  // time series chart
+  view.ui.add(document.getElementById("time-series"), {
+    position: "top-right"
+  });
+
+    // Animation play button
+    view.ui.add(play,{
+    position: "top-right"
+  });
+
+  view.ui.add(pause, {
+    position: "top-right"
+  });
+
+
+
+});  
 </script>
 </html>
