@@ -532,7 +532,8 @@
   "esri/symbols/edges/SolidEdges3D",
   "esri/layers/GroupLayer",
   "esri/widgets/BasemapToggle",
-  "esri/widgets/Search"
+  "esri/widgets/Search",
+  "esri/widgets/BasemapGallery",
   ], function(Basemap, Map, MapView, SceneView, 
               FeatureLayer, FeatureFilter,
               SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -545,7 +546,7 @@
               FeatureTable, Compass, ElevationLayer, Ground,
               BuildingSceneLayer, BuildingExplorer, Slice, SlicePlane,
               SimpleRenderer, MeshSymbol3D, SolidEdges3D, GroupLayer,
-              BasemapToggle, Search) {
+              BasemapToggle, Search, BasemapGallery) {
 
 
   ////////////////////////////////////////////////////
@@ -608,15 +609,6 @@
     });
 
     view.ui.components = [];
-
-
-  // Basemap Toggle
-  const toggle = new BasemapToggle({
-  view: view,
-  nextBaseMap: "hybrid"
-  });
-
-  view.ui.add(toggle, "top-right");
 
   // OpenStreetMap 3D Buildings
   let osmSymbol = {
@@ -7661,6 +7653,18 @@
     map.ground.opacity = event.target.checked ? 0.1 : 0.6;
   });
 
+  
+  // Full screen logo
+  fullscreen = new Fullscreen({
+    view: view,
+  });
+  view.ui.add(fullscreen, "top-right");
+
+  // Compass
+  var compass = new Compass({
+    view: view});
+  view.ui.add(compass, "top-right");
+
   // Layer List
   var layerList = new LayerList({
         view: view,
@@ -7726,19 +7730,21 @@
     position: "top-right"
   });
 
-  // Full screen logo
-  fullscreen = new Fullscreen({
-    view: view,
+  // Basemap Gallery
+  let basemapGallery = new BasemapGallery({
+    view: view
   });
-  view.ui.add(fullscreen, "top-right");
 
-
-
-  // Compass
-  var compass = new Compass({
-    view: view});
-  view.ui.add(compass, "top-right");
-
+  const basemapGalleryExpand = new Expand({
+    view,
+    content: basemapGallery,
+    expandIconClass: "esri-icon-basemap",
+    group: "top-right"
+  });
+  // Add widget to the top right corner of the view
+  view.ui.add(basemapGalleryExpand, {
+    position: "top-right"
+  });
 
   //*****************************//
   //      Search Widget          //
