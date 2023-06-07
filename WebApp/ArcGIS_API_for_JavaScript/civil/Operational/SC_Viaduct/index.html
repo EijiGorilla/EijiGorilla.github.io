@@ -23,7 +23,7 @@
 <script src="https://cdn.amcharts.com/lib/5/themes/Responsive.js"></script>
 
 <!-- Resources -->
-<link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"/>
+<link rel="stylesheet" href="https://js.arcgis.com/4.26/esri/themes/dark/main.css"/>
 <script src="https://js.arcgis.com/4.26/"></script>
 
 </head>
@@ -36,14 +36,6 @@
       margin: 0;
       height: 100%;
       width: 100%; 
-  }
-
-  /** Progress Time-Series Chart **/
-  calcite-button {
-    position: fixed;
-    z-index: 1;
-    bottom: 8.6vw;
-    right: 5;
   }
 
   /** See-through-ground **/
@@ -60,10 +52,15 @@
   }
 
   #see-through-label {
+    color: white;
     padding-top: 10;
     padding-bottom: 0;
     display: flex;
     align-self: center;
+  }
+
+  #see-through-label b {
+    font-weight: normal;
   }
 
   #headerTitleDiv {
@@ -374,28 +371,7 @@
   }
 
 
-  /* Others */
-  br{content:' ';}
-  br:after{content:' ';}
 
-  .esri-layer-list__item-toggle-icon,
-  .esri-layer-list__item-title {
-    color: white;
-  }
-
-  /** sassy-theme to change properties of esri's box**/
-  .sassy-theme .esri-menu,
-  .sassy-theme .esri-popup__main-container,
-  .sassy-theme .esri-popup .esri-popup__pointer-direction,
-  .sassy-theme .esri-popup .esri-popup__button,
-  .sassy-theme .esri-button,
-  .sassy-theme .esri-input,
-  .sassy-theme .esri-legend,
-  .sassy-theme .esri-layer-list,
-  .sassy-theme .esri-widget a {
-    background-color: rgb(0, 0, 0, 0.7);
-    color: #fff;
-  }
 </style>
 <body class="calcite-theme-dark">
   <calcite-loader></calcite-loader>
@@ -403,19 +379,16 @@
     <div id="viewDiv">
     <div class="dateDiv">As of xx, 2022</div>
     <div id="headerTitleDiv">SC VIADUCT</div>
-    <div class="cpButtonBox">
-        <div id="cpButton" class="cpButtonClass">
-            <label for="cpButton"></label>
-            <input type="radio" id="S-01" name="cpButton" checked/> S-01
-            <input type="radio" id="S-02" name="cpButton"> S-02
-            <input type="radio" id="S-03a" name="cpButton"> S-03a
-            <input type="radio" id="S-03b" name="cpButton"> S-03b
-            <input type="radio" id="S-03c" name="cpButton"> S-03c
-            <input type="radio" id="S-04" name="cpButton"> S-04
-            <input type="radio" id="S-05" name="cpButton"> S-05
-            <input type="radio" id="S-06" name="cpButton"> S-06
-          </div>
-      </div>
+    <calcite-segmented-control id="contractPackage">
+      <calcite-segmented-control-item id="S-01" value="S-01" checked>S-01</calcite-segmented-control-item>
+      <calcite-segmented-control-item id="S-02" value="S-02">S-02</calcite-segmented-control-item>
+      <calcite-segmented-control-item id="S-03a" value="S-03a">S-03a</calcite-segmented-control-item>
+      <calcite-segmented-control-item id="S-03b" value="S-03b">S-03b</calcite-segmented-control-item>
+      <calcite-segmented-control-item id="S-03c" value="S-03c">S-03c</calcite-segmented-control-item>
+      <calcite-segmented-control-item id="S-04" value="S-04">S-04</calcite-segmented-control-item>
+      <calcite-segmented-control-item id="S-05" value="S-05">S-05</calcite-segmented-control-item>
+      <calcite-segmented-control-item id="S-06" value="S-06">S-06</calcite-segmented-control-item>
+    </calcite-segmented-control>
   <div id="boxBoredPile">
       <div id="labelBoredPile">Bored Pile</div>
       <div class="lowerPanelBox">
@@ -471,13 +444,12 @@
         </div>
       </div>
       <calcite-label layout="inline" id="see-through-label">
-        <calcite-checkbox id="myLink"></calcite-checkbox>See-through-ground
+        <calcite-checkbox id="myLink"></calcite-checkbox><b style="color:white;">See-through-ground</b>
       </calcite-label>
       <calcite-button
-        icon-end="launch"
+        icon-end="graph-time-series"
         id="time-series"
         >
-        Progress Chart
       </calcite-button>
       <div id="timeSeriesChart" hidden></div>
   </div>
@@ -956,7 +928,7 @@
   const monthlyProgressChartDiv = document.getElementById("monthlyProgressChartDiv");
   const chartElement = document.getElementById("chartPanel");
 
-
+  const contractPackage = document.getElementById("contractPackage");
   //*******************************************************************//
   // CHART FUNCTION:
   //
@@ -2647,7 +2619,20 @@
   timeSeriesChart("S-01");
 
 
-  // Default label
+  //
+  
+  contractPackage.addEventListener("calciteSegmentedControlChange", async (event) => { cpValue = event.target.value, filterItems()});
+
+  function filterItems() {
+    viaductLayer.definitionExpression = "CP = '" + cpValue + "'";
+      PierNoLayer.definitionExpression = "CP = '" + cpValue + "'";
+      zoomToLayer(viaductLayer);
+      chartAllViaduct();
+      timeSeriesChart(cpValue);
+      //updateChart();
+      perCpProgress();
+  }
+
   function defaultRenderer() {
     viaductLayer.definitionExpression = "CP = 'S-01'";
       PierNoLayer.definitionExpression = "CP = 'S-01'";
@@ -2655,38 +2640,14 @@
       chartAllViaduct();
       perCpProgress();
   }
-  defaultRenderer();
 
-  // click event handler for contract packages
-  cpButtonElement.addEventListener("click", filterByTest);
-  function filterByTest(event) {
-    const selectedID = event.target.id;
-
-      viaductLayer.definitionExpression = "CP = '" + selectedID + "'";
-      PierNoLayer.definitionExpression = "CP = '" + selectedID + "'";
-      zoomToLayer(viaductLayer);
-      chartAllViaduct();
-      timeSeriesChart(selectedID);
-      //updateChart();
-      perCpProgress();
-
-  }
-
+  view.when(() => {
+    defaultRenderer();
+  })
 
   }); // end am5
+  view.ui.add(contractPackage,"top-right");
 
-  // Editor: enable when necessary
-  /*
-  view.when(function () {
-    view.popup.autoOpenEnabled = true; //disable popups
-    // Create the Editor
-    const editor = new Editor({
-      view: view
-    });
-    // Add widget to top-right of the view
-    view.ui.add(editor, "top-right");
-  });
-  */
 
 
   // LayerList and Add legend to the LayerList
@@ -2833,13 +2794,17 @@
     position: "top-right"
   });
 
-
-
   // Compass
   var compassWidget = new Compass({
     view: view
   });
   view.ui.add(compassWidget, "top-right");
+
+  // time series chart
+  view.ui.add(document.getElementById("time-series"), {
+    position: "top-right"
+  });
+
   });
 </script>
 </html>
