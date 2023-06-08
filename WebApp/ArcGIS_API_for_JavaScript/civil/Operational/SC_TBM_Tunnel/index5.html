@@ -181,7 +181,35 @@
     margin: auto;
   }
 
-  #cutterHeadPositionDiv,
+  #cutterHeadPositionDiv {
+    border: 1px solid var(--calcite-ui-border-1);
+    font-size: 1.5rem;
+    width: 99%;
+    height: 2vw;
+    text-align: center;
+    font-weight: normal;
+    padding-top: 1vw;
+    color: white;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    margin-top: 0.5vw;
+    margin-bottom: 0.5vw;
+  }
+
+  #cutterHeadPositionNorthDiv,
+  #cutterHeadPositionSouthDiv {
+    
+    width: 99%;
+    height: 3vw;
+    text-align: center;
+    font-weight: normal;
+    color: white;
+    font-size: 1.2rem;
+    
+    padding-top: 15;
+    margin-top: 0.5vw;
+    margin-bottom: 0.5vw;
+  }
+
   #totalSegmentNoDiv {
     border: 1px solid var(--calcite-ui-border-1);
     width: 99%;
@@ -191,7 +219,7 @@
     padding-top: 1vw;
     color: white;
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-    margin-top: 2vw;
+    margin-top: 1vw;
     margin-bottom: 1vw;
   }
 
@@ -210,7 +238,8 @@
     color: white;
   }
 
-  #cutterHeadPositionDiv span {
+  #cutterHeadPositionNorthDiv span,
+  #cutterHeadPositionSouthDiv span {
     text-align: center;
     font-size: 2.5vw;
     font-weight: bold;
@@ -355,6 +384,7 @@
         <h2 id="header-title" slot="header"></h2>
 
         <calcite-segmented-control id="segmentNo">
+          <calcite-segmented-control-item id="All" value="All">All</calcite-segmented-control-item>
           <calcite-segmented-control-item id="NB" value="NB" checked>North-bound</calcite-segmented-control-item>
           <calcite-segmented-control-item id="SB" value="SB">South-bound</calcite-segmented-control-item>
         </calcite-segmented-control>
@@ -407,7 +437,9 @@
             <calcite-tab>
               <div id="totalSegmentNoDiv"></div>
               <div id="chartTbmDiv"></div>
-              <div id="cutterHeadPositionDiv"></div>
+              <div id="cutterHeadPositionDiv">Cutter Head Position</div>
+                <div id="cutterHeadPositionNorthDiv"></div>
+                <div id="cutterHeadPositionSouthDiv"></div>
             </calcite-tab>
             <calcite-tab>
               <div id="chartSurveyDiv"></div>
@@ -1444,15 +1476,20 @@ function tbmChart() {
   // E.g., if segment no. 10 is casted, cutter head position = 10 + 7 = No. 17
   // In the attribute table, tbmSpot = 1
 
+  const cutterHeadPositionNorthDiv = document.getElementById("cutterHeadPositionNorthDiv");
+  const cutterHeadPositionSouthDiv = document.getElementById("cutterHeadPositionSouthDiv");
+
   function cutterHeadPosition(segmentLineValue) {
     var query = tbmTunnelLayer.createQuery();
-    query.where = "tbmSpot = 1" + " AND " + "Line = '" + segmentLineValue + "'";
+    query.where = segmentLineValue === "All" ? "tbmSpot = 1" : "tbmSpot = 1" + " AND " + "Line = '" + segmentLineValue + "'";
+   // query.where = "tbmSpot = 1" + " AND " + "Line = '" + segmentLineValue + "'";
 
     // when TBM dropdown is 'None': ---
     // otherwise, 
     // this message is automatically overwritten if we have progress of casted segement
     // i.e., tbmSpot = 1
-    if (segmentLineValue === 'None') {
+    /*
+    if (segmentLineValue === 'All') {
       cutterHeadPositionDiv.innerHTML = `
                                           <b>Cutter Head Position</b><br>
                                           <h6>-----</h6>
@@ -1463,17 +1500,41 @@ function tbmChart() {
                                           <h4>No segment is casted yet<h4>
                                         `;
     }
+    */
 
+    query.groupByFieldsForStatistics = ["Line"];
 
     tbmTunnelLayer.queryFeatures(query).then(function(response) {
-      var stats = response.features[0].attributes;
-      const segmentNo = stats.RingNo;
-      const tbmNo = stats.Line;
-      
+      var stats = response.features;
+      stats.forEach((result, index) => {
+        const attributes = result.attributes;
+        const segmentNo = attributes.RingNo;
+        const tbmNo = attributes.Line;
+
+        if (segmentLineValue === "All") {
+          if (tbmNo === 'NB'){
+            cutterHeadPositionNorthDiv.innerHTML = `Ring No. <span>${segmentNo}</span>`;
+          } else if (tbmNo === 'SB') {
+            cutterHeadPositionSouthDiv.innerHTML = `Ring No. <span>${segmentNo}</span>`;
+          }
+
+        } else if (tbmNo === 'NB') {
+          cutterHeadPositionNorthDiv.innerHTML = `Ring No. <span>${segmentNo}</span>`;
+          cutterHeadPositionSouthDiv.innerHTML = `Ring No. <span>----</span>`;
+
+        } else if (tbmNo === 'SB') {
+          cutterHeadPositionNorthDiv.innerHTML = `Ring No. <span>----</span>`;
+          cutterHeadPositionSouthDiv.innerHTML = `Ring No. <span>${segmentNo}</span>`;
+        }
+
+      });
+
+      /*
       cutterHeadPositionDiv.innerHTML = `
                                           <b>Cutter Head Position</b><br>
                                           <h3>Ring No. <span>${segmentNo}</span></h3>
                                       `;
+                                      */
     });
   }
 
@@ -1659,8 +1720,12 @@ function tbmChart() {
   segmentType.addEventListener("calciteSegmentedControlChange", async (event) => { segmentLineValue = event.target.value, filterItems() });
 
   function filterItems(){
-    tbmTunnelLayer.definitionExpression = "Line = '" + segmentLineValue + "'";
-
+    if (segmentLineValue === "All"){
+      tbmTunnelLayer.definitionExpression = null;
+    } else {
+      tbmTunnelLayer.definitionExpression = "Line = '" + segmentLineValue + "'";
+    }
+    
     selectedValuesLabel(segmentLineValue);
 
     // Cutter head position
