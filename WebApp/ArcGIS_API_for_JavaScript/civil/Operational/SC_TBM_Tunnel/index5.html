@@ -195,21 +195,6 @@
     margin-bottom: 0.5vw;
   }
 
-  #cutterHeadPositionNorthDiv,
-  #cutterHeadPositionSouthDiv {
-    
-    width: 99%;
-    height: 3vw;
-    text-align: center;
-    font-weight: normal;
-    color: white;
-    font-size: 1.2rem;
-    
-    padding-top: 15;
-    margin-top: 0.5vw;
-    margin-bottom: 0.5vw;
-  }
-
   #totalSegmentNoDiv {
     border: 1px solid var(--calcite-ui-border-1);
     width: 99%;
@@ -238,14 +223,6 @@
     color: white;
   }
 
-  #cutterHeadPositionNorthDiv span,
-  #cutterHeadPositionSouthDiv span {
-    text-align: center;
-    font-size: 2.5vw;
-    font-weight: bold;
-    color: rgb(232, 54, 24);
-  }
-
   #cutterHeadPositionDiv h6 {
     text-align: center;
     font-size: 1.5vw;
@@ -261,6 +238,46 @@
     font-weight: bold;
     color: #d4ff33;
   }
+
+  #segmentNo {
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: auto;
+  }
+
+  #cutterHeadPositionNorthDiv,
+  #cutterHeadPositionSouthDiv {
+    width: 99%;
+    height: 3vw;
+    font-weight: normal;
+    color: white;
+    font-size: 1.2rem;
+    padding-top: 4%;
+    padding-left: 20%;
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+
+
+  #cutterHeadPositionNorthDiv span,
+  #cutterHeadPositionSouthDiv span {
+    font-size: 2.5vw;
+    font-weight: bold;
+    color: rgb(232, 54, 24);
+  }
+
+  .cutterHeadPositionNorth,
+  .cutterHeadPositionSouth {
+    display: flex;
+    height: 10%;
+  }
+
+    img {
+      width: 60;
+      height: 60;
+      margin-top: auto;
+      margin-bottom: auto;
+    }
 
   #totalSegmentNoDiv h5 {
     text-align: center;
@@ -367,21 +384,7 @@
     display: none;
   }
 
-  #segmentNo {
-    margin-top: auto;
-    margin-bottom: auto;
-    margin-left: auto;
-  }
 
-  .img {
-     
-      padding-left: 10;
-    }
-
-    img {
-      width: 50;
-      height: 50;
-    }
 
   </style>
   <body class="calcite-theme-dark">
@@ -448,11 +451,11 @@
               <div id="totalSegmentNoDiv"></div>
               <div id="chartTbmDiv"></div>
               <div id="cutterHeadPositionDiv">Cutter Head Position</div>
-              <div class="img">
+              <div class="cutterHeadPositionNorth">
                 <img src="https://EijiGorilla.github.io/Symbols/North.svg">
                 <div id="cutterHeadPositionNorthDiv"></div>
               </div>
-              <div class="img">
+              <div class="cutterHeadPositionSouth">
                 <img src="https://EijiGorilla.github.io/Symbols/South.svg">
                 <div id="cutterHeadPositionSouthDiv"></div>
               </div>
@@ -460,8 +463,8 @@
             <calcite-tab>
               <div id="chartSurveyDiv"></div>
             </calcite-tab>
+          </calcite-tabs>
           </div>
-        </calcite-tabs>
       </div>
     <div id="timeSeriesChart" hidden></div>
     <div id="dateDiv"></div>
@@ -1056,69 +1059,70 @@ let tbmStatusRenderer = {
 
   function tbmPositionSymbol(segmentLineValue) {
     graphicsLayer.removeAll();
+
     var query = tbmTunnelLayer.createQuery();
+    query.where = segmentLineValue === "All" ? "tbmSpot = 1" : "tbmSpot = 1" + " AND " + "Line = '" + segmentLineValue + "'";
     query.returnGeometry = true;
-    const tbmExpression = "Line = '" + segmentLineValue + "'";
-    
-    query.where = "tbmSpot = 1" + " AND " + tbmExpression;
-    //query.groupByFieldsForStatistics = ["Line"];
-    
+    query.groupByFieldsForStatistics = ["Line"];
+     
     tbmTunnelLayer.queryFeatures(query).then(function(response) {
-      const stats = response.features[0];
-      const attributes = stats.attributes;
-      const lineType = attributes.Line;
-      const segmentNo = attributes.RingNo;
-      const vertex = stats.geometry.paths[0];
-  
-      const long = (vertex[0][0] + vertex[1][0]) / 2;
-      const lat = (vertex[0][1] + vertex[1][1]) / 2;
-      // longitude: vertex[0][0]
-      // latitude: vertex[0][1]
+      const stats = response.features;
+      stats.forEach((result, index) => {
+        const attributes = result.attributes;
+        const lineType = result.Line;
+        const segmentNo = result.RingNo;
+        const vertex = result.geometry.paths[0];
 
-      const point = {
-        spatialReference: spatialReference,
-        type: "point",
-        x: long,
-        y: lat,
-        z: -7
-      }
+        const long = (vertex[0][0] + vertex[1][0]) / 2;
+        const lat = (vertex[0][1] + vertex[1][1]) / 2;
+        // longitude: vertex[0][0]
+        // latitude: vertex[0][1]
 
-      const symbol = {
-        type: "point-3d",
-          symbolLayers: [
-            {
-              type: "icon",
-              resource: {
-                href: "https://EijiGorilla.github.io/Symbols/TBM_LOGO2.png"
-              },
-              size: 30
-              //resource: {primitive: "circle"},
-              //material: {color: "green"}
-            }
-          ],
-          verticalOffset: {
-            screenLength: 100,
-            maxWorldLength: 500,
-            minWorldLength: 40
-          },
-          callout: {
-            type: "line",
-            size: 1.5,
-            color: "#E83618",
-            border: {
-              color: "#E83618"
-            }
-          },
-          maxScale: 1000,
-          minScale: 25000000
-      }
+        const point = {
+          spatialReference: spatialReference,
+          type: "point",
+          x: long,
+          y: lat,
+          z: -7
+        }
 
-      const myGraphic = new Graphic({
-        geometry: point,
-        symbol: symbol
+        const symbol = {
+          type: "point-3d",
+            symbolLayers: [
+              {
+                type: "icon",
+                resource: {
+                  href: "https://EijiGorilla.github.io/Symbols/TBM_LOGO2.png"
+                },
+                size: 30
+                //resource: {primitive: "circle"},
+                //material: {color: "green"}
+              }
+            ],
+            verticalOffset: {
+              screenLength: 100,
+              maxWorldLength: 500,
+              minWorldLength: 40
+            },
+            callout: {
+              type: "line",
+              size: 1.5,
+              color: "#E83618",
+              border: {
+                color: "#E83618"
+              }
+            },
+            maxScale: 1000,
+            minScale: 25000000
+        }
+
+        const myGraphic = new Graphic({
+          geometry: point,
+          symbol: symbol
+        });
+
+        graphicsLayer.add(myGraphic);
       });
-
-      graphicsLayer.add(myGraphic);
     });
   }
   
@@ -1189,25 +1193,35 @@ let tbmStatusRenderer = {
 
     function totalNumberRings(segmentLineValue) {
       const tbmExpression = "Line = '" + segmentLineValue + "'";
-      var query = tbmTunnelLayer.createQuery();
-      query.where = tbmExpression;
 
-      var total_number_ring = {
-        onStatisticField: "Line",
-        outStatisticFieldName: "total_number_ring",
-        statisticType: "count"
+      var query = tbmTunnelLayer.createQuery();
+      query.where = segmentLineValue === "All" ? null : tbmExpression;
+
+      var total_number_ring_north = {
+        onStatisticField: "CASE WHEN Line = 'NB' THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_number_ring_north",
+        statisticType: "sum"
       };
 
-      query.outStatistics = [total_number_ring];
+      var total_number_ring_south = {
+        onStatisticField: "CASE WHEN Line = 'SB' THEN 1 ELSE 0 END",
+        outStatisticFieldName: "total_number_ring_south",
+        statisticType: "sum"
+      };
+
+      query.outStatistics = [total_number_ring_north, total_number_ring_south];
       query.returnGeometry = true;
-  
+      
       tbmTunnelLayer.queryFeatures(query).then(function(response) {
         var stats = response.features[0].attributes;
-        const value = thousands_separators(stats.total_number_ring);
+        const north = stats.total_number_ring_north;
+        const south = stats.total_number_ring_south;
+        const value = north + south;
+        const totalValue = thousands_separators(value);
 
         totalSegmentNoDiv.innerHTML = `
                                     <b>Total No. of Rings</b><br>
-                                    <h5>${value}</h5>
+                                    <h5>${totalValue}</h5>
                                   `;
       })
     }
@@ -1216,29 +1230,38 @@ let tbmStatusRenderer = {
   // 1. TBM
   var root = am5.Root.new("chartTbmDiv");
   root._logo.dispose();
-function tbmChart() {
-  var total_number = {
-      onStatisticField: "Line",
-      outStatisticFieldName: "total_number",
-      statisticType: "count"
-    }
+function tbmChart(segmentLineValue) {
+  var total_number_north = {
+    onStatisticField: "CASE WHEN Line = 'NB' THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_number_north",
+    statisticType: "sum"
+  }
+
+  var total_number_south = {
+    onStatisticField: "CASE WHEN Line = 'SB' THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_number_south",
+    statisticType: "sum"
+  }
     
     var total_complete = {
-      onStatisticField: "CASE WHEN Status = 3 THEN 1 ELSE 0 END",
-      outStatisticFieldName: "total_complete",
-      statisticType: "sum"
-    }
+    onStatisticField: "CASE WHEN Status = 3 THEN 1 ELSE 0 END",
+    outStatisticFieldName: "total_complete",
+    statisticType: "sum"
+  }
     
     var query = tbmTunnelLayer.createQuery();
-    query.outStatistics = [total_number, total_complete];
+    query.outStatistics = [total_number_north, total_number_south, total_complete];
     query.returnGeometry = true;
+    query.where = segmentLineValue === "All" ? null : "Line = '" + segmentLineValue + "'";
     
     tbmTunnelLayer.queryFeatures(query).then(function(response) {
     var stats = response.features[0].attributes;
-    
-    
-    const totalNumber = stats.total_number;
+    const north = stats.total_number_north;
+    const south = stats.total_number_south;
+
+    const totalNumber = north + south;
     const completed = stats.total_complete;
+
     const LOT_HANDOVER_PERC = ((completed/totalNumber)*100).toFixed(1);
 
   root.container.children.clear();
@@ -1462,7 +1485,7 @@ function tbmChart() {
       tbmTunnelLayer.visible = true;
       tbmTunnelLayer.definitionExpression = "Line = 'NB'";
 
-      tbmChart();
+      tbmChart("NB");
 
       defaultSegementedLine = "NB";
 
@@ -1498,26 +1521,6 @@ function tbmChart() {
   function cutterHeadPosition(segmentLineValue) {
     var query = tbmTunnelLayer.createQuery();
     query.where = segmentLineValue === "All" ? "tbmSpot = 1" : "tbmSpot = 1" + " AND " + "Line = '" + segmentLineValue + "'";
-   // query.where = "tbmSpot = 1" + " AND " + "Line = '" + segmentLineValue + "'";
-
-    // when TBM dropdown is 'None': ---
-    // otherwise, 
-    // this message is automatically overwritten if we have progress of casted segement
-    // i.e., tbmSpot = 1
-    /*
-    if (segmentLineValue === 'All') {
-      cutterHeadPositionDiv.innerHTML = `
-                                          <b>Cutter Head Position</b><br>
-                                          <h6>-----</h6>
-                                        `;
-    } else {
-      cutterHeadPositionDiv.innerHTML = `
-                                          <b>Cutter Head Position</b><br>
-                                          <h4>No segment is casted yet<h4>
-                                        `;
-    }
-    */
-
     query.groupByFieldsForStatistics = ["Line"];
 
     tbmTunnelLayer.queryFeatures(query).then(function(response) {
@@ -1542,15 +1545,7 @@ function tbmChart() {
           cutterHeadPositionNorthDiv.innerHTML = `Ring No. <span>----</span>`;
           cutterHeadPositionSouthDiv.innerHTML = `Ring No. <span>${segmentNo}</span>`;
         }
-
       });
-
-      /*
-      cutterHeadPositionDiv.innerHTML = `
-                                          <b>Cutter Head Position</b><br>
-                                          <h3>Ring No. <span>${segmentNo}</span></h3>
-                                      `;
-                                      */
     });
   }
 
@@ -1561,6 +1556,18 @@ function tbmChart() {
   function timeSeriesChart(segmentLineValue) {
     root2.container.children.clear();
 
+    var total_complete_north = {
+      onStatisticField: "CASE WHEN (Line = 'NB' and Status = 3) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete_north",
+      statisticType: "sum"
+    };
+
+    var total_complete_south = {
+      onStatisticField: "CASE WHEN (Line = 'SB' and Status = 3) THEN 1 ELSE 0 END",
+      outStatisticFieldName: "total_complete_south",
+      statisticType: "sum"
+    };
+
     var total_complete_segment = {
       onStatisticField: "CASE WHEN Status = 3 THEN 1 ELSE 0 END",
       outStatisticFieldName: "total_complete_segment",
@@ -1568,9 +1575,9 @@ function tbmChart() {
     };
 
     var query = tbmTunnelLayer.createQuery();
-    query.where = "endDate IS NOT NULL" + " AND " + "Line = '" + segmentLineValue + "'";
-    query.outStatistics = [total_complete_segment];
-    query.outFields = ["endDate"];
+    query.where = segmentLineValue === "All" ? "endDate IS NOT NULL" : "endDate IS NOT NULL" + " AND " + "Line = '" + segmentLineValue + "'";
+    query.outStatistics = [total_complete_north, total_complete_south, total_complete_segment];
+    query.outFields = ["Line" ,"endDate"];
     query.orderByFields = ["endDate"];
     query.groupByFieldsForStatistics = ["endDate"];
 
@@ -1581,7 +1588,11 @@ function tbmChart() {
       const data = stats.map((result, index) => {
         const attributes = result.attributes;
         const date = attributes.endDate;
-        const value = attributes.total_complete_segment;
+        const north = attributes.total_complete_north;
+        const south = attributes.total_complete_south;
+        const value = north + south;
+
+        //const value = attributes.total_complete_segment;
  
         // compile in object
         return Object.assign({}, {
@@ -1736,8 +1747,10 @@ function tbmChart() {
   segmentType.addEventListener("calciteSegmentedControlChange", async (event) => { segmentLineValue = event.target.value, filterItems() });
 
   function filterItems(){
+    console.log(segmentLineValue);
     if (segmentLineValue === "All"){
       tbmTunnelLayer.definitionExpression = null;
+      tbmTunnelLayer.visible = true;
     } else {
       tbmTunnelLayer.definitionExpression = "Line = '" + segmentLineValue + "'";
     }
@@ -1748,7 +1761,7 @@ function tbmChart() {
     cutterHeadPosition(segmentLineValue);
 
     // char title 
-    tbmChart();
+    tbmChart(segmentLineValue);
 
     // Cutter head position 3D point symbol
     tbmPositionSymbol(segmentLineValue);
@@ -1771,9 +1784,10 @@ function tbmChart() {
     var highlight = null;
 
     // Update layerView based on viaduct components being selected
+    const highlighFilterExpression = segmentLineValue === "All" ? null : "Line = '" + segmentLineValue + "'";
     view.whenLayerView(tbmTunnelLayer).then(function (tbmTunnelLayerView) {
         tbmTunnelLayerView.filter = {
-            where: "Line = '" + segmentLineValue + "'"
+            where: highlighFilterExpression
         };
 
         var query = new Query();
