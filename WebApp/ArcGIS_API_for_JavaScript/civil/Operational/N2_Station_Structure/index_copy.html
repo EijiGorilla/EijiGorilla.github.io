@@ -47,6 +47,7 @@
     width: 100%;
   }
 
+
   #headerTitleDiv {
     font-size: 2vw;
     vertical-align: middle;
@@ -505,36 +506,6 @@
           id="pause"
           >
         </calcite-button>
-        <div id="measurementToolMenu" class="esri-widget">
-          <calcite-label>
-            <div id="measurementToolLabel">
-              Click one of the buttons below to open the corresponding analysis widget and interact with the analysis.
-            </div>
-          </calcite-label>
-          <calcite-button
-            id="directLineMeasurementAnalysisButton"
-            icon-start="measure-line"
-            title="Interact with direct line measurement"
-          >
-          </calcite-button>
-          <calcite-button
-            id="areaMeasurementAnalysisButton"
-            icon-start="measure-area"
-            title="Interact with area measurement"
-          >
-          </calcite-button>
-          <calcite-button id="sliceAnalysisButton" icon-start="slice" title="Interact with slice plane"> </calcite-button>
-          <calcite-button
-            id="lineOfSightAnalysisButton"
-            icon-start="line-of-sight"
-            title="Interact with line of sight analysis"
-          >
-          </calcite-button>
-          <calcite-label></calcite-label>
-          <calcite-button id="removeWidgetButton" title="Remove Widget" style="display: none; width: 140px"
-            >Remove Widget
-          </calcite-button>
-        </div>
       </div>
     </calcite-shell>
   </body>
@@ -2416,155 +2387,7 @@
   "top-right"
   );
 
-    // Measurement Widgets
-  // To modify analysis objects we will temporarily store the corresponding widget in this variable.
-  let analysisWidget = null;
 
-  view.when(async () => {
-    // Create the analysis objects
-    const directLineMeasurementAnalysis = createDirectLineMeasurementAnalysis();
-    const areaMeasurementAnalysis = createAreaMeasurementAnalysis();
-    const sliceAnalysis = createSliceAnalysis();
-    const lineOfSightAnalysis = createLineOfSightAnalysis();
-
-    // Wait for the view to load before adding analysis objects
-    await reactiveUtils.whenOnce(() => !view.updating);
-
-    // Add analysis object to the view to show them
-    view.analyses.addMany([
-      directLineMeasurementAnalysis,
-      areaMeasurementAnalysis,
-      sliceAnalysis,
-      lineOfSightAnalysis
-    ]);
-
-    // Configure buttons to interact with the analysis objects
-    const areaMeasurementAnalysisButton = setupAnalysisButton(
-      "areaMeasurementAnalysisButton",
-      () => new AreaMeasurement3D({ view, analysis: areaMeasurementAnalysis })
-    );
-
-    const directLineMeasurementAnalysisButton = setupAnalysisButton(
-      "directLineMeasurementAnalysisButton",
-      () => new DirectLineMeasurement3D({ view, analysis: directLineMeasurementAnalysis })
-    );
-
-    const lineOfSightAnalysisButton = setupAnalysisButton(
-      "lineOfSightAnalysisButton",
-      () => new LineOfSight({ view, analysis: lineOfSightAnalysis })
-    );
-
-    const sliceAnalysisButton = setupAnalysisButton(
-      "sliceAnalysisButton",
-      () => new Slice({ view, analysis: sliceAnalysis })
-    );
-
-    // Remove button is a bit special
-    document.getElementById("removeWidgetButton").addEventListener("click", () => {
-      removeActiveWidget();
-    });
-
-    function setupAnalysisButton(elementId, widgetFactotry) {
-      const button = document.getElementById(elementId);
-
-      button.addEventListener("click", () => {
-        // remove current widget (if any)
-        removeActiveWidget();
-
-        // install a suitable widget in the `analysisWidget` variable
-        analysisWidget = widgetFactotry();
-
-        // highlight this button as the currently active one and add the remove widget button
-        button.appearance = "outline";
-        document.getElementById("removeWidgetButton").style.display = "block";
-
-        // show the analysisWidget in the lower right corner
-        view.ui.add(analysisWidget, "bottom-right");
-      });
-      return button;
-    }
-
-    function removeActiveWidget() {
-      // remove the analysisWidget if one exists
-      if (analysisWidget) {
-        analysisWidget.destroy();
-        analysisWidget = null;
-      }
-
-      // hide remove button
-      document.getElementById("removeWidgetButton").style.display = "none";
-
-      // reset appearance of the analysis buttons
-      areaMeasurementAnalysisButton.appearance = "solid";
-      directLineMeasurementAnalysisButton.appearance = "solid";
-      lineOfSightAnalysisButton.appearance = "solid";
-      sliceAnalysisButton.appearance = "solid";
-    }
-  });
-
-  function createDirectLineMeasurementAnalysis() {
-    return new DirectLineMeasurementAnalysis({
-      startPoint: newPoint(-8238827, 4971466, 3),
-      endPoint: newPoint(-8238819, 4971537, 3)
-    });
-  }
-
-  function createAreaMeasurementAnalysis() {
-    const roofPolygon = new Polygon({
-      rings: [
-        [
-          [-8238931, 4971381, 50],
-          [-8238926, 4971426, 50],
-          [-8238835, 4971415, 50],
-          [-8238841, 4971369, 50],
-          [-8238931, 4971381, 50]
-        ]
-      ],
-      spatialReference: SpatialReference.WebMercator
-    });
-
-    return new AreaMeasurementAnalysis({
-      geometry: roofPolygon
-    });
-  }
-
-  function createSliceAnalysis() {
-    return new SliceAnalysis({
-      shape: {
-        position: newPoint(-8238840, 4971700, 21),
-        tilt: 0,
-        width: 70,
-        height: 100,
-        heading: 278
-      }
-    });
-  }
-
-  function createLineOfSightAnalysis() {
-    return new LineOfSightAnalysis({
-      observer: { position: newPoint(-8238825, 4971538, 48) },
-      targets: [
-        { position: newPoint(-8238903, 4971649, 2) },
-        { position: newPoint(-8238866, 4971629, 19) },
-        { position: newPoint(-8238825, 4971880, 2) },
-        { position: newPoint(-8238791, 4971784, 2) }
-      ]
-    });
-  }
-
-  function newPoint(x, y, z) {
-    // convenience function to have all points in the same spatial reference
-    return new Point({ x, y, z, spatialReference: SpatialReference.WebMercator });
-  }
-
-  //view.ui.add("measurementToolMenu", "bottom-left");
-
-  const measurementToolMenuExpand = new Expand({
-    view,
-    content: document.getElementById("measurementToolMenu"),
-    expandIconClass: "esri-icon-measure-line"
-  });
-  view.ui.add(measurementToolMenuExpand, "top-right");
   });
   </script>
 </html>
