@@ -75,13 +75,7 @@
       justify-self: center;
     }
 
-    calcite-button {
-      display: block;
-      margin: 20;
-      margin-top: auto;
-      margin-bottom: auto;
-      margin-left: auto;
-    }
+
 
     #header-title {
       margin-left: 1rem;
@@ -353,9 +347,7 @@
       margin-left: -10;
     }
 
-    .esri-widget {
-      overflow-y: auto;
-    }
+
 
     #image {
       width: 50px;
@@ -372,6 +364,32 @@
     }
     */
 
+  #measurementToolMenu {
+    padding: 0.8em;
+    max-width: 180px;
+    width: 250px;
+  }
+
+  #measurementToolLabel {
+    color: white;
+  }
+
+  #sliceContainer {
+    width: inherit;
+  }
+
+  #sliceOptions {
+    margin: 0 15px;
+  }
+
+  #sliceOptions>button {
+    margin-bottom: 15px;
+  }
+
+  #sliceContainer {
+    max-width: 228px;
+  }
+
   </style>
   <body class="calcite-theme-dark">
     <calcite-loader></calcite-loader>
@@ -381,7 +399,7 @@
 
         <!-- Title -->
         <h2 id="header-title" slot="header"></h2>
-        <div id="dateDiv">As of April 30, 2023</div>
+        <div id="dateDiv">As of June 7, 2023</div>
 
         <!-- Dropdown Lists -->
         <div id="contractPackageDiv">
@@ -406,6 +424,7 @@
           <calcite-action data-action-id="charts" icon="graph-time-series" text="Progree Chart"></calcite-action>
           <calcite-action data-action-id="smartmaps" icon="collection" text="Smart Map Link"></calcite-action>
           <calcite-action data-action-id="slide" icon="presentation" text="slide"></calcite-action>
+          <calcite-action data-action-id="animation" icon="play" text="Animation"></calcite-action>
           <calcite-action data-action-id="information" icon="information" text="Information"></calcite-action>
         </calcite-action-bar>
         
@@ -559,16 +578,18 @@
           </calcite-list>
         </calcite-panel>
 
-        <calcite-panel heading="Slide" data-panel-id="slide" hidden>
+        <calcite-panel heading="Slide (Demo purpose only)" data-panel-id="slide" hidden>
           <calcite-list>
             <calcite-list-item label="Angeles" description="" value="Angeles">
-              <img id="image" slot="actions-start" style="margin-left: 0px" src="https://placebear.com/1000/600" alt="A bear in its natural habitat.">
+              <img id="image" slot="actions-start" style="margin-left: 0px" src="https://EijiGorilla.github.io/Symbols/Gallery/Angeles_for_slide.png">
             </calcite-list-item>
             <calcite-list-item label="Calumpit" description="" value="Calumpit">
-              <img id="image" slot="actions-start" style="margin-left: 0px" src="https://placebear.com/1000/600" alt="A bear in its natural habitat.">
+              <img id="image" slot="actions-start" style="margin-left: 0px" src="https://EijiGorilla.github.io/Symbols/Gallery/Calumpit_for_slide.png">
             </calcite-list-item>
           </calcite-list>
         </calcite-panel>
+
+        <calcite-panel class="animation-panel"  height-scale="l" data-panel-id="animation" hidden></calcite-panel>
 
         <!-- Info panel (populates with info from the web map) -->
         <calcite-panel heading="Description" data-panel-id="information" hidden>
@@ -580,10 +601,41 @@
           </div>
         </calcite-panel>
       </calcite-shell-panel>
+
       <div id="container">
         <div id="timeSeriesChartViaduct" hidden></div>
         <div id="timeSeriesChartLand" hidden></div>
       <div id="viewDiv">
+        <div id="measurementToolMenu" class="esri-widget">
+          <calcite-label>
+            <div id="measurementToolLabel">
+              Click one of the buttons below to open the corresponding analysis widget and interact with the analysis.
+            </div>
+          </calcite-label>
+          <calcite-button
+            id="directLineMeasurementAnalysisButton"
+            icon-start="measure-line"
+            title="Interact with direct line measurement"
+          >
+          </calcite-button>
+          <calcite-button
+            id="areaMeasurementAnalysisButton"
+            icon-start="measure-area"
+            title="Interact with area measurement"
+          >
+          </calcite-button>
+          <calcite-button id="sliceAnalysisButton" icon-start="slice" title="Interact with slice plane"> </calcite-button>
+          <calcite-button
+            id="lineOfSightAnalysisButton"
+            icon-start="line-of-sight"
+            title="Interact with line of sight analysis"
+          >
+          </calcite-button>
+          <calcite-label></calcite-label>
+          <calcite-button id="removeWidgetButton" title="Remove Widget" style="display: none; width: 140px"
+            >Remove Widget
+          </calcite-button>
+        </div>
       </div>
       <!-- Tabs "https://esri.github.io/calcite-web/documentation/patterns/#tabs" -->
       <!-- Tabs "https://developers.arcgis.com/calcite-design-system/components/tabs/" -->
@@ -650,14 +702,6 @@
                 <img id="viaductNumberImage" src="https://EijiGorilla.github.io/Symbols/Viaduct_Images/Viaduct_All_Logo.svg">
               </div>
               <div class="box8" id="viaductChartDiv"></div>
-              <div class="overlay">
-                <div>
-                  <span id="play" class="button esri-icon-play" style="display: block;" />
-                </div>
-                <div>
-                  <span id="pause" class="button esri-icon-pause" style="display: none;" />
-                </div>
-              </div> 
             </calcite-tab>
             <calcite-tab>
               <div class="panel-side esri-widget">
@@ -717,7 +761,16 @@
       "esri/symbols/SimpleMarkerSymbol",
       "esri/symbols/SimpleLineSymbol",
       "esri/geometry/SpatialReference",
-      "esri/layers/BuildingSceneLayer"
+      "esri/layers/BuildingSceneLayer",
+      "esri/analysis/DirectLineMeasurementAnalysis",
+      "esri/widgets/DirectLineMeasurement3D",
+      "esri/analysis/AreaMeasurementAnalysis",
+      "esri/widgets/AreaMeasurement3D",
+      "esri/analysis/SliceAnalysis",
+      "esri/widgets/Slice",
+      "esri/analysis/LineOfSightAnalysis",
+      "esri/widgets/LineOfSight",
+      "esri/geometry/Polygon",
     ], function(WebMap, MapView, SceneView, Map, FeatureLayer, SceneLayer, Bookmarks, BasemapGallery, LayerList, Legend, 
                 Query, Fullscreen, FeatureFilter, TableList, PortalItem, Portal, geometryService,
                 StatisticDefinition, WebStyleSymbol, Expand, UniqueValueRenderer, Ground,
@@ -725,7 +778,10 @@
                 LabelClass, CustomContent, TileLayer, reactiveUtils, 
                 FieldInfoFormat, geometryEngine, route, RouteParameters, Accessor, Graphic,
                 Point, Polyline, externalRenderers, FeatureSet, SimpleMarkerSymbol, SimpleLineSymbol,
-                SpatialReference, BuildingSceneLayer
+                SpatialReference, BuildingSceneLayer,
+                DirectLineMeasurementAnalysis, DirectLineMeasurement3D, 
+                AreaMeasurementAnalysis, AreaMeasurement3D, SliceAnalysis, Slice,
+                LineOfSightAnalysis, LineOfSight, Polygon
                  ) {
       
 
@@ -1147,8 +1203,6 @@
 
     let abort = false;
     async function startAnimation(slideNo) {
-      play.style.display = "none";
-      pause.style.display = "block";
         if (!view.interacting && !abort) {
 
             if (slideNo < comp_pts.length) {
@@ -1169,25 +1223,27 @@
             }
         } else {
             abort = true;
-            play.style.display = "block";
-            pause.style.display = "none";
         }
     }
 
     // Initialization
-    play.onclick = initialization;
-    pause.onclick = function() {
-        play.style.display = "block";
-        pause.style.display = "none";
-        abort = true;
-    };
 
     async function initialization() {
       abort = false;
 
-      document.getElementById("N-04").checked = true;
+      viaductLayer.visible = true;
+      viaductLayer.renderer = viaductForAnimationRenderer;
       viaductLayer.definitionExpression = "CP = 'N-04'";
-      pierAccessLayer.definitionExpression = "CP = 'N-04'";
+      map.basemap = "satellite";
+      lotLayer.visible = false;
+      structureLayer.visible = false;
+      nloLayer.visible = false;
+      pierAccessLayer.visible = false;
+      utilityPointLayer.visible = false;
+      utilityPointLayer1.visible = false;
+      utilityLineLayer.visible = false;
+      utilityLineLayer1.visible = false;
+      pnrLayer.visible = false;
 
       addStop();
       await startAnimation(0);
@@ -3732,6 +3788,27 @@
       4: [0, 112, 255, 0.8], // Completed #0070FF
     };
 
+    let viaductForAnimationRenderer = {
+      type: "simple",
+      symbol: {
+        type: "mesh-3d",
+        symbolLayers: [
+          {
+            type: "fill",
+            material: {
+              color: "gray",
+              colorMixMode: "replace"
+            },
+            edges: {
+              type: "solid",
+              color: [225, 225, 225, 0.3]
+            }
+          }
+        ]
+      }
+    }
+
+
     let viaductRenderer = {
       type: "unique-value",
       defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
@@ -3803,6 +3880,7 @@
     2: [0, 112, 255, 0.8],
   }
 
+
   const structureStatusRenderer = {
     type: "unique-value",
     field: "Status",
@@ -3864,6 +3942,15 @@
     map.add(buildingLayer);
 
     // End of Layer import
+
+    function defaultRenderer() {
+      lotLayer.visible = true;
+      pnrLayer.visible = true;
+      pierAccessLayer.visible = true;
+      stationBoxLayer.visible = true;
+      prowLayer.visible = true;
+      map.basemap = "satellite";
+    }
     
   // Filter by Contract Package
 
@@ -8641,7 +8728,7 @@
                                                                       <li>Progress charts for land acquisition and viaduct construction,</li></ul>
                                                                  `
                                                                  ;
- 
+
       let activeWidget;
         const handleActionBarClick = ({ target }) => {
           if (target.tagName !== "CALCITE-ACTION") {
@@ -8658,6 +8745,12 @@
             document.querySelector(`[data-action-id=${nextWidget}]`).active = true;
             document.querySelector(`[data-panel-id=${nextWidget}]`).hidden = false;
             activeWidget = nextWidget;
+
+            // Open the time series chart when chart widget is opened.
+            if (`${activeWidget}` === "animation") {
+              initialization();
+            }
+
           } else {
             activeWidget = null;
           }
@@ -8691,7 +8784,27 @@
 
         // Slide
         document.querySelector("[data-panel-id='slide']").addEventListener("click",function(event) {
-          console.log(event.srcElement.value);
+          const value = event.srcElement.value;
+          if (value === 'Angeles'){
+            pierAccessLayer.visible = false;
+            viaductLayer.visible = true;
+            buildingLayer.visible = true;
+            utilityPointLayer.visible = true;
+            utilityPointLayer1.visible = true;
+
+
+            buildingLayer.definitionExpression = "Station = 5";
+            viaductLayer.definitionExpression = "CP = 'N-03'";
+            lotLayer.definitionExpression = "Municipality = 'Angeles'";
+            utilityPointLayer.definitionExpression = "CP = 'N-03'";
+            utilityPointLayer1.definitionExpression = "CP = 'N-03'";
+
+            map.basemap = "dark-gray-vector";
+            
+            zoomToLayer(lotLayer);
+          }
+
+
         });
 
 
@@ -8720,7 +8833,155 @@
       document.querySelector("calcite-loader").hidden = true;
     });
 
+    // Measurement Widgets
+  // To modify analysis objects we will temporarily store the corresponding widget in this variable.
+  let analysisWidget = null;
 
+  view.when(async () => {
+    // Create the analysis objects
+    const directLineMeasurementAnalysis = createDirectLineMeasurementAnalysis();
+    const areaMeasurementAnalysis = createAreaMeasurementAnalysis();
+    const sliceAnalysis = createSliceAnalysis();
+    const lineOfSightAnalysis = createLineOfSightAnalysis();
+
+    // Wait for the view to load before adding analysis objects
+    await reactiveUtils.whenOnce(() => !view.updating);
+
+    // Add analysis object to the view to show them
+    view.analyses.addMany([
+      directLineMeasurementAnalysis,
+      areaMeasurementAnalysis,
+      sliceAnalysis,
+      lineOfSightAnalysis
+    ]);
+
+    // Configure buttons to interact with the analysis objects
+    const areaMeasurementAnalysisButton = setupAnalysisButton(
+      "areaMeasurementAnalysisButton",
+      () => new AreaMeasurement3D({ view, analysis: areaMeasurementAnalysis })
+    );
+
+    const directLineMeasurementAnalysisButton = setupAnalysisButton(
+      "directLineMeasurementAnalysisButton",
+      () => new DirectLineMeasurement3D({ view, analysis: directLineMeasurementAnalysis })
+    );
+
+    const lineOfSightAnalysisButton = setupAnalysisButton(
+      "lineOfSightAnalysisButton",
+      () => new LineOfSight({ view, analysis: lineOfSightAnalysis })
+    );
+
+    const sliceAnalysisButton = setupAnalysisButton(
+      "sliceAnalysisButton",
+      () => new Slice({ view, analysis: sliceAnalysis })
+    );
+
+    // Remove button is a bit special
+    document.getElementById("removeWidgetButton").addEventListener("click", () => {
+      removeActiveWidget();
+    });
+
+    function setupAnalysisButton(elementId, widgetFactotry) {
+      const button = document.getElementById(elementId);
+
+      button.addEventListener("click", () => {
+        // remove current widget (if any)
+        removeActiveWidget();
+
+        // install a suitable widget in the `analysisWidget` variable
+        analysisWidget = widgetFactotry();
+
+        // highlight this button as the currently active one and add the remove widget button
+        button.appearance = "outline";
+        document.getElementById("removeWidgetButton").style.display = "block";
+
+        // show the analysisWidget in the lower right corner
+        view.ui.add(analysisWidget, "bottom-right");
+      });
+      return button;
+    }
+
+    function removeActiveWidget() {
+      // remove the analysisWidget if one exists
+      if (analysisWidget) {
+        analysisWidget.destroy();
+        analysisWidget = null;
+      }
+
+      // hide remove button
+      document.getElementById("removeWidgetButton").style.display = "none";
+
+      // reset appearance of the analysis buttons
+      areaMeasurementAnalysisButton.appearance = "solid";
+      directLineMeasurementAnalysisButton.appearance = "solid";
+      lineOfSightAnalysisButton.appearance = "solid";
+      sliceAnalysisButton.appearance = "solid";
+    }
+  });
+
+  function createDirectLineMeasurementAnalysis() {
+    return new DirectLineMeasurementAnalysis({
+      startPoint: newPoint(-8238827, 4971466, 3),
+      endPoint: newPoint(-8238819, 4971537, 3)
+    });
+  }
+
+  function createAreaMeasurementAnalysis() {
+    const roofPolygon = new Polygon({
+      rings: [
+        [
+          [-8238931, 4971381, 50],
+          [-8238926, 4971426, 50],
+          [-8238835, 4971415, 50],
+          [-8238841, 4971369, 50],
+          [-8238931, 4971381, 50]
+        ]
+      ],
+      spatialReference: SpatialReference.WebMercator
+    });
+
+    return new AreaMeasurementAnalysis({
+      geometry: roofPolygon
+    });
+  }
+
+  function createSliceAnalysis() {
+    return new SliceAnalysis({
+      shape: {
+        position: newPoint(-8238840, 4971700, 21),
+        tilt: 0,
+        width: 70,
+        height: 100,
+        heading: 278
+      }
+    });
+  }
+
+  function createLineOfSightAnalysis() {
+    return new LineOfSightAnalysis({
+      observer: { position: newPoint(-8238825, 4971538, 48) },
+      targets: [
+        { position: newPoint(-8238903, 4971649, 2) },
+        { position: newPoint(-8238866, 4971629, 19) },
+        { position: newPoint(-8238825, 4971880, 2) },
+        { position: newPoint(-8238791, 4971784, 2) }
+      ]
+    });
+  }
+
+  function newPoint(x, y, z) {
+    // convenience function to have all points in the same spatial reference
+    return new Point({ x, y, z, spatialReference: SpatialReference.WebMercator });
+  }
+
+  //view.ui.add("measurementToolMenu", "bottom-left");
+
+  const measurementToolMenuExpand = new Expand({
+    view,
+    content: document.getElementById("measurementToolMenu"),
+    expandIconClass: "esri-icon-measure-line"
+  });
+  view.ui.add(measurementToolMenuExpand, "top-right");
 
     });
   </script>
