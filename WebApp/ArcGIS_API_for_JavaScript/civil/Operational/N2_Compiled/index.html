@@ -130,7 +130,6 @@
       cursor: pointer;
     }
 
-
     /* CHART AND CONTENT PANEL */
     #chartPanel {
       background-color: rgb(0, 0, 0, 0);
@@ -3928,6 +3927,7 @@
     ]
   }
 
+  /*
     var buildingLayer = new SceneLayer({ 
       portalItem: {
         id: "753d01dc377440ee8c3d35ec8fe10d6d", 
@@ -3937,20 +3937,85 @@
       },
     outFields: ["*"],
     title: "N2 Station Structures",
-    renderer: structureStatusRenderer
+    returnGeometry: true,
+    renderer: structureStatusRenderer,
     });
     map.add(buildingLayer);
+*/
+const buildingLayer = new BuildingSceneLayer({ 
+    portalItem: {
+      id: "19fcf150d0474029a49643408a7c17dc", 
+      portal: {
+        url: "https://gis.railway-sector.com/portal"
+      }
+    },
+  outFields: ["*"],
+  title: "N2 Station Structures"
+  });
+  map.add(buildingLayer);
 
-    // End of Layer import
+  var columnsLayer = null;
+  var floorsLayer = null;
+  var wallsLayer = null;
 
-    function defaultRenderer() {
-      lotLayer.visible = true;
-      pnrLayer.visible = true;
-      pierAccessLayer.visible = true;
-      stationBoxLayer.visible = true;
-      prowLayer.visible = true;
-      map.basemap = "satellite";
-    }
+  // Discipline: Structural
+  var stFramingLayer = null;
+  var stColumnLayer = null;
+  var stFoundationLayer = null;
+  
+  //
+  var fullModelLayer = null;
+  var defaultLayer = null;
+
+  buildingLayer.when(() => {
+    // Iterate through the flat array of sublayers and extract the ones
+    // that should be excluded from the slice widget
+    buildingLayer.allSublayers.forEach((layer) => {
+      // modelName is standard accross all BuildingSceneLayer,
+      // use it to identify a certain layer
+      switch (layer.modelName) {
+        // Because of performance reasons, the Full Model view is
+        // by default set to false. In this scene the Full Model should be visible.
+        case "FullModel":
+          fullModelLayer = layer;
+          //layer.visible = true;
+          break;
+        
+          case "Columns":
+            columnsLayer = layer;
+            //excludedLayers.push(layer);
+            break;
+
+          case "Floors":
+            floorsLayer = layer;
+            //excludedLayers
+            break;
+
+          case "Walls":
+            wallsLayer = layer;
+            break;
+                
+          case "StructuralFraming":
+            stFramingLayer = layer;
+            break;
+          
+          case "StructuralColumns":
+            stColumnLayer = layer;
+            break;
+          
+          case "StructuralFoundation":
+            stFoundationLayer = layer;
+            break;
+            
+          default:
+            layer.visible = true;
+        }
+    });
+    // setSliceWidget();
+  });
+
+
+
     
   // Filter by Contract Package
 
@@ -4002,7 +4067,6 @@
         utilityLineLayer1.definitionExpression = null;
         pierAccessLayer.definitionExpression = null;
         viaductLayer.definitionExpression = null;
-        buildingLayer.definitionExpression = null;
         pnrLayer.definitionExpression = null;
 
         pierAccessLayer.visible = true;
@@ -4010,6 +4074,7 @@
         viaductNumberDiv.style.display = 'block';
 
         pnrLayer.visible = true;
+        buildingLayer.visible = false;
 
         updateSummary(value);
         timeSeriesChartViaduct(value);
@@ -4032,12 +4097,12 @@
         pierAccessLayer.visible = false;
         pnrLayer.definitionExpression = false;
 
+        buildingLayer.visible = false;
+
         // Viaduct layer has no N-05 so need to hide its chart
         viaductLayer.visible = false;
         viaductChartDiv.style.display = 'none';
         viaductNumberDiv.style.display = 'none';
-
-        buildingLayer.visible = false;
 
         updateSummary(value);
         timeSeriesChartViaduct(value);
@@ -4058,11 +4123,12 @@
         utilityLineLayer1.definitionExpression = cpExpression;
         pierAccessLayer.definitionExpression = cpExpression;
         viaductLayer.definitionExpression = cpExpression;
-        buildingLayer.definitionExpression = cpExpression;
         pnrLayer.definitionExpression = cpExpression;
 
         viaductChartDiv.style.display = 'block';
         viaductNumberDiv.style.display = 'block';
+
+        stationStructuresRendererCP(value);
         
         updateSummary(value);
         timeSeriesChartViaduct(value);
@@ -4295,7 +4361,61 @@
     }
     totalProgressViaduct();
 
-     
+    // Renderer for Building Scene Layer
+    function stationStructuresRendererSlide(value){
+      buildingLayer.visible = true;
+      const stationExpression = "Station = " + value;
+      columnsLayer.definitionExpression = stationExpression;
+      floorsLayer.definitionExpression = stationExpression;
+      wallsLayer.definitionExpression = stationExpression;
+      stFoundationLayer.definitionExpression = stationExpression;
+      stFramingLayer.definitionExpression = stationExpression;
+      stColumnLayer.definitionExpression = stationExpression;
+
+      columnsLayer.visible = true;
+      floorsLayer.visible = true;
+      wallsLayer.visible = true;
+      stFoundationLayer.visible = true;
+      stFramingLayer.visible = true;
+      stColumnLayer.visible = true;
+
+      zoomToLayer(stFramingLayer);
+    }
+
+    async function stationStructuresRendererCP(value){
+      // without stationStructuresRendererLayerListTrue(), it will not render by clicking layer list button
+      await stationStructuresRendererLayerListTrue();
+      const stationExpression = "CP = '" + value + "'";
+      columnsLayer.definitionExpression = stationExpression;
+      floorsLayer.definitionExpression = stationExpression;
+      wallsLayer.definitionExpression = stationExpression;
+      stFoundationLayer.definitionExpression = stationExpression;
+      stFramingLayer.definitionExpression = stationExpression;
+      stColumnLayer.definitionExpression = stationExpression;
+
+      /*
+      columnsLayer.visible = true;
+      floorsLayer.visible = true;
+      wallsLayer.visible = true;
+      stFoundationLayer.visible = true;
+      stFramingLayer.visible = true;
+      stColumnLayer.visible = true;
+      */
+      
+      //zoomToLayer(stFramingLayer);
+    }
+
+    function stationStructuresRendererLayerListTrue(){
+      columnsLayer.visible = true;
+      floorsLayer.visible = true;
+      wallsLayer.visible = true;
+      stFoundationLayer.visible = true;
+      stFramingLayer.visible = true;
+      stColumnLayer.visible = true;
+    }
+
+    
+
     // CHART PANEL FOR LOT
     const LEGEND_FONT_SIZE = "0.9em";
     var root = am5.Root.new("landPieChartDiv");
@@ -8233,6 +8353,7 @@
     viaductLayer.visible = false;
     buildingLayer.visible = false;
 
+
     // Hide and Unhide of Legend + layerList + lotLayer
     // 1. Checkbox
     const landCheckbox = document.getElementById("land-check");
@@ -8783,33 +8904,60 @@
         });
 
         // Slide
+        
         document.querySelector("[data-panel-id='slide']").addEventListener("click",function(event) {
           const value = event.srcElement.value;
           if (value === 'Angeles'){
             pierAccessLayer.visible = false;
             viaductLayer.visible = true;
-            buildingLayer.visible = true;
             utilityPointLayer.visible = true;
             utilityPointLayer1.visible = true;
 
-
-            buildingLayer.definitionExpression = "Station = 5";
             viaductLayer.definitionExpression = "CP = 'N-03'";
             lotLayer.definitionExpression = "Municipality = 'Angeles'";
             utilityPointLayer.definitionExpression = "CP = 'N-03'";
             utilityPointLayer1.definitionExpression = "CP = 'N-03'";
 
             map.basemap = "dark-gray-vector";
+
+            const stValue = 5;
+            stationStructuresRendererSlide(stValue);
             
             zoomToLayer(lotLayer);
+
+          } else if (value === 'Calumpit'){
+
+            map.basemap = "dark-gray-vector";
+            map.ground.opacity = 0.9;
+
+            lotLayer.definitionExpression = "Municipality = 'Calumpit'";
+            structureLayer.definitionExpression = "Municipality = 'Calumpit'";
+            treeCuttingLayer.definitionExpression = "CP = 'N-01'";
+            utilityPointLayer.definitionExpression = "CP = 'N-01'";
+            utilityLineLayer.definitionExpression = "CP = 'N-01'";
+            viaductLayer.definitionExpression = "CP = 'N-01'";
+            
+            structureLayer.visible = true;
+            treeCuttingLayer.visible = true;
+            pierAccessLayer.visible = false;
+            viaductLayer.visible = true;
+            utilityPointLayer.visible = true;
+            utilityPointLayer1.visible = false;
+            utilityLineLayer.visible = true;
+            utilityLineLayer1.visible = false;
+            pnrLayer.visible = false;
+            stationBoxLayer.visible = false;
+
+            const stValue = 8;
+            stationStructuresRendererSlide(stValue);
+
           }
-
-
-        });
 
 
         //////////////////////////////////////////////////////////////////////////////////
 
+
+    });
         // See-through-Ground
         view.when(function() {
           // allow navigation above and below the ground
@@ -8831,6 +8979,7 @@
       // Switch theme
       document.querySelector("calcite-shell").hidden = false;
       document.querySelector("calcite-loader").hidden = true;
+
     });
 
     // Measurement Widgets
