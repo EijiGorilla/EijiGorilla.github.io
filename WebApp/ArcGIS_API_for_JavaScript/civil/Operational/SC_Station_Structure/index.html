@@ -17,7 +17,7 @@
   -->
 <title>Station Structure (N2)</title>
 
-<link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"/>
+<link rel="stylesheet" href="https://js.arcgis.com/4.27/esri/themes/dark/main.css"/>
 <script type="module" src="https://js.arcgis.com/calcite-components/1.0.7/calcite.esm.js"></script>
 <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.0.7/calcite.css" />
 
@@ -33,7 +33,7 @@
 <script src="https://unpkg.com/three@0.144.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/7/Stats.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
-<script src="https://js.arcgis.com/4.26/"></script>
+<script src="https://js.arcgis.com/4.27/"></script>
 
   </head>
 
@@ -47,16 +47,7 @@
     width: 100%;
   }
 
-  calcite-label {
-    position: fixed;
-    z-index: 1;
-    bottom: 1%;
-    right: 1%;
-    vertical-align: middle;
-    background-color: rgb(52, 52, 52);
-    text-align: center;
-    padding: 7;
-  }
+
 
   #headerTitleDiv {
     font-size: 2vw;
@@ -267,11 +258,11 @@
     padding: 0px;
     margin:0;
     box-sizing: border-box;
-    width: 10vw;
-    height: 35vh;
-    position: absolute;
-    top: 13vw;
-    right: 1;
+    width: 13vw;
+    height: 40vh;
+    position: fixed;
+    bottom: 10vw;
+    left: 1;
     font-size: 1.3vw;
     color: white;
     background-color: rgb(0, 0, 0, 0);
@@ -319,6 +310,16 @@
     right: 0;
   }
 
+  #measurementToolMenu {
+    padding: 0.8em;
+    max-width: 180px;
+    width: 250px;
+  }
+
+  #measurementToolLabel {
+    color: white;
+  }
+
   #sliceContainer {
     width: inherit;
   }
@@ -334,6 +335,8 @@
   #sliceContainer {
     max-width: 228px;
   }
+
+
 
   br{content:' ';}
   br:after{content:' ';}
@@ -448,8 +451,8 @@
             <div id="labelTotalDiv">TOTAL</div>
             <div id="totalProgressDiv"></div>
         </div>
-        <calcite-label layout="inline" id="see-through-label">
-          <calcite-checkbox id="myLink"></calcite-checkbox>See-through-Ground
+        <calcite-label layout="inline" id="see-through-label" class="esri-widget">
+          <calcite-checkbox id="myLink"></calcite-checkbox><b style="color:white; font-weight: normal">See-through-ground</b>
         </calcite-label>
         <calcite-button
           icon-end="play"
@@ -461,6 +464,36 @@
           id="pause"
           >
         </calcite-button>
+        <div id="measurementToolMenu" class="esri-widget">
+          <calcite-label>
+            <div id="measurementToolLabel">
+              Click one of the buttons below to open the corresponding analysis widget and interact with the analysis.
+            </div>
+          </calcite-label>
+          <calcite-button
+            id="directLineMeasurementAnalysisButton"
+            icon-start="measure-line"
+            title="Interact with direct line measurement"
+          >
+          </calcite-button>
+          <calcite-button
+            id="areaMeasurementAnalysisButton"
+            icon-start="measure-area"
+            title="Interact with area measurement"
+          >
+          </calcite-button>
+          <calcite-button id="sliceAnalysisButton" icon-start="slice" title="Interact with slice plane"> </calcite-button>
+          <calcite-button
+            id="lineOfSightAnalysisButton"
+            icon-start="line-of-sight"
+            title="Interact with line of sight analysis"
+          >
+          </calcite-button>
+          <calcite-label></calcite-label>
+          <calcite-button id="removeWidgetButton" title="Remove Widget" style="display: none; width: 140px"
+            >Remove Widget
+          </calcite-button>
+        </div>
       </div>
     </calcite-shell>
   </body>
@@ -511,6 +544,16 @@
       "esri/Camera",
       "esri/core/reactiveUtils",
       "esri/widgets/BasemapGallery",
+      "esri/analysis/DirectLineMeasurementAnalysis",
+      "esri/widgets/DirectLineMeasurement3D",
+      "esri/analysis/AreaMeasurementAnalysis",
+      "esri/widgets/AreaMeasurement3D",
+      "esri/analysis/SliceAnalysis",
+      "esri/widgets/Slice",
+      "esri/analysis/LineOfSightAnalysis",
+      "esri/widgets/LineOfSight",
+      "esri/geometry/SpatialReference",
+      "esri/geometry/Polygon",
       ], function(Basemap, Map, MapView, SceneView, 
                 FeatureLayer, FeatureFilter,
                 SceneLayer, Layer, TileLayer, VectorTileLayer,
@@ -522,7 +565,10 @@
                 TimeExtent, Expand, Editor, UniqueValueRenderer, DatePicker,
                 FeatureTable, Compass, ElevationLayer, Ground,
                 BuildingSceneLayer, BuildingExplorer, Slice, SlicePlane,
-                SimpleRenderer, MeshSymbol3D, SolidEdges3D, GroupLayer, Point, Camera, reactiveUtils, BasemapGallery) {
+                SimpleRenderer, MeshSymbol3D, SolidEdges3D, GroupLayer, Point, Camera, reactiveUtils, BasemapGallery,
+                DirectLineMeasurementAnalysis, DirectLineMeasurement3D,
+              AreaMeasurementAnalysis, AreaMeasurement3D, SliceAnalysis, Slice,
+              LineOfSightAnalysis, LineOfSight, SpatialReference, Polygon) {
 
 
 ////////////////////////////////////////////////////
@@ -2084,6 +2130,157 @@
   }),
   "top-right"
   );
+
+    // Measurement Widgets
+  // To modify analysis objects we will temporarily store the corresponding widget in this variable.
+  let analysisWidget = null;
+
+  view.when(async () => {
+    // Create the analysis objects
+    const directLineMeasurementAnalysis = createDirectLineMeasurementAnalysis();
+    const areaMeasurementAnalysis = createAreaMeasurementAnalysis();
+    const sliceAnalysis = createSliceAnalysis();
+    const lineOfSightAnalysis = createLineOfSightAnalysis();
+
+    // Wait for the view to load before adding analysis objects
+    await reactiveUtils.whenOnce(() => !view.updating);
+
+    // Add analysis object to the view to show them
+    view.analyses.addMany([
+      directLineMeasurementAnalysis,
+      areaMeasurementAnalysis,
+      sliceAnalysis,
+      lineOfSightAnalysis
+    ]);
+
+    // Configure buttons to interact with the analysis objects
+    const areaMeasurementAnalysisButton = setupAnalysisButton(
+      "areaMeasurementAnalysisButton",
+      () => new AreaMeasurement3D({ view, analysis: areaMeasurementAnalysis })
+    );
+
+    const directLineMeasurementAnalysisButton = setupAnalysisButton(
+      "directLineMeasurementAnalysisButton",
+      () => new DirectLineMeasurement3D({ view, analysis: directLineMeasurementAnalysis })
+    );
+
+    const lineOfSightAnalysisButton = setupAnalysisButton(
+      "lineOfSightAnalysisButton",
+      () => new LineOfSight({ view, analysis: lineOfSightAnalysis })
+    );
+
+    const sliceAnalysisButton = setupAnalysisButton(
+      "sliceAnalysisButton",
+      () => new Slice({ view, analysis: sliceAnalysis })
+    );
+
+    // Remove button is a bit special
+    document.getElementById("removeWidgetButton").addEventListener("click", () => {
+      removeActiveWidget();
+    });
+
+    function setupAnalysisButton(elementId, widgetFactotry) {
+      const button = document.getElementById(elementId);
+
+      button.addEventListener("click", () => {
+        // remove current widget (if any)
+        removeActiveWidget();
+
+        // install a suitable widget in the `analysisWidget` variable
+        analysisWidget = widgetFactotry();
+
+        // highlight this button as the currently active one and add the remove widget button
+        button.appearance = "outline";
+        document.getElementById("removeWidgetButton").style.display = "block";
+
+        // show the analysisWidget in the lower right corner
+        view.ui.add(analysisWidget, "bottom-right");
+      });
+      return button;
+    }
+
+    function removeActiveWidget() {
+      // remove the analysisWidget if one exists
+      if (analysisWidget) {
+        analysisWidget.destroy();
+        analysisWidget = null;
+      }
+
+      // hide remove button
+      document.getElementById("removeWidgetButton").style.display = "none";
+
+      // reset appearance of the analysis buttons
+      areaMeasurementAnalysisButton.appearance = "solid";
+      directLineMeasurementAnalysisButton.appearance = "solid";
+      lineOfSightAnalysisButton.appearance = "solid";
+      sliceAnalysisButton.appearance = "solid";
+    }
+  });
+
+  function createDirectLineMeasurementAnalysis() {
+    return new DirectLineMeasurementAnalysis({
+      startPoint: newPoint(-8238827, 4971466, 3),
+      endPoint: newPoint(-8238819, 4971537, 3)
+    });
+  }
+
+  function createAreaMeasurementAnalysis() {
+    const roofPolygon = new Polygon({
+      rings: [
+        [
+          [-8238931, 4971381, 50],
+          [-8238926, 4971426, 50],
+          [-8238835, 4971415, 50],
+          [-8238841, 4971369, 50],
+          [-8238931, 4971381, 50]
+        ]
+      ],
+      spatialReference: SpatialReference.WebMercator
+    });
+
+    return new AreaMeasurementAnalysis({
+      geometry: roofPolygon
+    });
+  }
+
+  function createSliceAnalysis() {
+    return new SliceAnalysis({
+      shape: {
+        position: newPoint(-8238840, 4971700, 21),
+        tilt: 0,
+        width: 70,
+        height: 100,
+        heading: 278
+      }
+    });
+  }
+
+  function createLineOfSightAnalysis() {
+    return new LineOfSightAnalysis({
+      observer: { position: newPoint(-8238825, 4971538, 48) },
+      targets: [
+        { position: newPoint(-8238903, 4971649, 2) },
+        { position: newPoint(-8238866, 4971629, 19) },
+        { position: newPoint(-8238825, 4971880, 2) },
+        { position: newPoint(-8238791, 4971784, 2) }
+      ]
+    });
+  }
+
+  function newPoint(x, y, z) {
+    // convenience function to have all points in the same spatial reference
+    return new Point({ x, y, z, spatialReference: SpatialReference.WebMercator });
+  }
+
+  //view.ui.add("measurementToolMenu", "bottom-left");
+
+  const measurementToolMenuExpand = new Expand({
+    view,
+    content: document.getElementById("measurementToolMenu"),
+    expandIconClass: "esri-icon-measure-line"
+  });
+  view.ui.add(measurementToolMenuExpand, "top-right");
+
   });
   </script>
 </html>
