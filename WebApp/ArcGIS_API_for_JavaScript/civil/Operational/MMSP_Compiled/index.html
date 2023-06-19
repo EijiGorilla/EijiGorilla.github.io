@@ -506,11 +506,6 @@
               <calcite-checkbox slot="actions-start" id="utilitylinestatus-check" style="margin-left: 5px"></calcite-checkbox>
               <div id="utilitylinestatus-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
             </calcite-list-item>
-            <calcite-list-item label="Bridge" description="" value="bridge-affected">
-              <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
-              <calcite-checkbox slot="actions-start" id="bridge-check" style="margin-left: 5px"></calcite-checkbox>
-              <div id="bridge-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
-            </calcite-list-item>
             <calcite-list-item label="River" description="" value="river-affected">
               <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
               <calcite-checkbox slot="actions-start" id="river-check" style="margin-left: 5px"></calcite-checkbox>
@@ -1857,6 +1852,9 @@
             }
         },
         layerId: 10,
+        elevationInfo: {
+          model: "on-the-ground"
+        },
         title: "Creek Diversion",
         outFields: ["*"],
         popupEnabled: false
@@ -1864,6 +1862,27 @@
       map.add(creekDivLayer);
 
       // Depot Building----------------------------------
+      const buildingLayerRenderer = {
+      type: "simple",
+      symbol: {
+        type: "polygon-3d",
+        symbolLayers: [
+          {
+            type: "extrude",
+            size: 15, // in meters
+            material: {
+              color: [0, 0, 0, 0.5]
+            },
+            edges: {
+              type: "solid",
+              color: "#4E4E4E",
+              size: 0.4
+            }
+          }
+        ]
+      }
+    }
+
       var depotBuildingLayer = new FeatureLayer ({
         portalItem: {
             id: "b0cf28b499a54de7b085725bca08deee",
@@ -1873,11 +1892,12 @@
         },
         layerId: 6,
         title: "Depot Building",
+        renderer: buildingLayerRenderer,
         elevationInfo: {
-          model: "on-the-ground"
+          model: "relative-to-ground"
         },
         outFields: ["*"],
-        popupEnabled: false
+        //popupEnabled: false
       });
       map.add(depotBuildingLayer);
 
@@ -1892,8 +1912,9 @@
         layerId: 7,
         title: "BSS Building",
         elevationInfo: {
-          model: "on-the-ground"
+          model: "relative-to-ground"
         },
+        renderer: buildingLayerRenderer,
         outFields: ["*"],
         popupEnabled: false
       });
@@ -2512,7 +2533,7 @@
         {
           type: "size",
           axis: "height",
-          valueExpression: "When($feature.Status >= 1, 5, 0)",
+          valueExpression: "When($feature.TCP_Proces >= 1, 7, 0)",
           valueUnit: "meters"
         },
         {
@@ -2542,9 +2563,14 @@
                 url: "https://gis.railway-sector.com/portal"
             }
         },
+        layerId: 1,
         outFields: ["*"],
         title: "Status of Tree Cutting",
         renderer: treeCuttingRenderer,
+        elevationInfo: {
+          mode: "relative-to-ground",
+          //offset: 0
+        },
         popupTemplate: {
           title: "<b>{TCP_Proces}</b>",
             lastEditInfoEnabled: false,
@@ -2664,7 +2690,7 @@
             },
             {
               value: "served",
-              label: "compenStatus.served",
+              label: compenStatus.served,
               type: "simple",
               symbol: treeCutting3DSymbol("Larix")
             },
@@ -2736,7 +2762,7 @@
             { value:5, color: compenColor.payp_hex},
             { value:6, color: compenColor.check_hex},
             { value:7, color: compenColor.paid_hex},
-            { value:8, color: compenColor.nocompen},
+            { value:8, color: compenColor.nocompen_hex},
             { value:9, color: compenColor.donation_hex},
             { value:10, color: compenColor.expro_hex},
             { value:11, color: compenColor.row_hex},
@@ -2757,6 +2783,10 @@
       },
       outFields: ["*"],
       layerId: 1,
+      elevationInfo: {
+          mode: "relative-to-ground",
+          //offset: 0
+        },
       title: "Status of Tree Compensation",
       renderer: treeCompensationRenderer,
       popupTemplate: {
@@ -4098,75 +4128,6 @@
   
     renderTbmShaftLayer();
   
-  
-  // Bridge Layer:-------------------        
-    var bridgeLayer = new SceneLayer({
-      portalItem: {
-        id: "33801e0fd57a420e8f2dfc814b4fbf96", //8d867de4d0034e08afed516372f8dd86
-        portal: {
-            url: "https://gis.railway-sector.com/portal"
-        },
-      },
-      /*
-      portalItem: {
-      id: "e01d0321d29f4239a383be1ba056d2aa",  
-      portal: {
-        url: "https://mmspgc-gis.mmspgc.local/portal"
-      }
-      },
-      */
-      elevationInfo: {
-        mode: "absolute-height",
-        offset: 0
-      },
-      title: "Monitoring Bridge",
-      outFields: ["*"],
-    });
-    map.add(bridgeLayer, 0);
-
-    const colorsBridge = {
-      'Minor': [112, 168, 0, 0.4], // To be Constructed (white)
-      'Moderate': [230, 230, 0, 0.4], // Excavation (Dark brown)
-      'Severe': [230, 0, 0, 0.7], // Rebar (Yellow)
-    };
-  
-    function renderBridgeLayer() {
-      const renderer = new UniqueValueRenderer({
-        field: "Rating",
-        legendOptions: {
-        title: "Rating for Defects"
-        }
-      });
-  
-      for (let property in colorsBridge) {
-        if (colorsBridge.hasOwnProperty(property)) {
-          renderer.addUniqueValueInfo({
-            value: property,
-            symbol: {
-              type: "mesh-3d",
-              symbolLayers: [
-                {
-                  type: "fill",
-                  material: {
-                    color: colorsBridge[property],
-                    colorMixMode: "replace"
-                  },
-                  edges: {
-                    type: "solid", // autocasts as new SolidEdges3D()
-                    color: [225, 225, 225, 0.3]
-                    }
-                }
-              ]
-             }
-          });
-        }
-      }
-  
-      bridgeLayer.renderer = renderer;
-    }
-  
-    renderBridgeLayer();
-
 
 ////////////////////////////// CHART /////////////////////////////////////////////////
 
@@ -4735,17 +4696,6 @@ var root5 = am5.Root.new("timeSeriesChartLandDiv");
       ]
     });
 
-    var legend_bridge = new Legend({
-      view,
-      container: "bridge-legend",
-      layerInfos: [
-        {
-          layer: bridgeLayer,
-          title: ""
-        }
-      ]
-    });
-
     var legend_river = new Legend({
       view,
       container: "river-legend",
@@ -4818,7 +4768,6 @@ var root5 = am5.Root.new("timeSeriesChartLandDiv");
       utilityLineLayer1.visible = false;
       bssDepotBuildingLayer.visible = true;
       evsLayer.visible = true;
-      bridgeLayer.visible = false;
       riverLayer.visible = false;
       tbmTunnelLayer.visible = false;
       muckPitLayer.visible = false;
@@ -4846,7 +4795,6 @@ var root5 = am5.Root.new("timeSeriesChartLandDiv");
     const utilityLineStatusCheckbox = document.getElementById("utilitylinestatus-check");
     const bssDepotBuildingCheckbox = document.getElementById("bss-depotbuilding-check");
     const evsCheckbox = document.getElementById("evs-check");
-    const bridgeCheckbox = document.getElementById("bridge-check");
     const riverCheckbox = document.getElementById("river-check");
     const tbmTunnelCheckbox = document.getElementById("tbmtunnel-check");
     const muckPitCheckbox = document.getElementById("muckpit-check");
@@ -4869,7 +4817,6 @@ var root5 = am5.Root.new("timeSeriesChartLandDiv");
     const utilityLineStatusLegend = document.getElementById("utilitylinestatus-legend");
     const bssDepotBuildingLegend = document.getElementById("bss-depotbuilding-legend");
     const evsLegend = document.getElementById("evs-legend");
-    const bridgeLegend = document.getElementById("bridge-legend");
     const riverLegend = document.getElementById("river-legend");
     const tbmTunnelLegend = document.getElementById("tbmtunnel-legend");
     const muckPitLegend = document.getElementById("muckpit-legend");
@@ -5237,30 +5184,6 @@ var root5 = am5.Root.new("timeSeriesChartLandDiv");
         }
       }
       evsCheckbox.addEventListener("click", checkBoxClick);
-    });
-
-    // Bridge Layer
-    view.when(() => {
-      let activeWidget;
-      const checkBoxClick = ({ target }) => {
-
-        // Hide/Unhide legend
-        bridgeLegend.hidden = !bridgeLegend.hidden;
-        
-        // Visible/unvisible bridge layer
-        if (activeWidget) {
-          bridgeLayer.visible = false;
-        }
-
-        const nextWidget = target.id;
-        if (nextWidget !== activeWidget) {
-          bridgeLayer.visible = true;
-          activeWidget = nextWidget
-        } else {
-          activeWidget = null;
-        }
-      }
-      bridgeCheckbox.addEventListener("click", checkBoxClick);
     });
 
     // River Layer
