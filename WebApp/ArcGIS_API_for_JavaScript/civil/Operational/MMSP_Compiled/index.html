@@ -476,16 +476,24 @@
                 <calcite-checkbox slot="actions-start" id="posectionbox-check" style="margin-left: 5px" checked></calcite-checkbox>
                 <div id="posectionbox-legend" class="esri-widget" style="margin-bottom: 0px;"></div>
               </calcite-list-item>
-            <calcite-list-item label="Tree Cutting" description="" value="treeCutting">
-            <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
-              <calcite-checkbox slot="actions-start" id="treecutting-check" style="margin-left: 5px"></calcite-checkbox>
-              <div id="treecutting-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
-            </calcite-list-item>
-            <calcite-list-item label="Tree Compensation" description="" value="treeCompensation">
-            <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
-              <calcite-checkbox slot="actions-start" id="treecompensation-check" style="margin-left: 5px"></calcite-checkbox>
-              <div id="treecompensation-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
-            </calcite-list-item>
+
+
+              <calcite-list-item label="Trees" description="" value="treesall">
+                <calcite-checkbox slot="actions-start" id="treesall-check" style="margin-left: 5px"></calcite-checkbox>
+                <calcite-list-item label="Tree Cutting" description="" value="treeCutting">
+                  <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                    <calcite-checkbox slot="actions-start" id="treecutting-check" style="margin-left: 5px"></calcite-checkbox>
+                    <div id="treecutting-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+                  </calcite-list-item>
+                  <calcite-list-item label="Tree Compensation" description="" value="treeCompensation">
+                  <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
+                    <calcite-checkbox slot="actions-start" id="treecompensation-check" style="margin-left: 5px"></calcite-checkbox>
+                    <div id="treecompensation-legend" class="esri-widget" style="margin-bottom: 0px;" hidden></div>
+                  </calcite-list-item>
+              </calcite-list-item>
+
+
+
             <calcite-list-item label="Utility Relocation (Point Sybmol)" description="" value="utility-point">
             <!-- <calcite-action slot="actions-start" icon="layer" text="Land layer"></calcite-action> -->
               <calcite-checkbox slot="actions-start" id="utilitypoint-check" style="margin-left: 5px"></calcite-checkbox>
@@ -4990,14 +4998,113 @@ var root5 = am5.Root.new("timeSeriesChartLandDiv");
     });
 
 
-    // Tree Cutting layer
+    // Group checkbox for tree cutting and compensation layers //--------------------------------
+    function treeCuttingRendererCheckBoxTrueFalse() {
+      if (document.querySelector(`[id="treecutting-check"]`).checked) {
+        treeCuttingLayer.visible = true;
+        treeCuttingLegend.hidden = !treeCuttingLegend.hidden;
+
+      } else if (!document.querySelector(`[id="treecutting-check"]`).checked) {
+        treeCuttingLayer.visible = false;
+        treeCuttingLegend.hidden = !treeCuttingLegend.hidden;
+      }
+    }
+
+    function treeCuttingRendererCheckBoxFalseFalse() {
+      if (document.querySelector(`[id="treecutting-check"]`).checked) {
+        treeCuttingLayer.visible = false;
+        treeCuttingLegend.hidden = !treeCuttingLegend.hidden;
+
+      } else if (!document.querySelector(`[id="treecutting-check"]`).checked) {
+        treeCuttingLayer.visible = false;
+        treeCuttingLegend.hidden = !treeCuttingLegend.hidden;
+      }
+    }
+
+    function treeCuttingGroupRendererCheckBox() {
+      if (document.querySelector(`[id="treesall-check"]`).checked) {
+        treeCuttingLayer.visible = true;
+        treeCuttingLegend.hidden = !treeCuttingLegend.hidden;
+
+      } else if (!document.querySelector(`[id="treecutting-check"]`).checked) {
+        treeCuttingLayer.visible = false;
+        treeCuttingLegend.hidden = !treeCuttingLegend.hidden;
+
+      }
+    }
+
+    function treeCompensationRendererCheckBoxTrueFalse() {
+      if (document.querySelector(`[id="treecompensation-check"]`).checked) {
+        treeCompensationLayer.visible = true;
+        treeCompensationLegend.hidden = !treeCompensationLegend.hidden;
+
+      } else if (!document.querySelector(`[id="treecompensation-check"]`).checked) {
+        treeCompensationLayer.visible = false;
+        treeCompensationLegend.hidden = !treeCompensationLegend.hidden;
+      }
+    }
+
+    function treeCompensationRendererCheckBoxFalseFalse() {
+      if (document.querySelector(`[id="treecompensation-check"]`).checked) {
+        treeCompensationLayer.visible = false;
+        treeCompensationLegend.hidden = !treeCompensationLegend.hidden;
+
+      } else if (!document.querySelector(`[id="treecompensation-check"]`).checked) {
+        treeCompensationLayer.visible = false;
+        treeCompensationLegend.hidden = !treeCompensationLegend.hidden;
+      }
+    }
+
+    function treeCompensationGroupRendererCheckBox() {
+      if (document.querySelector(`[id="treesall-check"]`).checked) {
+        treeCompensationLayer.visible = true;
+        treeCompensationLegend.hidden = !treeCompensationLegend.hidden;
+
+      } else if (!document.querySelector(`[id="treecompensation-check"]`).checked) {
+        treeCompensationLayer.visible = false;
+        treeCompensationLegend.hidden = !treeCompensationLegend.hidden;
+      }
+    }
+
+    const treesAllCheckbox = document.getElementById("treesall-check");
     view.when(() => {
       let activeWidget;
       const checkBoxClick = ({ target }) => {
+        //treeCuttingRendererCheckBoxTrueFalse();
 
         // Hide/Unhide legend
         treeCuttingLegend.hidden = !treeCuttingLegend.hidden;
-        
+        treeCompensationLegend.hidden = !treeCompensationLegend.hidden;
+
+        // When checked box is turned off, 
+        if (activeWidget) {
+          treeCuttingRendererCheckBoxTrueFalse();
+          treeCompensationRendererCheckBoxTrueFalse();
+        }
+
+        const nextWidget = target.id;
+        if (nextWidget !== activeWidget) {
+          treeCuttingRendererCheckBoxTrueFalse();
+          treeCompensationRendererCheckBoxTrueFalse();
+          activeWidget = nextWidget
+
+        } else {
+          activeWidget = null;
+          treeCuttingRendererCheckBoxFalseFalse();
+          treeCompensationRendererCheckBoxFalseFalse();
+        }
+      }
+      treesAllCheckbox.addEventListener("click", checkBoxClick);
+    });
+
+    
+    // Tree Cutting layer
+      view.when(() => {
+      let activeWidget;
+      const checkBoxClick = ({ target }) => {
+        // Hide/Unhide legend
+        //treeCuttingLegend.hidden = !treeCuttingLegend.hidden;
+
         // Visible/unvisible treeCutting layer
         if (activeWidget) {
           treeCuttingLayer.visible = false;
@@ -5005,14 +5112,18 @@ var root5 = am5.Root.new("timeSeriesChartLandDiv");
 
         const nextWidget = target.id;
         if (nextWidget !== activeWidget) {
-          treeCuttingLayer.visible = true;
+          treeCuttingGroupRendererCheckBox();
           activeWidget = nextWidget
+
         } else {
           activeWidget = null;
+          treeCuttingLegend.hidden = !treeCuttingLegend.hidden;
         }
       }
       treeCuttingCheckbox.addEventListener("click", checkBoxClick);
     });
+
+
 
     // Tree Compensation Layer
     view.when(() => {
@@ -5020,7 +5131,7 @@ var root5 = am5.Root.new("timeSeriesChartLandDiv");
       const checkBoxClick = ({ target }) => {
 
         // Hide/Unhide legend
-        treeCompensationLegend.hidden = !treeCompensationLegend.hidden;
+        //treeCompensationLegend.hidden = !treeCompensationLegend.hidden;
         
         // Visible/unvisible treeCompensation layer
         if (activeWidget) {
@@ -5029,10 +5140,12 @@ var root5 = am5.Root.new("timeSeriesChartLandDiv");
 
         const nextWidget = target.id;
         if (nextWidget !== activeWidget) {
-          treeCompensationLayer.visible = true;
+          treeCompensationGroupRendererCheckBox();
           activeWidget = nextWidget
+
         } else {
           activeWidget = null;
+          treeCompensationLegend.hidden = !treeCompensationLegend.hidden;
         }
       }
       treeCompensationCheckbox.addEventListener("click", checkBoxClick);
