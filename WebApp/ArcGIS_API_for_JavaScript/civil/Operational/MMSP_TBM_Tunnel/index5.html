@@ -550,7 +550,7 @@ require([
     });
   
     var map = new Map({
-          basemap: "satellite",//basemap, // "streets-night-vector", basemap, topo-vector
+          basemap: "dark-gray-vector",//basemap, // "streets-night-vector", basemap, topo-vector
           ground: new Ground({
             layers: [worldElevation, dem]
           })
@@ -583,6 +583,8 @@ require([
     });
   
     view.ui.components = [];
+
+    /*
   // OpenStreetMap 3D Buildings
   let osmSymbol = {
   type: "mesh-3d",
@@ -613,6 +615,7 @@ require([
   type: "simple",
   symbol: osmSymbol
   }
+  */
 ////// Train Animation using externalRenderers
   
       // Adds a graphic when the user clicks the map. If 2 or more points exist, route is solved.
@@ -1408,6 +1411,50 @@ require([
         expression: "$feature.CN"
       }
     };
+
+    const lotBoundaryOnlyRenderer = {
+      type: "simple",
+      symbol: {
+        type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+        color: [0,0,0,0],
+        style: "solid",
+        outline: {  // autocasts as new SimpleLineSymbol()
+          color: [110, 110, 110],
+          width: 1.5
+        }
+      }
+    };
+
+    const lotBoundaryOnlyLabelClass = {
+      // autocasts as new LabelClass()
+      symbol: {
+        type: "text",  // autocasts as new TextSymbol()
+        color: "white",
+        font: {  // autocast as new Font()
+          family: "Gill Sans",
+          size: 8
+        }
+      },
+      labelPlacement: "above-center",
+      labelExpressionInfo: {
+        expression: "$feature.CN"
+      }
+    };
+
+    var lotLayerBoundaryOnly = new FeatureLayer({
+      portalItem: {
+        id: "032432d931624de9bf5ff03f1f9d7016",
+        portal: {
+          url: "https://gis.railway-sector.com/portal"
+        }
+      },
+      layerId: 1,
+      outFields: ["*"],
+      title: "Lot Boundary",
+      renderer: lotBoundaryOnlyRenderer,
+      labelingInfo: [lotBoundaryOnlyLabelClass]
+    });
+    map.add(lotLayerBoundaryOnly);
   
     var lotLayer = new FeatureLayer({
       portalItem: {
@@ -3082,7 +3129,7 @@ function tbmChart() {
           item.title === "Monitoring Bridge" ||
           item.title === "Soil Profile" ||
           item.title === "Survey Extent Line" ||
-          item.title === "OpenStreetMap 3D Buildings" ||
+          item.title === "Lot Boundary" ||
           item.title === "Status of Land Acquisition" ||
           item.title === "Status of Structure"){
         item.visible = false
@@ -3127,6 +3174,10 @@ function tbmChart() {
           layer: lotLayer,
           title: "Land Acquisition Status"
       },
+      {
+        layer: lotLayerBoundaryOnly,
+        title: "Lot Boundary"
+      }
     ]
   });
   
