@@ -15,11 +15,13 @@
       }
 
       .esri-elevation-profile.esri-component.esri-widget--panel {
-        width: 350px !important;
+        width: 800px !important;
       }
+
+
     </style>
 
-    <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css" />
+    <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css" />
     <script src="https://js.arcgis.com/4.25/"></script>
 
     <script>
@@ -78,15 +80,8 @@
 
         view.graphics.add(polylineGraphic);
 
-        const testLine = new FeatureLayer({
-          portalItem: {
-            id: "ce126e77f7d74411b345ced474188d1e"
-          },
-          title: "testline"
-        });
-        map.add(testLine);
 
-
+        const elevationColor = "#BBBBBB";
         // create the elevation profile widget
         const elevationProfile = new ElevationProfile({
           view: view,
@@ -94,14 +89,15 @@
           profiles: [
           
             {
-              type: "ground" // first profile line samples the ground elevation
-            },
-            {
-              type: "view" // second profile samples the view and shows building profiles
-            },
-       
+              type: "ground",
+              viewVisualizationEnabled: true,
+              color: elevationColor
+            },      
             {
               type: "input",
+              viewVisualizationEnabled: true,
+              color: "#f57e42"
+
             }
           ],
           // hide the select button
@@ -109,14 +105,20 @@
           // scene to select and display the elevation profile for
   
           visibleElements: {
-            selectButton: true
+            legend: false,
+            chart: true,
+            clearButton: false,
+            setttingsButton: false,
+            sketchButton: false,
+            selectButton: false,
+            uniformChartScalingToggle: false
           }
-
-
         });
-
-
-
+        elevationProfile.viewModel.input = polylineGraphic;
+        //elevationProfile.viewModel.profiles.find((p) => p.type === "input");
+        // Delete moving points
+        //elevationProfile.viewModel.highlightEnabled = false;
+        //window["ep"] = elevationProfile;
 
         // add the widget to the view
         view.ui.add(elevationProfile, "top-right");
