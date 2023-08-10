@@ -187,7 +187,8 @@
       margin-top: 7%;
     }
 
-    #land-checkbox {
+    #land-checkbox,
+    #land-endorsed-checkbox {
       padding: 10;
     }
 
@@ -383,6 +384,23 @@
                 id="land-legend"
                 class="esri-widget"
                 style="margin-bottom: 0px"
+              ></div>
+            </calcite-list-item>
+            <calcite-list-item
+              label="Land Acquisition (Endorsed Status)"
+              description=""
+              value="land-acquisition-endorsed"
+            >
+              <calcite-checkbox
+                slot="actions-start"
+                id="land-endorsed-check"
+                style="margin-left: 5px"
+              ></calcite-checkbox>
+              <div
+                id="land-endorsed-legend"
+                class="esri-widget"
+                style="margin-bottom: 0px"
+                hidden
               ></div>
             </calcite-list-item>
             <calcite-list-item
@@ -927,6 +945,8 @@
         "Special Exempt",
       ];
 
+      const endorsedStatus = ["Not Endorsed", "Endorsed", "NA"];
+
       let customContentLot = new CustomContent({
         outFields: ["*"],
         creator: function (event) {
@@ -940,6 +960,8 @@
           const barangay = event.graphic.attributes.Barangay;
           const landOwner = event.graphic.attributes.LandOwner;
           const cpNo = event.graphic.attributes.CP;
+          const endorse = event.graphic.attributes.Endorsed;
+          const endorsed = endorsedStatus[endorse];
 
           // Convert numeric to date format
 
@@ -968,7 +990,8 @@
                     <li>Municipality:     <b>${municipal}</b></li><br>
                     <li>Barangay:         <b>${barangay}</b></li><br>
                     <li>Land Owner:       <b>${landOwner}</b>
-                    <li>CP:               <b>${cpNo}</b></li></ul>`;
+                    <li>CP:               <b>${cpNo}</b><br>
+                    <li>Endorsed:         <b>${endorsed}</b></li></ul>`;
         },
       });
 
@@ -979,6 +1002,61 @@
         content: [customContentLot],
       });
       lotLayer.popupTemplate = templateLot;
+
+      // Endorsed Layer from lot layer
+      let endorsedLayerRenderer = {
+        type: "unique-value",
+        field: "Endorsed",
+        defaultSymbol: defaultSymbol,
+        uniqueValueInfos: [
+          {
+            value: 0,
+            label: "Not Endorsed",
+            symbol: {
+              type: "simple-fill", // autocasts as new SimpleFillSymbol()
+              color: colorLotReqs()[5],
+            },
+          },
+          {
+            value: 1,
+            label: "Endorsed",
+            symbol: {
+              type: "simple-fill", // autocasts as new SimpleFillSymbol()
+              color: colorLotReqs()[2],
+            },
+          },
+          {
+            value: 2,
+            label: "NA",
+            symbol: {
+              type: "simple-fill", // autocasts as new SimpleFillSymbol()
+              color: [211, 211, 211, 0.7],
+            },
+          },
+        ],
+      };
+
+      var endorsedLotLayer = new FeatureLayer({
+        portalItem: {
+          id: "dca1d785da0f458b8f87638a76918496",
+          portal: {
+            url: "https://gis.railway-sector.com/portal",
+          },
+        },
+        layerId: 7,
+        renderer: endorsedLayerRenderer,
+        labelingInfo: [lotIdLabel],
+        outFields: ["*"],
+        title: "Land Acquisition (Endorsed Status)",
+        minScale: 150000,
+        maxScale: 0,
+        //labelsVisible: false,
+        elevationInfo: {
+          model: "on-the-ground",
+        },
+      });
+      map.add(endorsedLotLayer, 1);
+      endorsedLotLayer.popupTemplate = templateLot;
 
       // Structure Layer
       // Polygon 3D extrution
@@ -2833,12 +2911,14 @@
           const municipalityExpression = "Municipality = '" + municipal + "'";
           if (municipal == "None") {
             lotLayer.definitionExpression = null;
+            endorsedLotLayer.definitionExpression = null;
             structureLayer.definitionExpression = null;
             nloLayer.definitionExpression = null;
             pnrLayer.definitionExpression = null;
             occupancyLayer.definitionExpression = null;
           } else {
             lotLayer.definitionExpression = municipalityExpression;
+            endorsedLotLayer.definitionExpression = municipalityExpression;
             structureLayer.definitionExpression = municipalityExpression;
             nloLayer.definitionExpression = municipalityExpression;
             pnrLayer.definitionExpression = municipalityExpression;
@@ -2863,24 +2943,29 @@
           // all = 'None'
           if (municipal == "None" && barangay == "None") {
             lotLayer.definitionExpression = null;
+            endorsedLotLayer.definitionExpression = null;
             structureLayer.definitionExpression = null;
             nloLayer.definitionExpression = null;
             pnrLayer.definitionExpression = null;
             occupancyLayer.definitionExpression = null;
           } else if (municipal == "None" && barangay !== "None") {
             lotLayer.definitionExpression = barangayExpression;
+            endorsedLotLayer.definitionExpression = barangayExpression;
             structureLayer.definitionExpression = barangayExpression;
             nloLayer.definitionExpression = barangayExpression;
             pnrLayer.definitionExpression = barangayExpression;
             occupancyLayer.definitionExpression = barangayExpression;
           } else if (municipal !== "None" && barangay == "None") {
             lotLayer.definitionExpression = municipalityExpression;
+            endorsedLotLayer.definitionExpression = municipalityExpression;
             structureLayer.definitionExpression = municipalityExpression;
             nloLayer.definitionExpression = municipalityExpression;
             pnrLayer.definitionExpression = municipalityExpression;
             occupancyLayer.definitionExpression = municipalityExpression;
           } else if (municipal !== "None" && barangay !== "None") {
             lotLayer.definitionExpression =
+              municipalityExpression + " AND " + barangayExpression;
+            endorsedLotLayer.definitionExpression =
               municipalityExpression + " AND " + barangayExpression;
             structureLayer.definitionExpression =
               municipalityExpression + " AND " + barangayExpression;
@@ -5209,6 +5294,17 @@
         ],
       });
 
+      var legend_land_endorsed = new Legend({
+        view,
+        container: "land-endorsed-legend",
+        layerInfos: [
+          {
+            layer: endorsedLotLayer,
+            title: "",
+          },
+        ],
+      });
+
       var legend_structure = new Legend({
         view,
         container: "structure-legend",
@@ -5321,6 +5417,7 @@
 
       // Default setting
       lotLayer.visible = true;
+      endorsedLotLayer.visible = false;
       structureLayer.visible = false;
       nloLayer.visible = false;
       occupancyLayer.visible = false;
@@ -5335,6 +5432,9 @@
       // Hide and Unhide of Legend + layerList + lotLayer
       // 1. Checkbox
       const landCheckbox = document.getElementById("land-check");
+      const endorsedLandCheckbox = document.getElementById(
+        "land-endorsed-check"
+      );
       const structureCheckbox = document.getElementById("structure-check");
       const nloCheckbox = document.getElementById("NLO-check");
       const occupancyCheckbox = document.getElementById("occupancy-check");
@@ -5350,6 +5450,9 @@
 
       // 2. Legend
       const landLegend = document.getElementById("land-legend");
+      const endorsedLandLegend = document.getElementById(
+        "land-endorsed-legend"
+      );
       const structureLegend = document.getElementById("structure-legend");
       const nloLegend = document.getElementById("nlo-legend");
       const occupancyLegend = document.getElementById("occupancy-legend");
@@ -5384,6 +5487,29 @@
           }
         };
         landCheckbox.addEventListener("click", checkBoxClick);
+      });
+
+      // Endorsed lot Layer
+      view.when(() => {
+        let activeWidget;
+        const checkBoxClick = ({ target }) => {
+          // Hide/Unhide legend
+          endorsedLandLegend.hidden = !endorsedLandLegend.hidden;
+
+          // Visible/Unvisible Lot Layer
+          if (activeWidget) {
+            endorsedLotLayer.visible = false;
+          }
+
+          const nextWidget = target.id;
+          if (nextWidget !== activeWidget) {
+            endorsedLotLayer.visible = true;
+            activeWidget = nextWidget;
+          } else {
+            activeWidget = null;
+          }
+        };
+        endorsedLandCheckbox.addEventListener("click", checkBoxClick);
       });
 
       // Structure Layer
