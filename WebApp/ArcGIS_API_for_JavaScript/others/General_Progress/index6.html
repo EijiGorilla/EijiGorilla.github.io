@@ -412,11 +412,10 @@
         baseLayers: [
           new VectorTileLayer({
             portalItem: {
-              id: "642ab8c40a864fd9a95e39ce0a97362b", // Light-gray:"75cf54bd051041c0a6244958cee3ab5c"
+              id: "824fe99ab989479f83b9a6d7f2da0bcb", // Light-gray:"75cf54bd051041c0a6244958cee3ab5c"
               // Original Dark-gray: "824fe99ab989479f83b9a6d7f2da0bcb"
               // Dark-gray v2: "642ab8c40a864fd9a95e39ce0a97362b"
               // community: "a56c8ba20f4c4a54a0b1440bbf631911"
-              // Default: "824fe99ab989479f83b9a6d7f2da0bcb" (use this)
             },
           }),
         ],
@@ -773,6 +772,50 @@
         ],
       };
 
+      // Construction line width for Progress2
+      const construction_lineWidth_progress2 = "7px";
+      const lineSymbol_construction_progress2 = {
+        type: "unique-value", // autocasts as new SimpleLineSymbol(),
+        field: "construcStat",
+        /*
+      legendOptions: {
+        title: "Construction Status"
+      },
+      */
+        uniqueValueInfos: [
+          {
+            value: "To Be Constructed",
+            label: "To be Constructed",
+              type: "simple-line",
+              color: tobeConstructed_color,
+              width: construction_lineWidth_progress2,
+              style: "solid",
+            },
+          },
+          {
+            value: "On-going",
+            label: "Under Construction",
+            symbol: {
+              type: "simple-line",
+              color: underConstruction_color,
+              width: construction_lineWidth_progress2,
+              style: "solid",
+            },
+          },
+          {
+            value: "Completed",
+            label: "Completed",
+            symbol: {
+              type: "simple-line",
+              color: completedConstruction_color,
+              width: construction_lineWidth_progress2,
+              style: "solid",
+            },
+          },
+        ],
+      };
+
+    
       // Centerline
       // NSCR
       var n1CenterlineLayer = new FeatureLayer({
@@ -1002,9 +1045,9 @@
 
       // Station point color
       // Alignment
-      const pointSize = "10px";
+      const pointSize = "12px"; // original: 10px
       const pointColor = "white";
-      const pointOutlineWidth = 1.5;
+      const pointOutlineWidth = 2.5; // original: 1.5
 
       const defaultStationPoint_nscr = {
         symbol: {
@@ -2874,6 +2917,7 @@
 
       // Select Project for Progress
       function progressFilter() {
+        originalConstructionLineWidth();
         if (proj === "n1") {
           view.rotation = 360;
 
@@ -3076,8 +3120,30 @@
         }
       }
 
+      // // ONly when we print out Progress2, activate thincker line width
+      function originalConstructionLineWidth() {
+        mmspCenterlineConstruction.renderer = lineSymbol_construction;
+        n1CenterlineConstruction.renderer = lineSymbol_construction;
+        n2CenterlineConstruction.renderer = lineSymbol_construction;
+        scCenterlineConstruction.renderer = lineSymbol_construction;
+      }
+
+      function progress2ConstructionLineWidth() {
+        mmspCenterlineConstruction.renderer = lineSymbol_construction_progress2;
+        n1CenterlineConstruction.renderer = lineSymbol_construction_progress2;
+        n2CenterlineConstruction.renderer = lineSymbol_construction_progress2;
+        scCenterlineConstruction.renderer = lineSymbol_construction_progress2;
+      }
+
       function progress2Renderer() {
+        progress2ConstructionLineWidth();
         stationLabeFontSizeForProgress2();
+
+        // Turn off all station labels
+        n2StationLayer.labelsVisible = false;
+        scStationLayer.labelsVisible = false;
+        mmspStationLayer.labelsVisible = false;
+        n1StationLayer.labelsVisible = false;
 
         view.rotation = 320;
         view.center = [120.9, 14.7332299];
@@ -3126,7 +3192,7 @@
 
         n1GraphicsLayerMove(-0.05, 0.1);
         n2GraphicsLayerMove(-0.2, 0.15);
-        scGraphicsLayerMove(-0.15, 0.4);
+        scGraphicsLayerMove(-0.27, 0.35); // Original: -0.15, 0.4
 
         constructionProgressLegendOn();
 
