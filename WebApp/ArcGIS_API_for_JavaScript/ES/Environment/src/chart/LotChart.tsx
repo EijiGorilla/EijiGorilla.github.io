@@ -1,13 +1,15 @@
 import { useLayoutEffect, useContext, useRef, useState, useEffect } from 'react';
-import { lotLayer } from './layers';
-import DataContext from './components/DataContext';
-import { view } from './Scene';
+import { lotLayer } from '../layers';
+import DataContext from '../components/DataContext';
+import { view } from '../Scene';
 import FeatureFilter from '@arcgis/core/layers/support/FeatureFilter';
 import Query from '@arcgis/core/rest/support/Query';
 import * as am5 from '@amcharts/amcharts5';
 import * as am5percent from '@amcharts/amcharts5/percent';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import am5themes_Responsive from '@amcharts/amcharts5/themes/Responsive';
+import { generateLotData } from '../components/Query';
+import App from '../App';
 
 const statusLot: string[] = [
   'Handed-Over',
@@ -50,35 +52,36 @@ function maybeDisposeRoot(divId: any) {
 }
 
 /// Draw chart
-interface Props {
-  chartID: any;
-  data: any;
-  lotNumber?: any;
-}
-const LotChart = ({ chartID, data, lotNumber }: Props) => {
+const LotChart = ({ municipal, barangay }: any) => {
   const pieSeriesRef = useRef<unknown | any | undefined>({});
   const legendRef = useRef<unknown | any | undefined>({});
   const chartRef = useRef<unknown | any | undefined>({});
-  const municipalBarangayContext = useContext(DataContext);
-  const [testValue, setTestValue] = useState(0);
+  const [lotData, setLotData] = useState([
+    {
+      category: String,
+      value: Number,
+      sliceSettings: {
+        fill: am5.color('#00c5ff'),
+      },
+    },
+  ]);
 
-  const municipalSelected = municipalBarangayContext.municipality;
-  const barangaySelected = municipalBarangayContext.barangay;
-
-  const queryMunicipality = "Municipality = '" + municipalSelected + "'";
-  const queryBarangay = "Barangay = '" + barangaySelected + "'";
+  const chartID = 'pie-two';
+  const queryMunicipality = "Municipality = '" + municipal + "'";
+  const queryBarangay = "Barangay = '" + barangay + "'";
   const queryMunicipalBarangay = queryMunicipality + ' AND ' + queryBarangay;
 
-  if (municipalSelected && !barangaySelected) {
+  if (municipal && !barangay) {
     lotLayer.definitionExpression = queryMunicipality;
-  } else if (barangaySelected) {
+  } else if (barangay) {
     lotLayer.definitionExpression = queryMunicipalBarangay;
   }
 
-  console.log(lotNumber);
-  useLayoutEffect(() => {
-    setTestValue(lotNumber);
-  });
+  useEffect(() => {
+    generateLotData().then((result: any) => {
+      setLotData(result);
+    });
+  }, [municipal, barangay]);
 
   useLayoutEffect(() => {
     // Dispose previously created root element
@@ -203,7 +206,7 @@ const LotChart = ({ chartID, data, lotNumber }: Props) => {
       }); // End of view.whenv
     });
 
-    pieSeries.data.setAll(data);
+    pieSeries.data.setAll(lotData);
 
     // Legend
     // https://www.amcharts.com/docs/v5/charts/percent-charts/legend-percent-series/
@@ -279,15 +282,16 @@ const LotChart = ({ chartID, data, lotNumber }: Props) => {
     return () => {
       root.dispose();
     };
-  }, [chartID, data]);
+  }, [chartID, lotData]);
 
   useLayoutEffect(() => {
-    pieSeriesRef.current?.data.setAll(data);
+    pieSeriesRef.current?.data.setAll(lotData);
     legendRef.current?.data.setAll(pieSeriesRef.current.dataItems);
   });
 
   return (
     <>
+      <div style={{ color: 'white', fontSize: '20px' }}>TEST</div>
       <div
         id={chartID}
         style={{

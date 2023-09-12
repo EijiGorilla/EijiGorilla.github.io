@@ -2,28 +2,6 @@ import React, { useState, useEffect, ReactNode, useContext, createContext } from
 import Select from 'react-select';
 import DataContext from './DataContext';
 import { getMuniciaplityBarangayPair } from './Query';
-import LotChart from '../chart/LotChart';
-import LotMoaChart from '../chart/LotMoaChart';
-
-async function selectedValues(value: any) {
-  const selected = value.municipality;
-  console.log(selected);
-  return selected;
-}
-
-export async function handleInputChange() {
-  const select = <Select />;
-  return select;
-}
-
-export const SelectedTest = () => {
-  const [testValue, setTestValue] = useState('');
-  selectedValues(testValue).then((response: any) => {
-    setTestValue(response);
-  });
-  console.log(testValue);
-  return <>{testValue}</>;
-};
 
 export const DropDownFilter = () => {
   const [initMunicipalBarangay, setInitMunicipalBarangay] = useState([
@@ -137,6 +115,13 @@ export const DropDownFilter = () => {
           styles={customstyles}
         />
       </div>
+
+      <DataContext.Provider
+        value={{
+          municipality: municipalSelected.municipality,
+          barangay: barangaySelected.name,
+        }}
+      ></DataContext.Provider>
     </div>
   );
 };

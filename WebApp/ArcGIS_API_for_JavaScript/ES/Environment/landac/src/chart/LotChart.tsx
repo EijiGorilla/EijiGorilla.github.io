@@ -1,4 +1,4 @@
-import { useLayoutEffect, useContext, useRef, useState } from 'react';
+import { useLayoutEffect, useContext, useRef, useState, useEffect } from 'react';
 import { lotLayer } from '../layers';
 import DataContext from '../components/DataContext';
 import { view } from '../Scene';
@@ -8,6 +8,8 @@ import * as am5 from '@amcharts/amcharts5';
 import * as am5percent from '@amcharts/amcharts5/percent';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import am5themes_Responsive from '@amcharts/amcharts5/themes/Responsive';
+import { generateLotData } from '../components/Query';
+import { handleInputChange } from '../components/DropDownFilter';
 
 const statusLot: string[] = [
   'Handed-Over',
@@ -52,15 +54,25 @@ function maybeDisposeRoot(divId: any) {
 /// Draw chart
 interface Props {
   chartID: any;
-  data: any;
+  data?: any;
   lotNumber?: any;
 }
-const LotChart = ({ chartID, data, lotNumber }: Props) => {
+const LotChart = () => {
   const pieSeriesRef = useRef<unknown | any | undefined>({});
   const legendRef = useRef<unknown | any | undefined>({});
   const chartRef = useRef<unknown | any | undefined>({});
   const municipalBarangayContext = useContext(DataContext);
-  const [testValue, setTestValue] = useState(0);
+  const [lotData, setLotData] = useState([
+    {
+      category: String,
+      value: Number,
+      sliceSettings: {
+        fill: am5.color('#00c5ff'),
+      },
+    },
+  ]);
+
+  const chartID = 'pie-two';
 
   const municipalSelected = municipalBarangayContext.municipality;
   const barangaySelected = municipalBarangayContext.barangay;
@@ -75,10 +87,17 @@ const LotChart = ({ chartID, data, lotNumber }: Props) => {
     lotLayer.definitionExpression = queryMunicipalBarangay;
   }
 
-  console.log(lotNumber);
-  useLayoutEffect(() => {
-    setTestValue(lotNumber);
+  useEffect(() => {
+    handleInputChange().then((response: any) => {
+      console.log(response);
+    });
   });
+
+  useEffect(() => {
+    generateLotData().then((result: any) => {
+      setLotData(result);
+    });
+  }, [municipalSelected, barangaySelected]);
 
   useLayoutEffect(() => {
     // Dispose previously created root element
@@ -203,7 +222,7 @@ const LotChart = ({ chartID, data, lotNumber }: Props) => {
       }); // End of view.whenv
     });
 
-    pieSeries.data.setAll(data);
+    pieSeries.data.setAll(lotData);
 
     // Legend
     // https://www.amcharts.com/docs/v5/charts/percent-charts/legend-percent-series/
@@ -279,15 +298,16 @@ const LotChart = ({ chartID, data, lotNumber }: Props) => {
     return () => {
       root.dispose();
     };
-  }, [chartID, data]);
+  }, [chartID, lotData]);
 
   useLayoutEffect(() => {
-    pieSeriesRef.current?.data.setAll(data);
+    pieSeriesRef.current?.data.setAll(lotData);
     legendRef.current?.data.setAll(pieSeriesRef.current.dataItems);
   });
 
   return (
     <>
+      <div style={{ color: 'white', fontSize: '20px' }}>{municipalSelected}</div>
       <div
         id={chartID}
         style={{

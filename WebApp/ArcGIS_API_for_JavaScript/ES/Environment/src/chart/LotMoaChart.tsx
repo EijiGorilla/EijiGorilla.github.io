@@ -35,12 +35,7 @@ function maybeDisposeRoot(divId: any) {
   });
 }
 
-interface Props {
-  chartID: any;
-  data: any;
-  lotNumber?: any;
-}
-function LotMoaChart() {
+function LotMoaChart({ municipal, barangay }: any) {
   const barSeriesRef = useRef<unknown | any | undefined>({});
   const yAxisRef = useRef<unknown | any | undefined>({});
   const legendRef = useRef<unknown | any | undefined>({});
@@ -54,36 +49,22 @@ function LotMoaChart() {
   const testRef = useRef<unknown | any | undefined>(null);
   const [testValue, setTestValue] = useState('Default');
 
-  const municipalBarangayContext = useContext(DataContext);
-
-  const municipalSelected = municipalBarangayContext.municipality;
-  const barangaySelected = municipalBarangayContext.barangay;
-
-  const queryMunicipality = "Municipality = '" + municipalSelected + "'";
-  const queryBarangay = "Barangay = '" + barangaySelected + "'";
+  const queryMunicipality = "Municipality = '" + municipal + "'";
+  const queryBarangay = "Barangay = '" + barangay + "'";
   const queryMunicipalBarangay = queryMunicipality + ' AND ' + queryBarangay;
 
-  if (municipalSelected && !barangaySelected) {
+  if (municipal && !barangay) {
     lotLayer.definitionExpression = queryMunicipality;
-  } else if (barangaySelected) {
+  } else if (barangay) {
     lotLayer.definitionExpression = queryMunicipalBarangay;
   }
-
   const chartID = 'land-moa';
-
-  function add() {
-    if (testValue === 'click') {
-      setTestValue('Default');
-    } else {
-      setTestValue('click');
-    }
-  }
 
   useLayoutEffect(() => {
     generateLotMoaData().then((response: any) => {
       setLotMoaData(response);
     });
-  }, [municipalSelected, barangaySelected]);
+  }, [municipal, barangay]);
 
   useLayoutEffect(() => {
     // Dispose previously created root element
@@ -321,7 +302,6 @@ function LotMoaChart() {
           backgroundColor: 'rgb(0,0,0,0)',
           color: 'white',
         }}
-        onClick={() => add()}
       ></div>
     </>
   );
