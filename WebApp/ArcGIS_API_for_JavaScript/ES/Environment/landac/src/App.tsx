@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
+import Select from 'react-select';
 import { map, view, basemaps, layerList } from './Scene';
 import './index.css';
 import './App.css';
@@ -23,9 +24,9 @@ import {
   CalciteList,
   CalciteListItem,
 } from '@esri/calcite-components-react';
-import { DropDownFilter } from './components/DropDownFilter';
 import LotChart from './chart/LotChart';
 import LotMoaChart from './chart/LotMoaChart';
+import { getMuniciaplityBarangayPair } from './components/Query';
 
 function App() {
   const mapDiv = useRef(null);
@@ -33,6 +34,71 @@ function App() {
   const calcitePanelBasemaps = useRef<HTMLDivElement | undefined | any>(null);
   const [activeWidget, setActiveWidget] = useState<undefined | any | unknown>(null);
   const [nextWidget, setNextWidget] = useState<undefined | any | unknown>(null);
+
+  // For dropdown filter
+  const [initMunicipalBarangay, setInitMunicipalBarangay] = useState([
+    {
+      municipality: '',
+      barangay: [
+        {
+          name: '',
+        },
+      ],
+    },
+  ]);
+
+  const [municipality, setMunicipality] = useState(null);
+  const [barangay, setBarangay] = useState(null);
+  const [barangayList, setBarangayList] = useState([]);
+  const [municipalSelected, setMunicipalSelected] = useState({
+    municipality: '',
+    barangay: [
+      {
+        name: '',
+      },
+    ],
+  });
+  const [barangaySelected, setBarangaySelected] = useState({ name: '' });
+
+  useEffect(() => {
+    getMuniciaplityBarangayPair().then((response: any) => {
+      setInitMunicipalBarangay(response);
+    });
+  }, []);
+
+  // handle change event of the Municipality dropdown
+  const handleMunicipalityChange = (obj: any) => {
+    setMunicipalSelected(obj);
+    setMunicipality(obj);
+    setBarangayList(obj.barangay);
+    setBarangay(null);
+    setBarangaySelected({ name: '' });
+  };
+
+  // handle change event of the barangay dropdownff
+  const handleBarangayChange = (obj: any) => {
+    setBarangaySelected(obj);
+    setBarangay(obj);
+  };
+
+  const customstyles = {
+    option: (defaultStyles: any, state: any) => ({
+      ...defaultStyles,
+      color: state.isSelected ? '#212529' : '#fff',
+      backgroundColor: state.isSelected ? '#a0a0a0' : '#212529',
+    }),
+
+    control: (defaultStyles: any) => ({
+      ...defaultStyles,
+      backgroundColor: '#212529',
+      border: 'none',
+      height: 35,
+      width: '170px',
+    }),
+    singleValue: (defaultStyles: any) => ({ ...defaultStyles, color: '#fff' }),
+  };
+
+  // End of dropdown list
 
   //https://stackoverflow.com/questions/70832641/react-onclick-event-working-on-twice-clicks-when-clicking-again
   useEffect(() => {
@@ -115,8 +181,14 @@ function App() {
                   style={{ padding: '10px', margin: 'auto' }}
                 />
               </div>
-              <LotChart />
-              <LotMoaChart />
+              <LotChart
+                municipal={municipalSelected.municipality}
+                barangay={barangaySelected.name}
+              />
+              <LotMoaChart
+                municipal={municipalSelected.municipality}
+                barangay={barangaySelected.name}
+              />
             </CalciteTab>
           </div>
         </CalciteTabs>
@@ -136,7 +208,47 @@ function App() {
           >
             N2 LAND ACQUISITION
           </b>
-          <DropDownFilter />
+
+          <div
+            className="DropDownFilter"
+            style={{
+              height: 50,
+              width: '70%',
+              borderColor: 'rgb(0,0,0,0)',
+              paddingTop: 10,
+              margin: 'auto',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                fontSize: 12,
+                color: 'black',
+                justifyContent: 'right',
+              }}
+            >
+              <b style={{ color: 'white', margin: 10 }}>Municipality</b>
+              <Select
+                placeholder="Select Municipality"
+                value={municipality}
+                options={initMunicipalBarangay}
+                onChange={handleMunicipalityChange}
+                getOptionLabel={(x: any) => x.municipality}
+                styles={customstyles}
+              />
+              <br />
+              <b style={{ color: 'white', margin: 10 }}>Barangay</b>
+              <Select
+                placeholder="Select Barangay"
+                value={barangay}
+                options={barangayList}
+                onChange={handleBarangayChange}
+                getOptionLabel={(x: any) => x.name}
+                styles={customstyles}
+              />
+            </div>
+          </div>
         </header>
 
         <CalciteShellPanel

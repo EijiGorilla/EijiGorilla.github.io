@@ -1,6 +1,5 @@
-import { useLayoutEffect, useContext, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { lotLayer } from '../layers';
-import DataContext from '../components/DataContext';
 import { view } from '../Scene';
 import FeatureFilter from '@arcgis/core/layers/support/FeatureFilter';
 import Query from '@arcgis/core/rest/support/Query';
@@ -35,15 +34,9 @@ function maybeDisposeRoot(divId: any) {
   });
 }
 
-interface Props {
-  chartID: any;
-  data: any;
-  lotNumber?: any;
-}
-function LotMoaChart() {
+function LotMoaChart({ municipal, barangay }: any) {
   const barSeriesRef = useRef<unknown | any | undefined>({});
   const yAxisRef = useRef<unknown | any | undefined>({});
-  const legendRef = useRef<unknown | any | undefined>({});
   const chartRef = useRef<unknown | any | undefined>({});
   const [lotMoaData, setLotMoaData] = useState([
     {
@@ -51,39 +44,23 @@ function LotMoaChart() {
       value: Number,
     },
   ]);
-  const testRef = useRef<unknown | any | undefined>(null);
-  const [testValue, setTestValue] = useState('Default');
 
-  const municipalBarangayContext = useContext(DataContext);
-
-  const municipalSelected = municipalBarangayContext.municipality;
-  const barangaySelected = municipalBarangayContext.barangay;
-
-  const queryMunicipality = "Municipality = '" + municipalSelected + "'";
-  const queryBarangay = "Barangay = '" + barangaySelected + "'";
+  const queryMunicipality = "Municipality = '" + municipal + "'";
+  const queryBarangay = "Barangay = '" + barangay + "'";
   const queryMunicipalBarangay = queryMunicipality + ' AND ' + queryBarangay;
 
-  if (municipalSelected && !barangaySelected) {
+  if (municipal && !barangay) {
     lotLayer.definitionExpression = queryMunicipality;
-  } else if (barangaySelected) {
+  } else if (barangay) {
     lotLayer.definitionExpression = queryMunicipalBarangay;
   }
-
   const chartID = 'land-moa';
-
-  function add() {
-    if (testValue === 'click') {
-      setTestValue('Default');
-    } else {
-      setTestValue('click');
-    }
-  }
 
   useLayoutEffect(() => {
     generateLotMoaData().then((response: any) => {
       setLotMoaData(response);
     });
-  }, [municipalSelected, barangaySelected]);
+  }, [municipal, barangay]);
 
   useLayoutEffect(() => {
     // Dispose previously created root element
@@ -311,9 +288,6 @@ function LotMoaChart() {
 
   return (
     <>
-      <div ref={testRef} style={{ color: 'white', fontSize: '20px' }}>
-        {testValue}
-      </div>
       <div
         id={chartID}
         style={{
@@ -321,7 +295,6 @@ function LotMoaChart() {
           backgroundColor: 'rgb(0,0,0,0)',
           color: 'white',
         }}
-        onClick={() => add()}
       ></div>
     </>
   );

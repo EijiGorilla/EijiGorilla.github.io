@@ -1,6 +1,5 @@
-import { useLayoutEffect, useContext, useRef, useState, useEffect } from 'react';
+import { useLayoutEffect, useRef, useState, useEffect } from 'react';
 import { lotLayer } from '../layers';
-import DataContext from '../components/DataContext';
 import { view } from '../Scene';
 import FeatureFilter from '@arcgis/core/layers/support/FeatureFilter';
 import Query from '@arcgis/core/rest/support/Query';
@@ -9,7 +8,6 @@ import * as am5percent from '@amcharts/amcharts5/percent';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import am5themes_Responsive from '@amcharts/amcharts5/themes/Responsive';
 import { generateLotData } from '../components/Query';
-import { handleInputChange } from '../components/DropDownFilter';
 
 const statusLot: string[] = [
   'Handed-Over',
@@ -52,16 +50,10 @@ function maybeDisposeRoot(divId: any) {
 }
 
 /// Draw chart
-interface Props {
-  chartID: any;
-  data?: any;
-  lotNumber?: any;
-}
-const LotChart = () => {
+const LotChart = ({ municipal, barangay }: any) => {
   const pieSeriesRef = useRef<unknown | any | undefined>({});
   const legendRef = useRef<unknown | any | undefined>({});
   const chartRef = useRef<unknown | any | undefined>({});
-  const municipalBarangayContext = useContext(DataContext);
   const [lotData, setLotData] = useState([
     {
       category: String,
@@ -73,31 +65,21 @@ const LotChart = () => {
   ]);
 
   const chartID = 'pie-two';
-
-  const municipalSelected = municipalBarangayContext.municipality;
-  const barangaySelected = municipalBarangayContext.barangay;
-
-  const queryMunicipality = "Municipality = '" + municipalSelected + "'";
-  const queryBarangay = "Barangay = '" + barangaySelected + "'";
+  const queryMunicipality = "Municipality = '" + municipal + "'";
+  const queryBarangay = "Barangay = '" + barangay + "'";
   const queryMunicipalBarangay = queryMunicipality + ' AND ' + queryBarangay;
 
-  if (municipalSelected && !barangaySelected) {
+  if (municipal && !barangay) {
     lotLayer.definitionExpression = queryMunicipality;
-  } else if (barangaySelected) {
+  } else if (barangay) {
     lotLayer.definitionExpression = queryMunicipalBarangay;
   }
-
-  useEffect(() => {
-    handleInputChange().then((response: any) => {
-      console.log(response);
-    });
-  });
 
   useEffect(() => {
     generateLotData().then((result: any) => {
       setLotData(result);
     });
-  }, [municipalSelected, barangaySelected]);
+  }, [municipal, barangay]);
 
   useLayoutEffect(() => {
     // Dispose previously created root element
@@ -307,7 +289,6 @@ const LotChart = () => {
 
   return (
     <>
-      <div style={{ color: 'white', fontSize: '20px' }}>{municipalSelected}</div>
       <div
         id={chartID}
         style={{
