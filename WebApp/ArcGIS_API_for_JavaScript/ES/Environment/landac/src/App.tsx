@@ -480,7 +480,7 @@ function App() {
               width: '70%',
               borderColor: 'rgb(0,0,0,0)',
               paddingTop: 10,
-              margin: 'auto',
+              marginLeft: '-7rem',
             }}
           >
             <div

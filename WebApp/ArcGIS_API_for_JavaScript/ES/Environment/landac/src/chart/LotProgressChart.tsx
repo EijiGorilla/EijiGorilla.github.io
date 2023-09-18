@@ -14,6 +14,7 @@ function maybeDisposeRoot(divId: any) {
   });
 }
 
+//https://www.reddit.com/r/reactjs/comments/xe0sbz/usestate_does_not_update_and_returns_undefined/
 const privateLotColor = '#e8ff00';
 const publicLotColor = '#4a99ff';
 
@@ -23,13 +24,7 @@ const LotProgressChart = ({ municipal, barangay, nextwidget }: any) => {
   const xAxisRef = useRef<unknown | any | undefined>({});
   const yAxisRef = useRef<unknown | any | undefined>({});
   const chartRef = useRef<unknown | any | undefined>({});
-  const [lotProgressData, setLotProgressData] = useState([
-    {
-      date: Number,
-      private: Number,
-      public: Number,
-    },
-  ]);
+  const [lotProgressData, setLotProgressData] = useState([]);
 
   const chartID = 'lot-progress';
   useEffect(() => {
@@ -173,6 +168,11 @@ const LotProgressChart = ({ municipal, barangay, nextwidget }: any) => {
       //width: am5.percent(200)
       //fontWeight: "300"
     });
+
+    // check this;
+    // newDataItem = new DataItem(series, dataContext, series._makeDataItem(dataContext));
+    // dataItem is of dataItems
+    // dataContext: dataItem.dataContext
 
     function makeSeries(name: any, fieldName: any) {
       // Add series

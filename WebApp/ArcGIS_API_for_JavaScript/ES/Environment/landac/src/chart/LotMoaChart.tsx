@@ -26,12 +26,7 @@ function LotMoaChart({ municipal, barangay }: any) {
   const barSeriesRef = useRef<unknown | any | undefined>({});
   const yAxisRef = useRef<unknown | any | undefined>({});
   const chartRef = useRef<unknown | any | undefined>({});
-  const [lotMoaData, setLotMoaData] = useState([
-    {
-      category: String,
-      value: Number,
-    },
-  ]);
+  const [lotMoaData, setLotMoaData] = useState([]);
 
   const queryMunicipality = "Municipality = '" + municipal + "'";
   const queryBarangay = "Barangay = '" + barangay + "'";

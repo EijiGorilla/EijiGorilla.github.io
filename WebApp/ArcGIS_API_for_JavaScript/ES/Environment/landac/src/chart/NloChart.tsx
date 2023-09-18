@@ -24,20 +24,6 @@ const statusNlo = [
 //https://medium.com/swlh/how-to-use-amcharts-4-with-react-hooks-999a62c185a5
 //https://codesandbox.io/s/amcharts5-react-demo-forked-hrth2d
 // Zoom
-function zoomToLayer(layer: any) {
-  return layer.queryExtent().then((response: any) => {
-    view
-      .goTo(response.extent, {
-        //response.extent
-        speedFactor: 2,
-      })
-      .catch(function (error) {
-        if (error.name !== 'AbortError') {
-          console.error(error);
-        }
-      });
-  });
-}
 
 // Dispose function
 function maybeDisposeRoot(divId: any) {
