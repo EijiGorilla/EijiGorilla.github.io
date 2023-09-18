@@ -3,12 +3,12 @@ import Map from '@arcgis/core/Map';
 import BasemapGallery from '@arcgis/core/widgets/BasemapGallery';
 import LayerList from '@arcgis/core/widgets/LayerList';
 
-import { lotLayer, structureLayer } from './layers';
+import { lotLayer, nloLayer, structureLayer } from './layers';
 
 export const map = new Map({
   basemap: 'dark-gray-vector', // "streets-night-vector", basemap
   ground: 'world-elevation',
-  layers: [lotLayer, structureLayer],
+  layers: [lotLayer, structureLayer, nloLayer],
 });
 
 map.ground.navigationConstraint = {

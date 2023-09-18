@@ -24,7 +24,6 @@ const statusLot: string[] = [
 //https://medium.com/swlh/how-to-use-amcharts-4-with-react-hooks-999a62c185a5
 //https://codesandbox.io/s/amcharts5-react-demo-forked-hrth2d
 // Zoom
-
 function zoomToLayer(layer: any) {
   return layer.queryExtent().then((response: any) => {
     view
@@ -48,6 +47,8 @@ function maybeDisposeRoot(divId: any) {
     }
   });
 }
+
+///*** Others */
 
 /// Draw chart
 const LotChart = ({ municipal, barangay }: any) => {
@@ -78,12 +79,13 @@ const LotChart = ({ municipal, barangay }: any) => {
   useEffect(() => {
     generateLotData().then((result: any) => {
       setLotData(result);
+      zoomToLayer(lotLayer);
     });
   }, [municipal, barangay]);
 
   useLayoutEffect(() => {
     // Dispose previously created root element
-    zoomToLayer(lotLayer);
+
     maybeDisposeRoot(chartID);
 
     var root = am5.Root.new(chartID);
@@ -292,9 +294,10 @@ const LotChart = ({ municipal, barangay }: any) => {
       <div
         id={chartID}
         style={{
-          height: '330px',
+          height: '45vh',
           backgroundColor: 'rgb(0,0,0,0)',
           color: 'white',
+          marginBottom: '-1.5vh',
         }}
       ></div>
     </>

@@ -19,6 +19,7 @@ const statusStructure = [
 ];
 
 // Dispose function
+// Dispose function
 function maybeDisposeRoot(divId: any) {
   am5.array.each(am5.registry.rootElements, function (root) {
     if (root.dom.id === divId) {
@@ -27,18 +28,24 @@ function maybeDisposeRoot(divId: any) {
   });
 }
 
+///*** Others */
+
+/// Draw chart
 const StructureChart = ({ municipal, barangay }: any) => {
-  const seriesRef = useRef<unknown | any | undefined>({});
+  const pieSeriesRef = useRef<unknown | any | undefined>({});
   const legendRef = useRef<unknown | any | undefined>({});
   const chartRef = useRef<unknown | any | undefined>({});
   const [structureData, setStructureData] = useState([
     {
       category: String,
       value: Number,
+      sliceSettings: {
+        fill: am5.color('#00c5ff'),
+      },
     },
   ]);
 
-  const chartID = 'pie-structure';
+  const chartID = 'structure-chart';
   const queryMunicipality = "Municipality = '" + municipal + "'";
   const queryBarangay = "Barangay = '" + barangay + "'";
   const queryMunicipalBarangay = queryMunicipality + ' AND ' + queryBarangay;
@@ -56,119 +63,25 @@ const StructureChart = ({ municipal, barangay }: any) => {
   }, [municipal, barangay]);
 
   useLayoutEffect(() => {
-    //zoomToLayer(structureLayer);
+    // Dispose previously created root element
+
     maybeDisposeRoot(chartID);
 
     var root = am5.Root.new(chartID);
     root.container.children.clear();
     root._logo?.dispose();
 
-    // Set themes
-    class MyTheme extends am5.Theme {
-      patterns: any;
-      currentPattern: number | any;
-      setupDefaultRules() {
-        var theme = this;
-
-        const gap = 4;
-        const rotation = 135;
-        const strokeWidth = 1.1;
-        const fillOpacity = 0;
-        const width = 10;
-        const height = 10;
-
-        this.patterns = [
-          am5.LinePattern.new(this._root, {
-            color: am5.color('#00C5FF'),
-            gap: gap,
-            rotation: rotation,
-            strokeWidth: strokeWidth,
-            fillOpacity: fillOpacity,
-            width: width,
-            height: height,
-          }),
-
-          am5.LinePattern.new(this._root, {
-            color: am5.color('#70AD47'),
-            gap: gap,
-            rotation: rotation,
-            strokeWidth: strokeWidth,
-            fillOpacity: fillOpacity,
-            width: width,
-            height: height,
-          }),
-
-          am5.LinePattern.new(this._root, {
-            color: am5.color('#0070FF'),
-            gap: gap,
-            rotation: rotation,
-            strokeWidth: strokeWidth,
-            fillOpacity: fillOpacity,
-            width: width,
-            height: height,
-          }),
-
-          am5.LinePattern.new(this._root, {
-            color: am5.color('#FFFF00'),
-            gap: gap,
-            rotation: rotation,
-            strokeWidth: strokeWidth,
-            fillOpacity: fillOpacity,
-            width: width,
-            height: height,
-          }),
-          am5.LinePattern.new(this._root, {
-            color: am5.color('#FFAA00'),
-            gap: gap,
-            rotation: rotation,
-            strokeWidth: strokeWidth,
-            fillOpacity: fillOpacity,
-            width: width,
-            height: height,
-          }),
-
-          am5.LinePattern.new(this._root, {
-            color: am5.color('#FF0000'),
-            gap: gap,
-            rotation: rotation,
-            strokeWidth: strokeWidth,
-            fillOpacity: fillOpacity,
-            width: width,
-            height: height,
-          }),
-        ];
-
-        this.currentPattern = 0;
-        this.rule('Slice').setAll({
-          fillOpacity: 1,
-        });
-
-        this.rule('Slice').setup = function (target) {
-          target.set('fillPattern', theme.patterns[theme.currentPattern]);
-          theme.currentPattern++;
-          if (theme.currentPattern === theme.patterns.length) {
-            theme.currentPattern = 0;
-          }
-        };
-      }
-    }
-
     // Set themesf
     // https://www.amcharts.com/docs/v5/concepts/themes/
-    root.setThemes([
-      am5themes_Animated.new(root),
-      am5themes_Responsive.new(root),
-      MyTheme.new(root),
-    ]);
+    root.setThemes([am5themes_Animated.new(root), am5themes_Responsive.new(root)]);
 
     // Create chart
     // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/
     var chart = root.container.children.push(
       am5percent.PieChart.new(root, {
         //centerY: am5.percent(-2), //-10
-        //y: am5.percent(-30), // -30
-        y: am5.percent(-7),
-        layout: root.verticalLayout,
+        y: am5.percent(-25), // space between pie chart and total lots
+        layout: root.horizontalLayout,
       }),
     );
     chartRef.current = chart;
@@ -182,29 +95,29 @@ const StructureChart = ({ municipal, barangay }: any) => {
         valueField: 'value',
         //legendLabelText: "[{fill}]{category}[/]",
         legendValueText: "{valuePercentTotal.formatNumber('#.')}% ({value})",
-        radius: am5.percent(70), // outer radius
-        innerRadius: am5.percent(30),
+        radius: am5.percent(45), // outer radius
+        innerRadius: am5.percent(20),
         marginBottom: -10,
       }),
     );
-    seriesRef.current = pieSeries;
+    pieSeriesRef.current = pieSeries;
     chart.series.push(pieSeries);
 
     // Set slice opacity and stroke color
     pieSeries.slices.template.setAll({
-      //fillOpacity: 0.9,
+      fillOpacity: 0.9,
       stroke: am5.color('#ffffff'),
       strokeWidth: 1,
       strokeOpacity: 1,
-      tooltipText: '{category}: {value}',
-      tooltipY: am5.percent(10),
-      //fill: am5.color("#1e8553")//root3.interfaceColors.get("alternativeText"),
+      templateField: 'sliceSettings',
     });
 
     // Disabling labels and ticksll
     pieSeries.labels.template.set('visible', false);
     pieSeries.ticks.template.set('visible', false);
 
+    // EventDispatcher is disposed at SpriteEventDispatcher...
+    // It looks like this error results from clicking events
     pieSeries.slices.template.events.on('click', (ev) => {
       var Selected: any = ev.target.dataItem?.dataContext;
       var Category: string = Selected.category;
@@ -213,24 +126,23 @@ const StructureChart = ({ municipal, barangay }: any) => {
       var SelectedStatus: number | null;
 
       if (Category === statusStructure[0]) {
-        SelectedStatus = 0;
-      } else if (Category === statusStructure[1]) {
         SelectedStatus = 1;
-      } else if (Category === statusStructure[2]) {
+      } else if (Category === statusStructure[1]) {
         SelectedStatus = 2;
-      } else if (Category === statusStructure[3]) {
+      } else if (Category === statusStructure[2]) {
         SelectedStatus = 3;
-      } else if (Category === statusStructure[4]) {
+      } else if (Category === statusStructure[3]) {
         SelectedStatus = 4;
-      } else if (Category === statusStructure[5]) {
+      } else if (Category === statusStructure[4]) {
         SelectedStatus = 5;
+      } else if (Category === statusStructure[5]) {
+        SelectedStatus = 6;
       }
 
       var query = structureLayer.createQuery();
-      query.outFields = ['StatusStruc', 'OBJECTID'];
 
       view.when(function () {
-        view.whenLayerView(structureLayer).then((strucLayerView): any => {
+        view.whenLayerView(structureLayer).then((layerView): any => {
           //chartLayerView = layerView;
 
           structureLayer.queryFeatures(query).then(function (results) {
@@ -256,16 +168,17 @@ const StructureChart = ({ municipal, barangay }: any) => {
             if (highlightSelect) {
               highlightSelect.remove();
             }
-            highlightSelect = strucLayerView.highlight(objID);
+            highlightSelect = layerView.highlight(objID);
 
             view.on('click', function () {
-              strucLayerView.filter = new FeatureFilter({
+              layerView.filter = new FeatureFilter({
                 where: undefined,
               });
               highlightSelect.remove();
             });
           }); // End of queryFeatures
-          strucLayerView.filter = new FeatureFilter({
+
+          layerView.filter = new FeatureFilter({
             where: 'StatusStruc = ' + SelectedStatus,
           });
         }); // End of view.whenLayerView
@@ -276,12 +189,12 @@ const StructureChart = ({ municipal, barangay }: any) => {
 
     // Legend
     // https://www.amcharts.com/docs/v5/charts/percent-charts/legend-percent-series/
-    var legend = chart.children.push(
+    var legend = root.container.children.push(
       am5.Legend.new(root, {
         centerX: am5.percent(50),
         x: am5.percent(50),
+        y: am5.percent(48),
         layout: root.verticalLayout,
-        marginBottom: 10,
       }),
     );
     legendRef.current = legend;
@@ -291,9 +204,6 @@ const StructureChart = ({ municipal, barangay }: any) => {
     legend.markers.template.setAll({
       width: 18,
       height: 18,
-      //strokeWidth: 1,
-      //strokeOpacity: 1,
-      //stroke: am5.color('#ffffff'),
     });
 
     // Change the marker shape
@@ -304,10 +214,9 @@ const StructureChart = ({ municipal, barangay }: any) => {
       cornerRadiusBR: 10,
     });
 
-    const valueLabelsWidth = 50;
-
     // Responsive legend
     // https://www.amcharts.com/docs/v5/tutorials/pie-chart-with-a-legend-with-dynamically-sized-labels/
+    // This aligns Legend to Left
     chart.onPrivate('width', function (width) {
       const boxWidth = 190; //props.style.width;
       var availableSpace = Math.max(boxWidth - chart.width() - boxWidth, 190);
@@ -317,6 +226,12 @@ const StructureChart = ({ municipal, barangay }: any) => {
         maxWidth: availableSpace,
       });
     });
+
+    // To align legend items: valueLabels right, labels to left
+    // 1. fix width of valueLabels
+    // 2. dynamically change width of labels by screen size
+
+    const valueLabelsWidth = 50;
 
     // Change legend labelling properties
     // To have responsive font size, do not set font size
@@ -338,18 +253,19 @@ const StructureChart = ({ municipal, barangay }: any) => {
     legend.itemContainers.template.setAll({
       // set space between legend items
       paddingTop: 1.1,
-      paddingBottom: 1.1,
+      paddingBottom: 2,
     });
 
     pieSeries.appear(1000, 100);
+
     return () => {
       root.dispose();
     };
   }, [chartID, structureData]);
 
   useLayoutEffect(() => {
-    seriesRef.current?.data.setAll(structureData);
-    legendRef.current?.data.setAll(seriesRef.current.dataItems);
+    pieSeriesRef.current?.data.setAll(structureData);
+    legendRef.current?.data.setAll(pieSeriesRef.current.dataItems);
   });
 
   return (
@@ -365,5 +281,6 @@ const StructureChart = ({ municipal, barangay }: any) => {
       ></div>
     </>
   );
-};
+}; // End of lotChartgs
+
 export default StructureChart;

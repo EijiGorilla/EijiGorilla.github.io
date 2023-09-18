@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState, useEffect } from 'react';
-import { lotLayer } from '../layers';
+import { nloLayer } from '../layers';
 import { view } from '../Scene';
 import FeatureFilter from '@arcgis/core/layers/support/FeatureFilter';
 import Query from '@arcgis/core/rest/support/Query';
@@ -7,15 +7,15 @@ import * as am5 from '@amcharts/amcharts5';
 import * as am5percent from '@amcharts/amcharts5/percent';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import am5themes_Responsive from '@amcharts/amcharts5/themes/Responsive';
-import { generateLotData } from '../components/Query';
+import { generateNloData } from '../components/Query';
 
-const statusLot: string[] = [
-  'Handed-Over',
+const statusNlo = [
+  'Relocated',
   'Paid',
   'For Payment Processing',
   'For Legal Pass',
-  'For Appraisal/Offer to Buy',
-  'For Expro',
+  'For Appraisal/OtC/Requirements for Other Entitlements',
+  'LBP Account Opening',
 ];
 
 //https://codesandbox.io/s/amcharts5-react-demo-forked-gid7b0?from-embed=&file=/src/App.js:271-276
@@ -24,17 +24,6 @@ const statusLot: string[] = [
 //https://medium.com/swlh/how-to-use-amcharts-4-with-react-hooks-999a62c185a5
 //https://codesandbox.io/s/amcharts5-react-demo-forked-hrth2d
 // Zoom
-
-// Dispose function
-function maybeDisposeRoot(divId: any) {
-  am5.array.each(am5.registry.rootElements, function (root) {
-    if (root.dom.id === divId) {
-      root.dispose();
-    }
-  });
-}
-
-///*** Others */
 function zoomToLayer(layer: any) {
   return layer.queryExtent().then((response: any) => {
     view
@@ -50,12 +39,23 @@ function zoomToLayer(layer: any) {
   });
 }
 
+// Dispose function
+function maybeDisposeRoot(divId: any) {
+  am5.array.each(am5.registry.rootElements, function (root) {
+    if (root.dom.id === divId) {
+      root.dispose();
+    }
+  });
+}
+
+///*** Others */
+
 /// Draw chart
-const LotChart = ({ municipal, barangay }: any) => {
+const NloChart = ({ municipal, barangay }: any) => {
   const pieSeriesRef = useRef<unknown | any | undefined>({});
   const legendRef = useRef<unknown | any | undefined>({});
   const chartRef = useRef<unknown | any | undefined>({});
-  const [lotData, setLotData] = useState([
+  const [nloData, SetNloData] = useState([
     {
       category: String,
       value: Number,
@@ -65,26 +65,27 @@ const LotChart = ({ municipal, barangay }: any) => {
     },
   ]);
 
-  const chartID = 'pie-two';
+  const chartID = 'nlo-chart';
   const queryMunicipality = "Municipality = '" + municipal + "'";
   const queryBarangay = "Barangay = '" + barangay + "'";
   const queryMunicipalBarangay = queryMunicipality + ' AND ' + queryBarangay;
 
   if (municipal && !barangay) {
-    lotLayer.definitionExpression = queryMunicipality;
+    nloLayer.definitionExpression = queryMunicipality;
   } else if (barangay) {
-    lotLayer.definitionExpression = queryMunicipalBarangay;
+    nloLayer.definitionExpression = queryMunicipalBarangay;
   }
 
   useEffect(() => {
-    generateLotData().then((result: any) => {
-      setLotData(result);
+    generateNloData().then((result: any) => {
+      SetNloData(result);
+      //zoomToLayer(nloLayer);
     });
   }, [municipal, barangay]);
 
   useLayoutEffect(() => {
     // Dispose previously created root element
-    zoomToLayer(lotLayer);
+
     maybeDisposeRoot(chartID);
 
     var root = am5.Root.new(chartID);
@@ -145,27 +146,27 @@ const LotChart = ({ municipal, barangay }: any) => {
       var highlightSelect: any;
       var SelectedStatus: number | null;
 
-      if (Category === statusLot[0]) {
-        SelectedStatus = 0;
-      } else if (Category === statusLot[1]) {
+      if (Category === statusNlo[0]) {
         SelectedStatus = 1;
-      } else if (Category === statusLot[2]) {
+      } else if (Category === statusNlo[1]) {
         SelectedStatus = 2;
-      } else if (Category === statusLot[3]) {
+      } else if (Category === statusNlo[2]) {
         SelectedStatus = 3;
-      } else if (Category === statusLot[4]) {
+      } else if (Category === statusNlo[3]) {
         SelectedStatus = 4;
-      } else if (Category === statusLot[5]) {
+      } else if (Category === statusNlo[4]) {
         SelectedStatus = 5;
+      } else if (Category === statusNlo[5]) {
+        SelectedStatus = 6;
       }
 
-      var query = lotLayer.createQuery();
+      var query = nloLayer.createQuery();
 
       view.when(function () {
-        view.whenLayerView(lotLayer).then((layerView): any => {
+        view.whenLayerView(nloLayer).then((layerView): any => {
           //chartLayerView = layerView;
 
-          lotLayer.queryFeatures(query).then(function (results) {
+          nloLayer.queryFeatures(query).then(function (results) {
             const RESULT_LENGTH = results.features;
             const ROW_N = RESULT_LENGTH.length;
 
@@ -179,7 +180,7 @@ const LotChart = ({ municipal, barangay }: any) => {
               objectIds: objID,
             });
 
-            lotLayer.queryExtent(queryExt).then(function (result) {
+            nloLayer.queryExtent(queryExt).then(function (result) {
               if (result.extent) {
                 view.goTo(result.extent);
               }
@@ -205,7 +206,7 @@ const LotChart = ({ municipal, barangay }: any) => {
       }); // End of view.whenv
     });
 
-    pieSeries.data.setAll(lotData);
+    pieSeries.data.setAll(nloData);
 
     // Legend
     // https://www.amcharts.com/docs/v5/charts/percent-charts/legend-percent-series/
@@ -281,10 +282,10 @@ const LotChart = ({ municipal, barangay }: any) => {
     return () => {
       root.dispose();
     };
-  }, [chartID, lotData]);
+  }, [chartID, nloData]);
 
   useLayoutEffect(() => {
-    pieSeriesRef.current?.data.setAll(lotData);
+    pieSeriesRef.current?.data.setAll(nloData);
     legendRef.current?.data.setAll(pieSeriesRef.current.dataItems);
   });
 
@@ -303,4 +304,4 @@ const LotChart = ({ municipal, barangay }: any) => {
   );
 }; // End of lotChartgs
 
-export default LotChart;
+export default NloChart;

@@ -10,20 +10,6 @@ import am5themes_Responsive from '@amcharts/amcharts5/themes/Responsive';
 import { generateLotMoaData } from '../components/Query';
 
 const statusMOA = ['For Negotiation', 'Expropriation', 'Donation', 'CA 141', 'No Need to Acquire'];
-function zoomToLayer(layer: any) {
-  return layer.queryExtent().then((response: any) => {
-    view
-      .goTo(response.extent, {
-        //response.extent
-        speedFactor: 2,
-      })
-      .catch(function (error) {
-        if (error.name !== 'AbortError') {
-          console.error(error);
-        }
-      });
-  });
-}
 
 // Dispose function
 function maybeDisposeRoot(divId: any) {
@@ -33,6 +19,8 @@ function maybeDisposeRoot(divId: any) {
     }
   });
 }
+
+///*** Others */
 
 function LotMoaChart({ municipal, barangay }: any) {
   const barSeriesRef = useRef<unknown | any | undefined>({});
@@ -64,7 +52,7 @@ function LotMoaChart({ municipal, barangay }: any) {
 
   useLayoutEffect(() => {
     // Dispose previously created root element
-    zoomToLayer(lotLayer);
+
     maybeDisposeRoot(chartID);
 
     var root = am5.Root.new(chartID);
@@ -84,6 +72,8 @@ function LotMoaChart({ municipal, barangay }: any) {
         wheelX: 'none',
         wheelY: 'none',
         paddingLeft: 0,
+        marginTop: 20,
+        //height: am5.percent(81),
       }),
     );
     chartRef.current = chart;
@@ -174,9 +164,9 @@ function LotMoaChart({ municipal, barangay }: any) {
         sprite: am5.Label.new(root, {
           text: '{value}',
           fill: root.interfaceColors.get('alternativeText'),
-          centerY: 3,
+          centerY: 8,
           centerX: am5.p50,
-          fontSize: 14,
+          fontSize: 13,
           populateText: true,
         }),
       });
@@ -258,12 +248,12 @@ function LotMoaChart({ municipal, barangay }: any) {
     chart.children.unshift(
       am5.Label.new(root, {
         text: 'MODE OF ACQUISITION',
-        fontSize: 14,
+        fontSize: '1.1vw',
         fontWeight: 'normal',
         textAlign: 'left',
         fill: am5.color('#f7f5f7'),
-        paddingTop: -15,
-        paddingBottom: 0,
+        paddingTop: -21,
+        paddingLeft: 20,
       }),
     );
 
@@ -291,7 +281,7 @@ function LotMoaChart({ municipal, barangay }: any) {
       <div
         id={chartID}
         style={{
-          height: '100px',
+          height: '21vh',
           backgroundColor: 'rgb(0,0,0,0)',
           color: 'white',
         }}

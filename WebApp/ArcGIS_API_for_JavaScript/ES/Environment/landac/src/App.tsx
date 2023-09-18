@@ -26,10 +26,25 @@ import {
 } from '@esri/calcite-components-react';
 import LotChart from './chart/LotChart';
 import LotMoaChart from './chart/LotMoaChart';
-import { getMuniciaplityBarangayPair } from './components/Query';
+import {
+  generateLotNumber,
+  generateNloNumber,
+  generatePermitEnter,
+  generateStrucNumber,
+  getMuniciaplityBarangayPair,
+  thousands_separators,
+} from './components/Query';
+import StructureChart from './chart/StructureChart';
+import StructureMoaChart from './chart/StructureMoaChart';
+import NloChart from './chart/NloChart';
+import LotProgressChart from './chart/LotProgressChart';
+import ExpropriationList from './components/ExpripriationList';
 
 function App() {
+  //**** Set states */
   const mapDiv = useRef(null);
+
+  // For Calcite Design
   const layerListDiv = useRef<HTMLDivElement | undefined | any>(null);
   const calcitePanelBasemaps = useRef<HTMLDivElement | undefined | any>(null);
   const [activeWidget, setActiveWidget] = useState<undefined | any | unknown>(null);
@@ -60,6 +75,15 @@ function App() {
   });
   const [barangaySelected, setBarangaySelected] = useState({ name: '' });
 
+  // For lot numbers and permit-to-enter
+  const [lotNumber, setLotNumber] = useState([]);
+  const [pteNumber, setPteNumber] = useState([]);
+
+  const [structureNumber, setStructureNumber] = useState([]);
+  const [nloNumber, setNloNumber] = useState(0);
+
+  //**** Create dropdonw list */
+  // Get a pair of municipality and barangay
   useEffect(() => {
     getMuniciaplityBarangayPair().then((response: any) => {
       setInitMunicipalBarangay(response);
@@ -81,24 +105,29 @@ function App() {
     setBarangay(obj);
   };
 
-  const customstyles = {
-    option: (defaultStyles: any, state: any) => ({
-      ...defaultStyles,
-      color: state.isSelected ? '#212529' : '#fff',
-      backgroundColor: state.isSelected ? '#a0a0a0' : '#212529',
-    }),
-
-    control: (defaultStyles: any) => ({
-      ...defaultStyles,
-      backgroundColor: '#212529',
-      border: 'none',
-      height: 35,
-      width: '170px',
-    }),
-    singleValue: (defaultStyles: any) => ({ ...defaultStyles, color: '#fff' }),
-  };
-
   // End of dropdown list
+
+  // Calculate the number of lot and structure
+  useEffect(() => {
+    // Lot
+    generateLotNumber().then((response: any) => {
+      setLotNumber(response);
+    });
+
+    generatePermitEnter().then((response: any) => {
+      setPteNumber(response);
+    });
+
+    // Structure
+    generateStrucNumber().then((response: any) => {
+      setStructureNumber(response);
+    });
+
+    // Non-Land Owner
+    generateNloNumber().then((response: any) => {
+      setNloNumber(response);
+    });
+  }, [municipalSelected, barangaySelected]);
 
   //https://stackoverflow.com/questions/70832641/react-onclick-event-working-on-twice-clicks-when-clicking-again
   useEffect(() => {
@@ -135,6 +164,28 @@ function App() {
     }
   }, []);
 
+  // Style CSS
+  const customstyles = {
+    option: (styles: any, { data, isDisabled, isFocused, isSelected }: any) => {
+      // const color = chroma(data.color);
+      return {
+        ...styles,
+        backgroundColor: isFocused ? '#999999' : isSelected ? '#2b2b2b' : '#2b2b2b',
+        color: '#ffffff',
+      };
+    },
+
+    control: (defaultStyles: any) => ({
+      ...defaultStyles,
+      backgroundColor: '#2b2b2b',
+      borderColor: '#949494',
+      height: 35,
+      width: '170px',
+      color: '#ffffff',
+    }),
+    singleValue: (defaultStyles: any) => ({ ...defaultStyles, color: '#fff' }),
+  };
+
   // https://developers.arcgis.com/calcite-design-system/resources/frameworks/
   // --calcite-ui-background: #353535 f
   // https://developers.arcgis.com/calcite-design-system/foundations/colors/
@@ -143,20 +194,34 @@ function App() {
     <div className="entire">
       <CalciteLoader text="loading" label="labelling"></CalciteLoader>
       <CalciteShell id="mainCalciteShell">
-        <CalciteTabs slot="panel-end">
-          <div id="chartPanel">
+        <CalciteTabs slot="panel-end" style={{ width: '27vw' }}>
+          <div id="chartPanel" style={{ height: '100%' }}>
             <CalciteTabNav slot="tab-nav" id="thetabs">
-              <CalciteTabTitle class="Land" selected>
-                Land
-              </CalciteTabTitle>
+              <CalciteTabTitle class="Land">Land</CalciteTabTitle>
               <CalciteTabTitle class="Structure">Structure</CalciteTabTitle>
               <CalciteTabTitle class="ISF">NLO</CalciteTabTitle>
               <CalciteTabTitle class="ExproList">ExproList</CalciteTabTitle>
             </CalciteTabNav>
+            {/* CalciteTab: Lot */}
             <CalciteTab>
-              <div className="lotNumberImage" style={{ display: 'flex' }}>
-                <div style={{ paddingLeft: 10 }}>
-                  <div style={{ color: 'white', fontSize: '1vw' }}>TOTAL LOTS</div>
+              <div
+                className="lotNumberImage"
+                style={{
+                  display: 'flex',
+                  paddingLeft: 20,
+                }}
+              >
+                <div style={{}}>
+                  <div
+                    style={{
+                      color: 'white',
+                      fontSize: '1vw',
+                      paddingBottom: '0.5vh',
+                      paddingTop: '0.6vh',
+                    }}
+                  >
+                    TOTAL LOTS
+                  </div>
                   <br />
                   <br />
                   <b
@@ -167,17 +232,24 @@ function App() {
                       fontFamily: 'calibri',
                     }}
                   >
-                    1,250{' '}
-                    <div style={{ color: 'white', fontSize: '1vw', fontWeight: 'normal' }}>
-                      (1,100)
+                    {thousands_separators(lotNumber[1])}{' '}
+                    <div
+                      style={{
+                        color: 'white',
+                        fontSize: '1vw',
+                        fontWeight: 'normal',
+                        paddingTop: '0.5vh',
+                      }}
+                    >
+                      ({thousands_separators(lotNumber[0])})
                     </div>
                   </b>
                 </div>
                 <img
                   src="https://EijiGorilla.github.io/Symbols/Land_logo.png"
                   alt="Land Logo"
-                  height={'17%'}
-                  width={'17%'}
+                  height={'18%'}
+                  width={'18%'}
                   style={{ padding: '10px', margin: 'auto' }}
                 />
               </div>
@@ -185,7 +257,199 @@ function App() {
                 municipal={municipalSelected.municipality}
                 barangay={barangaySelected.name}
               />
+              <div
+                className="PteNumberImage"
+                style={{ display: 'flex', paddingLeft: 20, marginBottom: '1.5vh' }}
+              >
+                <div>
+                  <div style={{ color: 'white', fontSize: '1vw', paddingBottom: '0.6vh' }}>
+                    PERMIT-TO-ENTER
+                  </div>
+                  <br />
+                  <br />
+                  {/* if pte is 'Infinity, display 'N/A' else  */}
+                  {pteNumber[0] === 'Infinity' ? (
+                    <b
+                      style={{
+                        color: '#6ede00',
+                        fontSize: '2.5vw',
+                        fontWeight: 'bold',
+                        fontFamily: 'calibri',
+                      }}
+                    >
+                      N/A
+                    </b>
+                  ) : (
+                    <b
+                      style={{
+                        color: '#6ede00',
+                        fontSize: '2.5vw',
+                        fontWeight: 'bold',
+                        fontFamily: 'calibri',
+                      }}
+                    >
+                      {pteNumber[0]}% ({thousands_separators(pteNumber[1])})
+                    </b>
+                  )}
+                </div>
+                <img
+                  src="https://EijiGorilla.github.io/Symbols/Permit-To-Enter.png"
+                  alt="Land Logo"
+                  height={'18%'}
+                  width={'18%'}
+                  style={{ padding: '10px', margin: 'auto' }}
+                />
+              </div>
               <LotMoaChart
+                municipal={municipalSelected.municipality}
+                barangay={barangaySelected.name}
+              />
+            </CalciteTab>
+
+            {/* CalciteTab: Structure */}
+            <CalciteTab>
+              <div
+                className="structureNumberImage"
+                style={{
+                  display: 'flex',
+                  paddingLeft: 20,
+                }}
+              >
+                <div style={{}}>
+                  <div
+                    style={{
+                      color: 'white',
+                      fontSize: '1vw',
+                      paddingBottom: '0.5vh',
+                      paddingTop: '0.6vh',
+                    }}
+                  >
+                    TOTAL STRUCTURES{' '}
+                  </div>
+                  <br />
+                  <br />
+                  <b
+                    style={{
+                      color: '#6ede00',
+                      fontSize: '2.5vw',
+                      fontWeight: 'bold',
+                      fontFamily: 'calibri',
+                    }}
+                  >
+                    {thousands_separators(structureNumber[2])}{' '}
+                  </b>
+                </div>
+                <img
+                  src="https://EijiGorilla.github.io/Symbols/House_Logo.svg"
+                  alt="Structure Logo"
+                  height={'19%'}
+                  width={'19%'}
+                  style={{ padding: '10px', margin: 'auto' }}
+                />
+              </div>
+              <StructureChart
+                municipal={municipalSelected.municipality}
+                barangay={barangaySelected.name}
+              />
+              <div
+                className="PteNumberImage"
+                style={{ display: 'flex', paddingLeft: 20, marginBottom: '1.5vh' }}
+              >
+                <div>
+                  <div style={{ color: 'white', fontSize: '1vw', paddingBottom: '0.6vh' }}>
+                    PERMIT-TO-ENTER
+                  </div>
+                  <br />
+                  <br />
+                  {/* If zero, display as zero else */}
+                  {structureNumber[1] === 0 ? (
+                    <b
+                      style={{
+                        color: '#6ede00',
+                        fontSize: '2.5vw',
+                        fontWeight: 'bold',
+                        fontFamily: 'calibri',
+                      }}
+                    >
+                      {structureNumber[0]}% (0)
+                    </b>
+                  ) : (
+                    <b
+                      style={{
+                        color: '#6ede00',
+                        fontSize: '2.5vw',
+                        fontWeight: 'bold',
+                        fontFamily: 'calibri',
+                      }}
+                    >
+                      {structureNumber[0]}% ({thousands_separators(structureNumber[1])})
+                    </b>
+                  )}
+                </div>
+                <img
+                  src="https://EijiGorilla.github.io/Symbols/Permit-To-Enter.png"
+                  alt="Structure Logo"
+                  height={'18%'}
+                  width={'18%'}
+                  style={{ padding: '10px', margin: 'auto' }}
+                />
+              </div>
+              <StructureMoaChart
+                municipal={municipalSelected.municipality}
+                barangay={barangaySelected.name}
+              />
+            </CalciteTab>
+
+            {/* CalciteTab: Non-Land Owner */}
+            <CalciteTab>
+              <div
+                className="NloNumberImage"
+                style={{
+                  display: 'flex',
+                  paddingLeft: 20,
+                }}
+              >
+                <div style={{}}>
+                  <div
+                    style={{
+                      color: 'white',
+                      fontSize: '1vw',
+                      paddingBottom: '0.5vh',
+                      paddingTop: '0.6vh',
+                    }}
+                  >
+                    TOTAL NON-LAND OWNERS{' '}
+                  </div>
+                  <br />
+                  <br />
+                  <b
+                    style={{
+                      color: '#6ede00',
+                      fontSize: '2.5vw',
+                      fontWeight: 'bold',
+                      fontFamily: 'calibri',
+                    }}
+                  >
+                    {thousands_separators(nloNumber)}{' '}
+                  </b>
+                </div>
+                <img
+                  src="https://EijiGorilla.github.io/Symbols/NLO_Logo.svg"
+                  alt="NLO Logo"
+                  height={'19%'}
+                  width={'19%'}
+                  style={{ padding: '10px', margin: 'auto' }}
+                />
+              </div>
+              <NloChart
+                municipal={municipalSelected.municipality}
+                barangay={barangaySelected.name}
+              />
+            </CalciteTab>
+
+            {/* CalciteTab: List of Lots under Expropriation */}
+            <CalciteTab>
+              <ExpropriationList
                 municipal={municipalSelected.municipality}
                 barangay={barangaySelected.name}
               />
@@ -305,7 +569,14 @@ function App() {
             ></CalciteAction>
           </CalciteActionBar>
 
-          <CalcitePanel heading="Layers" height-scale="l" data-panel-id="layers" hidden>
+          <CalcitePanel
+            heading="Layers"
+            height-scale="l"
+            width-scale="l"
+            data-panel-id="layers"
+            style={{ width: '18vw' }}
+            hidden
+          >
             <CalciteList>
               <CalciteListItem
                 label=""
@@ -316,7 +587,13 @@ function App() {
             </CalciteList>
           </CalcitePanel>
 
-          <CalcitePanel heading="Basemaps" height-scale="l" data-panel-id="basemaps" hidden>
+          <CalcitePanel
+            heading="Basemaps"
+            height-scale="l"
+            data-panel-id="basemaps"
+            style={{ width: '18vw' }}
+            hidden
+          >
             <CalciteList>
               <CalciteListItem
                 label=""
@@ -341,6 +618,11 @@ function App() {
           </CalcitePanel>
         </CalciteShellPanel>
         <div className="mapDiv" ref={mapDiv}></div>
+        <LotProgressChart
+          municipal={municipalSelected.municipality}
+          barangay={barangaySelected.name}
+          nextwidget={nextWidget === activeWidget ? null : nextWidget}
+        />
       </CalciteShell>
     </div>
   );

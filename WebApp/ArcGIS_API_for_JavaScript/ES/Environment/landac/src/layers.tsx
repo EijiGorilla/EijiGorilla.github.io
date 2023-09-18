@@ -2,8 +2,15 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import LabelClass from '@arcgis/core/layers/support/LabelClass';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
-import { PolygonSymbol3D, ExtrudeSymbol3DLayer } from '@arcgis/core/symbols';
+import {
+  PolygonSymbol3D,
+  ExtrudeSymbol3DLayer,
+  PointSymbol3D,
+  IconSymbol3DLayer,
+} from '@arcgis/core/symbols';
 import SolidEdges3D from '@arcgis/core/symbols/edges/SolidEdges3D';
+import CustomContent from '@arcgis/core/popup/content/CustomContent';
+import PopupTemplate from '@arcgis/core/PopupTemplate';
 
 /*
 export const water = new VectorTileLayer({
@@ -107,6 +114,83 @@ let lotLayerRenderer = new UniqueValueRenderer({
   ],
 });
 
+// Custom popup for lot layer
+const lotStatusArray = [
+  'Handed-Over',
+  'Paid',
+  'For Payment Processing',
+  'For Legal Pass',
+  'For Appraisal/Offer to Buy',
+  'For Expro',
+];
+
+const landUseArray = [
+  'Agricultural',
+  'Agricultural & Commercial',
+  'Agricultural / Residential',
+  'Commercial',
+  'Industrial',
+  'Irrigation',
+  'Residential',
+  'Road',
+  'Road Lot',
+  'Special Exempt',
+];
+
+const endorsedStatus = ['Not Endorsed', 'Endorsed', 'NA'];
+
+let customContentLot = new CustomContent({
+  outFields: ['*'],
+  creator: function (event: any) {
+    // Extract AsscessDate of clicked pierAccessLayer
+    const handedOverDate = event.graphic.attributes.HandedOverDate;
+    const handOverArea = event.graphic.attributes.percentHandedOver;
+    const statusLot = event.graphic.attributes.StatusLA;
+    const landUse = event.graphic.attributes.LandUse;
+    const municipal = event.graphic.attributes.Municipality;
+    const barangay = event.graphic.attributes.Barangay;
+    const landOwner = event.graphic.attributes.LandOwner;
+    const cpNo = event.graphic.attributes.CP;
+    const endorse = event.graphic.attributes.Endorsed;
+    const endorsed = endorsedStatus[endorse];
+
+    let daten: any;
+    let date: any;
+    if (handedOverDate) {
+      daten = new Date(handedOverDate);
+      const year = daten.getFullYear();
+      const month = daten.getMonth();
+      const day = daten.getDay();
+      date = `${year}-${month}-${day}`;
+    } else {
+      date = 'Undefined';
+    }
+    // Convert numeric to date format 0
+    //var daten = new Date(handedOverDate);
+    //var date = dateFormat(daten, 'MM-dd-yyyy');
+    //<li>Hand-Over Date: <b>${date}</b></li><br>
+
+    return `<ul><li>Handed-Over Area: <b>${handOverArea} %</b></li><br>
+    <li>Hand-Over Date: <b>${date}</b></li><br>
+              <li>Status:           <b>${
+                statusLot >= 0 ? lotStatusArray[statusLot] : ''
+              }</b></li><br>
+              <li>Land Use:         <b>${landUse >= 1 ? landUseArray[landUse - 1] : ''}</b></li><br>
+              <li>Municipality:     <b>${municipal}</b></li><br>
+              <li>Barangay:         <b>${barangay}</b></li><br>
+              <li>Land Owner:       <b>${landOwner}</b>
+              <li>CP:               <b>${cpNo}</b><br>
+              <li>Endorsed:         <b>${endorsed}</b></li></ul>`;
+  },
+});
+
+const templateLot = new PopupTemplate({
+  outFields: ['*'],
+  title: 'Lot No.: <b>{LotID}</b>',
+  lastEditInfoEnabled: false,
+  content: [customContentLot],
+});
+
 export const lotLayer = new FeatureLayer({
   portalItem: {
     id: 'dca1d785da0f458b8f87638a76918496',
@@ -117,6 +201,7 @@ export const lotLayer = new FeatureLayer({
   layerId: 7,
   labelingInfo: [LOT_LABEL_CLASS],
   renderer: lotLayerRenderer,
+  popupTemplate: templateLot,
   title: 'Land Acquisition',
   minScale: 150000,
   maxScale: 0,
@@ -286,5 +371,186 @@ export const structureLayer = new FeatureLayer({
   outFields: ['*'],
   elevationInfo: {
     mode: 'on-the-ground',
+  },
+});
+function dateFormat(date: Date, arg1: string) {
+  throw new Error('Function not implemented.');
+}
+
+// NLO Layer
+const symbolSize = 30;
+const nloSymbolRef = [
+  'https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_Relocated.svg',
+  'https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_Paid.svg',
+  'https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_PaymentProcess.svg',
+  'https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_LegalPass.svg',
+  'https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_OtC.svg',
+  'https://EijiGorilla.github.io/Symbols/3D_Web_Style/ISF/ISF_LBP.svg',
+];
+
+const nloRenderer = new UniqueValueRenderer({
+  field: 'StatusRC',
+  valueExpression:
+    "When($feature.StatusRC == 1, 'relocated', $feature.StatusRC == 2, 'paid', $feature.StatusRC == 3, 'payp', $feature.StatusRC == 4, 'legalpass', $feature.StatusRC == 5, 'otc', $feature.StatusRC == 6, 'lbp', $feature.StatusRC)",
+  uniqueValueInfos: [
+    {
+      value: 'relocated',
+      label: 'Relocated',
+      symbol: new PointSymbol3D({
+        symbolLayers: [
+          new IconSymbol3DLayer({
+            resource: {
+              href: nloSymbolRef[0],
+            },
+            size: symbolSize,
+            outline: {
+              color: 'white',
+              size: 2,
+            },
+          }),
+        ],
+      }),
+    },
+    {
+      value: 'paid',
+      label: 'Paid',
+      symbol: new PointSymbol3D({
+        symbolLayers: [
+          new IconSymbol3DLayer({
+            resource: {
+              href: nloSymbolRef[1],
+            },
+            size: symbolSize,
+            outline: {
+              color: 'white',
+              size: 2,
+            },
+          }),
+        ],
+      }),
+    },
+    {
+      value: 'payp',
+      label: 'For Payment Processing',
+      symbol: new PointSymbol3D({
+        symbolLayers: [
+          new IconSymbol3DLayer({
+            resource: {
+              href: nloSymbolRef[2],
+            },
+            size: symbolSize,
+            outline: {
+              color: 'white',
+              size: 2,
+            },
+          }),
+        ],
+      }),
+    },
+    {
+      value: 'legalpass',
+      label: 'For Legal Pass',
+      symbol: new PointSymbol3D({
+        symbolLayers: [
+          new IconSymbol3DLayer({
+            resource: {
+              href: nloSymbolRef[3],
+            },
+            size: symbolSize,
+            outline: {
+              color: 'white',
+              size: 2,
+            },
+          }),
+        ],
+      }),
+    },
+    {
+      value: 'otc',
+      label: 'For Appraisal/OtC/Reqs for Other Entitlements',
+      symbol: new PointSymbol3D({
+        symbolLayers: [
+          new IconSymbol3DLayer({
+            resource: {
+              href: nloSymbolRef[4],
+            },
+            size: symbolSize,
+            outline: {
+              color: 'white',
+              size: 2,
+            },
+          }),
+        ],
+      }),
+    },
+    {
+      value: 'lbp',
+      label: 'LBP Account Opening',
+      symbol: new PointSymbol3D({
+        symbolLayers: [
+          new IconSymbol3DLayer({
+            resource: {
+              href: nloSymbolRef[5],
+            },
+            size: symbolSize,
+            outline: {
+              color: 'white',
+              size: 2,
+            },
+          }),
+        ],
+      }),
+    },
+  ],
+});
+
+export const nloLayer = new FeatureLayer({
+  portalItem: {
+    id: 'dca1d785da0f458b8f87638a76918496',
+    portal: {
+      url: 'https://gis.railway-sector.com/portal',
+    },
+  },
+  layerId: 4,
+  renderer: nloRenderer,
+  outFields: ['*'],
+  title: 'NLO (Non-Land Owner)',
+  elevationInfo: {
+    mode: 'relative-to-scene',
+  },
+  minScale: 10000,
+  maxScale: 0,
+  popupTemplate: {
+    title: '<p>{StrucID}</p>',
+    lastEditInfoEnabled: false,
+    returnGeometry: true,
+    content: [
+      {
+        type: 'fields',
+        fieldInfos: [
+          {
+            fieldName: 'StrucOwner',
+            label: 'Structure Owner',
+          },
+          {
+            fieldName: 'Municipality',
+          },
+          {
+            fieldName: 'Barangay',
+          },
+          {
+            fieldName: 'StatusRC',
+            label: '<p>Status for Relocation</p>',
+          },
+          {
+            fieldName: 'Name',
+          },
+          {
+            fieldName: 'Status',
+            label: 'NLO/LO Ownership (structure) ',
+          },
+        ],
+      },
+    ],
   },
 });

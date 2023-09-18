@@ -1,5 +1,4 @@
 import { useLayoutEffect, useRef, useState, useEffect } from 'react';
-import { lotLayer } from '../layers';
 import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
@@ -15,6 +14,9 @@ function maybeDisposeRoot(divId: any) {
   });
 }
 
+const privateLotColor = '#e8ff00';
+const publicLotColor = '#4a99ff';
+
 const LotProgressChart = ({ municipal, barangay, nextwidget }: any) => {
   const barSeriesRef = useRef<unknown | any | undefined>({});
   const legendRef = useRef<unknown | any | undefined>({});
@@ -23,24 +25,15 @@ const LotProgressChart = ({ municipal, barangay, nextwidget }: any) => {
   const chartRef = useRef<unknown | any | undefined>({});
   const [lotProgressData, setLotProgressData] = useState([
     {
-      date: Date,
+      date: Number,
       private: Number,
       public: Number,
     },
   ]);
 
-  const queryMunicipality = "Municipality = '" + municipal + "'";
-  const queryBarangay = "Barangay = '" + barangay + "'";
-  const queryMunicipalBarangay = queryMunicipality + ' AND ' + queryBarangay;
-
-  if (municipal && !barangay) {
-    lotLayer.definitionExpression = queryMunicipality;
-  } else if (barangay) {
-    lotLayer.definitionExpression = queryMunicipalBarangay;
-  }
   const chartID = 'lot-progress';
   useEffect(() => {
-    generateLotProgress().then((result: any) => {
+    generateLotProgress(municipal, barangay).then((result: any) => {
       setLotProgressData(result);
     });
   }, [municipal, barangay]);
@@ -67,8 +60,6 @@ const LotProgressChart = ({ municipal, barangay, nextwidget }: any) => {
       }),
     );
     chartRef.current = chart;
-
-    //chart.get('colors').set('colors', [am5.color('#e8ff00'), am5.color('#4a99ff')]);
 
     // Chart title
     chart.children.unshift(
@@ -140,13 +131,12 @@ const LotProgressChart = ({ municipal, barangay, nextwidget }: any) => {
     );
 
     yAxis.get('renderer').labels.template.setAll({
-      //oversizedBehavior: "wrap",
+      //oversizedBehavior: "wrap",//
       textAlign: 'center',
       fill: am5.color('#ffffff'),
       //maxWidth: 150,
       fontSize: 12,
     });
-
     xAxisRef.current = xAxis;
     yAxisRef.current = yAxis;
 
@@ -196,6 +186,7 @@ const LotProgressChart = ({ municipal, barangay, nextwidget }: any) => {
           valueYField: fieldName,
           valueXField: 'date',
           valueYGrouped: 'sum',
+          fill: fieldName === 'private' ? am5.color(privateLotColor) : am5.color(publicLotColor),
         }),
       );
       barSeriesRef.current = series;
@@ -244,35 +235,24 @@ const LotProgressChart = ({ municipal, barangay, nextwidget }: any) => {
     yAxisRef.current?.data.setAll(lotProgressData);
   });
 
-  /*
-  if (active && active === 'charts') {
-    chartRef.current.style.display = 'none';
-  }
-  */
-
   return (
     <>
       {nextwidget === 'charts' ? (
         <div
           id={chartID}
           style={{
-            height: '45vh',
-            width: '50vw',
-            backgroundColor: 'rgb(0,0,0,0)',
+            height: '35vh',
+            width: '70%',
+            backgroundColor: '#2b2b2b',
             color: 'white',
+            position: 'fixed',
+            zIndex: 0,
+            bottom: 0,
+            left: 'auto',
           }}
         ></div>
       ) : (
-        <div
-          id={chartID}
-          style={{
-            height: '45vh',
-            width: '50vw',
-            backgroundColor: 'rgb(0,0,0,0)',
-            color: 'white',
-          }}
-          hidden
-        ></div>
+        <div id={chartID} hidden></div>
       )}
     </>
   );

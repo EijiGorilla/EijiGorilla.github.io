@@ -20,22 +20,6 @@ function maybeDisposeRoot(divId: any) {
   });
 }
 
-///*** Others */
-function zoomToLayer(layer: any) {
-  return layer.queryExtent().then((response: any) => {
-    view
-      .goTo(response.extent, {
-        //response.extent
-        speedFactor: 2,
-      })
-      .catch(function (error) {
-        if (error.name !== 'AbortError') {
-          console.error(error);
-        }
-      });
-  });
-}
-
 function StructureMoaChart({ municipal, barangay }: any) {
   const barSeriesRef = useRef<unknown | any | undefined>({});
   const yAxisRef = useRef<unknown | any | undefined>({});
@@ -66,7 +50,6 @@ function StructureMoaChart({ municipal, barangay }: any) {
 
   useLayoutEffect(() => {
     // Dispose previously created root element
-    zoomToLayer(structureLayer);
     maybeDisposeRoot(chartID);
 
     var root = am5.Root.new(chartID);
