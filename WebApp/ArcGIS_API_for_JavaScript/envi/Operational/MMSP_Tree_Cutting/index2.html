@@ -386,9 +386,6 @@
             <calcite-tab>
               <div class="boxCompen" id="treeCompensationDiv"></div>
               <div id="treeCompensationNumberDiv"></div>
-              <button id="toggle-cluster2" class="esri-button" type="button">
-                Disable Clustering
-              </button>
             </calcite-tab>
           </div>
         </calcite-tabs>
@@ -1030,6 +1027,22 @@
       lotLayer.listMode = "hide";
       map.add(lotLayer, 1);
 
+      //
+
+      const lotBoundaryOnlyRenderer = {
+        type: "simple",
+        symbol: {
+          type: "simple-fill", // autocasts as new SimpleFillSymbol()
+          color: [0, 0, 0, 0],
+          style: "solid",
+          outline: {
+            // autocasts as new SimpleLineSymbol()
+            color: [110, 110, 110],
+            width: 1.5,
+          },
+        },
+      };
+
       // Tree Cutting
       var treeCuttingLayer = new FeatureLayer({
         portalItem: {
@@ -1161,19 +1174,6 @@
       });
       map.add(compensationLayer, 1);
 
-      // Point clustering
-      // Tree-Cutting Layer
-      // Override the default symbol representing the cluster extent
-      view.popup.viewModel.selectedClusterBoundaryFeature.symbol = {
-        type: "simple-fill",
-        style: "solid",
-        color: "rgba(50,50,50,0.15)",
-        outline: {
-          width: 0.5,
-          color: "rgba(50,50,50,0.25)",
-        },
-      };
-
       treeCuttingLayer
         .when()
         .then(generateClusterConfig)
@@ -1200,68 +1200,6 @@
           view.watch("scale", (scale) => {
             if (toggleButton.innerText === "Disable Clustering") {
               treeCuttingLayer.featureReduction = isWithinScaleThreshold()
-                ? featureReduction
-                : null;
-            }
-          });
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-
-      function isWithinScaleThreshold() {
-        return view.scale > 5000;
-      }
-
-      async function generateClusterConfig(layer) {
-        // generates default popupTemplate
-        const popupTemplate = await clusterPopupCreator
-          .getTemplates({ layer })
-          .then(
-            (popupTemplateResponse) =>
-              popupTemplateResponse.primaryTemplate.value
-          );
-
-        // generates default labelingInfo
-        const { labelingInfo, clusterMinSize } = await clusterLabelCreator
-          .getLabelSchemes({ layer, view })
-          .then((labelSchemes) => labelSchemes.primaryScheme);
-
-        return {
-          type: "cluster",
-          popupTemplate,
-          labelingInfo,
-          clusterMinSize,
-        };
-      }
-
-      // Tree Compensation Layer
-      compensationLayer
-        .when()
-        .then(generateClusterConfig)
-        .then((featureReduction) => {
-          compensationLayer.featureReduction = featureReduction;
-
-          const toggleButton = document.getElementById("toggle-cluster2");
-          toggleButton.addEventListener("click", toggleClustering);
-
-          // To turn off clustering on a layer, set the
-          // featureReduction property to null
-          function toggleClustering() {
-            if (isWithinScaleThreshold()) {
-              let fr = compensationLayer.featureReduction;
-              compensationLayer.featureReduction =
-                fr && fr.type === "cluster" ? null : featureReduction;
-            }
-            toggleButton.innerText =
-              toggleButton.innerText === "Enable Clustering"
-                ? "Disable Clustering"
-                : "Enable Clustering";
-          }
-
-          view.watch("scale", (scale) => {
-            if (toggleButton.innerText === "Disable Clustering") {
-              compensationLayer.featureReduction = isWithinScaleThreshold()
                 ? featureReduction
                 : null;
             }
