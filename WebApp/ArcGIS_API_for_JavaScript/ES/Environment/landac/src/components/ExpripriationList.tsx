@@ -104,3 +104,4 @@ const ExpropriationList = (municipal: any, barangay: any) => {
 };
 
 export default ExpropriationList;
+// {console.log(exproItem.length)}

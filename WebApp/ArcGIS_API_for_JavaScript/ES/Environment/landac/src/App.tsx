@@ -43,9 +43,10 @@ import ExpropriationList from './components/ExpripriationList';
 function App() {
   //**** Set states */
   const mapDiv = useRef(null);
+  const layerListDiv = useRef<HTMLDivElement | undefined | any>(null);
+  const searchDiv = useRef<HTMLDivElement | undefined | any>(null);
 
   // For Calcite Design
-  const layerListDiv = useRef<HTMLDivElement | undefined | any>(null);
   const calcitePanelBasemaps = useRef<HTMLDivElement | undefined | any>(null);
   const [activeWidget, setActiveWidget] = useState<undefined | any | unknown>(null);
   const [nextWidget, setNextWidget] = useState<undefined | any | unknown>(null);
@@ -612,9 +613,44 @@ function App() {
           ></CalcitePanel>
 
           <CalcitePanel heading="Description" data-panel-id="information" hidden>
-            <div id="info-content">
-              <div id="item-description"></div>
-            </div>
+            {nextWidget === 'information' ? (
+              <div
+                id="informationDiv"
+                style={{
+                  color: '#eaeaea',
+                  fontSize: '13px',
+                  marginLeft: '-10px',
+                  paddingRight: '5px',
+                }}
+              >
+                <ul>
+                  <li>
+                    You can <b>filter the data</b> by City and Barangy using dropdown lists.
+                  </li>
+                  <li>
+                    <b>Click a tab</b> below the dropdown lists to view progress on land, structure,
+                    or NLO in charts.
+                  </li>
+                  <li>
+                    <b>Click series in pie charts</b> to view progress on the corresponding
+                    lots/structures/NLO on the map.
+                  </li>
+                  <li>
+                    <b>Lots under expropriation</b> are available in the 'Expro List' tab.
+                  </li>
+                  <li>
+                    Click/unclick widgets icon for viewing Layer list, legend, basemaps, and locate
+                    widgets under the main title.
+                  </li>
+                  <li>
+                    <b>Toggle a checkbox</b> above the Land pie chart to view{' '}
+                    <b>handed-over areas</b> (m2) of Contract Packages.
+                  </li>
+                </ul>
+              </div>
+            ) : (
+              <div id="informationDiv" hidden></div>
+            )}
           </CalcitePanel>
         </CalciteShellPanel>
         <div className="mapDiv" ref={mapDiv}></div>
