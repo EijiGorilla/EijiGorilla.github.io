@@ -17,25 +17,27 @@ import {
   stationBoxLayer,
   stationLayer,
   pierHeadColumnLayerLayer,
+  prowLayer,
 } from './layers';
 
 export const map = new Map({
   basemap: 'dark-gray-vector', // "streets-night-vector", basemap
   ground: 'world-elevation',
-  layers: [
-    lotLayer,
-    structureLayer,
-    nloLayer,
-    endorsedLotLayer,
-    occupancyLayer,
-    pnrLayer,
-    stationBoxLayer,
-    stationLayer,
-    chainageLayer,
-    pierAccessLayer,
-    pierHeadColumnLayerLayer,
-  ],
 });
+
+// Change the layer order by using index numbers in map.add
+map.add(lotLayer, 0);
+map.add(endorsedLotLayer, 0);
+map.add(structureLayer, 0);
+map.add(nloLayer, 0);
+map.add(occupancyLayer, 0);
+map.add(pierAccessLayer, 0);
+map.add(prowLayer, 0);
+map.add(chainageLayer, 1);
+map.add(stationBoxLayer, 1);
+map.add(stationLayer, 1);
+map.add(pierHeadColumnLayerLayer, 1);
+map.add(pnrLayer, 1);
 
 map.ground.navigationConstraint = {
   type: 'none',

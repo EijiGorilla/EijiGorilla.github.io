@@ -79,29 +79,33 @@ const ExpropriationList = (municipal: any, barangay: any) => {
   return (
     <>
       <CalciteList id="result-list" label="exproListLabel">
-        {exproItem &&
-          exproItem.map((result: any, index: any) => {
-            return (
-              <>
-                <CalciteListItem
-                  key={result.id}
-                  label={result.lotid}
-                  description={result.landowner}
-                  value={result.objectid}
-                  onCalciteListItemSelect={(event: any) => resultClickHandler(event)}
-                >
-                  <CalciteChip value={result.cp} slot="content-end" scale="s" id="exproListChip">
-                    <CalciteAvatar full-name={result.municipality} scale="s"></CalciteAvatar>
-                    {result.cp}
-                  </CalciteChip>
-                </CalciteListItem>
-              </>
-            );
-          })}
+        {exproItem && // Extract unique objects from the array
+          exproItem
+            .filter(
+              (ele: any, ind: any) =>
+                ind === exproItem.findIndex((elem: any) => elem.objectid === ele.objectid),
+            )
+            .map((result: any, index: any) => {
+              return (
+                <>
+                  <CalciteListItem
+                    key={result.id}
+                    label={result.lotid}
+                    description={result.landowner}
+                    value={result.objectid}
+                    onCalciteListItemSelect={(event: any) => resultClickHandler(event)}
+                  >
+                    <CalciteChip value={result.cp} slot="content-end" scale="s" id="exproListChip">
+                      <CalciteAvatar full-name={result.municipality} scale="s"></CalciteAvatar>
+                      {result.cp}
+                    </CalciteChip>
+                  </CalciteListItem>
+                </>
+              );
+            })}
       </CalciteList>
     </>
   );
 };
 
 export default ExpropriationList;
-// {console.log(exproItem.length)}

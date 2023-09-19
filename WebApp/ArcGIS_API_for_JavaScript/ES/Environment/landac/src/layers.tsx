@@ -126,7 +126,7 @@ export const stationBoxLayer = new FeatureLayer({
 });
 
 /* ROW Layer */
-var prowLayer = new FeatureLayer({
+export const prowLayer = new FeatureLayer({
   portalItem: {
     id: '590680d19f2e48fdbd8bcddce3aaedb5',
     portal: {
@@ -254,20 +254,6 @@ var labelClass = new LabelClass({
   },
 });
 
-function stationsSymbol(name: any) {
-  return {
-    type: 'web-style', // autocasts as new WebStyleSymbol()
-    name: name,
-    styleName: 'EsriIconsStyle', //EsriRealisticTransportationStyle, EsriIconsStyle
-  };
-}
-
-var stationsRenderer = {
-  type: 'unique-value', // autocasts as new UniqueValueRenderer()
-  field: 'Station',
-  defaultSymbol: stationsSymbol('Train'), //Backhoe, Train
-};
-
 export const stationLayer = new SceneLayer({
   portalItem: {
     id: '207cb34b8a324b40985b5805862c4b29',
@@ -277,7 +263,6 @@ export const stationLayer = new SceneLayer({
   },
   title: 'N2 Stations',
   labelingInfo: [labelClass],
-  //renderer: stationsRenderer,
   elevationInfo: {
     mode: 'relative-to-ground',
   },
@@ -296,24 +281,6 @@ var lotIdLabel = new LabelClass({
     haloSize: 0.5,
     font: {
       size: 11,
-      weight: 'bold',
-    },
-  },
-});
-
-const LOT_LABEL_CLASS = new LabelClass({
-  labelExpressionInfo: {
-    expression: '$feature.LotID',
-  },
-  symbol: {
-    type: 'text', // autocasts as new TextSymbol()
-    color: 'black',
-    haloColor: 'white',
-    haloSize: 0.5,
-    font: {
-      // autocast as new Font()
-      family: 'Gill Sans',
-      size: 8,
       weight: 'bold',
     },
   },
@@ -705,6 +672,39 @@ export const structureLayer = new FeatureLayer({
   elevationInfo: {
     mode: 'on-the-ground',
   },
+  popupTemplate: {
+    title: '<p>{StrucID}</p>',
+    lastEditInfoEnabled: false,
+    returnGeometry: true,
+    content: [
+      {
+        type: 'fields',
+        fieldInfos: [
+          {
+            fieldName: 'StrucOwner',
+            label: 'Structure Owner',
+          },
+          {
+            fieldName: 'Municipality',
+          },
+          {
+            fieldName: 'Barangay',
+          },
+          {
+            fieldName: 'StatusStruc',
+            label: '<p>Status for Structure</p>',
+          },
+          {
+            fieldName: 'Name',
+          },
+          {
+            fieldName: 'Status',
+            label: 'NLO/LO Ownership (structure) ',
+          },
+        ],
+      },
+    ],
+  },
 });
 
 // NLO Layer
@@ -934,44 +934,13 @@ export const strucOwnershipLayer = new FeatureLayer({
 });
 
 /* Occupancy (Status of Relocation) */
-const outlineColorOccupancy = 'gray';
-
 var verticalOffsetExistingOccupancy = {
   screenLength: 10,
   maxWorldLength: 10,
   minWorldLength: 10,
 };
-
-function getUniqueValueSymbolOccupancy(name: any, size: any) {
-  return {
-    symbol: new PointSymbol3D({
-      symbolLayers: [
-        new IconSymbol3DLayer({
-          resource: {
-            href: name,
-          },
-          size: size,
-          outline: {
-            color: 'white',
-            size: 2,
-          },
-        }),
-      ],
-      verticalOffset: verticalOffsetExistingOccupancy,
-
-      callout: {
-        type: 'line', // autocasts as new LineCallout3D()
-        color: [128, 128, 128, 0.6],
-        size: 0.4,
-        border: {
-          color: 'grey',
-        },
-      },
-    }),
-  };
-}
-
 const occupancyPointSize = 20;
+
 let occupancyRenderer = new UniqueValueRenderer({
   field: 'Occupancy',
   uniqueValueInfos: [
@@ -1101,21 +1070,6 @@ const pierColumn = new PolygonSymbol3D({
   ],
 });
 
-const pierHead = new PolygonSymbol3D({
-  symbolLayers: [
-    new ExtrudeSymbol3DLayer({
-      size: pHeight + 10,
-      material: {
-        color: [169, 169, 169, 0.7],
-      },
-      edges: new SolidEdges3D({
-        color: '#4E4E4E',
-        size: 1.0,
-      }),
-    }),
-  ],
-});
-
 const pileCap = new PolygonSymbol3D({
   symbolLayers: [
     new ExtrudeSymbol3DLayer({
@@ -1204,17 +1158,6 @@ const pierAccessDateColor = {
   6: [255, 0, 0, 0.9], // Dates are missing
 };
 
-var defaultPierAccessSymbolRenderer = new SimpleRenderer({
-  label: 'Accessible',
-  symbol: new SimpleMarkerSymbol({
-    size: 5,
-    color: pierAccessDateColor[0],
-    outline: {
-      width: 0,
-      color: 'black',
-    },
-  }),
-});
 const cutOffDateAccess = 1636070400000;
 
 const pierAccessReadyDateLabel = new LabelClass({
@@ -1290,6 +1233,7 @@ const pierAccessNotYetLabel = new LabelClass({
     //value: "{Type}"
   },
   labelPlacement: 'above-center',
+  // eslint-disable-next-line no-useless-concat
   where: "AccessDate > '" + cutOffDateAccess + "'" + ' OR ' + 'AccessDate IS NULL',
 });
 
@@ -1332,9 +1276,6 @@ const pierAccessDateMissingLabel = new LabelClass({
 });
 
 // 1. Get unique dates
-const numberDate = new Date(cutOffDateAccess);
-const cutDate = numberDate.toLocaleDateString('en-US');
-
 export const pierAccessLayer = new FeatureLayer(
   {
     portalItem: {
@@ -1358,8 +1299,9 @@ export const pierAccessLayer = new FeatureLayer(
 
 // we first need to obtain unique values of date because valueExpression does not allow
 // date'2021-10-01' notation
-const queryDate = 'AccessDate IS NOT NULL';
+//const queryDate = 'AccessDate IS NOT NULL';
 
+/*
 let dates: any[] = [];
 async function DateValues() {
   var query = pierAccessLayer.createQuery();
@@ -1402,7 +1344,6 @@ function uniqueValuesInfos(sortedDates: any) {
       },
     );
   });
-  console.log(dates);
 }
 DateValues().then(uniqueDateValues).then(uniqueValuesInfos);
 
@@ -1418,6 +1359,7 @@ var defaultPointSymbol = new SimpleRenderer({
     },
   }),
 });
+*/
 
 const pierAccessRenderer = new UniqueValueRenderer({
   field: 'AccessDate',
@@ -1497,16 +1439,10 @@ let customContent = new CustomContent({
   creator: function (event: any) {
     // Extract AsscessDate of clicked pierAccessLayer
     const statsDate = event.graphic.attributes.AccessDate;
-    const pierNo = event.graphic.attributes.PIER;
 
     // Convert numeric to date format
     const date = new Date(statsDate);
     let dateValue = dateFormat(date, 'MM-dd-yyyy');
-
-    const ddd = new Date(cutOffDateAccess);
-    let dddValue = dateFormat(ddd, 'MM-dd-yyyy');
-
-    //console.log(dateValue + "; " + dddValue);
 
     // If the date is before current date, popupContent should be "AVAILABLE"
     let DATES;

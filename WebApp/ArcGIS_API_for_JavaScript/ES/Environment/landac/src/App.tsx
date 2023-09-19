@@ -44,7 +44,6 @@ function App() {
   //**** Set states */
   const mapDiv = useRef(null);
   const layerListDiv = useRef<HTMLDivElement | undefined | any>(null);
-  const searchDiv = useRef<HTMLDivElement | undefined | any>(null);
 
   // For Calcite Design
   const calcitePanelBasemaps = useRef<HTMLDivElement | undefined | any>(null);
@@ -462,6 +461,13 @@ function App() {
           id="header-title"
           style={{ display: 'flex', width: '100%', padding: '0 1rem' }}
         >
+          <img
+            src="https://EijiGorilla.github.io/Symbols/Projec_Logo/DOTr_Logo_v2.png"
+            alt="DOTr Logo"
+            height={'2.9%'}
+            width={'2.9%'}
+            style={{ marginBottom: 'auto', marginTop: 'auto' }}
+          />
           <b
             style={{
               color: 'white',
@@ -481,7 +487,7 @@ function App() {
               width: '70%',
               borderColor: 'rgb(0,0,0,0)',
               paddingTop: 10,
-              marginLeft: '-7rem',
+              marginLeft: '-10rem',
             }}
           >
             <div
@@ -493,7 +499,7 @@ function App() {
                 justifyContent: 'right',
               }}
             >
-              <b style={{ color: 'white', margin: 10 }}>Municipality</b>
+              <b style={{ color: 'white', margin: 10, fontSize: '0.9vw' }}>Municipality</b>
               <Select
                 placeholder="Select Municipality"
                 value={municipality}
@@ -503,7 +509,7 @@ function App() {
                 styles={customstyles}
               />
               <br />
-              <b style={{ color: 'white', margin: 10 }}>Barangay</b>
+              <b style={{ color: 'white', margin: 10, fontSize: '0.9vw' }}>Barangay</b>
               <Select
                 placeholder="Select Barangay"
                 value={barangay}
@@ -514,6 +520,56 @@ function App() {
               />
             </div>
           </div>
+          <img
+            src="https://EijiGorilla.github.io/Symbols/Projec_Logo/JICA_Logo.svg"
+            alt="GCR Logo"
+            height={'3.5%'}
+            width={'3.5%'}
+            style={{
+              marginBottom: 'auto',
+              marginTop: 'auto',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              paddingLeft: '15px',
+            }}
+          />
+          <img
+            src="https://EijiGorilla.github.io/Symbols/Projec_Logo/adblogo.png"
+            alt="GCR Logo"
+            height={'3.2%'}
+            width={'3.2%'}
+            style={{
+              marginBottom: 'auto',
+              marginTop: 'auto',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+            }}
+          />
+          <img
+            src="https://EijiGorilla.github.io/Symbols/Projec_Logo/PNR.png"
+            alt="PNR Logo"
+            height={'3%'}
+            width={'3%'}
+            style={{
+              marginBottom: 'auto',
+              marginTop: 'auto',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+            }}
+          />
+          <img
+            src="https://EijiGorilla.github.io/Symbols/Projec_Logo/GCR LOGO.png"
+            alt="GCR Logo"
+            height={'4.4%'}
+            width={'4.4%'}
+            style={{
+              marginBottom: 'auto',
+              marginTop: 'auto',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              paddingRight: '10px',
+            }}
+          />
         </header>
 
         <CalciteShellPanel
