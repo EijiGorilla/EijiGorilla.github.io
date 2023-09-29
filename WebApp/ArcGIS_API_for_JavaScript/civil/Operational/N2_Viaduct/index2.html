@@ -1637,64 +1637,13 @@
         const xAxisNumberFormat = "#'%'";
         const seriesBulletLabelFontSize = "0.5em";
 
-        // series line fill pattern
-        const linePatternColorComplete = "#70AD47";
-        const linePatternColorOpacityComplete = 0;
-        const linePatternFillOpacityComplete = 1;
-
-        const linePatternColorDelay = "#FF0000";
-        const linePatternColorOpacityDelay = 0;
-        const linePatternFillOpacityDelay = 0;
-
-        const linePatternColorOpacityIncomplet = 0;
-        const linePatternFillOpacityIncomplet = 1;
-        const linePatternStrokeOpacityIncomplet = 0;
-
         const chartIconWidth = 40;
         const chartIconHeight = 40;
         const chartIconPositionX = -27;
         const chartPaddingRightIconLabel = 45;
 
-        class MyTheme extends am5.Theme {
-          setupDefaultRules() {
-            var theme = this;
-
-            this.patterns = [
-              am5.LinePattern.new(this._root, {
-                color: am5.color(linePatternColorComplete),
-                colorOpacity: linePatternColorOpacityComplete,
-                fillOpacity: linePatternFillOpacityComplete,
-              }),
-
-              am5.LinePattern.new(this._root, {
-                colorOpacity: linePatternColorOpacityIncomplet,
-                fillOpacity: linePatternFillOpacityIncomplet,
-                strokeOpacity: linePatternStrokeOpacityIncomplet,
-              }),
-
-              am5.LinePattern.new(this._root, {
-                color: am5.color(linePatternColorDelay),
-                colorOpacity: linePatternColorOpacityDelay,
-                fillOpacity: linePatternFillOpacityDelay,
-              }),
-            ];
-
-            this.currentPattern = 0;
-            this.rule("RoundedRectangle").setAll({
-              fillOpacity: 1,
-            });
-
-            this.rule("RoundedRectangle").setup = function (target) {
-              target.set("fillPattern", theme.patterns[theme.currentPattern]);
-              theme.currentPattern++;
-              if (theme.currentPattern == theme.patterns.length) {
-                theme.currentPattern = 0;
-              }
-            };
-          }
-        }
-
         const chartSeriesFillColorComp = "#0070ff";
+        const chartSeriesFillColorIncomp = "#000000";
         const chartSeriesFillColorDelay = "#FF0000";
         const chartBorderLineColor = "#00c5ff";
         const chartBorderLineWidth = 0.4;
@@ -1750,7 +1699,6 @@
             root.setThemes([
               am5themes_Animated.new(root),
               am5themes_Responsive.new(root),
-              MyTheme.new(root),
             ]);
 
             // Create chart
@@ -1852,17 +1800,27 @@
                   categoryYField: "category",
                   fill:
                     fieldName === "delay"
-                      ? am5.color(chartSeriesFillColorDelay)
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
                       : am5.color(chartSeriesFillColorComp),
                   stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
+                strokeWidth: chartBorderLineWidth,
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
-                strokeWidth: chartBorderLineWidth,
               });
 
               var tooltip = am5.Tooltip.new(root, {
@@ -2007,7 +1965,6 @@
             root2.setThemes([
               am5themes_Animated.new(root2),
               am5themes_Responsive.new(root2),
-              MyTheme.new(root2),
             ]);
 
             // Create chart
@@ -2109,13 +2066,24 @@
                   categoryYField: "category",
                   fill:
                     fieldName === "delay"
-                      ? am5.color(chartSeriesFillColorDelay)
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
                       : am5.color(chartSeriesFillColorComp),
                   stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
+
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
@@ -2263,7 +2231,6 @@
             root3.setThemes([
               am5themes_Animated.new(root3),
               am5themes_Responsive.new(root3),
-              MyTheme.new(root3),
             ]);
 
             // Create chart
@@ -2363,13 +2330,23 @@
                   categoryYField: "category",
                   fill:
                     fieldName === "delay"
-                      ? am5.color(chartSeriesFillColorDelay)
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
                       : am5.color(chartSeriesFillColorComp),
                   stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
@@ -2518,7 +2495,6 @@
             root4.setThemes([
               am5themes_Animated.new(root4),
               am5themes_Responsive.new(root4),
-              MyTheme.new(root4),
             ]);
 
             // Create chart
@@ -2620,13 +2596,23 @@
                   categoryYField: "category",
                   fill:
                     fieldName === "delay"
-                      ? am5.color(chartSeriesFillColorDelay)
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
                       : am5.color(chartSeriesFillColorComp),
                   stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
@@ -2774,7 +2760,6 @@
             root5.setThemes([
               am5themes_Animated.new(root5),
               am5themes_Responsive.new(root5),
-              MyTheme.new(root5),
             ]);
 
             // Create chart
@@ -2876,13 +2861,23 @@
                   categoryYField: "category",
                   fill:
                     fieldName === "delay"
-                      ? am5.color(chartSeriesFillColorDelay)
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
                       : am5.color(chartSeriesFillColorComp),
                   stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
