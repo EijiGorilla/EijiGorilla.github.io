@@ -144,7 +144,7 @@
       padding-top: 2%;
       margin: 0;
       z-index: 1;
-      top: 5%;
+      top: 4%;
       left: 4%;
       position: fixed;
     }
@@ -580,6 +580,7 @@
       BasemapGallery
     ) {
       const timeSeries = document.querySelector("calcite-button");
+      console.log(timeSeries);
       timeSeries.addEventListener("click", function (event) {
         const timeSeriesChart = document.getElementById("timeSeriesChart");
         timeSeriesChart.hidden = !timeSeriesChart.hidden;
@@ -659,17 +660,16 @@
         }
       }
 
-      //
       ////// Train Animation using externalRenderers
 
       // Adds a graphic when the user clicks the map. If 2 or more points exist, route is solved.
       //on(view, "click", addStop);
       /*
-      view.on("click", function() {
-        addStop();
+        view.on("click", function() {
+          addStop();
 
-    });
-    */
+      });
+      */
 
       function addStop(event) {
         // Add a point at the location of the map click
@@ -1105,10 +1105,10 @@
         addStop();
         await startAnimation(0);
         /*
-    window.setTimeout(function() {
-        startAnimation(0);
-    }, 1)
-    */
+      window.setTimeout(function() {
+          startAnimation(0);
+      }, 1)
+      */
       }
       //////////
 
@@ -1237,7 +1237,7 @@
       const colors = {
         1: [225, 225, 225, 0.1], // To be Constructed (white)
         2: [130, 130, 130, 0.5], // Under Construction
-        3: [255, 0, 0, 0.8], // Delayed
+        3: [255, 165, 0, 0.2], // Delayed, original: 255, 0, 0, 0.2
         4: [0, 112, 255, 0.8], // Bored Pile
         5: [0, 112, 255, 0.8], // Pile cap
         6: [0, 112, 255, 0.8], // Pier
@@ -1248,62 +1248,6 @@
       //*******************************//
       // Import Layers                 //
       //*******************************//
-      // Launching Girders location
-      var launchingGirderLabelClass = new LabelClass({
-        symbol: {
-          type: "label-3d", // autocasts as new LabelSymbol3D()
-          symbolLayers: [
-            {
-              type: "text", // autocasts as new TextSymbol3DLayer()
-              material: {
-                color: "red",
-              },
-              size: 14,
-              color: "black",
-              haloColor: "black",
-              haloSize: 1,
-              font: {
-                family: "Ubuntu Mono",
-                weight: "bold",
-              },
-            },
-          ],
-          verticalOffset: {
-            screenLength: 45,
-            maxWorldLength: 120,
-            minWorldLength: 25,
-          },
-          callout: {
-            type: "line", // autocasts as new LineCallout3D()
-            color: "red",
-            size: 1,
-            border: {
-              color: "grey",
-            },
-          },
-        },
-        labelPlacement: "above-center",
-        labelExpressionInfo: {
-          expression: "$feature.LAYER",
-          //value: "{TEXTSTRING}"
-        },
-      });
-
-      /*
-      var launchingGirderLayer = new FeatureLayer({
-        url: "https://services8.arcgis.com/h9TUF6x5VzqLQaYx/arcgis/rest/services/N2_Alignment_20230516/FeatureServer",
-        layerId: 6,
-        labelingInfo: [launchingGirderLabelClass],
-        elevationInfo: {
-          mode: "on-the-ground", //absolute-height, relative-to-ground
-        },
-        title: "Girder Launcher Location",
-        outFields: ["*"],
-        definitionExpression: "LAYER IS NOT NULL",
-      });
-      map.add(launchingGirderLayer);
-      launchingGirderLayer.visible = true;
-*/
       // Station Layer
       var stationLayer = new SceneLayer({
         portalItem: {
@@ -1378,27 +1322,27 @@
         // when filter using date, example below. use this format
         //definitionExpression: "EndDate = date'2020-6-3'"
         /*
-    popupTemplate: {
-      title: "<h5>{Status1}</h5>",
-      lastEditInfoEnabled: false,
-      returnGeometry: true,
-      content: [
-        {
-          type: "fields",
-          fieldInfos: [
-            {
-              fieldName: "Type",
-              label: "Type of Structure"
-            },
-            {
-              fieldName: "PierNumber",
-              Label: "Pier No."
-            }
-          ]
-        }
-      ]
-    }
-    */
+      popupTemplate: {
+        title: "<h5>{Status1}</h5>",
+        lastEditInfoEnabled: false,
+        returnGeometry: true,
+        content: [
+          {
+            type: "fields",
+            fieldInfos: [
+              {
+                fieldName: "Type",
+                label: "Type of Structure"
+              },
+              {
+                fieldName: "PierNumber",
+                Label: "Pier No."
+              }
+            ]
+          }
+        ]
+      }
+      */
       });
       viaductLayer.listMode = "hide";
       map.add(viaductLayer);
@@ -1511,13 +1455,14 @@
         "November",
         "December",
       ];
+      /*
       function getEditedDateValue() {
         var tempDates = [];
 
         var query = viaductLayer.createQuery();
         query.fields = ["last_edited_date"];
         query.where = "last_edited_date IS NOT NULL";
-        return viaductLayer.queryFeatures(query).then(function (response) {
+        return viaductLayer.queryFeatures(query).then(function(response) {
           var stats = response.features;
           stats.forEach((result, index) => {
             var attributes = result.attributes;
@@ -1530,10 +1475,12 @@
           const mm = month[lastEdit.getMonth()];
           const dd = lastEdit.getDate();
           const lastEditedDate = `As of ${mm} ${dd}, ${yyyy}`;
-          document.getElementById("dateDiv").innerHTML = "As of June 29, 2023"; //lastEditedDate;
+          document.getElementById("dateDiv").innerHTML = "As of July 26, 2023";//lastEditedDate;
         });
       }
       getEditedDateValue();
+      */
+      document.getElementById("dateDiv").innerHTML = "As of September 27, 2023"; //lastEditedDate;
 
       //*******************************************************************//
       // CHART FUNCTION:
@@ -1581,52 +1528,16 @@
         const xAxisNumberFormat = "#'%'";
         const seriesBulletLabelFontSize = "0.5em";
 
-        // series line fill pattern
-        const linePatternColorComplete = "#70AD47";
-        const linePatternColorOpacityComplete = 0;
-        const linePatternFillOpacityComplete = 0;
-
-        const linePatternColorOpacityIncomplet = 0;
-        const linePatternFillOpacityIncomplet = 1;
-        const linePatternStrokeOpacityIncomplet = 0;
-
         const chartIconWidth = 40;
         const chartIconHeight = 40;
         const chartIconPositionX = -27;
         const chartPaddingRightIconLabel = 45;
 
-        class MyTheme extends am5.Theme {
-          setupDefaultRules() {
-            var theme = this;
-
-            this.patterns = [
-              am5.LinePattern.new(this._root, {
-                color: am5.color(linePatternColorComplete),
-                colorOpacity: linePatternColorOpacityComplete,
-                fillOpacity: linePatternFillOpacityComplete,
-              }),
-
-              am5.LinePattern.new(this._root, {
-                colorOpacity: linePatternColorOpacityIncomplet,
-                fillOpacity: linePatternFillOpacityIncomplet,
-                strokeOpacity: linePatternStrokeOpacityIncomplet,
-              }),
-            ];
-
-            this.currentPattern = 0;
-            this.rule("RoundedRectangle").setAll({
-              fillOpacity: 1,
-            });
-
-            this.rule("RoundedRectangle").setup = function (target) {
-              target.set("fillPattern", theme.patterns[theme.currentPattern]);
-              theme.currentPattern++;
-              if (theme.currentPattern == theme.patterns.length) {
-                theme.currentPattern = 0;
-              }
-            };
-          }
-        }
+        const chartSeriesFillColorComp = "#0070ff";
+        const chartSeriesFillColorIncomp = "#000000";
+        const chartSeriesFillColorDelay = "#FFA500"; // original: #FF0000
+        const chartBorderLineColor = "#00c5ff";
+        const chartBorderLineWidth = 0.4;
 
         // 1. Bored pile
         var root = am5.Root.new("chartBoredPileDiv");
@@ -1679,7 +1590,6 @@
             root.setThemes([
               am5themes_Animated.new(root),
               am5themes_Responsive.new(root),
-              MyTheme.new(root),
             ]);
 
             // Create chart
@@ -1781,17 +1691,27 @@
                   categoryYField: "category",
                   fill:
                     fieldName === "delay"
-                      ? am5.color(chartSeriesFillColorDelay)
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
                       : am5.color(chartSeriesFillColorComp),
                   stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
+                strokeWidth: chartBorderLineWidth,
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
-                strokeWidth: chartBorderLineWidth,
               });
 
               var tooltip = am5.Tooltip.new(root, {
@@ -1936,7 +1856,6 @@
             root2.setThemes([
               am5themes_Animated.new(root2),
               am5themes_Responsive.new(root2),
-              MyTheme.new(root2),
             ]);
 
             // Create chart
@@ -2038,13 +1957,24 @@
                   categoryYField: "category",
                   fill:
                     fieldName === "delay"
-                      ? am5.color(chartSeriesFillColorDelay)
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
                       : am5.color(chartSeriesFillColorComp),
                   stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
+
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
@@ -2192,7 +2122,6 @@
             root3.setThemes([
               am5themes_Animated.new(root3),
               am5themes_Responsive.new(root3),
-              MyTheme.new(root3),
             ]);
 
             // Create chart
@@ -2292,13 +2221,23 @@
                   categoryYField: "category",
                   fill:
                     fieldName === "delay"
-                      ? am5.color(chartSeriesFillColorDelay)
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
                       : am5.color(chartSeriesFillColorComp),
                   stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
@@ -2447,7 +2386,6 @@
             root4.setThemes([
               am5themes_Animated.new(root4),
               am5themes_Responsive.new(root4),
-              MyTheme.new(root4),
             ]);
 
             // Create chart
@@ -2549,13 +2487,23 @@
                   categoryYField: "category",
                   fill:
                     fieldName === "delay"
-                      ? am5.color(chartSeriesFillColorDelay)
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
                       : am5.color(chartSeriesFillColorComp),
                   stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
@@ -2703,7 +2651,6 @@
             root5.setThemes([
               am5themes_Animated.new(root5),
               am5themes_Responsive.new(root5),
-              MyTheme.new(root5),
             ]);
 
             // Create chart
@@ -2805,13 +2752,23 @@
                   categoryYField: "category",
                   fill:
                     fieldName === "delay"
-                      ? am5.color(chartSeriesFillColorDelay)
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
                       : am5.color(chartSeriesFillColorComp),
                   stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
@@ -3199,26 +3156,23 @@
       view.ui.add(contractPackage, "top-right");
       // Editor: enable when necessary
       /*
-  view.when(function () {
-    view.popup.autoOpenEnabled = true; //disable popups
-    // Create the Editor
-    const editor = new Editor({
-      view: view
+    view.when(function () {
+      view.popup.autoOpenEnabled = true; //disable popups
+      // Create the Editor
+      const editor = new Editor({
+        view: view
+      });
+      // Add widget to top-right of the view
+      view.ui.add(editor, "top-right");
     });
-    // Add widget to top-right of the view
-    view.ui.add(editor, "top-right");
-  });
-  */
+    */
 
       // LayerList and Add legend to the LayerList
       var layerList = new LayerList({
         view: view,
         listItemCreatedFunction: function (event) {
           const item = event.item;
-          if (
-            item.title === "Chainage" ||
-            item.title === "OpenStreetMap 3D Buildings"
-          ) {
+          if (item.title === "Chainage") {
             item.visible = false;
           }
         },
