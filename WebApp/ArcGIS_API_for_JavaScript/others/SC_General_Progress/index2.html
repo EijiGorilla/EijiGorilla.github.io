@@ -196,7 +196,7 @@
       padding: 0;
       top: 0;
       background-color: rgba(0, 0, 0, 0);
-      height: 50vh;
+      height: 55vh;
       width: 10vw;
     }
 
@@ -551,11 +551,51 @@
         const color_101 = "#ffa500";
         const color_102 = "#00ff00";
         const color_103 = "#70AD47";
+
         const color_104 = "#ffff00";
         const color_105 = "#bf40bf";
         const color_106 = "#ff7f7f";
         const color_107 = "#cdaa66";
         const color_handedOver = "#00c5ff";
+
+        const cpColor = [
+          {
+            cp: "S-01",
+            color: "#ffa500"
+          },
+          {
+            cp: "S-02",
+            color: "#ff69b4"
+          },
+          {
+            cp: "S-03A",
+            color: "#00ff00"
+          },
+          {
+            cp: "S-03B",
+            color: "#70ad47"
+          },
+          {
+            cp: "S-03C",
+            color: "#088f8f"
+          },
+          {
+            cp: "S-04",
+            color: "#ffff00"
+          },
+          {
+            cp: "S-05",
+            color: "#bf40bf"
+          },
+          {
+            cp: "S-06",
+            color: "#ff7f7f"
+          },
+          {
+            cp: "S-07",
+            color: "#cdaa66"
+          },
+        ]
 
         // Bottom Title Color
         const BOTTOM_LABEL_COL = am4core.color("#C5C5C5");
@@ -633,37 +673,47 @@
               {
                 CP: "CP S-01 (%)",
                 status: s01,
-                color: am4core.color(color_101),
+                color: am4core.color(cpColor.find((emp) => emp.cp === "S-01").color),
               },
               {
                 CP: "CP S-02 (%)",
                 status: "",
-                color: am4core.color(color_102),
+                color: am4core.color(cpColor.find((emp) => emp.cp === "S-02").color),
               },
               {
-                CP: "CP S-03 (%)",
+                CP: "CP S-03A (%)",
                 status: "",
-                color: am4core.color(color_103),
+                color: am4core.color(cpColor.find((emp) => emp.cp === "S-03A").color),
+              },
+              {
+                CP: "CP S-03B (%)",
+                status: "",
+                color: am4core.color(cpColor.find((emp) => emp.cp === "S-03B").color),
+              },
+              {
+                CP: "CP S-03C (%)",
+                status: "",
+                color: am4core.color(cpColor.find((emp) => emp.cp === "S-03C").color),
               },
               {
                 CP: "CP S-04 (%)",
                 status: "",
-                color: am4core.color(color_104),
+                color: am4core.color(cpColor.find((emp) => emp.cp === "S-04").color),
               },
               {
                 CP: "CP S-05 (%)",
                 status: "",
-                color: am4core.color(color_105),
+                color: am4core.color(cpColor.find((emp) => emp.cp === "S-05").color),
               },
               {
                 CP: "CP S-06 (%)",
                 status: "",
-                color: am4core.color(color_106),
+                color: am4core.color(cpColor.find((emp) => emp.cp === "S-06").color),
               },
               {
                 CP: "CP S-07 (%)",
                 status: "",
-                color: am4core.color(color_107),
+                color: am4core.color(cpColor.find((emp) => emp.cp === "S-07").color),
               },
             ];
 
@@ -780,6 +830,12 @@
         //////////////////////////////////////////
 
         /// 1. Land
+        // Note that we need the following:
+        // 1. total handed over %
+        // 2. weighted handed over % for each CP [this is used for dividing bar areas = visualization purpose]
+        // 3. actual handed over % for each CP [this number is used for annotation]
+        const queryTotalHandedOver = "(CP IS NOT NULL OR AffectedArea IS NOT NULL) AND CP NOT IN ('S-03B, S-03C')";
+  
         function lotTotalArea() {
           var total_affected_area = {
             onStatisticField: "AffectedArea",
@@ -787,21 +843,14 @@
             statisticType: "sum",
           };
 
-          var total_handover_area = {
-            onStatisticField: "HandedOverArea",
-            outStatisticFieldName: "total_handover_area",
-            statisticType: "sum",
-          };
-
           var query = lotLayer.createQuery();
-          query.outStatistics = [total_affected_area, total_handover_area];
+          query.where = queryTotalHandedOver;
+          query.outStatistics = [total_affected_area];
 
           return lotLayer.queryFeatures(query).then(function (response) {
             var stats = response.features[0].attributes;
 
             const totalAffected = stats.total_affected_area;
-            const totalHandedOver = stats.total_handover_area;
-            //const LOT_HANDOVER_PERC = (handedOver/affected)*100;
             return totalAffected;
           });
         }
@@ -821,7 +870,8 @@
 
           var query = lotLayer.createQuery();
           query.outStatistics = [total_affected_area, total_handover_area];
-          query.returnGeometry = true;
+          query.where = queryTotalHandedOver;
+          query.orderByFields = ["CP"];
           query.groupByFieldsForStatistics = ["CP"];
 
           var cpS01 = [];
@@ -830,8 +880,14 @@
           var cpS02 = [];
           var cpS02_a = [];
 
-          var cpS03 = [];
-          var cpS03_a = [];
+          var cpS03A = [];
+          var cpS03A_a = [];
+
+          var cpS03B = [];
+          var cpS03B_a = [];
+
+          var cpS03C = [];
+          var cpS03C_a = [];
 
           var cpS04 = [];
           var cpS04_a = [];
@@ -853,27 +909,42 @@
               const cpPackage = result.attributes.CP;
               const affected = attributes.total_affected_area;
               const handedOver = attributes.total_handover_area;
+              //const handedOver = attributes.total_handover_area > affected ? 5000 : attributes.total_handover_area;
               const LOT_HANDOVER_PERC = (handedOver / totalAffected) * 100;
               const lot_handedover = (handedOver / affected) * 100;
 
               if (cpPackage === "S-01") {
                 cpS01.push(LOT_HANDOVER_PERC);
                 cpS01_a.push(lot_handedover);
+
               } else if (cpPackage === "S-02") {
                 cpS02.push(LOT_HANDOVER_PERC);
                 cpS02_a.push(lot_handedover);
-              } else if (cpPackage === "S-03") {
-                cpS03.push(LOT_HANDOVER_PERC);
-                cpS03_a.push(lot_handedover);
+
+              } else if (cpPackage === "S-03A") {
+                cpS03A.push(LOT_HANDOVER_PERC);
+                cpS03A_a.push(lot_handedover);
+
+              }  else if (cpPackage === "S-03B") {
+                cpS03B.push(LOT_HANDOVER_PERC);
+                cpS03B_a.push(lot_handedover);
+
+              } else if (cpPackage === "S-03C") {
+                cpS03C.push(LOT_HANDOVER_PERC);
+                cpS03C_a.push(lot_handedover);
+
               } else if (cpPackage === "S-04") {
                 cpS04.push(LOT_HANDOVER_PERC);
                 cpS04_a.push(lot_handedover);
+
               } else if (cpPackage === "S-05") {
                 cpS05.push(LOT_HANDOVER_PERC);
                 cpS05_a.push(lot_handedover);
+
               } else if (cpPackage === "S-06") {
                 cpS06.push(LOT_HANDOVER_PERC);
                 cpS06_a.push(lot_handedover);
+                
               } else if (cpPackage === "S-07") {
                 cpS07.push(LOT_HANDOVER_PERC);
                 cpS07_a.push(lot_handedover);
@@ -882,14 +953,18 @@
             return [
               cpS01,
               cpS02,
-              cpS03,
+              cpS03A,
+              cpS03B,
+              cpS03C,
               cpS04,
               cpS05,
               cpS06,
               cpS07,
               cpS01_a,
               cpS02_a,
-              cpS03_a,
+              cpS03A_a,
+              cpS03B_a,
+              cpS03C_a,
               cpS04_a,
               cpS05_a,
               cpS06_a,
@@ -901,54 +976,44 @@
         function laFigureLot([
           cpS01,
           cpS02,
-          cpS03,
+          cpS03A,
+          cpS03B,
+          cpS03C,
           cpS04,
           cpS05,
           cpS06,
           cpS07,
           cpS01_a,
           cpS02_a,
-          cpS03_a,
+          cpS03A_a,
+          cpS03B_a,
+          cpS03C_a,
           cpS04_a,
           cpS05_a,
           cpS06_a,
           cpS07_a,
         ]) {
-          var totalScore =
+          var totalScore = // sum of weighted handed-over %
             Number(cpS01) +
             Number(cpS02) +
-            Number(cpS03) +
+            Number(cpS03A) +
+            Number(cpS03B) +
+            Number(cpS03C) +
             Number(cpS04) +
             Number(cpS05) +
             Number(cpS06) +
             Number(cpS07);
 
+          // Weighted handed over % for each CP for dividing bars (visualization purpose)
           var S01 = Number(cpS01);
-          var S02 = Number(cpS01) + Number(cpS02);
-          var S03 = Number(cpS01) + Number(cpS02) + Number(cpS03);
-          var S04 =
-            Number(cpS01) + Number(cpS02) + Number(cpS03) + Number(cpS04);
-          var S05 =
-            Number(cpS01) +
-            Number(cpS02) +
-            Number(cpS03) +
-            Number(cpS04) +
-            Number(cpS05);
-          var S06 =
-            Number(cpS01) +
-            Number(cpS02) +
-            Number(cpS03) +
-            Number(cpS04) +
-            Number(cpS05) +
-            Number(cpS06);
-          var S07 =
-            Number(cpS01) +
-            Number(cpS02) +
-            Number(cpS03) +
-            Number(cpS04) +
-            Number(cpS05) +
-            Number(cpS06) +
-            Number(cpS07);
+          var S02 = S01 + Number(cpS02);
+          var S03a = S02 + Number(cpS03A);
+          var S03b = S03a + Number(cpS03B);
+          var S03c = S03b + Number(cpS03C) ;
+          var S04 = S03c + Number(cpS04);
+          var S05 = S04 + Number(cpS05);
+          var S06 = S05 + Number(cpS06);
+          var S07 = S06 + Number(cpS07);
 
           var chartMin = 0;
           var chartMax = 100;
@@ -960,44 +1025,56 @@
             score: totalScore,
             gradingData: [
               {
-                title: isNaN(cpS01) ? "" : Number(cpS01).toFixed(0),
-                color: color_101,
+                title: isNaN(cpS01_a) ? "" : Number(cpS01_a).toFixed(0),
+                color: cpColor.find((emp) => emp.cp === "S-01").color,
                 lowScore: 0,
                 highScore: S01,
               },
               {
-                title: isNaN(cpS02) ? "" : Number(cpS02).toFixed(0),
-                color: color_102,
+                title: isNaN(cpS02_a) ? "" : Number(cpS02_a).toFixed(0),
+                color: cpColor.find((emp) => emp.cp === "S-02").color,
                 lowScore: S01,
                 highScore: S02,
               },
               {
-                title: isNaN(cpS03) ? "" : Number(cpS03).toFixed(0),
-                color: color_103,
+                title: isNaN(cpS03A_a) ? "" : Number(cpS03A_a).toFixed(0),
+                color: cpColor.find((emp) => emp.cp === "S-03A").color,
                 lowScore: S02,
-                highScore: S03,
+                highScore: S03a,
               },
               {
-                title: isNaN(cpS04) ? "" : Number(cpS04).toFixed(0),
-                color: color_104,
-                lowScore: S03,
+                title: isNaN(cpS03B_a) ? "" : Number(cpS03B_a).toFixed(0),
+                color: cpColor.find((emp) => emp.cp === "S-03B").color,
+                lowScore: S03a,
+                highScore: S03b,
+              },
+              {
+                title: isNaN(cpS03C_a) ? "" : Number(cpS03C_a).toFixed(0),
+                color: cpColor.find((emp) => emp.cp === "S-03C").color,
+                lowScore: S03b,
+                highScore: S03c,
+              },
+              {
+                title: isNaN(cpS04_a) ? "" : Number(cpS04_a).toFixed(0),
+                color: cpColor.find((emp) => emp.cp === "S-04").color,
+                lowScore: S03c,
                 highScore: S04,
               },
               {
-                title: isNaN(cpS05) ? "" : Number(cpS05).toFixed(0),
-                color: color_105,
+                title: isNaN(cpS05_a) ? "" : Number(cpS05_a).toFixed(0),
+                color: cpColor.find((emp) => emp.cp === "S-05").color,
                 lowScore: S04,
                 highScore: S05,
               },
               {
-                title: isNaN(cpS06) ? "" : Number(cpS06).toFixed(0),
-                color: color_106,
+                title: isNaN(cpS06_a) ? "" : Number(cpS06_a).toFixed(0),
+                color: cpColor.find((emp) => emp.cp === "S-06").color,
                 lowScore: S05,
                 highScore: S06,
               },
               {
-                title: isNaN(cpS07) ? "" : Number(cpS07).toFixed(0),
-                color: color_107,
+                title: isNaN(cpS07_a) ? "" : Number(cpS07_a).toFixed(0),
+                color: cpColor.find((emp) => emp.cp === "S-07").color,
                 lowScore: S06,
                 highScore: S07,
               },
@@ -1190,7 +1267,6 @@
     */
         }
         lotTotalArea().then(lotSummary).then(laFigureLot);
-
         /// 2. Structure
         function strucTotalArea() {
           var total_number_struc = {
