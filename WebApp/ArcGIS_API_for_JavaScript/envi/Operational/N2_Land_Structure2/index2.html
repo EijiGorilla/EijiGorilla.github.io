@@ -532,6 +532,7 @@
       "esri/layers/TileLayer",
       "esri/core/reactiveUtils",
       "esri/popup/support/FieldInfoFormat",
+      "esri/layers/GroupLayer"
     ], function (
       WebMap,
       MapView,
@@ -565,7 +566,8 @@
       CustomContent,
       TileLayer,
       reactiveUtils,
-      FieldInfoFormat
+      FieldInfoFormat,
+      GroupLayer
     ) {
       //****---------------- Creating Map -----------------------****//
       var map = new Map({
@@ -713,7 +715,7 @@
           model: "on-the-ground",
         },
       });
-      map.add(lotLayer, 0); //layer order in map.add
+      //map.add(lotLayer, 0); //layer order in map.add
       lotLayer.visible = true;
 
       // Popup for lot layer
@@ -855,7 +857,7 @@
           model: "on-the-ground",
         },
       });
-      map.add(endorsedLotLayer, 0); //layer order in map.add
+      //map.add(endorsedLotLayer, 0); //layer order in map.add
       endorsedLotLayer.popupTemplate = templateLot; //use the same popup as lot layer
 
       //**** ---- Super Urgent Lots ---- ***///
@@ -1123,7 +1125,7 @@
           ],
         },
       });
-      map.add(structureLayer, 0); //layer order in map.add
+      //map.add(structureLayer, 0); //layer order in map.add
 
       //**** ---- Non-Land Owner (ISF) ---- ***///
 
@@ -1288,7 +1290,7 @@
         },
       });
       //nloLayer.listMode = "hide";
-      map.add(nloLayer, 0);
+      //map.add(nloLayer, 0);
 
       //**** ---- Occupancy (Structure) ---- ***///
 
@@ -1409,7 +1411,7 @@
           ],
         },
       });
-      map.add(occupancyLayer, 0); // layer order in the map.add
+      //map.add(occupancyLayer, 0); // layer order in the map.add
 
       //**** ---- NLO/LO Ownership (Structure) ---- ***///
 
@@ -1464,7 +1466,7 @@
           model: "on-the-ground",
         },
       });
-      map.add(strucOwnershipLayer, 0); //layer order in the map.add
+      //map.add(strucOwnershipLayer, 0); //layer order in the map.add
 
       //**** ---- Free and Clear Lot ---- ***///
 
@@ -1495,7 +1497,7 @@
             value: "BCDA",
             symbol: {
               type: "simple-fill",
-              color: [225, 225, 225],
+              color: [137, 205, 102],
               style: "diagonal-cross",
               outline: {
                 width: 0.5,
@@ -1507,7 +1509,7 @@
             value: "PNR",
             symbol: {
               type: "simple-fill",
-              color: [225, 225, 225],
+              color: [137, 205, 102],
               style: "diagonal-cross",
               outline: {
                 width: 0.5,
@@ -1564,7 +1566,7 @@
           ],
         },
       });
-      map.add(pnrLayer, 0); //layer order in the map.add
+      //map.add(pnrLayer, 0); //layer order in the map.add
 
       //**** ---- Pier No (Point) with Access Date ---- ***///
 
@@ -1765,7 +1767,7 @@
         },
         { utcOffset: 300 }
       );
-      map.add(pierAccessLayer, 1);
+      //map.add(pierAccessLayer, 1);
 
       // we first need to obtain unique values of date because valueExpression does not allow
       // date'2021-10-01' notation
@@ -2013,7 +2015,7 @@
         },
       });
       //stationBoxLayer.listMode = "hide";
-      map.add(stationBoxLayer, 0);
+      //map.add(stationBoxLayer, 0);
 
       //**** ---- ROW ---- ***///
 
@@ -2029,7 +2031,8 @@
         title: "PROW",
         popupEnabled: false,
       });
-      map.add(prowLayer, 0); // layer order in the map
+      prowLayer.listMode = "hide";
+      //map.add(prowLayer, 0); // layer order in the map
 
       //**** ---- Chainage ---- ***///
 
@@ -2082,7 +2085,7 @@
         outFields: ["*"],
         popupEnabled: false,
       });
-      map.add(chainageLayer, 0); //layer order in the map.add
+      //map.add(chainageLayer, 0); //layer order in the map.add
 
       //**** ---- Pier Head and Column ---- ***///
 
@@ -2167,7 +2170,7 @@
       };
 
       // Adding the layer
-      var pierHeadColumnLayerLayer = new FeatureLayer({
+      var pierHeadColumnLayer = new FeatureLayer({
         portalItem: {
           id: "590680d19f2e48fdbd8bcddce3aaedb5",
           portal: {
@@ -2187,8 +2190,8 @@
         },
         legendEnabled: false,
       });
-      pierHeadColumnLayerLayer.listMode = "hide"; //hide in the LayerList
-      map.add(pierHeadColumnLayerLayer, 1); //layer order in the map.add
+      pierHeadColumnLayer.listMode = "hide"; //hide in the LayerList
+      map.add(pierHeadColumnLayer, 1); //layer order in the map.add
 
       //**** ---- Station Point ---- ***///
 
@@ -2258,7 +2261,7 @@
         },
         title: "N2 Stations",
         labelingInfo: [labelClass],
-        //renderer: stationsRenderer,
+        renderer: stationsRenderer,
         elevationInfo: {
           mode: "relative-to-ground",
         },
@@ -2266,7 +2269,42 @@
         //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
       });
       stationLayer.listMode = "hide"; // hides the layer in the layer list
-      map.add(stationLayer, 0); // layer order in the map
+      map.add(stationLayer); // layer order in the map
+
+
+      //**** ---- Group Layers ---- ***///
+
+      const alignmentGroupLayer = new GroupLayer({
+        title: "Alignment",
+        visible: true,
+        visibilityMode: "indepenent",
+        layers: [stationBoxLayer, chainageLayer]
+      }); //map.add(alignmentGroupLayer, 0);
+
+
+        const nloLoOccupancyGroupLayer = new GroupLayer({
+            title: "NLO/LO Occupancy",
+            visible: true,
+            visibilityMode: "independent",
+            layers: [occupancyLayer, strucOwnershipLayer, nloLayer]
+        });
+
+        const lotGroupLayer = new GroupLayer({
+            title: "Land",
+            visible: true,
+            visibilityMode: "independent",
+            layers: [endorsedLotLayer, lotLayer, pnrLayer]
+        });
+
+        /// Order in the layer list
+        map.add(pierAccessLayer);
+        map.add(lotGroupLayer);
+        map.add(structureLayer);
+        map.add(nloLoOccupancyGroupLayer);
+        map.add(alignmentGroupLayer);
+        map.add(prowLayer);
+
+
 
       /////////////////// END Of LAYER IMPORT ////////////////////////////
 
