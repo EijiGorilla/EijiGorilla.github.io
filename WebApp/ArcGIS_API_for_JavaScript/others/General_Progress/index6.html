@@ -821,9 +821,9 @@ function disableZooming(view) {
     const tobeConstructed_color = colors[2]; // original: "#b0c4d8";
     const underConstruction_color = colors[1]; //original: #ffff00
     const completedConstruction_color = colors[0]; // original: #dc4b00
-
+ 
+    // Default line width for costruction progress in overview
     const construction_lineWidth = "6px";
-
     const lineSymbol_construction = {
       type: "unique-value", // autocasts as new SimpleLineSymbol(),
       field: "construcStat",
@@ -860,6 +860,50 @@ function disableZooming(view) {
             type: "simple-line",
             color: completedConstruction_color,
             width: construction_lineWidth,
+            style: "solid",
+          },
+        },
+      ],
+    };
+
+    // Line width for construction progress in individual projects
+    const construction_lineWidth_project = "8px";
+    const lineSymbol_construction_project = {
+      type: "unique-value", // autocasts as new SimpleLineSymbol(),
+      field: "construcStat",
+      /*
+    legendOptions: {
+      title: "Construction Status"
+    },
+    */
+      uniqueValueInfos: [
+        {
+          value: "To Be Constructed",
+          label: "To be Constructed",
+          symbol: {
+            type: "simple-line",
+            color: tobeConstructed_color,
+            width: construction_lineWidth_project,
+            style: "solid",
+          },
+        },
+        {
+          value: "On-going",
+          label: "Under Construction",
+          symbol: {
+            type: "simple-line",
+            color: underConstruction_color,
+            width: construction_lineWidth_project,
+            style: "solid",
+          },
+        },
+        {
+          value: "Completed",
+          label: "Completed",
+          symbol: {
+            type: "simple-line",
+            color: completedConstruction_color,
+            width: construction_lineWidth_project,
             style: "solid",
           },
         },
@@ -3013,7 +3057,9 @@ function disableZooming(view) {
     // Select Project for Progress
     function progressFilter() {
       originalConstructionLineWidth();
+
       if (proj === "n1") {
+        projectConstructionLineWidth();
         view.rotation = 360;
 
         n2StationLayer.visible = false;
@@ -3215,7 +3261,8 @@ function disableZooming(view) {
       }
     }
 
-    // // ONly when we print out Progress2, activate thincker line width
+    // Change line width 
+    /// 1. Overview
     function originalConstructionLineWidth() {
       mmspCenterlineConstruction.renderer = lineSymbol_construction;
       n1CenterlineConstruction.renderer = lineSymbol_construction;
@@ -3223,6 +3270,15 @@ function disableZooming(view) {
       scCenterlineConstruction.renderer = lineSymbol_construction;
     }
 
+    /// 2. Individual Projects
+    function projectConstructionLineWidth() {
+      mmspCenterlineConstruction.renderer = lineSymbol_construction_project;
+      n1CenterlineConstruction.renderer = lineSymbol_construction_project;
+      n2CenterlineConstruction.renderer = lineSymbol_construction_project;
+      scCenterlineConstruction.renderer = lineSymbol_construction_project;
+    }
+
+    /// 3. Progress 2
     function progress2ConstructionLineWidth() {
       mmspCenterlineConstruction.renderer = lineSymbol_construction_progress2;
       n1CenterlineConstruction.renderer = lineSymbol_construction_progress2;
