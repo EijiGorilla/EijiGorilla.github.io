@@ -1305,47 +1305,11 @@
         const xAxisNumberFormat = "#'%'";
         const seriesBulletLabelFontSize = "0.5em";
 
-        // series line fill pattern
-        const linePatternColorComplete = "#70AD47";
-        const linePatternColorOpacityComplete = 0;
-        const linePatternFillOpacityComplete = 0;
-
-        const linePatternColorOpacityIncomplet = 0;
-        const linePatternFillOpacityIncomplet = 1;
-        const linePatternStrokeOpacityIncomplet = 0;
-
-        class MyTheme extends am5.Theme {
-          setupDefaultRules() {
-            var theme = this;
-
-            this.patterns = [
-              am5.LinePattern.new(this._root, {
-                color: am5.color(linePatternColorComplete),
-                colorOpacity: linePatternColorOpacityComplete,
-                fillOpacity: linePatternFillOpacityComplete,
-              }),
-
-              am5.LinePattern.new(this._root, {
-                colorOpacity: linePatternColorOpacityIncomplet,
-                fillOpacity: linePatternFillOpacityIncomplet,
-                strokeOpacity: linePatternStrokeOpacityIncomplet,
-              }),
-            ];
-
-            this.currentPattern = 0;
-            this.rule("RoundedRectangle").setAll({
-              fillOpacity: 1,
-            });
-
-            this.rule("RoundedRectangle").setup = function (target) {
-              target.set("fillPattern", theme.patterns[theme.currentPattern]);
-              theme.currentPattern++;
-              if (theme.currentPattern == theme.patterns.length) {
-                theme.currentPattern = 0;
-              }
-            };
-          }
-        }
+        const chartSeriesFillColorComp = "#0070ff";
+        const chartSeriesFillColorIncomp = "#000000";
+        const chartSeriesFillColorDelay = "#FF0000";
+        const chartBorderLineColor = "#00c5ff";
+        const chartBorderLineWidth = 0.4;
 
         // Progress Chart
         // 1. Structural Foundation
@@ -1367,10 +1331,10 @@
             statisticType: "sum",
           };
 
-          var total_stFoundation_underc = {
+          var total_stFoundation_delay = {
             onStatisticField:
-              "CASE WHEN (Types = 1 and Status = 2) THEN 1 ELSE 0 END",
-            outStatisticFieldName: "total_stFoundation_underc",
+              "CASE WHEN (Types = 1 and Status = 3) THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_stFoundation_delay",
             statisticType: "sum",
           };
 
@@ -1384,7 +1348,7 @@
           var query = stFoundationLayer.createQuery();
           query.outStatistics = [
             total_stFoundation_tobec,
-            total_stFoundation_underc,
+            total_stFoundation_delay,
             total_stFoundation_comp,
           ];
           query.returnGeometry = true;
@@ -1393,7 +1357,7 @@
             var stats = response.features[0].attributes;
 
             const foundation_tobec = stats.total_stFoundation_tobec;
-            const foundation_underc = stats.total_stFoundation_underc;
+            const foundation_delay = stats.total_stFoundation_delay;
             const foundation_comp = stats.total_stFoundation_comp;
 
             // Set themes
@@ -1401,7 +1365,6 @@
             root.setThemes([
               am5themes_Animated.new(root),
               am5themes_Responsive.new(root),
-              MyTheme.new(root),
             ]);
 
             // Create chart
@@ -1427,6 +1390,7 @@
                 category: "structural foundation",
                 comp: foundation_comp,
                 incomp: foundation_tobec,
+                delay: foundation_delay,
               },
             ];
 
@@ -1476,10 +1440,26 @@
                   valueXField: fieldName,
                   valueXShow: "valueXTotalPercent",
                   categoryYField: "category",
+                  fill:
+                    fieldName === "delay"
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
+                      : am5.color(chartSeriesFillColorComp),
+                  stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
+                strokeWidth: chartBorderLineWidth,
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
@@ -1511,7 +1491,7 @@
                         ? ""
                         : "{valueXTotalPercent.formatNumber('#.')}%", //"{valueX}",
                     fill: root.interfaceColors.get("alternativeText"),
-                    opacity: fieldName == "incomp" ? 0 : 1,
+                    opacity: fieldName === "comp" ? 1 : 0,
                     fontSize: seriesBulletLabelFontSize,
                     centerY: am5.p50,
                     centerX: am5.p50,
@@ -1541,6 +1521,7 @@
 
             makeSeries("Complete", "comp");
             makeSeries("Incomplete", "incomp");
+            makeSeries("Delay", "delay");
 
             chart.appear(1000, 100);
           }); // end of queryFeatures
@@ -1559,10 +1540,10 @@
             statisticType: "sum",
           };
 
-          var total_stColumn_underc = {
+          var total_stColumn_delay = {
             onStatisticField:
-              "CASE WHEN (Types = 2 and Status = 2) THEN 1 ELSE 0 END",
-            outStatisticFieldName: "total_stColumn_underc",
+              "CASE WHEN (Types = 2 and Status = 3) THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_stColumn_delay",
             statisticType: "sum",
           };
 
@@ -1576,7 +1557,7 @@
           var query = stColumnLayer.createQuery();
           query.outStatistics = [
             total_stColumn_tobec,
-            total_stColumn_underc,
+            total_stColumn_delay,
             total_stColumn_comp,
           ];
           query.returnGeometry = true;
@@ -1585,7 +1566,7 @@
             var stats = response.features[0].attributes;
 
             const column_tobec = stats.total_stColumn_tobec;
-            const column_underc = stats.total_stColumn_underc;
+            const column_delay = stats.total_stColumn_delay;
             const column_comp = stats.total_stColumn_comp;
 
             // Set themes
@@ -1593,7 +1574,6 @@
             root2.setThemes([
               am5themes_Animated.new(root2),
               am5themes_Responsive.new(root2),
-              MyTheme.new(root2),
             ]);
 
             // Create chart
@@ -1619,6 +1599,7 @@
                 category: "structural column",
                 comp: column_comp,
                 incomp: column_tobec,
+                delay: column_delay,
               },
             ];
 
@@ -1668,10 +1649,26 @@
                   valueXField: fieldName,
                   valueXShow: "valueXTotalPercent",
                   categoryYField: "category",
+                  fill:
+                    fieldName === "delay"
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
+                      : am5.color(chartSeriesFillColorComp),
+                  stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
+                strokeWidth: chartBorderLineWidth,
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
@@ -1703,7 +1700,7 @@
                         ? ""
                         : "{valueXTotalPercent.formatNumber('#.')}%", //"{valueX}",
                     fill: root2.interfaceColors.get("alternativeText"),
-                    opacity: fieldName == "incomp" ? 0 : 1,
+                    opacity: fieldName === "comp" ? 1 : 0,
                     fontSize: seriesBulletLabelFontSize,
                     centerY: am5.p50,
                     centerX: am5.p50,
@@ -1733,6 +1730,7 @@
             }
             makeSeries("Complete", "comp");
             makeSeries("Incomplete", "incomp");
+            makeSeries("Delay", "delay");
 
             chart.appear(1000, 100);
           }); // end of queryFeatures
@@ -1751,10 +1749,10 @@
             statisticType: "sum",
           };
 
-          var total_stFraming_underc = {
+          var total_stFraming_delay = {
             onStatisticField:
-              "CASE WHEN (Types = 3 and Status = 2) THEN 1 ELSE 0 END",
-            outStatisticFieldName: "total_stFraming_underc",
+              "CASE WHEN (Types = 3 and Status = 3) THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_stFraming_delay",
             statisticType: "sum",
           };
 
@@ -1768,7 +1766,7 @@
           var query = stFramingLayer.createQuery();
           query.outStatistics = [
             total_stFraming_tobec,
-            total_stFraming_underc,
+            total_stFraming_delay,
             total_stFraming_comp,
           ];
           query.returnGeometry = true;
@@ -1777,7 +1775,7 @@
             var stats = response.features[0].attributes;
 
             const framing_tobec = stats.total_stFraming_tobec;
-            const framing_underc = stats.total_stFraming_underc;
+            const framing_delay = stats.total_stFraming_delay;
             const framing_comp = stats.total_stFraming_comp;
 
             // Set themes
@@ -1785,7 +1783,6 @@
             root3.setThemes([
               am5themes_Animated.new(root3),
               am5themes_Responsive.new(root3),
-              MyTheme.new(root3),
             ]);
 
             // Create chart
@@ -1811,6 +1808,7 @@
                 category: "structural framing",
                 comp: framing_comp,
                 incomp: framing_tobec,
+                delay: framing_delay,
               },
             ];
 
@@ -1860,10 +1858,26 @@
                   valueXField: fieldName,
                   valueXShow: "valueXTotalPercent",
                   categoryYField: "category",
+                  fill:
+                    fieldName === "delay"
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
+                      : am5.color(chartSeriesFillColorComp),
+                  stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
+                strokeWidth: chartBorderLineWidth,
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
@@ -1895,7 +1909,7 @@
                         ? ""
                         : "{valueXTotalPercent.formatNumber('#.')}%", //"{valueX}",
                     fill: root3.interfaceColors.get("alternativeText"),
-                    opacity: fieldName == "incomp" ? 0 : 1,
+                    opacity: fieldName === "comp" ? 1 : 0,
                     fontSize: seriesBulletLabelFontSize,
                     centerY: am5.p50,
                     centerX: am5.p50,
@@ -1925,6 +1939,7 @@
             }
             makeSeries("Complete", "comp");
             makeSeries("Incomplete", "incomp");
+            makeSeries("Delay", "delay");
 
             chart.appear(1000, 100);
           }); // end of queryFeatures
@@ -1943,10 +1958,10 @@
             statisticType: "sum",
           };
 
-          var total_floors_underc = {
+          var total_floors_delay = {
             onStatisticField:
-              "CASE WHEN (Types = 5 and Status = 2) THEN 1 ELSE 0 END",
-            outStatisticFieldName: "total_floors_underc",
+              "CASE WHEN (Types = 5 and Status = 3) THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_floors_delay",
             statisticType: "sum",
           };
 
@@ -1960,7 +1975,7 @@
           var query = floorsLayer.createQuery();
           query.outStatistics = [
             total_floors_tobec,
-            total_floors_underc,
+            total_floors_delay,
             total_floors_comp,
           ];
           query.returnGeometry = true;
@@ -1969,7 +1984,7 @@
             var stats = response.features[0].attributes;
 
             const floors_tobec = stats.total_floors_tobec;
-            const floors_underc = stats.total_floors_underc;
+            const floors_delay = stats.total_floors_delay;
             const floors_comp = stats.total_floors_comp;
 
             // Set themes
@@ -1977,7 +1992,6 @@
             root4.setThemes([
               am5themes_Animated.new(root4),
               am5themes_Responsive.new(root4),
-              MyTheme.new(root4),
             ]);
 
             // Create chart
@@ -2003,6 +2017,7 @@
                 category: "floors",
                 comp: floors_comp,
                 incomp: floors_tobec,
+                delay: floors_delay,
               },
             ];
 
@@ -2052,10 +2067,26 @@
                   valueXField: fieldName,
                   valueXShow: "valueXTotalPercent",
                   categoryYField: "category",
+                  fill:
+                    fieldName === "delay"
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
+                      : am5.color(chartSeriesFillColorComp),
+                  stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
+                strokeWidth: chartBorderLineWidth,
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
@@ -2087,7 +2118,7 @@
                         ? ""
                         : "{valueXTotalPercent.formatNumber('#.')}%", //"{valueX}",
                     fill: root4.interfaceColors.get("alternativeText"),
-                    opacity: fieldName == "incomp" ? 0 : 1,
+                    opacity: fieldName === "comp" ? 1 : 0,
                     fontSize: seriesBulletLabelFontSize,
                     centerY: am5.p50,
                     centerX: am5.p50,
@@ -2117,6 +2148,7 @@
             }
             makeSeries("Complete", "comp");
             makeSeries("Incomplete", "incomp");
+            makeSeries("Delay", "delay");
 
             chart.appear(1000, 100);
           }); // end of queryFeatures
@@ -2135,10 +2167,10 @@
             statisticType: "sum",
           };
 
-          var total_walls_underc = {
+          var total_walls_delay = {
             onStatisticField:
-              "CASE WHEN (Types = 6 and Status = 2) THEN 1 ELSE 0 END",
-            outStatisticFieldName: "total_walls_underc",
+              "CASE WHEN (Types = 6 and Status = 3) THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_walls_delay",
             statisticType: "sum",
           };
 
@@ -2152,7 +2184,7 @@
           var query = wallsLayer.createQuery();
           query.outStatistics = [
             total_walls_tobec,
-            total_walls_underc,
+            total_walls_delay,
             total_walls_comp,
           ];
           query.returnGeometry = true;
@@ -2161,7 +2193,7 @@
             var stats = response.features[0].attributes;
 
             const walls_tobec = stats.total_walls_tobec;
-            const walls_underc = stats.total_walls_underc;
+            const walls_delay = stats.total_walls_delay;
             const walls_comp = stats.total_walls_comp;
 
             // Set themes
@@ -2169,7 +2201,6 @@
             root5.setThemes([
               am5themes_Animated.new(root5),
               am5themes_Responsive.new(root5),
-              MyTheme.new(root5),
             ]);
 
             // Create chart
@@ -2195,6 +2226,7 @@
                 category: "walls",
                 comp: walls_comp,
                 incomp: walls_tobec,
+                delay: walls_delay,
               },
             ];
 
@@ -2244,10 +2276,26 @@
                   valueXField: fieldName,
                   valueXShow: "valueXTotalPercent",
                   categoryYField: "category",
+                  fill:
+                    fieldName === "delay"
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
+                      : am5.color(chartSeriesFillColorComp),
+                  stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
+                strokeWidth: chartBorderLineWidth,
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
@@ -2279,7 +2327,7 @@
                         ? ""
                         : "{valueXTotalPercent.formatNumber('#.')}%", //"{valueX}",
                     fill: root5.interfaceColors.get("alternativeText"),
-                    opacity: fieldName == "incomp" ? 0 : 1,
+                    opacity: fieldName === "comp" ? 1 : 0,
                     fontSize: seriesBulletLabelFontSize,
                     centerY: am5.p50,
                     centerX: am5.p50,
@@ -2309,6 +2357,7 @@
             }
             makeSeries("Complete", "comp");
             makeSeries("Incomplete", "incomp");
+            makeSeries("Delay", "delay");
 
             chart.appear(1000, 100);
           }); // end of queryFeatures
@@ -2327,10 +2376,10 @@
             statisticType: "sum",
           };
 
-          var total_columns_underc = {
+          var total_columns_delay = {
             onStatisticField:
-              "CASE WHEN (Types = 7 and Status = 2) THEN 1 ELSE 0 END",
-            outStatisticFieldName: "total_columns_underc",
+              "CASE WHEN (Types = 7 and Status = 3) THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_columns_delay",
             statisticType: "sum",
           };
 
@@ -2344,7 +2393,7 @@
           var query = columnsLayer.createQuery();
           query.outStatistics = [
             total_columns_tobec,
-            total_columns_underc,
+            total_columns_delay,
             total_columns_comp,
           ];
           query.returnGeometry = true;
@@ -2353,7 +2402,7 @@
             var stats = response.features[0].attributes;
 
             const columns_tobec = stats.total_columns_tobec;
-            const columns_underc = stats.total_columns_underc;
+            const columns_delay = stats.total_columns_delay;
             const columns_comp = stats.total_columns_comp;
 
             // Set themes
@@ -2361,7 +2410,6 @@
             root6.setThemes([
               am5themes_Animated.new(root6),
               am5themes_Responsive.new(root6),
-              MyTheme.new(root6),
             ]);
 
             // Create chart
@@ -2387,6 +2435,7 @@
                 category: "structural foundation",
                 comp: columns_comp,
                 incomp: columns_tobec,
+                delay: columns_delay,
               },
             ];
 
@@ -2436,10 +2485,26 @@
                   valueXField: fieldName,
                   valueXShow: "valueXTotalPercent",
                   categoryYField: "category",
+                  fill:
+                    fieldName === "delay"
+                      ? fieldName === "incomp"
+                        ? am5.color(chartSeriesFillColorIncomp)
+                        : am5.color(chartSeriesFillColorDelay)
+                      : am5.color(chartSeriesFillColorComp),
+                  stroke: am5.color(chartBorderLineColor),
                 })
               );
 
               series.columns.template.setAll({
+                fillOpacity:
+                  fieldName === "comp" // first condition
+                    ? fieldName === "incomp" // second condition
+                      ? 0 // if first condition is false and second condition is true,
+                      : 1 // if first condition is true
+                    : fieldName === "delay" // third condition
+                    ? 0.5 // if first and second conditions are false but third condition is true
+                    : 0, // else
+                strokeWidth: chartBorderLineWidth,
                 tooltipText: "{name}, {categoryX}: {valueY}",
                 width: am5.percent(30),
                 tooltipY: 0,
@@ -2471,7 +2536,7 @@
                         ? ""
                         : "{valueXTotalPercent.formatNumber('#.')}%", //"{valueX}",
                     fill: root6.interfaceColors.get("alternativeText"),
-                    opacity: fieldName == "incomp" ? 0 : 1,
+                    opacity: fieldName === "comp" ? 1 : 0,
                     fontSize: seriesBulletLabelFontSize,
                     centerY: am5.p50,
                     centerX: am5.p50,
@@ -2502,6 +2567,7 @@
 
             makeSeries("Complete", "comp");
             makeSeries("Incomplete", "incomp");
+            makeSeries("Delay", "delay");
 
             chart.appear(1000, 100);
           }); // end of queryFeatures
