@@ -131,7 +131,9 @@
     }
 
     calcite-switch {
-      margin: 0 0.5rem;
+      margin-top: 1.2vh;
+      margin-left: 2vw;
+      
     }
 
     #informationDiv {
@@ -169,10 +171,11 @@
     #chartTbmDiv,
     #chartNatmDiv {
       width: 100%;
-      height: 35%;
+      height: 40%;
       align-items: center;
       padding-bottom: 0;
       margin-bottom: 0;
+      margin-top: -50px;
       background-color: rgb(0, 0, 0, 0);
     }
 
@@ -194,41 +197,44 @@
       margin: auto;
     }
 
-    #cutterHeadPositionDiv,
-    #totalSegmentNoDiv {
-      border: 1px solid var(--calcite-ui-border-1);
-      width: 99%;
-      height: 5vw;
-      text-align: center;
-      font-weight: normal;
-      padding-top: 1vw;
-      color: white;
-      box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2),
-        0 6px 20px 0 rgba(0, 0, 0, 0.19);
-      margin-top: 2vw;
-      margin-bottom: 1vw;
-    }
-
-    #cutterHeadPositionDiv b,
     #totalSegmentNoDiv b {
-      font-size: 1.5vw;
+      font-size: 1.6vw;
       text-align: center;
       font-weight: bold;
       color: white;
     }
+
+    #cutterHeadPositionDiv b {
+      font-size: 1.6vw;
+      text-align: center;
+      font-weight: bold;
+      color: white;
+
+    }
+
+    #totalSegmentNoDiv h5 {
+      text-align: center;
+      font-size: 2.8vw;
+      font-weight: bold;
+      color: #d4ff33;
+      margin-top: 20px;
+    }
+
 
     #cutterHeadPositionDiv h3 {
       text-align: center;
       font-size: 1.5vw;
       font-weight: normal;
       color: white;
+      margin-top: auto;
     }
 
     #cutterHeadPositionDiv span {
       text-align: center;
-      font-size: 2.5vw;
+      font-size: 2.7vw;
       font-weight: bold;
       color: rgb(232, 54, 24);
+      margin-top: auto;
     }
 
     #cutterHeadPositionDiv h6 {
@@ -237,22 +243,38 @@
       font-weight: normal;
       color: white;
       padding: 1.5vw;
-      margin: 0;
+      margin-top: auto;
+
     }
 
     #cutterHeadPositionDiv h4 {
       text-align: center;
       font-size: 1vw;
       font-weight: bold;
+      padding-top: -10;
       color: #d4ff33;
     }
 
-    #totalSegmentNoDiv h5 {
+    #delayedSegmentBox {
+      display: flex;
+    }
+
+
+    #delayedSegmentDiv b {
+      font-size: 1.6vw;
       text-align: center;
-      font-size: 2.6vw;
       font-weight: bold;
-      color: #d4ff33;
-      margin-top: 1.6vw;
+      color: white;
+    }
+
+    #delayedSegmentDiv h3 {
+      text-align: center;
+      font-size: 2.1vw;
+      text-align: center;
+      font-weight: bold;
+      color: rgb(232, 54, 24);
+      margin-top: auto;
+      padding-left: 100px;
     }
 
     #timeSeriesChart {
@@ -329,7 +351,7 @@
 
     .esri-layer-list__item-toggle-icon,
     .esri-layer-list__item-title {
-      color: orange;
+
       font-size: 0.8vw;
       font-weight: normal;
       text-align: left;
@@ -350,6 +372,23 @@
 
     .esri-legend__layer-caption {
       display: none;
+    }
+
+    .esri-legend {
+      overflow: hidden;
+      overflow-y: auto;
+      margin-left: 10;
+    }
+
+    .esri-icon-non-visible::before {
+      content: "\e610" !important;
+      color: #969696 !important;
+    }
+
+    .esri-icon-visible::before {
+      content: "\e611" !important;
+      background-color: #11a7fd;
+      color: white !important;
     }
 
     /* Browser Setting */
@@ -470,18 +509,14 @@
         <div id="viewDiv"></div>
         <calcite-tabs>
           <div id="informationDiv">
-            <calcite-tab-nav slot="tab-nav">
-              <calcite-tab-title selected>Tunnel</calcite-tab-title>
-              <calcite-tab-title>Survey</calcite-tab-title>
-            </calcite-tab-nav>
-            <calcite-tab>
               <div id="totalSegmentNoDiv"></div>
               <div id="chartTbmDiv"></div>
               <div id="cutterHeadPositionDiv"></div>
-            </calcite-tab>
-            <calcite-tab>
-              <div id="chartSurveyDiv"></div>
-            </calcite-tab>
+              <div id="delayedSegmentBox">
+                <div id="delayedSegmentDiv"></div>
+                <calcite-switch class="delayedSegmentShow"></calcite-switch>
+              </div>
+
           </div>
         </calcite-tabs>
       </div>
@@ -550,6 +585,7 @@
       "esri/rest/support/FeatureSet",
       "esri/core/Accessor",
       "esri/widgets/BasemapGallery",
+      "esri/layers/GroupLayer",
     ], function (
       Basemap,
       Map,
@@ -606,7 +642,8 @@
       externalRenderers,
       FeatureSet,
       Accessor,
-      BasemapGallery
+      BasemapGallery,
+      GroupLayer
     ) {
       let chartLayerView;
       //const features = [];
@@ -1598,7 +1635,6 @@
         renderer: lotBoundaryOnlyRenderer,
         labelingInfo: [lotBoundaryOnlyLabelClass],
       });
-      map.add(lotLayerBoundaryOnly);
 
       var lotLayer = new FeatureLayer({
         portalItem: {
@@ -1609,7 +1645,7 @@
         },
         layerId: 1,
         outFields: ["*"],
-        title: "Status of Land Acquisition",
+        title: "Land Acquisition",
 
         labelsVisible: false,
         labelingInfo: [LOT_LABEL_CLASS],
@@ -1638,7 +1674,6 @@
           ],
         },
       });
-      map.add(lotLayer, 0);
 
       // Construction boundary
       // Construction boundary
@@ -1680,8 +1715,7 @@
         },
         popupEnabled: false,
       });
-      constBoundary.listMode = "hide";
-      map.add(constBoundary);
+      //constBoundary.listMode = "hide";
 
       // Station Layer:-------------------
       var stationLayer = new SceneLayer({
@@ -1703,7 +1737,6 @@
         //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
       });
       stationLayer.listMode = "hide";
-      map.add(stationLayer);
 
       // Geotechnical information:-------------------
       var geotech = new FeatureLayer({
@@ -1724,7 +1757,6 @@
         //definitionExpression: "sens='Aller'",
         outFields: ["*"],
       });
-      map.add(geotech);
 
       function renderGeotechLayer() {
         const renderer = new UniqueValueRenderer({
@@ -1787,7 +1819,6 @@
         //definitionExpression: "sens='Aller'",
         outFields: ["*"],
       });
-      map.add(natmLayer);
 
       // Symbology for natmLayer
       function renderNATMLayer() {
@@ -1916,6 +1947,37 @@
         ],
       };
 
+      // for visualizing delayed segment
+      let tbmStatusDelayedRenderer = {
+        type: "unique-value",
+        field: "delayed",
+        uniqueValueInfos: [
+          {
+            value: 1,
+            label: "Delayed Segment",
+            symbol: {
+              type: "line-3d",
+              symbolLayers: [
+                {
+                  type: "path",
+                  profile: options.profile,
+                  material: {
+                    color: [255, 0, 0, 0.5],
+                  },
+                  width: options.width,
+                  height: options.height,
+                  join: options.join,
+                  cap: options.cap,
+                  anchor: "bottom",
+                  profileRotation: options.profileRotation,
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+
       var tbmTunnelLayer = new FeatureLayer({
         portalItem: {
           id: "af9539f5e41e4bd8b694973972e3faf4",
@@ -1939,7 +2001,6 @@
           returnGeometry: true,
         },
       });
-      map.add(tbmTunnelLayer);
 
       // Muck Pit
       const muckPitRenderer = {
@@ -1970,7 +2031,6 @@
         title: "Muck Pit",
         renderer: muckPitRenderer,
       });
-      map.add(muckPitLayer);
 
       // River Layer:-------------------
       const riverLayer = new FeatureLayer({
@@ -1980,6 +2040,7 @@
             url: "https://gis.railway-sector.com/portal",
           },
         },
+        title: "River",
         layerId: 1,
         elevationInfo: {
           mode: "on-the-ground",
@@ -2001,8 +2062,6 @@
           },
         },
       });
-      riverLayer.listMode = "hide";
-      map.add(riverLayer, 0);
 
       // Station structure: reference only
       const colors3D = {
@@ -2010,6 +2069,24 @@
         2: [225, 225, 225, 0.1], // Under Construction
         3: [225, 225, 225, 0.1], // Delayed
         4: [225, 225, 225, 0.1], // Completed
+      };
+
+      const stationStructureRenderer = {
+        type: "simple",
+        symbol: {
+          type: "mesh-3d", // autocasts as new MeshSymbol3D()
+          symbolLayers: [
+            {
+              type: "fill", // autocasts as new FillSymbol3DLayer()
+              material: { color: [225, 225, 225, 0.1] },
+              edges: {
+                type: "solid",
+                color: [225, 225, 225, 0.8],
+                size: 1,
+              },
+            },
+          ],
+        },
       };
 
       var stationStructure = new SceneLayer({
@@ -2021,6 +2098,7 @@
           },
         },
         definitionExpression: "Type = 1",
+        renderer: stationStructureRenderer,
         popupEnabled: false,
         elevationInfo: {
           mode: "absolute-height",
@@ -2032,45 +2110,28 @@
         //definitionExpression: "EndDate = date'2020-6-3'"
       });
       //stationStructure.listMode = "hide";
-      map.add(stationStructure, 1);
-
-      function renderStructureLayer() {
-        const renderer = new UniqueValueRenderer({
-          field: "Status",
-        });
-
-        for (let property in colors3D) {
-          if (colors3D.hasOwnProperty(property)) {
-            renderer.addUniqueValueInfo({
-              value: property,
-              symbol: {
-                type: "mesh-3d",
-                symbolLayers: [
-                  {
-                    type: "fill",
-                    material: {
-                      color: colors3D[property],
-                      colorMixMode: "replace",
-                    },
-                    edges: {
-                      type: "solid", // autocasts as new SolidEdges3D()
-                      color: [225, 225, 225, 0.8],
-                    },
-                  },
-                ],
-              },
-            });
-          }
-        }
-
-        stationStructure.renderer = renderer;
-      }
-
-      renderStructureLayer();
+    
 
       // TBM Shaft
+      const tbmShaftRenderer = {
+        type: "simple",
+        symbol: {
+          type: "mesh-3d", // autocasts as new MeshSymbol3D()
+          symbolLayers: [
+            {
+              type: "fill", // autocasts as new FillSymbol3DLayer()
+              material: { color: [0, 112, 255, 0.7] },
+              edges: {
+                type: "solid",
+                color: "#4E4E4E",
+                size: 1,
+              },
+            },
+          ],
+        },
+      };
+
       var tbmShaft = new SceneLayer({
-        //structureLayer
         portalItem: {
           id: "0bba3bc8c087412b89a3d72a47a1c6aa",
           portal: {
@@ -2078,6 +2139,7 @@
           },
         },
         popupEnabled: false,
+        renderer: tbmShaftRenderer,
         elevationInfo: {
           mode: "absolute-height",
           offset: 0,
@@ -2086,42 +2148,8 @@
         // when filter using date, example below. use this format
         //definitionExpression: "EndDate = date'2020-6-3'"
       });
-      map.add(tbmShaft, 1);
+      //map.add(tbmShaft, 1);
 
-      function renderTbmShaftLayer() {
-        const renderer = new UniqueValueRenderer({
-          field: "Status",
-        });
-
-        for (let property in colors3D) {
-          if (colors3D.hasOwnProperty(property)) {
-            renderer.addUniqueValueInfo({
-              value: property,
-              symbol: {
-                type: "mesh-3d",
-                symbolLayers: [
-                  {
-                    type: "fill",
-                    material: {
-                      color: colors3D[property],
-                      colorMixMode: "replace",
-                    },
-                    edges: {
-                      type: "solid", // autocasts as new SolidEdges3D()
-                      color: [225, 225, 225, 0.8], //225, 225, 225, 0.3
-                      size: 1,
-                    },
-                  },
-                ],
-              },
-            });
-          }
-        }
-
-        tbmShaft.renderer = renderer;
-      }
-
-      renderTbmShaftLayer();
 
       // Bridge Layer:-------------------
       var bridgeLayer = new SceneLayer({
@@ -2146,7 +2174,7 @@
         title: "Monitoring Bridge",
         outFields: ["*"],
       });
-      map.add(bridgeLayer, 0);
+      //map.add(bridgeLayer, 0);
 
       function renderBridgeLayer() {
         const renderer = new UniqueValueRenderer({
@@ -2236,7 +2264,7 @@
         outFields: ["*"],
         definitionExpression: "Remarks IS NULL", // show only buildings with height,
       });
-      map.add(obstructionLayer, 0);
+      //map.add(obstructionLayer, 0);
 
       // Dilapidation survey Extent line
       var dilapSurveyExtent = new FeatureLayer({
@@ -2261,7 +2289,7 @@
         },
         title: "Survey Extent Line",
       });
-      map.add(dilapSurveyExtent, 0);
+      //map.add(dilapSurveyExtent, 0);
 
       // TBM Alignment reference line:--------------
       let defaultTBMAlign = {
@@ -2413,8 +2441,35 @@
         });
       }
 
-      /////////////////////////////////////
+      // Group Layer
+      const tbmGroupLayer = new GroupLayer({
+        title: "TBM",
+        visible: true,
+        visibilityMode: "independent",
+        layers: [geotech, muckPitLayer, tbmShaft, graphicsLayer, tbmTunnelLayer]
+      });
 
+      const lotGroupLayer = new GroupLayer({
+        title: "Land",
+        visible: false,
+        visibilityMode: "independent",
+        layers: [lotLayerBoundaryOnly, lotLayer]
+      });
+
+      const referenceGroupLayer = new GroupLayer({
+        title: "Reference",
+        visible: true,
+        visibilityMode: "independent",
+        layers: [riverLayer, stationStructure, constBoundary]
+      })
+
+      map.add(stationLayer);
+      map.add(referenceGroupLayer);
+      map.add(lotGroupLayer);
+      map.add(natmLayer);
+      map.add(tbmGroupLayer);
+
+      /////////////////////////////////////
       /* Function for zooming to selected layers */
       function zoomToLayer(layer) {
         return layer.queryExtent().then(function (response) {
@@ -2527,7 +2582,7 @@
             const value = thousands_separators(stats.total_number_ring);
 
             totalSegmentNoDiv.innerHTML = `
-                                    <b>Total No. of Rings</b><br>
+                                    <b>Total Rings</b><br>
                                     <h5>${value}</h5>
                                   `;
           });
@@ -2593,10 +2648,9 @@
                 text: "[bold]SEGMENT RING",
                 fontSize: "1.9em",
                 //fontWeight: "bold",
-                textAlign: "center",
+                textAlign: "left",
                 fill: percentProgressLabelColor,
-                x: am5.percent(50),
-                centerX: am5.percent(50),
+                x: am5.percent(-9),
                 y: am5.percent(5),
                 centerY: am5.percent(50),
                 paddingBottom: 20,
@@ -2821,6 +2875,9 @@
           // Total Number of rings
           totalNumberRings(defaultCP);
 
+          // Delayed Segment
+          delayedSegment(defaultCP);
+
           //surveyChart();
           cutterHeadPositionDiv.innerHTML = `
                                     <b>Cutter Head Position</b><br>
@@ -2865,6 +2922,85 @@
                                       `;
           });
         }
+
+      // dateFormat function
+      function dateFormat(inputDate, format) {
+        //parse the input date
+        const date = new Date(inputDate);
+
+        //extract the parts of the date
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+
+        //replace the month
+        format = format.replace("MM", month.toString().padStart(2, "0"));
+
+        //replace the year
+        if (format.indexOf("yyyy") > -1) {
+          format = format.replace("yyyy", year.toString());
+        } else if (format.indexOf("yy") > -1) {
+          format = format.replace("yy", year.toString().substr(2, 2));
+        }
+
+        //replace the day
+        format = format.replace("dd", day.toString().padStart(2, "0"));
+
+        return format;
+      }
+
+        // Delayed segment
+        const delayedSegementDiv = document.getElementById("delayedSegmentDiv");
+        function delayedSegment(cpValue, tbmValue) {
+          console.log(cpValue, "; ", tbmValue);
+          const cpExpression = "Package = '" + cpValue + "'";
+          const tbmExpression = "line = '" + tbmValue + "'";
+
+          var totalSegment = {
+            onStatisticField: "line",
+            outStatisticFieldName: "totalSegment",
+            statisticType: "count",
+          }
+
+          var totalDelayed = {
+            onStatisticField: "CASE WHEN delayed = 1 THEN 1 ELSE 0 END",
+            outStatisticFieldName: "totalDelayed",
+            statisticType: "sum",
+          }
+          
+          var query = tbmTunnelLayer.createQuery();
+
+          if (tbmValue == "None" || tbmValue == undefined) {
+            query.where = cpExpression;
+          } else {
+            query.where = cpExpression + " AND " + tbmExpression;
+          }
+
+          query.outStatistics = [totalSegment, totalDelayed];
+
+          tbmTunnelLayer.queryFeatures(query).then((response) => {
+            var stats = response.features[0];
+            const attributes = stats.attributes;
+            const totalSegment = attributes.totalSegment;
+            const totalDelay = attributes.totalDelayed;
+            const percentDelay = totalDelay === 0 ? 0 : ((totalDelay / totalSegment) * 100).toFixed(0);
+            delayedSegementDiv.innerHTML = `
+                                          <b>Delayed Segment</b><br>
+                                          <h3>${percentDelay} % (${thousands_separators(totalDelay)})</h3>
+                                      `;
+          });
+        }
+
+        const toggleDelayed = (event) => {
+          const checked = event.target.checked;
+          if (checked === true) {
+            tbmTunnelLayer.renderer = tbmStatusDelayedRenderer;
+          } else {
+            tbmTunnelLayer.renderer = tbmStatusRenderer;
+          }
+        }
+
+        document.querySelector(".delayedSegmentShow").addEventListener("calciteSwitchChange", toggleDelayed);
 
         // time series chart to show monthly progress
         var root2 = am5.Root.new("timeSeriesChart");
@@ -3204,6 +3340,9 @@
           // Total number of rings
           totalNumberRings(cpValue);
 
+          // Delayed segment
+          delayedSegment(cpValue);
+
           // Cutter head position label
 
           cutterHeadPositionDiv.innerHTML = `
@@ -3230,6 +3369,9 @@
 
           // Total number of rings
           totalNumberRings(cpValue, tbmValue);
+
+          // Delayed segment
+          delayedSegment(cpValue, tbmValue);
         });
 
         // view.when
@@ -3324,51 +3466,14 @@
           ) {
             item.visible = false;
           }
+          if (item.layer.type != "group") {
+            // don't show legend twice
+            item.panel = {
+              content: "legend",
+              open: true,
+            };
+          }
         },
-      });
-
-      // Legend
-      const legend = new Legend({
-        view: view,
-        container: "legend-container",
-        layerInfos: [
-          {
-            layer: tbmTunnelLayer,
-            title: "TBM Tunnel",
-          },
-          {
-            layer: muckPitLayer,
-            title: "Muck Pit",
-          },
-          {
-            layer: geotech,
-            title: "Soil Profile",
-          },
-          {
-            layer: obstructionLayer,
-            title: "OBS Structure",
-          },
-          {
-            layer: bridgeLayer,
-            title: "OBS Bridge",
-          },
-          {
-            layer: riverLayer,
-            title: "Creek or River",
-          },
-          {
-            layer: natmLayer,
-            title: "NATM",
-          },
-          {
-            layer: lotLayer,
-            title: "Land Acquisition Status",
-          },
-          {
-            layer: lotLayerBoundaryOnly,
-            title: "Lot Boundary",
-          },
-        ],
       });
 
       view.ui.empty("top-left");
