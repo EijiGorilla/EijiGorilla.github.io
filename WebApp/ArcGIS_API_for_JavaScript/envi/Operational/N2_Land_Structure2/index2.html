@@ -290,7 +290,6 @@
       overflow: hidden;
       overflow-y: auto;
       margin-left: -10;
-
     }
 
     .esri-icon-non-visible::before {
@@ -359,11 +358,6 @@
             text="Progress Chart"
           ></calcite-action>
           <calcite-action
-            data-action-id="urgent"
-            icon="selection"
-            text="Super Urgent Lots"
-          ></calcite-action>
-          <calcite-action
             data-action-id="information"
             icon="information"
             text="Information"
@@ -395,28 +389,6 @@
         >
         </calcite-panel>
         <!--Panel for super urgent lots button-->
-        <calcite-panel
-          heading="View Super Urgent Lots"
-          height-scale="1"
-          data-panel-id="urgent"
-          hidden
-        >
-          <div id="viewUrgentLots">
-            <calcite-segmented-control id="urgentLots-segmented-control">
-              <calcite-segmented-control-item
-                id="urgentLots-on"
-                value="urgentLotson"
-                >ON</calcite-segmented-control-item
-              >
-              <calcite-segmented-control-item
-                id="urgentLots-off"
-                value="urgentLotsoff"
-                checked
-                >OFF</calcite-segmented-control-item
-              >
-            </calcite-segmented-control>
-          </div>
-        </calcite-panel>
         <!-- Info panel (populates with info from the web map) -->
         <calcite-panel heading="Description" data-panel-id="information" hidden>
           <div id="info-content">
@@ -862,46 +834,42 @@
       endorsedLotLayer.popupTemplate = templateLot; //use the same popup as lot layer
 
       //**** ---- Super Urgent Lots ---- ***///
-
-      let urgentLotRenderer = {
+      const superUrgentLotRenderer = {
         type: "unique-value",
-        defaultSymbol: defaultSymbol,
-        field: "Urgent",
+        field: 'Urgent',
         uniqueValueInfos: [
           {
             value: 0,
-            label: "Super Urgent Lots",
+            label: 'Super Urgent',
             symbol: {
-              type: "simple-fill", // autocasts as new SimpleFillSymbol()
-              color: "red",
+              type: "simple-fill",
+              color: 'red',
+              outline: {
+                color: 'black',
+                width: 0.3,
+              },
             },
           },
         ],
       };
 
-      var urgentLotLayer = new FeatureLayer({
+      const superUrgentLotLayer = new FeatureLayer({
         portalItem: {
-          id: "dca1d785da0f458b8f87638a76918496",
+          id: 'dca1d785da0f458b8f87638a76918496',
           portal: {
-            url: "https://gis.railway-sector.com/portal",
+            url: 'https://gis.railway-sector.com/portal',
           },
         },
         layerId: 7,
-        outFields: ["*"],
-        //definitionExpression: "Urgent = 0",
-        title: "Super Urgent Lots",
-        renderer: urgentLotRenderer,
-        labelingInfo: [lotIdLabel],
-        elevationInfo: {
-          model: "on-the-ground",
-        },
+        definitionExpression: 'Urgent = 0',
+        renderer: superUrgentLotRenderer,
         popupEnabled: false,
-        minScale: 150000,
-        maxScale: 0,
+        labelsVisible: false,
+        title: 'Super Urgent Lot',
+        elevationInfo: {
+          mode: 'on-the-ground',
+        },
       });
-      map.add(urgentLotLayer, 2);
-      urgentLotLayer.listMode = "hide";
-      urgentLotLayer.visible = false;
 
       //**** ---- Structure Layer ---- ***///
 
@@ -2292,7 +2260,7 @@
         title: "Land",
         visible: true,
         visibilityMode: "independent",
-        layers: [endorsedLotLayer, lotLayer, pnrLayer],
+        layers: [endorsedLotLayer, lotLayer, superUrgentLotLayer, pnrLayer],
       });
 
       /// Order in the layer list
@@ -5008,30 +4976,6 @@
           });
         }
 
-        const viewUrgentLots = document.getElementById("viewUrgentLots");
-        const urgentLotsOn = document.getElementById("urgentLots-on");
-
-        viewUrgentLots.addEventListener("click", function (event) {
-          let urgentLotsOn_switch = urgentLotsOn.checked;
-
-          if (urgentLotsOn_switch === true) {
-            urgentLotLayer.visible = true;
-
-            lotLayer.visible = false;
-            pnrLayer.visible = false;
-            structureLayer.visible = false;
-            pierAccessLayer.visible = false;
-
-            highlightUrgent();
-          } else {
-            urgentLotLayer.visible = false;
-
-            lotLayer.visible = true;
-            pnrLayer.visible = true;
-            structureLayer.visible = true;
-            pierAccessLayer.visible = true;
-          }
-        });
 
         // ----------------- Calcite Action Bar (Inside: the chart) ----------------- //
 
@@ -5160,6 +5104,25 @@
       });
 
       //****---------------- Layer List -----------------------****//
+      function highlightUrgent(layer) {
+        let highlight;
+        view.whenLayerView(layer).then((urgentLayerView) => {
+          var query = layer.createQuery();
+          layer.queryFeatures(query).then((results) => {
+            const length = results.features.length;
+            let objID = [];
+            for (var i = 0; i < length; i++) {
+              var obj = results.features[i].attributes.OBJECTID;
+              objID.push(obj);
+            }
+
+            if (highlight) {
+              highlight.remove();
+            }
+            highlight = urgentLayerView.highlight(objID);
+          });
+        });
+      }
 
       const layerList = new LayerList({
         view: view,
@@ -5167,11 +5130,17 @@
         container: "layers-container",
         listItemCreatedFunction: function (event) {
           const item = event.item;
+
+          if (item.title === 'Super Urgent Lot') {
+            highlightUrgent(superUrgentLotLayer);
+          }
+
           if (
             item.title === "Chainage" ||
             item.title === "Occupancy (Structure)" ||
             item.title === "NLO/LO Ownership (Structure)" ||
-            item.title === "Land Acquisition (Endorsed Status)"
+            item.title === "Land Acquisition (Endorsed Status)" ||
+            item.title === 'Super Urgent Lot'
           ) {
             item.visible = false;
           }
