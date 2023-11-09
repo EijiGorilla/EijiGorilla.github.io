@@ -133,7 +133,6 @@
     calcite-switch {
       margin-top: 1.2vh;
       margin-left: 2vw;
-      
     }
 
     #informationDiv {
@@ -209,7 +208,6 @@
       text-align: center;
       font-weight: bold;
       color: white;
-
     }
 
     #totalSegmentNoDiv h5 {
@@ -219,7 +217,6 @@
       color: #d4ff33;
       margin-top: 20px;
     }
-
 
     #cutterHeadPositionDiv h3 {
       text-align: center;
@@ -244,7 +241,6 @@
       color: white;
       padding: 1.5vw;
       margin-top: auto;
-
     }
 
     #cutterHeadPositionDiv h4 {
@@ -258,7 +254,6 @@
     #delayedSegmentBox {
       display: flex;
     }
-
 
     #delayedSegmentDiv b {
       font-size: 1.6vw;
@@ -351,7 +346,6 @@
 
     .esri-layer-list__item-toggle-icon,
     .esri-layer-list__item-title {
-
       font-size: 0.8vw;
       font-weight: normal;
       text-align: left;
@@ -509,14 +503,13 @@
         <div id="viewDiv"></div>
         <calcite-tabs>
           <div id="informationDiv">
-              <div id="totalSegmentNoDiv"></div>
-              <div id="chartTbmDiv"></div>
-              <div id="cutterHeadPositionDiv"></div>
-              <div id="delayedSegmentBox">
-                <div id="delayedSegmentDiv"></div>
-                <calcite-switch class="delayedSegmentShow"></calcite-switch>
-              </div>
-
+            <div id="totalSegmentNoDiv"></div>
+            <div id="chartTbmDiv"></div>
+            <div id="cutterHeadPositionDiv"></div>
+            <div id="delayedSegmentBox">
+              <div id="delayedSegmentDiv"></div>
+              <calcite-switch class="delayedSegmentShow"></calcite-switch>
+            </div>
           </div>
         </calcite-tabs>
       </div>
@@ -1977,7 +1970,6 @@
         ],
       };
 
-
       var tbmTunnelLayer = new FeatureLayer({
         portalItem: {
           id: "af9539f5e41e4bd8b694973972e3faf4",
@@ -2110,7 +2102,6 @@
         //definitionExpression: "EndDate = date'2020-6-3'"
       });
       //stationStructure.listMode = "hide";
-    
 
       // TBM Shaft
       const tbmShaftRenderer = {
@@ -2149,7 +2140,6 @@
         //definitionExpression: "EndDate = date'2020-6-3'"
       });
       //map.add(tbmShaft, 1);
-
 
       // Bridge Layer:-------------------
       var bridgeLayer = new SceneLayer({
@@ -2446,22 +2436,28 @@
         title: "TBM",
         visible: true,
         visibilityMode: "independent",
-        layers: [geotech, muckPitLayer, tbmShaft, graphicsLayer, tbmTunnelLayer]
+        layers: [
+          geotech,
+          muckPitLayer,
+          tbmShaft,
+          graphicsLayer,
+          tbmTunnelLayer,
+        ],
       });
 
       const lotGroupLayer = new GroupLayer({
         title: "Land",
         visible: false,
         visibilityMode: "independent",
-        layers: [lotLayerBoundaryOnly, lotLayer]
+        layers: [lotLayerBoundaryOnly, lotLayer],
       });
 
       const referenceGroupLayer = new GroupLayer({
         title: "Reference",
         visible: true,
         visibilityMode: "independent",
-        layers: [riverLayer, stationStructure, constBoundary]
-      })
+        layers: [riverLayer, stationStructure, constBoundary],
+      });
 
       map.add(stationLayer);
       map.add(referenceGroupLayer);
@@ -2923,31 +2919,31 @@
           });
         }
 
-      // dateFormat function
-      function dateFormat(inputDate, format) {
-        //parse the input date
-        const date = new Date(inputDate);
+        // dateFormat function
+        function dateFormat(inputDate, format) {
+          //parse the input date
+          const date = new Date(inputDate);
 
-        //extract the parts of the date
-        const day = date.getDate();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
+          //extract the parts of the date
+          const day = date.getDate();
+          const month = date.getMonth() + 1;
+          const year = date.getFullYear();
 
-        //replace the month
-        format = format.replace("MM", month.toString().padStart(2, "0"));
+          //replace the month
+          format = format.replace("MM", month.toString().padStart(2, "0"));
 
-        //replace the year
-        if (format.indexOf("yyyy") > -1) {
-          format = format.replace("yyyy", year.toString());
-        } else if (format.indexOf("yy") > -1) {
-          format = format.replace("yy", year.toString().substr(2, 2));
+          //replace the year
+          if (format.indexOf("yyyy") > -1) {
+            format = format.replace("yyyy", year.toString());
+          } else if (format.indexOf("yy") > -1) {
+            format = format.replace("yy", year.toString().substr(2, 2));
+          }
+
+          //replace the day
+          format = format.replace("dd", day.toString().padStart(2, "0"));
+
+          return format;
         }
-
-        //replace the day
-        format = format.replace("dd", day.toString().padStart(2, "0"));
-
-        return format;
-      }
 
         // Delayed segment
         const delayedSegementDiv = document.getElementById("delayedSegmentDiv");
@@ -2960,14 +2956,14 @@
             onStatisticField: "line",
             outStatisticFieldName: "totalSegment",
             statisticType: "count",
-          }
+          };
 
           var totalDelayed = {
             onStatisticField: "CASE WHEN delayed = 1 THEN 1 ELSE 0 END",
             outStatisticFieldName: "totalDelayed",
             statisticType: "sum",
-          }
-          
+          };
+
           var query = tbmTunnelLayer.createQuery();
 
           if (tbmValue == "None" || tbmValue == undefined) {
@@ -2983,10 +2979,15 @@
             const attributes = stats.attributes;
             const totalSegment = attributes.totalSegment;
             const totalDelay = attributes.totalDelayed;
-            const percentDelay = totalDelay === 0 ? 0 : ((totalDelay / totalSegment) * 100).toFixed(0);
+            const percentDelay =
+              totalDelay === 0
+                ? 0
+                : ((totalDelay / totalSegment) * 100).toFixed(0);
             delayedSegementDiv.innerHTML = `
                                           <b>Delayed Segment</b><br>
-                                          <h3>${percentDelay} % (${thousands_separators(totalDelay)})</h3>
+                                          <h3>${percentDelay} % (${thousands_separators(
+              totalDelay
+            )})</h3>
                                       `;
           });
         }
@@ -2998,9 +2999,11 @@
           } else {
             tbmTunnelLayer.renderer = tbmStatusRenderer;
           }
-        }
+        };
 
-        document.querySelector(".delayedSegmentShow").addEventListener("calciteSwitchChange", toggleDelayed);
+        document
+          .querySelector(".delayedSegmentShow")
+          .addEventListener("calciteSwitchChange", toggleDelayed);
 
         // time series chart to show monthly progress
         var root2 = am5.Root.new("timeSeriesChart");
