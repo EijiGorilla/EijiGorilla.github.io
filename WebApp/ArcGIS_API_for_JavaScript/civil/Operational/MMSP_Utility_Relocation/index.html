@@ -19,7 +19,7 @@
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.27/esri/themes/dark/main.css"
+      href="https://js.arcgis.com/4.28/esri/themes/dark/main.css"
     />
     <script
       type="module"
@@ -41,7 +41,7 @@
     <script src="https://js.arcgis.com/4.28/"></script>
   </head>
 
-  <body class="calcite-theme-dark">
+  <body class="calcite-mode-dark">
     <calcite-loader></calcite-loader>
     <calcite-shell content-behind>
       <div id="viewDiv">
@@ -1613,12 +1613,7 @@
         title: "<h5>{Comp_Agency}</h5>",
         lastEditInfoEnabled: false,
         returnGeometry: true,
-        actions: [
-          {
-            id: "find-relocated",
-            title: "Go to Relocated",
-          },
-        ],
+
         content: [
           {
             type: "fields",
@@ -1686,12 +1681,6 @@
         title: "<h5>{Comp_Agency}</h5>",
         lastEditInfoEnabled: false,
         returnGeometry: true,
-        actions: [
-          {
-            id: "find-relocated",
-            title: "Go to Relocated",
-          },
-        ],
         content: [
           {
             type: "fields",
@@ -1752,12 +1741,6 @@
         title: "<h5>{Comp_Agency}</h5>",
         lastEditInfoEnabled: false,
         returnGeometry: true,
-        actions: [
-          {
-            id: "find-relocated-line",
-            title: "Go to Relocated",
-          },
-        ],
         content: [
           {
             type: "fields",
@@ -2072,12 +2055,6 @@
         title: "<h5>{Comp_Agency}</h5>",
         lastEditInfoEnabled: false,
         returnGeometry: true,
-        actions: [
-          {
-            id: "find-relocated-line",
-            title: "Go to Relocated",
-          },
-        ],
         content: [
           {
             type: "fields",
@@ -8184,115 +8161,6 @@
     //*****************************//
     // Utility Point
     var highlightSelect;
-
-    view.when(function () {
-      var popup = view.popup;
-      popup.viewModel.on("trigger-action", function (event) {
-        if (event.action.id == "find-relocated") {
-          var attributes = popup.viewModel.selectedFeature.attributes;
-          var info = attributes.Id;
-          var infoObjId = attributes.OBJECTID; //1
-
-          view.whenLayerView(utilPointLayer1).then(function (layerView) {
-            utilPointLayer1.queryFeatures().then(function (results) {
-              const ggg = results.features;
-              const rowN = ggg.length; //7
-              //var rrr = results.features[0].attributes.Id;
-              //var rrr = results.features[6].attributes.Id; // return Id of 7th row
-
-              var i;
-              let objID = [];
-              for (i = 0; i < rowN; i++) {
-                if (results.features[i].attributes.Id == info) {
-                  if (results.features[i].attributes.OBJECTID == infoObjId) {
-                    continue;
-                  }
-                  var obj = results.features[i].attributes.OBJECTID;
-                  objID.push(obj);
-                }
-              }
-
-              var queryExt = new Query({
-                //objectIds: [1,2,3,4,5]
-                //objectIds: objID
-                objectIds: objID,
-              });
-
-              utilPointLayer1.queryExtent(queryExt).then(function (result) {
-                if (result.extent) {
-                  view.goTo(result.extent.expand(200));
-                }
-              });
-
-              if (highlightSelect) {
-                highlightSelect.remove();
-              }
-              highlightSelect = layerView.highlight(objID);
-
-              view.on("click", function () {
-                highlightSelect.remove();
-              });
-
-              //
-            }); // End of queryFeatures()
-          }); // End of layerView
-        } // End of if (event.action.id...)
-      });
-    }); // End of view.when()
-
-    // Utility Line
-    view.when(function () {
-      var popup = view.popup;
-      popup.viewModel.on("trigger-action", function (event) {
-        if (event.action.id == "find-relocated-line") {
-          var attributes = popup.viewModel.selectedFeature.attributes;
-          var info = attributes.Id;
-          var infoObjId = attributes.OBJECTID; //1
-
-          view.whenLayerView(utilLineLayer1).then(function (layerView) {
-            utilLineLayer1.queryFeatures().then(function (results) {
-              const ggg = results.features;
-              const rowN = ggg.length; //7
-              //var rrr = results.features[0].attributes.Id;
-              //var rrr = results.features[6].attributes.Id; // return Id of 7th row
-
-              var i;
-              let objID = [];
-              for (i = 0; i < rowN; i++) {
-                if (results.features[i].attributes.Id == info) {
-                  if (results.features[i].attributes.OBJECTID == infoObjId) {
-                    continue;
-                  }
-                  var obj = results.features[i].attributes.OBJECTID;
-                  objID.push(obj);
-                }
-              }
-
-              var queryExt = new Query({
-                //objectIds: [1,2,3,4,5]
-                //objectIds: objID
-                objectIds: objID,
-              });
-
-              utilLineLayer1.queryExtent(queryExt).then(function (result) {
-                if (result.extent) {
-                  view.goTo(result.extent);
-                }
-              });
-
-              if (highlightSelect) {
-                highlightSelect.remove();
-              }
-              highlightSelect = layerView.highlight(objID);
-
-              view.on("click", function () {
-                highlightSelect.remove();
-              });
-            }); // End of queryFeatures()
-          }); // End of layerView
-        } // End of if (event.action.id...)
-      });
-    }); // End of view.when()
 
     // See-through-Ground
     view.when(function () {
