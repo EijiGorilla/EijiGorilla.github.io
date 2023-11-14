@@ -12,7 +12,7 @@
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"
+      href="https://js.arcgis.com/4.28/esri/themes/dark/main.css"
     />
     <script
       type="module"
@@ -32,9 +32,9 @@
     <script src="https://cdn.amcharts.com/lib/5/themes/Responsive.js"></script>
 
     <!-- Resources -->
-    <script src="https://js.arcgis.com/4.27/"></script>
+    <script src="https://js.arcgis.com/4.28/"></script>
   </head>
-  <body class="calcite-theme-dark">
+  <body class="calcite-mode-dark">
     <calcite-loader></calcite-loader>
     <calcite-shell content-behind>
       <!--  Header slot  -->
@@ -220,7 +220,7 @@
 
     #totalProgressDiv {
       border: solid 0.5px gray;
-      height: 5vw;
+      height: 12vh;
       text-align: center;
     }
 
@@ -1039,24 +1039,12 @@
         });
       }
 
+      document.getElementById("dateDiv").innerHTML = "As of November 13, 2023"; //lastEditedDate;lastEditedDate;
+
       const dropdownValue = document.getElementById("valSelect");
 
       // Create Bar chart to show progress of station structure
       am5.ready(function () {
-        const month = [
-          "January",
-          "February",
-          "March",
-          "April",
-          "May",
-          "June",
-          "July",
-          "August",
-          "September",
-          "October",
-          "November",
-          "December",
-        ];
         // Query Geometry
         // 2. Get values and return to the list
         function getValues() {
@@ -1064,28 +1052,15 @@
           var tempDates = [];
 
           var query = structureLayer.createQuery();
-          query.outFields = ["Building_Names", "last_edited_date"];
+          query.outFields = ["Building_Names"];
           structureLayer.returnGeometry = true;
           return structureLayer.queryFeatures(query).then(function (response) {
             var stats = response.features;
             stats.forEach((result, index) => {
               var attributes = result.attributes;
               const values = attributes.Building_Names;
-              const dates = attributes.last_edited_date;
-              //const finalDate = dates.toLocaleDateString('en-US');
-
               testArray.push(values);
-              tempDates.push(dates);
             });
-            const lastDate = Math.max(...tempDates);
-            const lastEdit = new Date(lastDate);
-            const yyyy = lastEdit.getFullYear();
-            const mm = month[lastEdit.getMonth()];
-            const dd = lastEdit.getDate();
-            const lastEditedDate = `${mm} ${dd}, ${yyyy}`;
-            document.getElementById("dateDiv").innerHTML =
-              "As of November 13, 2023"; //lastEditedDate;lastEditedDate;
-
             return testArray;
           });
         }

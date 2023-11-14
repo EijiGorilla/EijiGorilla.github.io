@@ -21,7 +21,7 @@
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"
+      href="https://js.arcgis.com/4.28/esri/themes/dark/main.css"
     />
     <script
       type="module"
@@ -41,10 +41,10 @@
     <script src="https://cdn.amcharts.com/lib/5/themes/Responsive.js"></script>
 
     <!-- Resources -->
-    <script src="https://js.arcgis.com/4.27/"></script>
+    <script src="https://js.arcgis.com/4.28/"></script>
   </head>
 
-  <body class="calcite-theme-dark">
+  <body class="calcite-mode-dark">
     <calcite-loader></calcite-loader>
     <calcite-shell content-behind>
       <!--  Header slot  -->
@@ -186,6 +186,7 @@
       display: flex;
       padding: 0 1rem;
       background-color: var(--calcite-ui-foreground-1);
+      border: solid 0.5px #555555;
     }
 
     #header-controls {
@@ -230,10 +231,12 @@
 
     #totalProgressDiv {
       margin-top: 1.5vw;
-      border: solid 0.5px gray;
       width: 21vw;
-      height: 5vw;
+      height: 12vh;
       text-align: center;
+      font-weight: normal;
+      font-size: 1.7vw;
+      color: white;
     }
 
     #totalProgressDiv span {
@@ -271,6 +274,10 @@
       right: 10;
       width: 12.5vw;
       height: 3.5vh;
+    }
+
+    .esri-view .esri-view-surface--touch-none:focus::after {
+      outline: none !important;
     }
 
     /* Browser Setting */
@@ -1051,7 +1058,7 @@
           const averageProgress = stats.averageProgress;
           const value = averageProgress.toFixed(1);
           document.getElementById("totalProgressDiv").innerHTML = `
-                                                                <span>Total Progress</span><br>
+                                                                <div>Total Progress</div>
                                                                 <b>${value}%</b>
                                                                 `; //
         });
@@ -1105,46 +1112,7 @@
         });
       }
 
-      // Get last edited date
-      const month = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-      ];
-      function getEditedDateValue() {
-        var tempDates = [];
-
-        var query = structureLayer.createQuery();
-        //query.fields = ["enddate"];
-        query.where = "last_edited_date IS NOT NULL";
-        return structureLayer.queryFeatures(query).then(function (response) {
-          var stats = response.features;
-          stats.forEach((result, index) => {
-            var attributes = result.attributes;
-            const dates = attributes.last_edited_date;
-            tempDates.push(dates);
-          });
-          const lastDate = Math.max(...tempDates);
-          const lastEdit = new Date(lastDate);
-          const yyyy = lastEdit.getFullYear();
-          const mm = month[lastEdit.getMonth()];
-          const dd = lastEdit.getDate();
-          const lastEditedDate = `${mm} ${dd}, ${yyyy}`;
-          document.getElementById("dateDiv").innerHTML =
-            "As of November 13, 2023"; //lastEditedDate;
-        });
-      }
-      getEditedDateValue();
-
+      document.getElementById("dateDiv").innerHTML = "As of November 13, 2023"; //lastEditedDate;
       // Create Bar chart to show progress of station structure
       am5.ready(function () {
         // For Monitoring Chart
