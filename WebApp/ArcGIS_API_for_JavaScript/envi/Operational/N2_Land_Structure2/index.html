@@ -9,16 +9,16 @@
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.25/esri/themes/dark/main.css"
+      href="https://js.arcgis.com/4.28/esri/themes/dark/main.css"
     />
     <script
       type="module"
-      src="https://js.arcgis.com/calcite-components/1.4.2/calcite.esm.js"
+      src="https://js.arcgis.com/calcite-components/1.9.2/calcite.esm.js"
     ></script>
     <link
       rel="stylesheet"
       type="text/css"
-      href="https://js.arcgis.com/calcite-components/1.4.2/calcite.css"
+      href="https://js.arcgis.com/calcite-components/1.9.2/calcite.css"
     />
 
     <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
@@ -28,7 +28,7 @@
     <script src="https://cdn.amcharts.com/lib/5/themes/Micro.js"></script>
     <script src="https://cdn.amcharts.com/lib/5/themes/Responsive.js"></script>
 
-    <script src="https://js.arcgis.com/4.27/"></script>
+    <script src="https://js.arcgis.com/4.28/"></script>
   </head>
   <style>
     html,
@@ -310,9 +310,13 @@
     #urgentLots-segmented-control {
       margin-bottom: 20px;
     }
+
+    .esri-view .esri-view-surface--touch-none:focus::after {
+      outline: none !important;
+    }
   </style>
 
-  <body class="calcite-theme-dark">
+  <body class="calcite-mode-dark">
     <calcite-loader></calcite-loader>
     <calcite-shell content-behind>
       <!--  Header slot  -->
@@ -358,11 +362,6 @@
             text="Progress Chart"
           ></calcite-action>
           <calcite-action
-            data-action-id="urgent"
-            icon="selection"
-            text="Super Urgent Lots"
-          ></calcite-action>
-          <calcite-action
             data-action-id="information"
             icon="information"
             text="Information"
@@ -394,28 +393,6 @@
         >
         </calcite-panel>
         <!--Panel for super urgent lots button-->
-        <calcite-panel
-          heading="View Super Urgent Lots"
-          height-scale="1"
-          data-panel-id="urgent"
-          hidden
-        >
-          <div id="viewUrgentLots">
-            <calcite-segmented-control id="urgentLots-segmented-control">
-              <calcite-segmented-control-item
-                id="urgentLots-on"
-                value="urgentLotson"
-                >ON</calcite-segmented-control-item
-              >
-              <calcite-segmented-control-item
-                id="urgentLots-off"
-                value="urgentLotsoff"
-                checked
-                >OFF</calcite-segmented-control-item
-              >
-            </calcite-segmented-control>
-          </div>
-        </calcite-panel>
         <!-- Info panel (populates with info from the web map) -->
         <calcite-panel heading="Description" data-panel-id="information" hidden>
           <div id="info-content">
@@ -532,6 +509,7 @@
       "esri/layers/TileLayer",
       "esri/core/reactiveUtils",
       "esri/popup/support/FieldInfoFormat",
+      "esri/layers/GroupLayer",
     ], function (
       WebMap,
       MapView,
@@ -565,7 +543,8 @@
       CustomContent,
       TileLayer,
       reactiveUtils,
-      FieldInfoFormat
+      FieldInfoFormat,
+      GroupLayer
     ) {
       //****---------------- Creating Map -----------------------****//
       var map = new Map({
@@ -705,7 +684,7 @@
         renderer: lotLayerRenderer,
         labelingInfo: [lotIdLabel],
         outFields: ["*"],
-        title: "Status of Land Acquisition",
+        title: "Land Acquisition",
         minScale: 150000,
         maxScale: 0,
         //labelsVisible: false,
@@ -713,7 +692,7 @@
           model: "on-the-ground",
         },
       });
-      map.add(lotLayer, 0); //layer order in map.add
+      //map.add(lotLayer, 0); //layer order in map.add
       lotLayer.visible = true;
 
       // Popup for lot layer
@@ -855,28 +834,30 @@
           model: "on-the-ground",
         },
       });
-      map.add(endorsedLotLayer, 0); //layer order in map.add
+      //map.add(endorsedLotLayer, 0); //layer order in map.add
       endorsedLotLayer.popupTemplate = templateLot; //use the same popup as lot layer
 
       //**** ---- Super Urgent Lots ---- ***///
-
-      let urgentLotRenderer = {
+      const superUrgentLotRenderer = {
         type: "unique-value",
-        defaultSymbol: defaultSymbol,
         field: "Urgent",
         uniqueValueInfos: [
           {
             value: 0,
-            label: "Super Urgent Lots",
+            label: "Super Urgent",
             symbol: {
-              type: "simple-fill", // autocasts as new SimpleFillSymbol()
-              color: "red",
+              type: "simple-fill",
+              color: [255, 0, 0, 0],
+              outline: {
+                color: [255, 0, 0, 1],
+                width: 0.3,
+              },
             },
           },
         ],
       };
 
-      var urgentLotLayer = new FeatureLayer({
+      const superUrgentLotLayer = new FeatureLayer({
         portalItem: {
           id: "dca1d785da0f458b8f87638a76918496",
           portal: {
@@ -884,21 +865,15 @@
           },
         },
         layerId: 7,
-        outFields: ["*"],
-        //definitionExpression: "Urgent = 0",
-        title: "Super Urgent Lots",
-        renderer: urgentLotRenderer,
-        labelingInfo: [lotIdLabel],
-        elevationInfo: {
-          model: "on-the-ground",
-        },
+        definitionExpression: "Urgent = 0",
+        renderer: superUrgentLotRenderer,
         popupEnabled: false,
-        minScale: 150000,
-        maxScale: 0,
+        labelsVisible: false,
+        title: "Super Urgent Lot",
+        elevationInfo: {
+          mode: "on-the-ground",
+        },
       });
-      map.add(urgentLotLayer, 2);
-      urgentLotLayer.listMode = "hide";
-      urgentLotLayer.visible = false;
 
       //**** ---- Structure Layer ---- ***///
 
@@ -1123,7 +1098,7 @@
           ],
         },
       });
-      map.add(structureLayer, 0); //layer order in map.add
+      //map.add(structureLayer, 0); //layer order in map.add
 
       //**** ---- Non-Land Owner (ISF) ---- ***///
 
@@ -1288,7 +1263,7 @@
         },
       });
       //nloLayer.listMode = "hide";
-      map.add(nloLayer, 0);
+      //map.add(nloLayer, 0);
 
       //**** ---- Occupancy (Structure) ---- ***///
 
@@ -1409,7 +1384,7 @@
           ],
         },
       });
-      map.add(occupancyLayer, 0); // layer order in the map.add
+      //map.add(occupancyLayer, 0); // layer order in the map.add
 
       //**** ---- NLO/LO Ownership (Structure) ---- ***///
 
@@ -1417,6 +1392,7 @@
       let NLOLORenderer = {
         type: "unique-value",
         field: "Status",
+        defaultSymbol: { type: "simple-fill" },
         uniqueValueInfos: [
           {
             value: 1,
@@ -1464,7 +1440,7 @@
           model: "on-the-ground",
         },
       });
-      map.add(strucOwnershipLayer, 0); //layer order in the map.add
+      //map.add(strucOwnershipLayer, 0); //layer order in the map.add
 
       //**** ---- Free and Clear Lot ---- ***///
 
@@ -1495,7 +1471,7 @@
             value: "BCDA",
             symbol: {
               type: "simple-fill",
-              color: [225, 225, 225],
+              color: [137, 205, 102],
               style: "diagonal-cross",
               outline: {
                 width: 0.5,
@@ -1507,7 +1483,7 @@
             value: "PNR",
             symbol: {
               type: "simple-fill",
-              color: [225, 225, 225],
+              color: [137, 205, 102],
               style: "diagonal-cross",
               outline: {
                 width: 0.5,
@@ -1564,7 +1540,7 @@
           ],
         },
       });
-      map.add(pnrLayer, 0); //layer order in the map.add
+      //map.add(pnrLayer, 0); //layer order in the map.add
 
       //**** ---- Pier No (Point) with Access Date ---- ***///
 
@@ -1580,7 +1556,7 @@
         6: [255, 0, 0, 0.9], // Dates are missing
       };
 
-      var defaultPointSymbol = {
+      /*var defaultPointSymbol = {
         type: "simple",
         label: "Accessible",
         symbol: {
@@ -1592,13 +1568,15 @@
             color: "black",
           },
         },
-      };
+      };*/
 
       // labels
       // for multiple label class to a layer:
       // https://developers.arcgis.com/javascript/latest/sample-code/labels-multiple-classes/
 
-      const cutOffDateAccess = 1636070400000;
+      const today = new Date();
+      const todayn = today.getTime();
+      const cutOffDateAccess = todayn;
       // make sure to update numerical date values in 'pierAccessRenderer'
 
       const pierAccessReadyDateLabel = new LabelClass({
@@ -1635,13 +1613,13 @@
           },
         },
         labelExpressionInfo: {
-          expression: "$feature.PIER",
-          //'DefaultValue($feature.GeoTechName, "no data")'
-          //"IIF($feature.Score >= 13, '', '')"
-          //value: "{Type}"
+          expression: `var accessdate = $feature.AccessDate;
+                        var cutoffDate = 1700011031473;
+                        var labelPier = when($feature.AccessDate <= cutoffDate, $feature.PIER, '');
+                        return \`\${labelPier}\`
+                        `,
         },
         labelPlacement: "above-center",
-        where: "AccessDate <= '" + cutOffDateAccess + "'",
       });
 
       const pierAccessNotYetLabel = new LabelClass({
@@ -1678,18 +1656,13 @@
           },
         },
         labelExpressionInfo: {
-          expression: "$feature.PIER",
-          //'DefaultValue($feature.GeoTechName, "no data")'
-          //"IIF($feature.Score >= 13, '', '')"
-          //value: "{Type}"
+          expression: `var accessdate = $feature.AccessDate;
+                        var cutoffDate = 1700011031473;
+                        var labelPier = when($feature.AccessDate > cutoffDate, $feature.PIER, '');
+                        return \`\${labelPier}\`
+                        `,
         },
         labelPlacement: "above-center",
-        where:
-          "AccessDate > '" +
-          cutOffDateAccess +
-          "'" +
-          " OR " +
-          "AccessDate IS NULL",
       });
 
       // Pier No Label Class
@@ -1765,7 +1738,7 @@
         },
         { utcOffset: 300 }
       );
-      map.add(pierAccessLayer, 1);
+      //map.add(pierAccessLayer, 1);
 
       // we first need to obtain unique values of date because valueExpression does not allow
       // date'2021-10-01' notation
@@ -1821,7 +1794,7 @@
       const pierAccessRenderer = {
         type: "unique-value", // autocasts as new UniqueValueRenderer()
         field: "AccessDate",
-        defaultSymbol: defaultPointSymbol,
+        //defaultSymbol: defaultPointSymbol,
 
         valueExpression:
           "When(IsEmpty($feature.AccessDate), 'empty', \
@@ -1927,11 +1900,13 @@
           } else if (date <= cutOffDateAccess) {
             DATES = "ACCESSIBLE";
           } else if (date > cutOffDateAccess) {
-            DATES = dateValue;
+            DATES = "NOT ACCESSIBLE";
           }
 
           //return `Access Date: <b>${DATES}</b>`;
-          return `Access Date: <b>${DATES}</b>`;
+          return `Access Date: <b>${dateValue}</b><br>
+                  Status: <b>${DATES}</b>
+          `;
         },
       });
 
@@ -2013,7 +1988,7 @@
         },
       });
       //stationBoxLayer.listMode = "hide";
-      map.add(stationBoxLayer, 0);
+      //map.add(stationBoxLayer, 0);
 
       //**** ---- ROW ---- ***///
 
@@ -2029,7 +2004,8 @@
         title: "PROW",
         popupEnabled: false,
       });
-      map.add(prowLayer, 0); // layer order in the map
+      prowLayer.listMode = "hide";
+      //map.add(prowLayer, 0); // layer order in the map
 
       //**** ---- Chainage ---- ***///
 
@@ -2082,7 +2058,7 @@
         outFields: ["*"],
         popupEnabled: false,
       });
-      map.add(chainageLayer, 0); //layer order in the map.add
+      //map.add(chainageLayer, 0); //layer order in the map.add
 
       //**** ---- Pier Head and Column ---- ***///
 
@@ -2167,7 +2143,7 @@
       };
 
       // Adding the layer
-      var pierHeadColumnLayerLayer = new FeatureLayer({
+      var pierHeadColumnLayer = new FeatureLayer({
         portalItem: {
           id: "590680d19f2e48fdbd8bcddce3aaedb5",
           portal: {
@@ -2187,8 +2163,8 @@
         },
         legendEnabled: false,
       });
-      pierHeadColumnLayerLayer.listMode = "hide"; //hide in the LayerList
-      map.add(pierHeadColumnLayerLayer, 1); //layer order in the map.add
+      pierHeadColumnLayer.listMode = "hide"; //hide in the LayerList
+      map.add(pierHeadColumnLayer, 1); //layer order in the map.add
 
       //**** ---- Station Point ---- ***///
 
@@ -2266,7 +2242,38 @@
         //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
       });
       stationLayer.listMode = "hide"; // hides the layer in the layer list
-      map.add(stationLayer, 0); // layer order in the map
+      map.add(stationLayer); // layer order in the map
+
+      //**** ---- Group Layers ---- ***///
+
+      const alignmentGroupLayer = new GroupLayer({
+        title: "Alignment",
+        visible: true,
+        visibilityMode: "independent",
+        layers: [stationBoxLayer, chainageLayer],
+      }); //map.add(alignmentGroupLayer, 0);
+
+      const nloLoOccupancyGroupLayer = new GroupLayer({
+        title: "NLO/LO Occupancy",
+        visible: true,
+        visibilityMode: "independent",
+        layers: [occupancyLayer, strucOwnershipLayer, nloLayer],
+      });
+
+      const lotGroupLayer = new GroupLayer({
+        title: "Land",
+        visible: true,
+        visibilityMode: "independent",
+        layers: [endorsedLotLayer, lotLayer, superUrgentLotLayer, pnrLayer],
+      });
+
+      /// Order in the layer list
+      map.add(pierAccessLayer);
+      map.add(lotGroupLayer);
+      map.add(structureLayer);
+      map.add(nloLoOccupancyGroupLayer);
+      map.add(alignmentGroupLayer);
+      map.add(prowLayer);
 
       /////////////////// END Of LAYER IMPORT ////////////////////////////
 
@@ -3442,92 +3449,6 @@
         // ----------------- Pier Chart for Structure ----------------- //
         var root3 = am5.Root.new("structurePieChartDiv");
         root3._logo.dispose();
-        class MyTheme extends am5.Theme {
-          setupDefaultRules() {
-            var theme = this;
-
-            const gap = 4;
-            const rotation = 135;
-            const strokeWidth = 1.1;
-            const fillOpacity = 0;
-            const width = 10;
-            const height = 10;
-
-            this.patterns = [
-              am5.LinePattern.new(this._root, {
-                color: am5.color("#00C5FF"),
-                gap: gap,
-                rotation: rotation,
-                strokeWidth: strokeWidth,
-                fillOpacity: fillOpacity,
-                width: width,
-                height: height,
-              }),
-
-              am5.LinePattern.new(this._root, {
-                color: am5.color("#70AD47"),
-                gap: gap,
-                rotation: rotation,
-                strokeWidth: strokeWidth,
-                fillOpacity: fillOpacity,
-                width: width,
-                height: height,
-              }),
-
-              am5.LinePattern.new(this._root, {
-                color: am5.color("#0070FF"),
-                gap: gap,
-                rotation: rotation,
-                strokeWidth: strokeWidth,
-                fillOpacity: fillOpacity,
-                width: width,
-                height: height,
-              }),
-
-              am5.LinePattern.new(this._root, {
-                color: am5.color("#FFFF00"),
-                gap: gap,
-                rotation: rotation,
-                strokeWidth: strokeWidth,
-                fillOpacity: fillOpacity,
-                width: width,
-                height: height,
-              }),
-              am5.LinePattern.new(this._root, {
-                color: am5.color("#FFAA00"),
-                gap: gap,
-                rotation: rotation,
-                strokeWidth: strokeWidth,
-                fillOpacity: fillOpacity,
-                width: width,
-                height: height,
-              }),
-
-              am5.LinePattern.new(this._root, {
-                color: am5.color("#FF0000"),
-                gap: gap,
-                rotation: rotation,
-                strokeWidth: strokeWidth,
-                fillOpacity: fillOpacity,
-                width: width,
-                height: height,
-              }),
-            ];
-
-            this.currentPattern = 0;
-            this.rule("Slice").setAll({
-              fillOpacity: 1,
-            });
-
-            this.rule("Slice").setup = function (target) {
-              target.set("fillPattern", theme.patterns[theme.currentPattern]);
-              theme.currentPattern++;
-              if (theme.currentPattern == theme.patterns.length) {
-                theme.currentPattern = 0;
-              }
-            };
-          }
-        }
 
         const statusStructure = [
           "Dismantling/Clearing",
@@ -3603,7 +3524,7 @@
             root3.setThemes([
               am5themes_Animated.new(root3),
               am5themes_Responsive.new(root3),
-              MyTheme.new(root3),
+              //MyTheme.new(root3),
             ]);
 
             // Create chart
@@ -3626,19 +3547,20 @@
                 //legendLabelText: "[{fill}]{category}[/]",
                 legendValueText:
                   "{valuePercentTotal.formatNumber('#.')}% ({value})",
-                radius: am5.percent(90), // outer radius
+                radius: am5.percent(85), // outer radius
                 innerRadius: am5.percent(40),
               })
             );
 
             // Set slice opacity and stroke color
             pieSeries.slices.template.setAll({
-              //fillOpacity: 0.9,
+              fillOpacity: 0.9,
               stroke: am5.color("#ffffff"),
               strokeWidth: 1,
               strokeOpacity: 1,
-              tooltipText: "{category}: {value}",
-              tooltipY: am5.percent(10),
+              //tooltipText: "{category}: {value}",
+              //tooltipY: am5.percent(10),
+              templateField: "sliceSettings",
               //fill: am5.color("#1e8553")//root3.interfaceColors.get("alternativeText"),
             });
 
@@ -3734,26 +3656,44 @@
               {
                 category: statusStructure[0],
                 value: clear,
+                sliceSettings: {
+                  fill: am5.color("#00C5FF"),
+                },
               },
               {
                 category: statusStructure[1],
                 value: paid,
+                sliceSettings: {
+                  fill: am5.color("#70ad47"),
+                },
               },
               {
                 category: statusStructure[2],
                 value: payp,
+                sliceSettings: {
+                  fill: am5.color("#0070ff"),
+                },
               },
               {
                 category: statusStructure[3],
                 value: legalpass,
+                sliceSettings: {
+                  fill: am5.color("#ffff00"),
+                },
               },
               {
                 category: statusStructure[4],
                 value: otc,
+                sliceSettings: {
+                  fill: am5.color("#ffaa00"),
+                },
               },
               {
                 category: statusStructure[5],
                 value: lbp,
+                sliceSettings: {
+                  fill: am5.color("#ff0000"),
+                },
               },
             ]);
 
@@ -4771,7 +4711,7 @@
 
             chart
               .get("colors")
-              .set("colors", [am5.color("#e8ff00"), am5.color("#4a99ff")]);
+              .set("colors", [am5.color("#6ede00"), am5.color("#4a99ff")]);
 
             // Chart title
             chart.children.unshift(
@@ -4911,7 +4851,7 @@
                   locationY: 1,
                   locationX: 0.5,
                   sprite: am5.Label.new(root7, {
-                    text: "{valueYTotal}",
+                    text: "{valueY}",
                     fill: root7.interfaceColors.get("alternativeText"),
                     centerY: 0,
                     centerX: am5.p50,
@@ -4972,31 +4912,6 @@
             urgentlayerView.filter = { where: "Urgent = 0" };
           });
         }
-
-        const viewUrgentLots = document.getElementById("viewUrgentLots");
-        const urgentLotsOn = document.getElementById("urgentLots-on");
-
-        viewUrgentLots.addEventListener("click", function (event) {
-          let urgentLotsOn_switch = urgentLotsOn.checked;
-
-          if (urgentLotsOn_switch === true) {
-            urgentLotLayer.visible = true;
-
-            lotLayer.visible = false;
-            pnrLayer.visible = false;
-            structureLayer.visible = false;
-            pierAccessLayer.visible = false;
-
-            highlightUrgent();
-          } else {
-            urgentLotLayer.visible = false;
-
-            lotLayer.visible = true;
-            pnrLayer.visible = true;
-            structureLayer.visible = true;
-            pierAccessLayer.visible = true;
-          }
-        });
 
         // ----------------- Calcite Action Bar (Inside: the chart) ----------------- //
 
@@ -5125,6 +5040,25 @@
       });
 
       //****---------------- Layer List -----------------------****//
+      function highlightUrgent(layer) {
+        let highlight;
+        view.whenLayerView(layer).then((urgentLayerView) => {
+          var query = layer.createQuery();
+          layer.queryFeatures(query).then((results) => {
+            const length = results.features.length;
+            let objID = [];
+            for (var i = 0; i < length; i++) {
+              var obj = results.features[i].attributes.OBJECTID;
+              objID.push(obj);
+            }
+
+            if (highlight) {
+              highlight.remove();
+            }
+            highlight = urgentLayerView.highlight(objID);
+          });
+        });
+      }
 
       const layerList = new LayerList({
         view: view,
@@ -5132,11 +5066,17 @@
         container: "layers-container",
         listItemCreatedFunction: function (event) {
           const item = event.item;
+
+          if (item.title === "Super Urgent Lot") {
+            highlightUrgent(superUrgentLotLayer);
+          }
+
           if (
             item.title === "Chainage" ||
             item.title === "Occupancy (Structure)" ||
             item.title === "NLO/LO Ownership (Structure)" ||
-            item.title === "Land Acquisition (Endorsed Status)"
+            item.title === "Land Acquisition (Endorsed Status)" ||
+            item.title === "Super Urgent Lot"
           ) {
             item.visible = false;
           }
@@ -5217,31 +5157,7 @@
       });
 
       //****---------------- Date -----------------------****//
-
-      function getEditedDateValue() {
-        var tempDates = [];
-
-        var query = lotLayer.createQuery();
-        //query.fields = ["enddate"];
-        query.where = "last_edited_date IS NOT NULL";
-        return lotLayer.queryFeatures(query).then(function (response) {
-          var stats = response.features;
-          stats.forEach((result, index) => {
-            var attributes = result.attributes;
-            const dates = attributes.last_edited_date;
-            tempDates.push(dates);
-          });
-          const lastDate = Math.max(...tempDates);
-          const lastEdit = new Date(lastDate);
-          const yyyy = lastEdit.getFullYear();
-          const mm = month[lastEdit.getMonth()];
-          const dd = lastEdit.getDate();
-          const lastEditedDate = `${mm} ${dd}, ${yyyy}`;
-          document.getElementById("dateDiv").innerHTML =
-            "As of October 4, 2023"; //lastEditedDate;
-        });
-      }
-      getEditedDateValue();
+      document.getElementById("dateDiv").innerHTML = "As of November 15, 2023"; //lastEditedDate;
     });
   </script>
 </html>
