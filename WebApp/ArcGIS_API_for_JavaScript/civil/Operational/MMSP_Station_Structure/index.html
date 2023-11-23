@@ -401,7 +401,7 @@
 
     const dem = new ElevationLayer({
       portalItem: {
-        id: "dd2e85411a504182adb99215aa98ab68",
+        id: "68ecd53e3df14d768c0818d681314f7a",
         portal: {
           url: "https://gis.railway-sector.com/portal",
         },
@@ -409,7 +409,7 @@
     });
 
     var map = new Map({
-      basemap: "satellite", // "streets-night-vector", basemap, topo-vector
+      basemap: "dark-gray-vector", // "streets-night-vector", basemap, topo-vector
       ground: new Ground({
         layers: [worldElevation, dem],
       }),
@@ -442,37 +442,6 @@
     });
 
     view.ui.components = [];
-
-    // OpenStreetMap 3D Buildings
-    let osmSymbol = {
-      type: "mesh-3d",
-      symbolLayers: [
-        {
-          type: "fill",
-          material: {
-            color: [74, 80, 87, 0.5],
-            colorMixMode: "replace",
-          },
-          edges: {
-            type: "solid", // autocasts as new SolidEdges3D()
-            color: [225, 225, 225, 0.3],
-          },
-        },
-      ],
-    };
-
-    var osm3D = new SceneLayer({
-      portalItem: {
-        id: "ca0470dbbddb4db28bad74ed39949e25",
-      },
-      title: "OpenStreetMap 3D Buildings",
-    });
-    map.add(osm3D);
-
-    osm3D.renderer = {
-      type: "simple",
-      symbol: osmSymbol,
-    };
 
     function catchAbortError(error) {
       if (error.name != "AbortError") {
@@ -682,7 +651,7 @@
     };
 
     // Station point feature
-    var stationLayer = new SceneLayer({
+    var stationLayer = new FeatureLayer({
       portalItem: {
         id: "c34277793d164f248abb0926963ae92d",
         portal: {
@@ -708,10 +677,7 @@
     var structureLayer = new SceneLayer({
       //structureLayer
       portalItem: {
-        id: "09f1e6d86cf34567bebcd22afcad8b4b",
-        portal: {
-          url: "https://gis.railway-sector.com/portal",
-        },
+        id: "1f03030cd36c4d83880427354fc05c66",
       },
       popupTemplate: {
         title: "<h5>{Status}</h5>",
@@ -786,12 +752,12 @@
     // TBM Tunnel used as a reference
     var tbmTunnelLayer = new FeatureLayer({
       portalItem: {
-        id: "af9539f5e41e4bd8b694973972e3faf4",
+        id: "6992715c99d04df28fb93ca9ee9d2b5f",
         portal: {
           url: "https://gis.railway-sector.com/portal",
         },
       },
-      layerId: 2,
+      layerId: 1,
       elevationInfo: {
         mode: "absolute-height", //"on-the-ground", relative-to-ground, absolute-height
         offset: -2,
@@ -858,43 +824,43 @@
     renderTransitLayer();
 
     // photo points
-    var photoLayer = new FeatureLayer({
-      portalItem: {
-        id: "bdbfa1159b6c4ef3a94e0c87462bc625",
-        portal: {
-          url: "https://gis.railway-sector.com/portal",
-        },
-      },
-      //labelingInfo: [sitePhotoLabelClass],
-      renderer: photoSymbolRenderer,
-      elevationInfo: {
-        mode: "relative-to-ground",
-        featureExpressionInfo: {
-          expression: "Geometry($feature).z * 0",
-        },
-        unit: "meters",
-      },
-      popupTemplate: {
-        lastEditInfoEnabled: false,
-        returnGeometry: true,
-        content: [
-          {
-            type: "media",
-            mediaInfos: [
-              {
-                title: "{Title}",
-                type: "image",
-                caption: "As of {DateTime}",
-                value: {
-                  sourceURL: "{ImageURL}",
-                },
-              },
-            ],
-          },
-        ],
-      },
-    });
-    map.add(photoLayer, 1);
+    // var photoLayer = new FeatureLayer({
+    //   portalItem: {
+    //     id: "bdbfa1159b6c4ef3a94e0c87462bc625",
+    //     portal: {
+    //       url: "https://gis.railway-sector.com/portal",
+    //     },
+    //   },
+    //   //labelingInfo: [sitePhotoLabelClass],
+    //   renderer: photoSymbolRenderer,
+    //   elevationInfo: {
+    //     mode: "relative-to-ground",
+    //     featureExpressionInfo: {
+    //       expression: "Geometry($feature).z * 0",
+    //     },
+    //     unit: "meters",
+    //   },
+    //   popupTemplate: {
+    //     lastEditInfoEnabled: false,
+    //     returnGeometry: true,
+    //     content: [
+    //       {
+    //         type: "media",
+    //         mediaInfos: [
+    //           {
+    //             title: "{Title}",
+    //             type: "image",
+    //             caption: "As of {DateTime}",
+    //             value: {
+    //               sourceURL: "{ImageURL}",
+    //             },
+    //           },
+    //         ],
+    //       },
+    //     ],
+    //   },
+    // });
+    // map.add(photoLayer, 1);
 
     // Radio Button Selection //
     // Selection of 'D-Wall' or 'Station Box' only for visualization (not chart)
@@ -1882,7 +1848,6 @@
         if (
           item.title === "Chainage" ||
           item.title === "ROW" ||
-          item.title === "OpenStreetMap 3D Buildings" ||
           item.title === "TBM Segment"
         ) {
           item.visible = false;
@@ -1902,10 +1867,10 @@
           layer: structureLayer,
           title: "Station Structure",
         },
-        {
-          layer: photoLayer,
-          title: "Site Photo",
-        },
+        // {
+        //   layer: photoLayer,
+        //   title: "Site Photo",
+        // },
       ],
     });
 
