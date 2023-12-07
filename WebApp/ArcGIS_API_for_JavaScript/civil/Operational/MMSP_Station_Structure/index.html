@@ -918,7 +918,7 @@
 
     const stationValue = document.getElementById("stationSelect");
 
-    document.getElementById("dateDiv").innerHTML = "As of November 20, 2023"; //lastEditedDate;lastEditedDate;
+    document.getElementById("dateDiv").innerHTML = "As of December 4, 2023"; //lastEditedDate;lastEditedDate;
 
     // Create Bar chart to show progress of station structure
     am5.ready(function () {
@@ -944,6 +944,12 @@
       const linePatternColorOpacityIncomplet = 0;
       const linePatternFillOpacityIncomplet = 1;
       const linePatternStrokeOpacityIncomplet = 0;
+
+      const chartSeriesFillColorComp = "#0070ff";
+      const chartSeriesFillColorIncomp = "#000000";
+      const chartSeriesFillColorDelay = "#FF0000"; // original: #FF0000
+      const chartBorderLineColor = "#00c5ff";
+      const chartBorderLineWidth = 0.4;
 
       // axis label
       const yAxisLabelFontSize = "1.2vw";
@@ -1030,6 +1036,13 @@
           statisticType: "sum",
         };
 
+        var total_dwall_delay = {
+          onStatisticField:
+            "CASE WHEN (Type = 1 and Status = 3) THEN 1 ELSE 0 END", // D-Wall and Complete
+          outStatisticFieldName: "total_dwall_delay",
+          statisticType: "sum",
+        };
+
         // Column
         var total_column_tobeC = {
           onStatisticField:
@@ -1042,6 +1055,13 @@
           onStatisticField:
             "CASE WHEN (Type = 2 and Status = 4) THEN 1 ELSE 0 END", // D-Wall and Complete
           outStatisticFieldName: "total_column_done",
+          statisticType: "sum",
+        };
+
+        var total_column_delay = {
+          onStatisticField:
+            "CASE WHEN (Type = 2 and Status = 3) THEN 1 ELSE 0 END", // D-Wall and Complete
+          outStatisticFieldName: "total_column_delay",
           statisticType: "sum",
         };
 
@@ -1060,6 +1080,13 @@
           statisticType: "sum",
         };
 
+        var total_slab_delay = {
+          onStatisticField:
+            "CASE WHEN (Type = 3 and Status = 3) THEN 1 ELSE 0 END", // D-Wall and Complete
+          outStatisticFieldName: "total_slab_delay",
+          statisticType: "sum",
+        };
+
         // King's Post
         var total_kingpost_tobeC = {
           onStatisticField:
@@ -1072,6 +1099,13 @@
           onStatisticField:
             "CASE WHEN (Type = 4 and Status = 4) THEN 1 ELSE 0 END", // D-Wall and Complete
           outStatisticFieldName: "total_kingpost_done",
+          statisticType: "sum",
+        };
+
+        var total_kingpost_delay = {
+          onStatisticField:
+            "CASE WHEN (Type = 4 and Status = 3) THEN 1 ELSE 0 END", // D-Wall and Complete
+          outStatisticFieldName: "total_kingpost_delay",
           statisticType: "sum",
         };
 
@@ -1090,6 +1124,13 @@
           statisticType: "sum",
         };
 
+        var total_secant_delay = {
+          onStatisticField:
+            "CASE WHEN (Type = 5 and Status = 3) THEN 1 ELSE 0 END", // D-Wall and Complete
+          outStatisticFieldName: "total_secant_delay",
+          statisticType: "sum",
+        };
+
         // Column Head
         var total_columnhead_tobeC = {
           onStatisticField:
@@ -1105,20 +1146,33 @@
           statisticType: "sum",
         };
 
+        var total_columnhead_delay = {
+          onStatisticField:
+            "CASE WHEN (Type = 6 and Status = 3) THEN 1 ELSE 0 END", // D-Wall and Complete
+          outStatisticFieldName: "total_columnhead_delay",
+          statisticType: "sum",
+        };
+
         var query = structureLayer.createQuery();
         query.outStatistics = [
           total_dwall_tobeC,
           total_dwall_done,
+          total_dwall_delay,
           total_column_tobeC,
           total_column_done,
+          total_column_delay,
           total_slab_tobeC,
           total_slab_done,
+          total_slab_delay,
           total_kingpost_tobeC,
           total_kingpost_done,
+          total_kingpost_delay,
           total_secant_tobeC,
           total_secant_done,
+          total_secant_delay,
           total_columnhead_tobeC,
           total_columnhead_done,
+          total_columnhead_delay,
         ];
         query.returnGeometry = true;
 
@@ -1128,26 +1182,32 @@
           // D-wall
           const dwall_tobeC = stats.total_dwall_tobeC;
           const dwall_done = stats.total_dwall_done;
+          const dwall_delay = stats.total_dwall_delay;
 
           // Column
           const column_tobeC = stats.total_column_tobeC;
           const column_done = stats.total_column_done;
+          const column_delay = stats.total_column_delay;
 
           // Slab
           const slab_tobeC = stats.total_slab_tobeC;
           const slab_done = stats.total_slab_done;
+          const slab_delay = stats.total_slab_delay;
 
           // King's Post
           const kingpost_tobeC = stats.total_kingpost_tobeC;
           const kingpost_done = stats.total_kingpost_done;
+          const kingpost_delay = stats.total_kingpost_delay;
 
           // Secant pile
           const secant_tobeC = stats.total_secant_tobeC;
           const secant_done = stats.total_secant_done;
+          const secant_delay = stats.total_secant_delay;
 
           // Secant pile
           const columnhead_tobeC = stats.total_columnhead_tobeC;
           const columnhead_done = stats.total_columnhead_done;
+          const columnhead_delay = stats.total_columnhead_delay;
 
           // Set themes
           // https://www.amcharts.com/docs/v5/concepts/themes/
@@ -1181,31 +1241,37 @@
               category: "Secant Pile",
               comp: secant_done,
               incomp: secant_tobeC,
+              delay: secant_delay,
             },
             {
               category: "Kings Post",
               comp: kingpost_done,
               incomp: kingpost_tobeC,
+              delay: kingpost_delay,
             },
             {
               category: "Slab",
               comp: slab_done,
               incomp: slab_tobeC,
+              delay: slab_delay,
             },
             {
               category: "Column",
               comp: column_done,
               incomp: column_tobeC,
+              delay: column_delay,
             },
             {
               category: "D-Wall",
               comp: dwall_done,
               incomp: dwall_tobeC,
+              delay: dwall_delay,
             },
             {
               category: "Column Head",
               comp: columnhead_done,
               incomp: columnhead_tobeC,
+              delay: columnhead_delay,
             },
           ];
 
@@ -1275,7 +1341,7 @@
             oversizedBehavior: "truncate",
             fill: am5.color("#ffffff"),
             fontSize: legendFontSize,
-            //scale: 0.8,
+            scale: 0.8,
             //textDecoration: "underline"
             //width: am5.percent(200)
             //fontWeight: "300"
@@ -1314,10 +1380,25 @@
                 valueXField: fieldName,
                 valueXShow: "valueXTotalPercent",
                 categoryYField: "category",
+                fill:
+                  fieldName === "delay"
+                    ? fieldName === "incomp"
+                      ? am5.color(chartSeriesFillColorIncomp)
+                      : am5.color(chartSeriesFillColorDelay)
+                    : am5.color(chartSeriesFillColorComp),
+                stroke: am5.color(chartBorderLineColor),
               })
             );
 
             series.columns.template.setAll({
+              fillOpacity:
+                fieldName === "comp" // first condition
+                  ? fieldName === "incomp" // second condition
+                    ? 0 // if first condition is false and second condition is true,
+                    : 1 // if first condition is true
+                  : fieldName === "delay" // third condition
+                  ? 0.5 // if first and second conditions are false but third condition is true
+                  : 0, // else
               tooltipText: "{name}: {valueX}", // "{categoryY}: {valueX}",
               tooltipY: am5.percent(90),
               //fill: am5.color("#ffffff")
@@ -1355,6 +1436,8 @@
 
               if (fieldName === "incomp") {
                 selectedStatus = 1;
+              } else if (fieldName === "delay") {
+                selectedStatus = 3;
               } else if (fieldName === "comp") {
                 selectedStatus = 4;
               } else {
@@ -1403,6 +1486,7 @@
           } // end of makeSeries
           makeSeries("Complete", "comp");
           makeSeries("Incomplete", "incomp");
+          makeSeries("Delayed", "delay");
           // Make stuff animate on load
           // https://www.amcharts.com/docs/v5/concepts/animations/
           chart.appear(1000, 100);
