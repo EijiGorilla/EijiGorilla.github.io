@@ -595,36 +595,6 @@ require([
   
     view.ui.components = [];
   
-    // OpenStreetMap 3D Buildings
-  let osmSymbol = {
-    type: "mesh-3d",
-    symbolLayers: [
-      {
-      type: "fill",
-      material: {
-        color: [74, 80, 87, 0.5],
-        colorMixMode: "replace"
-      },
-      edges: {
-        type: "solid", // autocasts as new SolidEdges3D()
-        color: [225, 225, 225, 0.3]
-      }
-      }
-    ]
-  };
-  
-  var osm3D = new SceneLayer({
-    portalItem: {
-      id: "ca0470dbbddb4db28bad74ed39949e25"
-    },
-    title: "OpenStreetMap 3D Buildings"
-  });
-  map.add(osm3D);
-  osm3D.renderer = {
-    type: "simple",
-    symbol: osmSymbol
-  }
-
     //
     function shiftCamera(deg) {
       var camera = view.camera.clone();
@@ -649,7 +619,7 @@ require([
   // ROW //
   var prowLayer = new FeatureLayer ({
     portalItem: {
-      id: "d3926383cf3548569372216edb808996",
+      id: "299f80a1d0844e109dcf354f9463f6b4",
       portal: {
           url: "https://gis.railway-sector.com/portal"
       }
@@ -661,197 +631,200 @@ require([
   map.add(prowLayer,0);
 
     // Lot Layer----------------------------------
-    function colorLotReqs(){
-        return {
-            0: [0, 197, 255], 
-            1: [112,173,71],
-            2: [0,112,255],
-            3: [255,255,0],
-            4: [255,170,0],
-            5: [255,0,0],
-            6: [0,0,0,0]
-        }
-    }
-
-    let defaultSymbol = {
-        type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-        color: [0,0,0,0],
-        style: "solid",
-        outline: {  // autocasts as new SimpleLineSymbol()
-            color: [110, 110, 110],
-            width: 0.7
-        }
-    };
-      
-
-    let lotLayerRenderer = {
-        type: "unique-value",
-        defaultSymbol: defaultSymbol,  // autocasts as new SimpleFillSymbol()
-        valueExpression: "When($feature.StatusLA == 0, '0',$feature.StatusLA == 1, '1', $feature.StatusLA == 2, '2', \
-                               $feature.StatusLA == 3, '3', $feature.StatusLA == 4, '4', \
-                               $feature.StatusLA == 5, '5', $feature.StatusLA)",
-        uniqueValueInfos: [
-            {
-                value: "0",
-                label: "Handed-Over",
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: colorLotReqs()[0],
-                }
-            },
-            {
-                value: "1",
-                label: "Paid",
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: colorLotReqs()[1],
-                }
-            },
-            {
-                value: "2",
-                label: "For Payment Processing",
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: colorLotReqs()[2],
-                }
-            },
-            {
-                value: "3",
-                label: "For Legal Pass",
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: colorLotReqs()[3],
-                }
-            },
-            {
-                value: "4",
-                label: "For Appraisal/Offer to Buy",
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: colorLotReqs()[4],
-                }
-            },
-            {
-                value: "5",
-                label: "For Expro",
-                symbol: {
-                    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-                    color: colorLotReqs()[5],
-                }
-            }
-        ]
-    }
-
     var lotIdLabel = new LabelClass({
-      labelExpressionInfo: {expression: "$feature.LotID"},
+  labelExpressionInfo: { expression: '$feature.LotID' },
+  symbol: {
+    type: 'text',
+    color: 'black',
+    haloColor: 'white',
+    haloSize: 0.5,
+    font: {
+      size: 11,
+      weight: 'bold',
+    },
+  },
+});
+
+/* uniqueRenderer */
+const colorLotReqs = {
+  0: [0, 115, 76],
+  1: [0, 112, 255],
+  2: [255, 255, 0],
+  3: [255, 170, 0],
+  4: [255, 0, 0],
+  5: [112, 173, 71],
+  6: [178, 178, 178],
+  7: [0, 0, 0, 0],
+};
+
+
+let lotLayerRenderer = new UniqueValueRenderer({
+  field: 'StatusLA',
+  //defaultSymbol: lotDefaultSymbol, // autocasts as new SimpleFillSymbol()
+  uniqueValueInfos: [
+    {
+      // All features with value of "North" will be blue
+      value: 1,
+      label: 'Paid',
       symbol: {
-        type: "text",
-        color: "black",
-        haloColor: "white",
-        haloSize: 0.5,
-        font: {
-          size: 11,
-          weight: "bold"
-        }
-      }
-    });
-
-    var lotLayer = new FeatureLayer({
-      portalItem: {
-        id: "c38a7320b34b45b580778d7363f4e4c3",
-        portal: {
-            url: "https://gis.railway-sector.com/portal"
-        }
+        type: 'simple-fill',
+        color: colorLotReqs[0],
       },
-      title: "Land Acquisition",
-      layerId: 14,
-      labelingInfo: [lotIdLabel],
-      renderer:lotLayerRenderer,
-      outFields: ["*"],
-      minScale: 150000,
-      maxScale: 0,
-      //labelsVisible: false,
-    });
-    map.add(lotLayer,0);
+    },
+    {
+      // All features with value of "North" will be blue
+      value: 2,
+      label: 'For Payment Processing',
+      symbol: {
+        type: 'simple-fill',
+        color: colorLotReqs[1],
+      },
+    },
+    {
+      // All features with value of "North" will be blue
+      value: 3,
+      label: 'For Legal Pass',
+      symbol: {
+        type: 'simple-fill',
+        color: colorLotReqs[2],
+      },
+    },
+    {
+      // All features with value of "North" will be blue
+      value: 4,
+      label: 'For Appraisal/Offer to Buy',
+      symbol: {
+        type: 'simple-fill',
+        color: colorLotReqs[3],
+      },
+    },
+    {
+      // All features with value of "North" will be blue
+      value: 5,
+      label: 'For Expro',
+      symbol: {
+        type: 'simple-fill',
+        color: colorLotReqs[4],
+      },
+    },
+    {
+      // All features with value of "North" will be blue
+      value: 6,
+      label: 'With PTE',
+      symbol: {
+        type: 'simple-fill',
+        color: colorLotReqs[5],
+      },
+    },
+    {
+      // All features with value of "North" will be blue
+      value: 7,
+      label: 'For Harmonization',
+      symbol: {
+        type: 'simple-fill',
+        color: colorLotReqs[6],
+      },
+    },
+  ],
+});
 
-    /// Popup for lot layer
-    const lotStatusArray = [
-        "Handed-Over",
-        "Paid",
-        "For Payment Processing",
-        "For Legal Pass",
-        "For Appraisal/Offer to Buy",
-        "For Expro"
-    ];
+// Custom popup for lot layer
+const lotStatusArray = [
+  'Paid',
+  'For Payment Processing',
+  'For Legal Pass',
+  'For Appraisal/Offer to Buy',
+  'For Expro',
+  'For PTE',
+  'For Harmonization',
+];
 
-    const landUseArray = [
-        "Agricultural",
-        "Agricultural & Commercial",
-        "Agricultural / Residential",
-        "Commercial",
-        "Industrial",
-        "Irrigation",
-        "Residential",
-        "Road",
-        "Road Lot",
-        "Special Exempt"
-    ]
+const landUseArray = [
+  'Agricultural',
+  'Agricultural & Commercial',
+  'Agricultural / Residential',
+  'Commercial',
+  'Industrial',
+  'Irrigation',
+  'Residential',
+  'Road',
+  'Road Lot',
+  'Special Exempt',
+];
 
-    let customContentLot = new CustomContent({
-        outFields: ["*"],
-        creator: function(event) {
+const endorsedStatus = ['Not Endorsed', 'Endorsed', 'NA'];
 
-            // Extract AsscessDate of clicked pierAccessLayer
-            const lotNo = event.graphic.attributes.LotID;
-            const handOverDate = event.graphic.attributes.HandOverDate;
-            const handOverArea = event.graphic.attributes.percentHandedOver;
-            const statusLot = event.graphic.attributes.StatusLA;
-            const landUse = event.graphic.attributes.LandUse;
-            const municipal = event.graphic.attributes.Municipality;
-            const barangay = event.graphic.attributes.Barangay;
-            const landOwner = event.graphic.attributes.LandOwner;
-            const cpNo = event.graphic.attributes.CP;
+let customContentLot = new CustomContent({
+  outFields: ['*'],
+  creator: function (event) {
+    // Extract AsscessDate of clicked pierAccessLayer
+    const handedOverDate = event.graphic.attributes.HandedOverDate;
+    const handOverArea = event.graphic.attributes.percentHandedOver;
+    const statusLot = event.graphic.attributes.StatusLA;
+    const landUse = event.graphic.attributes.LandUse;
+    const municipal = event.graphic.attributes.Municipality;
+    const barangay = event.graphic.attributes.Barangay;
+    const landOwner = event.graphic.attributes.LandOwner;
+    const cpNo = event.graphic.attributes.CP;
+    const endorse = event.graphic.attributes.Endorsed;
+    const endorsed = endorsedStatus[endorse];
 
-            // Convert numeric to date format
+    let daten;
+    let date;
+    if (handedOverDate) {
+      daten = new Date(handedOverDate);
+      const year = daten.getFullYear();
+      const month = daten.getMonth();
+      const day = daten.getDay();
+      date = `${year}-${month}-${day}`;
+    } else {
+      date = 'Undefined';
+    }
+    // Convert numeric to date format 0
+    //var daten = new Date(handedOverDate);
+    //var date = dateFormat(daten, 'MM-dd-yyyy');
+    //<li>Hand-Over Date: <b>${date}</b></li><br>
 
-            var date = new Date(handOverDate);
-            var DATES = dateFormat(date, 'MM-dd-yyyy');
+    return `<ul><li>Handed-Over Area: <b>${handOverArea} %</b></li><br>
+    <li>Hand-Over Date: <b>${date}</b></li><br>
+              <li>Status:           <b>${
+                statusLot >= 0 ? lotStatusArray[statusLot - 1] : ''
+              }</b></li><br>
+              <li>Land Use:         <b>${landUse >= 1 ? landUseArray[landUse - 1] : ''}</b></li><br>
+              <li>Municipality:     <b>${municipal}</b></li><br>
+              <li>Barangay:         <b>${barangay}</b></li><br>
+              <li>Land Owner:       <b>${landOwner}</b>
+              <li>CP:               <b>${cpNo}</b><br>
+              <li>Endorsed:         <b>${endorsed}</b></li></ul>`;
+  },
+});
 
-            if (DATES === '01-01-1970') {
-                var finalDate = "Undefined"
-            } else {
-                var finalDate = dateFormat(date, 'MM-dd-yyyy');
-            }
-            // Convert domain code to domain name
-            /// 1. Status
-            if (statusLot >= 0) {
-                //headerTitleDiv.innerHTML = lotStatusArray[statusLot];
-                var statusLotTemp = lotStatusArray[statusLot];
-            }
+const templateLot = new PopupTemplate({
+  outFields: ['*'],
+  title: 'Lot No.: <b>{LotID}</b>',
+  lastEditInfoEnabled: false,
+  content: [customContentLot],
+});
 
-            if (landUse >=1 ) {
-                var landUseTemp = landUseArray[landUse - 1];
-            }
-
-            return `<ul><li>Handed-Over Area: <b>${handOverArea} %</b></li><br>
-                    <li>Status:           <b>${statusLotTemp}</b></li><br>
-                    <li>Land Use:         <b>${landUseTemp}</b></li><br>
-                    <li>Municipality:     <b>${municipal}</b></li><br>
-                    <li>Barangay:         <b>${barangay}</b></li><br>
-                    <li>Land Owner:       <b>${landOwner}</b>
-                    <li>CP:               <b>${cpNo}</b></li></ul>`;
-
-        }
-    });
-
-    const templateLot = new PopupTemplate({
-        outFields: ["*"],
-        title: "Lot No.: <b>{LotID}</b>",
-        lastEditInfoEnabled: false,
-        content: [customContentLot]
-    });
-    lotLayer.popupTemplate = templateLot;
-
+const lotLayer = new FeatureLayer({
+  portalItem: {
+    id: '22487e1faf3c4eda82f99bf6acbbf62b',
+    portal: {
+      url: 'https://gis.railway-sector.com/portal',
+    },
+  },
+  layerId: 14,
+  labelingInfo: [lotIdLabel],
+  renderer: lotLayerRenderer,
+  popupTemplate: templateLot,
+  title: 'Land Acquisition',
+  minScale: 150000,
+  maxScale: 0,
+  //labelsVisible: false,
+  elevationInfo: {
+    mode: 'on-the-ground',
+  },
+});
 
   // Station Layer:-------------------
   // Station labels
@@ -887,39 +860,20 @@ require([
     }
   });
 
-  // Station Symbol
-  function stationsSymbol(name) {
-    return {
-      type: "web-style", // autocasts as new WebStyleSymbol()
-      name: name,
-      styleName: "EsriIconsStyle"//EsriRealisticTransportationStyle, EsriIconsStyle
-    };
-  }
-
-  // Station Renderer
-  var stationsRenderer = {
-    type: "unique-value", // autocasts as new UniqueValueRenderer()
-    field: "Station",
-    defaultSymbol: stationsSymbol("Train"),//Backhoe, Train
-  };
-
-  var stationLayer = new SceneLayer({
+  var stationLayer = new FeatureLayer({
     portalItem: {
-      id: "87903f4d1859454a837d68e18a27ad4c",
-      portal: {
-        url: "https://gis.railway-sector.com/portal"
-      }
+    id: '299f80a1d0844e109dcf354f9463f6b4',
+    portal: {
+      url: 'https://gis.railway-sector.com/portal',
     },
-    labelingInfo: [labelClass],
-    renderer: stationsRenderer,
-    elevationInfo: {
-      // this elevation mode will place points on top of
-      // buildings or other SceneLayer 3D objects
-      mode: "relative-to-ground"
-    },
-    definitionExpression: "Extension = 'SC'"
-    //screenSizePerspectiveEnabled: false, // gives constant size regardless of zoom
-  });
+  },
+  layerId: 2,
+  title: 'SC Stations',
+  labelingInfo: [labelClass],
+  elevationInfo: {
+    mode: 'relative-to-ground',
+  },
+});
   stationLayer.listMode = "hide";
   map.add(stationLayer, 0);
   
@@ -1019,7 +973,7 @@ let tbmStatusRenderer = {
 
   var tbmTunnelLayer = new FeatureLayer({
     portalItem: {
-      id: "c84fbafa39eb43c6b8d1a7c87a88569b",
+      id: "84d5fb1285da406e8024d5d1b0378fbf",
       portal: {
     url: "https://gis.railway-sector.com/portal"
   }
@@ -1472,12 +1426,6 @@ function tbmChart(segmentLineValue) {
 }); 
 }
 
-  // Selected Value Labels above gauge
-  const filterValuesDiv = document.getElementById("filterValuesDiv");
-  function selectedValuesLabel(segmentLineValue) {
-   filterValuesDiv.innerHTML = `<b>${segmentLineValue}`;
-  }
-
     // Default
     const cutterHeadPositionDiv = document.getElementById("cutterHeadPositionDiv");
     function defaultRender(){
@@ -1493,9 +1441,6 @@ function tbmChart(segmentLineValue) {
 
       // Cutter head position
       cutterHeadPosition(defaultSegementedLine);
-
-      //selectedValuesLabel
-      selectedValuesLabel(defaultSegementedLine)
 
       // Total Number of rings
       totalNumberRings(defaultSegementedLine);
@@ -1746,7 +1691,6 @@ function tbmChart(segmentLineValue) {
   segmentType.addEventListener("calciteSegmentedControlChange", async (event) => { segmentLineValue = event.target.value, filterItems() });
 
   function filterItems(){
-    console.log(segmentLineValue);
     if (segmentLineValue === "All"){
       tbmTunnelLayer.definitionExpression = null;
       tbmTunnelLayer.visible = true;
@@ -1754,8 +1698,6 @@ function tbmChart(segmentLineValue) {
       tbmTunnelLayer.definitionExpression = "Line = '" + segmentLineValue + "'";
     }
     
-    selectedValuesLabel(segmentLineValue);
-
     // Cutter head position
     cutterHeadPosition(segmentLineValue);
 
