@@ -43,13 +43,14 @@
           <div class="container">
             <div class="landStrucIsfBox">
               <div id="landChartDiv"></div>
+              <div id="landChartCountDiv"></div>
               <div id="structureChartDiv"></div>
-              <div id="isfChartDiv"></div>
             </div>
             <div class="treeBox">
+              <div id="isfChartDiv"></div>
               <div id="treeCuttingChartDiv"></div>
               <div id="treeCompenChartDiv"></div>
-              <div id="treeEmptyChartDiv"></div>
+              <!-- <div id="treeEmptyChartDiv"></div> -->
             </div>
             <div class="utilityBox">
               <div id="utilityPointChartDiv"></div>
@@ -205,6 +206,7 @@
     }
 
     #landChartDiv,
+    #landChartCountDiv,
     #structureChartDiv,
     #isfChartDiv,
     #treeCuttingChartDiv,
@@ -550,6 +552,7 @@
 
       // Land, structure, and ISF
       var landChartDiv = document.getElementById("landChartDiv");
+      var landChartCountDiv = document.getElementById("landChartCountDiv");
       var structureChartDiv = document.getElementById("structureChartDiv");
       var isfChartDiv = document.getElementById("isfChartDiv");
 
@@ -566,10 +569,10 @@
       var informationDiv = document.getElementById("informationDiv");
 
       //informationDiv.innerHTML =  "<br>" + "<b>" + "Note:" + "</b>" + "<br>" + "<br>" + "* Each gauge shows percent progress of each CP in the sliced chart.";
-      informationDiv.innerHTML = `<b>Note:</b><br>
-                              <p>1. The progress of individual CPs is indicated in the sliced areas of gauges.</p>
-                              <p>2. Values in the parentheses represent the total number of observations or total area (m2).
-                             `;
+      // informationDiv.innerHTML = `<b>Note:</b><br>
+      //                             <p>1. The progress of individual CPs is indicated in the sliced areas of gauges.</p>
+      //                             <p>2. Values in the parentheses represent the total number of observations or total area (m2).
+      //                            `;
 
       // Thousand separators function
       function thousands_separators(num) {
@@ -811,7 +814,7 @@
 
         //////////////////////////////////////////
 
-        /// 1. Land
+        /// 1. Land (handed-over area)
         function lotTotalArea() {
           var total_affected_area = {
             onStatisticField: "AffectedArea",
@@ -1004,8 +1007,8 @@
           };
 
           /**
-Grading Lookup
-*/
+    Grading Lookup
+    */
           function lookUpGrade(lookupScore, grades) {
             // Only change code below this line
             for (var i = 0; i < grades.length; i++) {
@@ -1093,8 +1096,8 @@ Grading Lookup
           axis2.renderer.labels.template.fillOpacity = 0.7;
 
           /**
-Ranges
-*/
+    Ranges
+    */
 
           for (let grading of data.gradingData) {
             var range = axis2.axisRanges.create();
@@ -1166,24 +1169,409 @@ Ranges
           hand.fillOpacity = 0.5;
 
           /*
-hand.events.on("positionchanged", function(){
-label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
-var value2 = axis.positionToValue(hand.currentPosition);
-var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
-label2.text = matchingGrade.title.toUpperCase();
-label2.fill = am4core.color(matchingGrade.color);
-label2.stroke = am4core.color(matchingGrade.color);  
-label.fill = am4core.color(matchingGrade.color);
-})
-*/
+    hand.events.on("positionchanged", function(){
+    label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
+    var value2 = axis.positionToValue(hand.currentPosition);
+    var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
+    label2.text = matchingGrade.title.toUpperCase();
+    label2.fill = am4core.color(matchingGrade.color);
+    label2.stroke = am4core.color(matchingGrade.color);
+    label.fill = am4core.color(matchingGrade.color);
+    })
+    */
           /*
-setInterval(function() {
-var value = chartMin + Math.random() * (chartMax - chartMin);
-hand.showValue(value, 1000, am4core.ease.cubicOut);
-}, 2000);
-*/
+    setInterval(function() {
+    var value = chartMin + Math.random() * (chartMax - chartMin);
+    hand.showValue(value, 1000, am4core.ease.cubicOut);
+    }, 2000);
+    */
         }
         lotTotalArea().then(lotSummary).then(laFigureLot);
+
+        /// 1. Land (handed-over counts)
+        function totalLotCount() {
+          var total_lot = {
+            onStatisticField: "LotID",
+            outStatisticFieldName: "total_lot",
+            statisticType: "count",
+          };
+
+          var total_handedover = {
+            onStatisticField: "CASE WHEN HandedOver = 1 THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_handedover",
+            statisticType: "sum",
+          };
+
+          var total_n01 = {
+            onStatisticField: "CASE WHEN CP = 'N-01' THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_n01",
+            statisticType: "sum",
+          };
+
+          var total_n01_handedover = {
+            onStatisticField:
+              "CASE WHEN (HandedOver = 1 and CP = 'N-01') THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_n01_handedover",
+            statisticType: "sum",
+          };
+
+          var total_n02 = {
+            onStatisticField: "CASE WHEN CP = 'N-02' THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_n02",
+            statisticType: "sum",
+          };
+
+          var total_n02_handedover = {
+            onStatisticField:
+              "CASE WHEN (HandedOver = 1 and CP = 'N-02') THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_n02_handedover",
+            statisticType: "sum",
+          };
+
+          var total_n03 = {
+            onStatisticField: "CASE WHEN CP = 'N-03' THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_n03",
+            statisticType: "sum",
+          };
+
+          var total_n03_handedover = {
+            onStatisticField:
+              "CASE WHEN (HandedOver = 1 and CP = 'N-03') THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_n03_handedover",
+            statisticType: "sum",
+          };
+
+          var total_n04 = {
+            onStatisticField: "CASE WHEN CP = 'N-04' THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_n04",
+            statisticType: "sum",
+          };
+
+          var total_n04_handedover = {
+            onStatisticField:
+              "CASE WHEN (HandedOver = 1 and CP = 'N-04') THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_n04_handedover",
+            statisticType: "sum",
+          };
+
+          var total_n05 = {
+            onStatisticField: "CASE WHEN CP = 'N-05' THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_n05",
+            statisticType: "sum",
+          };
+
+          var total_n05_handedover = {
+            onStatisticField:
+              "CASE WHEN (HandedOver = 1 and CP = 'N-05') THEN 1 ELSE 0 END",
+            outStatisticFieldName: "total_n05_handedover",
+            statisticType: "sum",
+          };
+
+          var query = lotLayer.queryFeatures(query);
+          query.outStatistics = [
+            total_lot,
+            total_handedover,
+            total_n01,
+            total_n01_handedover,
+            total_n02,
+            total_n02_handedover,
+            total_n03,
+            total_n03_handedover,
+            total_n04,
+            total_n04_handedover,
+            total_n05,
+            total_n05_handedover,
+          ];
+
+          return lotLayer.queryFeatures(query).then((response) => {
+            var stats = response.features[0].attributes;
+            const total = stats.total_lot;
+            const handedOver = stats.total_handedover;
+            const percent = (handedOver / total) * 100;
+
+            const n01_total = stats.total_n01;
+            const n02_total = stats.total_n02;
+            const n03_total = stats.total_n03;
+            const n04_total = stats.total_n04;
+            const n05_total = stats.total_n05;
+
+            const n01_total_handedover = stats.total_n01_handedover;
+            const n02_total_handedover = stats.total_n02_handedover;
+            const n03_total_handedover = stats.total_n03_handedover;
+            const n04_total_handedover = stats.total_n04_handedover;
+            const n05_total_handedover = stats.total_n05_handedover;
+
+            const n01_percent = (n01_total_handedover / n01_total) * 100;
+            const n02_percent = (n02_total_handedover / n02_total) * 100;
+            const n03_percent = (n03_total_handedover / n03_total) * 100;
+            const n04_percent = (n04_total_handedover / n04_total) * 100;
+            const n05_percent = (n05_total_handedover / n05_total) * 100;
+
+            const n01_percent_total = (n01_total_handedover / total) * 100;
+            const n02_percent_total = (n02_total_handedover / total) * 100;
+            const n03_percent_total = (n03_total_handedover / total) * 100;
+            const n04_percent_total = (n04_total_handedover / total) * 100;
+            const n05_percent_total = (n05_total_handedover / total) * 100;
+
+            return [
+              total,
+              percent,
+              n01_percent,
+              n02_percent,
+              n03_percent,
+              n04_percent,
+              n05_percent,
+              n01_percent_total,
+              n02_percent_total,
+              n03_percent_total,
+              n04_percent_total,
+              n05_percent_total,
+            ];
+          });
+        }
+
+        function chartTotalLotHandedOverCount([
+          total,
+          percent,
+          n01_percent,
+          n02_percent,
+          n03_percent,
+          n04_percent,
+          n05_percent,
+          n01_percent_total,
+          n02_percent_total,
+          n03_percent_total,
+          n04_percent_total,
+          n05_percent_total,
+        ]) {
+          var totalScore = percent;
+
+          var N01 = n01_percent_total;
+          var N02 = n01_percent_total + n02_percent_total;
+          var N03 = n01_percent_total + n02_percent_total + n03_percent_total;
+          var N04 =
+            n01_percent_total +
+            n02_percent_total +
+            n03_percent_total +
+            n04_percent_total;
+          var N05 =
+            n01_percent_total +
+            n02_percent_total +
+            n03_percent_total +
+            n04_percent_total +
+            n05_percent_total;
+
+          var chartMin = 0;
+          var chartMax = 100;
+
+          // #ffea8c|#b3ab60|#4b595e|#6693c8|#aadbff
+          // const colors = ["#ffea8c", "#b3ab60", "#4b595e", "#6693c8", "#aadbff"];
+
+          var data = {
+            score: totalScore,
+            gradingData: [
+              {
+                title: n01_percent.toFixed(0),
+                color: color_101,
+                lowScore: 0,
+                highScore: N01,
+              },
+              {
+                title: n02_percent.toFixed(0),
+                color: color_102,
+                lowScore: N01,
+                highScore: N02,
+              },
+              {
+                title: n03_percent.toFixed(0),
+                color: color_103,
+                lowScore: N02,
+                highScore: N03,
+              },
+              {
+                title: n04_percent.toFixed(0),
+                color: color_104,
+                lowScore: N03,
+                highScore: N04,
+              },
+              {
+                title: n05_percent.toFixed(0),
+                color: color_105,
+                lowScore: N04,
+                highScore: N05,
+              },
+              {
+                title: "",
+                color: "#C5C5C5",
+                lowScore: N05,
+                highScore: 100,
+              },
+            ],
+          };
+
+          /**
+    Grading Lookup
+    */
+          function lookUpGrade(lookupScore, grades) {
+            // Only change code below this line
+            for (var i = 0; i < grades.length; i++) {
+              if (
+                grades[i].lowScore < lookupScore &&
+                grades[i].highScore >= lookupScore
+              ) {
+                return grades[i];
+              }
+            }
+            return null;
+          }
+
+          // create chart
+          var chart = am4core.create("landChartCountDiv", am4charts.GaugeChart);
+          chart.hiddenState.properties.opacity = 0;
+          chart.fontSize = 11;
+          chart.innerRadius = am4core.percent(80);
+          chart.resizable = true;
+          chart.responsive.enabled = true;
+          chart.logo.disabled = true;
+          /**
+           * Chart Title
+           */
+          // Title Color
+          var title = chart.titles.create();
+          //'<a href="https://google.com"}">More info</a>'
+
+          title.text = "LAND";
+          //title.html = '<a href="https://eijigorilla.github.io/WebApp/ArcGIS_API_for_JavaScript/envi/Operational/N2_Land_Structure2/index2.html" target="_blank">LAND</a>';
+          title.fontSize = titleFontSize;
+          title.align = "center";
+          title.marginBottom = -10;
+          title.marginTop = 0;
+          title.fill = TOP_TITLE_COL;
+
+          //var sourceLabel = chart.createChild(am4core.Label);
+          //sourceLabel.html = '<a href="https://google.com">Test</a>';
+
+          // Add bottom label
+          var label = chart.chartContainer.createChild(am4core.Label);
+          label.text = "[bold]HANDED-OVER";
+          //label.html = '<a href="https://google.com">HANDED-OVER AREA</a>';
+          label.fontSize = bottomLabelFontSize;
+          label.align = "center";
+          label.marginTop = labelMarginTop;
+          label.fill = BOTTOM_LABEL_COL;
+
+          /**
+           * Normal axis
+           */
+
+          var axis = chart.xAxes.push(new am4charts.ValueAxis());
+          axis.min = chartMin;
+          axis.max = chartMax;
+          axis.strictMinMax = true;
+          axis.renderer.radius = am4core.percent(80);
+          axis.renderer.inside = true;
+          axis.renderer.line.strokeOpacity = 0.5; // line opacity inside curve line
+          axis.renderer.ticks.template.disabled = false;
+          axis.renderer.ticks.template.strokeOpacity = 1;
+          //axis.renderer.ticks.template.strokeWidth = 1;
+          axis.renderer.ticks.template.length = 10;
+          axis.renderer.ticks.template.stroke = am4core.color(axis1TickColor);
+          //axis.renderer.grid.template.disabled = true;
+          axis.renderer.labels.template.radius = am4core.percent(40);
+          axis.renderer.labels.template.fontSize = "1.2em"; // default: 1.2em inner radius axis percent labels (0 to 100%)
+          axis.renderer.labels.template.fill = am4core.color(axis1TickColor);
+
+          /**
+           * Axis for ranges
+           */
+
+          var axis2 = chart.xAxes.push(new am4charts.ValueAxis());
+          axis2.min = chartMin;
+          axis2.max = chartMax;
+          axis2.strictMinMax = true;
+          axis2.renderer.labels.template.disabled = true;
+          axis2.renderer.ticks.template.disabled = true;
+          axis2.renderer.grid.template.disabled = true; // when true inside tick marks will disappear
+          axis2.renderer.grid.template.opacity = 0.5;
+          axis2.renderer.labels.template.bent = true;
+          axis2.renderer.labels.template.fill = am4core.color("#000");
+          axis2.renderer.labels.template.fontWeight = "bold";
+          axis2.renderer.labels.template.fillOpacity = 0.7;
+
+          /**
+    Ranges
+    */
+
+          for (let grading of data.gradingData) {
+            var range = axis2.axisRanges.create();
+            range.axisFill.fill = am4core.color(grading.color);
+            range.axisFill.fillOpacity = 1; // default 0.8 fill-color of
+            range.axisFill.zIndex = -1;
+            range.value =
+              grading.lowScore > chartMin ? grading.lowScore : chartMin;
+            range.endValue =
+              grading.highScore < chartMax ? grading.highScore : chartMax;
+            range.grid.strokeOpacity = 0; // changes opacity of inside tick mark
+            range.stroke = am4core.color(grading.color).lighten(-0.1);
+            range.label.inside = true;
+            range.label.text = grading.title.toUpperCase();
+            range.label.inside = true;
+            range.label.location = 0.5;
+            range.label.inside = true;
+            range.label.radius = am4core.percent(10);
+            range.label.paddingBottom = -5; // ~half font size
+            range.label.fontSize = "1.4em"; // category label (i.e., N-01, N-02, ....)
+          }
+
+          var matchingGrade = lookUpGrade(data.score, data.gradingData);
+
+          /**
+           * Label 1 (total Percent)
+           */
+
+          var label = chart.radarContainer.createChild(am4core.Label);
+          label.isMeasured = false;
+          label.fontSize = totalPercentLabel_fontSize;
+          label.x = am4core.percent(50);
+          label.y = totalPercentLabel_y;
+          label.paddingBottom = -5;
+          label.horizontalCenter = "middle";
+          label.verticalCenter = "bottom";
+          //label.dataItem = data;
+          label.text = data.score.toFixed(0).toString() + "%";
+          //label.text = "{score}";
+          //label.fill = am4core.color(matchingGrade.color);
+          label.fill = am4core.color("#00C3FF");
+
+          /**
+           * Label 2
+           */
+
+          var label2 = chart.radarContainer.createChild(am4core.Label);
+          label2.isMeasured = false;
+          label2.fontSize = totalNumberLabel_fontSize;
+          label2.horizontalCenter = "middle";
+          label2.verticalCenter = "bottom";
+          label2.y = totalNumberLabel_y;
+          label2.text = "(" + thousands_separators(total.toFixed(0)) + ")";
+          label2.fill = am4core.color("#00C3FF");
+
+          /**
+           * Hand
+           */
+
+          var hand = chart.hands.push(new am4charts.ClockHand());
+          hand.axis = axis2;
+          hand.innerRadius = am4core.percent(55);
+          hand.startWidth = 8;
+          hand.pin.disabled = true;
+          hand.value = data.score;
+          hand.fill = am4core.color("#000000"); // inner color of needle
+          //hand.stroke = am4core.color("#000");
+          hand.fillOpacity = 0.5;
+        }
+
+        totalLotCount().then(chartTotalLotHandedOverCount);
 
         /// 2. Structure
         function strucTotalArea() {
@@ -1371,8 +1759,8 @@ hand.showValue(value, 1000, am4core.ease.cubicOut);
           };
 
           /**
-Grading Lookup
-*/
+    Grading Lookup
+    */
           function lookUpGrade(lookupScore, grades) {
             // Only change code below this line
             for (var i = 0; i < grades.length; i++) {
@@ -1454,8 +1842,8 @@ Grading Lookup
           axis2.renderer.labels.template.fillOpacity = 0.7; // 0.3 // category labels: N-01, N-02,....
 
           /**
-Ranges
-*/
+    Ranges
+    */
 
           for (let grading of data.gradingData) {
             var range = axis2.axisRanges.create();
@@ -1526,22 +1914,22 @@ Ranges
           hand.fillOpacity = 0.5;
 
           /*
-hand.events.on("positionchanged", function(){
-label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
-var value2 = axis.positionToValue(hand.currentPosition);
-var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
-label2.text = matchingGrade.title.toUpperCase();
-label2.fill = am4core.color(matchingGrade.color);
-label2.stroke = am4core.color(matchingGrade.color);  
-label.fill = am4core.color(matchingGrade.color);
-})
-*/
+    hand.events.on("positionchanged", function(){
+    label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
+    var value2 = axis.positionToValue(hand.currentPosition);
+    var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
+    label2.text = matchingGrade.title.toUpperCase();
+    label2.fill = am4core.color(matchingGrade.color);
+    label2.stroke = am4core.color(matchingGrade.color);
+    label.fill = am4core.color(matchingGrade.color);
+    })
+    */
           /*
-setInterval(function() {
-var value = chartMin + Math.random() * (chartMax - chartMin);
-hand.showValue(value, 1000, am4core.ease.cubicOut);
-}, 2000);
-*/
+    setInterval(function() {
+    var value = chartMin + Math.random() * (chartMax - chartMin);
+    hand.showValue(value, 1000, am4core.ease.cubicOut);
+    }, 2000);
+    */
         }
         strucTotalArea().then(strucSummary).then(laFigureStruc);
 
@@ -1729,8 +2117,8 @@ hand.showValue(value, 1000, am4core.ease.cubicOut);
           };
 
           /**
-Grading Lookup
-*/
+    Grading Lookup
+    */
           function lookUpGrade(lookupScore, grades) {
             // Only change code below this line
             for (var i = 0; i < grades.length; i++) {
@@ -1812,8 +2200,8 @@ Grading Lookup
           axis2.renderer.labels.template.fillOpacity = 0.7;
 
           /**
-Ranges
-*/
+    Ranges
+    */
 
           for (let grading of data.gradingData) {
             var range = axis2.axisRanges.create();
@@ -1886,22 +2274,22 @@ Ranges
           hand.fillOpacity = 0.5;
 
           /*
-hand.events.on("positionchanged", function(){
-label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
-var value2 = axis.positionToValue(hand.currentPosition);
-var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
-label2.text = matchingGrade.title.toUpperCase();
-label2.fill = am4core.color(matchingGrade.color);
-label2.stroke = am4core.color(matchingGrade.color);  
-label.fill = am4core.color(matchingGrade.color);
-})
-*/
+    hand.events.on("positionchanged", function(){
+    label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
+    var value2 = axis.positionToValue(hand.currentPosition);
+    var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
+    label2.text = matchingGrade.title.toUpperCase();
+    label2.fill = am4core.color(matchingGrade.color);
+    label2.stroke = am4core.color(matchingGrade.color);
+    label.fill = am4core.color(matchingGrade.color);
+    })
+    */
           /*
-setInterval(function() {
-var value = chartMin + Math.random() * (chartMax - chartMin);
-hand.showValue(value, 1000, am4core.ease.cubicOut);
-}, 2000);
-*/
+    setInterval(function() {
+    var value = chartMin + Math.random() * (chartMax - chartMin);
+    hand.showValue(value, 1000, am4core.ease.cubicOut);
+    }, 2000);
+    */
         }
         isfTotalArea().then(isfSummary).then(laFigureIsf);
 
@@ -2090,8 +2478,8 @@ hand.showValue(value, 1000, am4core.ease.cubicOut);
           };
 
           /**
-Grading Lookup
-*/
+    Grading Lookup
+    */
           function lookUpGrade(lookupScore, grades) {
             // Only change code below this line
             for (var i = 0; i < grades.length; i++) {
@@ -2176,8 +2564,8 @@ Grading Lookup
           axis2.renderer.labels.template.fillOpacity = 0.7;
 
           /**
-Ranges
-*/
+    Ranges
+    */
 
           for (let grading of data.gradingData) {
             var range = axis2.axisRanges.create();
@@ -2248,22 +2636,22 @@ Ranges
           hand.fillOpacity = 0.5;
 
           /*
-hand.events.on("positionchanged", function(){
-label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
-var value2 = axis.positionToValue(hand.currentPosition);
-var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
-label2.text = matchingGrade.title.toUpperCase();
-label2.fill = am4core.color(matchingGrade.color);
-label2.stroke = am4core.color(matchingGrade.color);  
-label.fill = am4core.color(matchingGrade.color);
-})
-*/
+    hand.events.on("positionchanged", function(){
+    label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
+    var value2 = axis.positionToValue(hand.currentPosition);
+    var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
+    label2.text = matchingGrade.title.toUpperCase();
+    label2.fill = am4core.color(matchingGrade.color);
+    label2.stroke = am4core.color(matchingGrade.color);
+    label.fill = am4core.color(matchingGrade.color);
+    })
+    */
           /*
-setInterval(function() {
-var value = chartMin + Math.random() * (chartMax - chartMin);
-hand.showValue(value, 1000, am4core.ease.cubicOut);
-}, 2000);
-*/
+    setInterval(function() {
+    var value = chartMin + Math.random() * (chartMax - chartMin);
+    hand.showValue(value, 1000, am4core.ease.cubicOut);
+    }, 2000);
+    */
         }
         treeCuttingTotal().then(treeCutSummary).then(treeCuttingFigure);
 
@@ -2450,8 +2838,8 @@ hand.showValue(value, 1000, am4core.ease.cubicOut);
           };
 
           /**
-Grading Lookup
-*/
+    Grading Lookup
+    */
           function lookUpGrade(lookupScore, grades) {
             // Only change code below this line
             for (var i = 0; i < grades.length; i++) {
@@ -2536,8 +2924,8 @@ Grading Lookup
           axis2.renderer.labels.template.fillOpacity = 0.7;
 
           /**
-Ranges
-*/
+    Ranges
+    */
 
           for (let grading of data.gradingData) {
             var range = axis2.axisRanges.create();
@@ -2608,22 +2996,22 @@ Ranges
           hand.fillOpacity = 0.5;
 
           /*
-hand.events.on("positionchanged", function(){
-label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
-var value2 = axis.positionToValue(hand.currentPosition);
-var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
-label2.text = matchingGrade.title.toUpperCase();
-label2.fill = am4core.color(matchingGrade.color);
-label2.stroke = am4core.color(matchingGrade.color);  
-label.fill = am4core.color(matchingGrade.color);
-})
-*/
+    hand.events.on("positionchanged", function(){
+    label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
+    var value2 = axis.positionToValue(hand.currentPosition);
+    var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
+    label2.text = matchingGrade.title.toUpperCase();
+    label2.fill = am4core.color(matchingGrade.color);
+    label2.stroke = am4core.color(matchingGrade.color);
+    label.fill = am4core.color(matchingGrade.color);
+    })
+    */
           /*
-setInterval(function() {
-var value = chartMin + Math.random() * (chartMax - chartMin);
-hand.showValue(value, 1000, am4core.ease.cubicOut);
-}, 2000);
-*/
+    setInterval(function() {
+    var value = chartMin + Math.random() * (chartMax - chartMin);
+    hand.showValue(value, 1000, am4core.ease.cubicOut);
+    }, 2000);
+    */
         }
         treeCompenTotal().then(treeCompenSummary).then(treeCompenFigure);
 
@@ -2957,8 +3345,8 @@ hand.showValue(value, 1000, am4core.ease.cubicOut);
           };
 
           /**
-Grading Lookup
-*/
+    Grading Lookup
+    */
           function lookUpGrade(lookupScore, grades) {
             // Only change code below this line
             for (var i = 0; i < grades.length; i++) {
@@ -3043,8 +3431,8 @@ Grading Lookup
           axis2.renderer.labels.template.fillOpacity = 0.7;
 
           /**
-Ranges
-*/
+    Ranges
+    */
 
           for (let grading of data.gradingData) {
             var range = axis2.axisRanges.create();
@@ -3115,22 +3503,22 @@ Ranges
           hand.fillOpacity = 0.5;
 
           /*
-hand.events.on("positionchanged", function(){
-label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
-var value2 = axis.positionToValue(hand.currentPosition);
-var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
-label2.text = matchingGrade.title.toUpperCase();
-label2.fill = am4core.color(matchingGrade.color);
-label2.stroke = am4core.color(matchingGrade.color);  
-label.fill = am4core.color(matchingGrade.color);
-})
-*/
+    hand.events.on("positionchanged", function(){
+    label.text = axis2.positionToValue(hand.currentPosition).toFixed(0).toString() + "%";
+    var value2 = axis.positionToValue(hand.currentPosition);
+    var matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), data.gradingData);
+    label2.text = matchingGrade.title.toUpperCase();
+    label2.fill = am4core.color(matchingGrade.color);
+    label2.stroke = am4core.color(matchingGrade.color);
+    label.fill = am4core.color(matchingGrade.color);
+    })
+    */
           /*
-setInterval(function() {
-var value = chartMin + Math.random() * (chartMax - chartMin);
-hand.showValue(value, 1000, am4core.ease.cubicOut);
-}, 2000);
-*/
+    setInterval(function() {
+    var value = chartMin + Math.random() * (chartMax - chartMin);
+    hand.showValue(value, 1000, am4core.ease.cubicOut);
+    }, 2000);
+    */
         }
 
         utilityPointTotal()
