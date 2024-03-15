@@ -377,7 +377,45 @@
   ) {
     // **********************************************************
     // *       As of Date
-    document.getElementById("date").innerHTML = "As of December 15, 2023";
+    const dateTable = new FeatureLayer({
+  portalItem: {
+    id: 'b2a118b088a44fa0a7a84acbe0844cb2',
+    portal: {
+      url: 'https://gis.railway-sector.com/portal',
+    },
+  },
+});
+
+    const monthList = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  var query = dateTable.createQuery();
+  query.where = "project = 'N2SC'" + ' AND ' + "category = 'Alignment Map'";
+  dateTable.queryFeatures(query).then((response) => {
+    const stats = response.features;
+    stats.forEach((result) => {
+      const date = new Date(result.attributes.date);
+      const year = date.getFullYear();
+      const month = monthList[date.getMonth()];
+      const day = date.getDate();
+      const final = year < 1990 ? '' : `${month} ${day}, ${year}`;
+      document.getElementById("date").innerHTML = final;
+    })
+  })
+
+    // document.getElementById("date").innerHTML = "As of December 15, 2023";
     // **********************************************************
     const basemap = new Basemap({
       baseLayers: [
