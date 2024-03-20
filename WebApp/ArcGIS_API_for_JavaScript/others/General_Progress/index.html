@@ -603,8 +603,8 @@
       return overView;
     }
 
-        // Disable all the navigation
-        view.when(disableZooming);
+// Disable all the navigation
+// view.when(disableZooming);
 
 function disableZooming(view) {
   view.popup.dockEnabled = true;
@@ -3459,6 +3459,34 @@ function disableZooming(view) {
 
     // adds the compass to the top left corner of the MapView
     view.ui.add(compass, 'top-left');
+
+    // Print widget
+    const print = new Print({
+      view: view,
+      // specify your own print service
+      printServiceUrl:
+        'https://gis.railway-sector.com/server/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task',
+    });
+
+    const printExpand = new Expand({
+      view: view,
+      expanded: false,
+      content: print,
+      expandTooltip: "Print screen",
+      expandIcon: "print",
+    });
+
+    // close commercial trian operation image when print widget is opened.
+    view.ui.add(printExpand, "top-left");
+    reactiveUtils.when(
+      () => printExpand?.expanded === true,
+      () => document.getElementById("train-Operation-schedule").style.display = 'none'
+    );
+
+    reactiveUtils.when(
+      () => printExpand?.expanded === false,
+      () => document.getElementById("train-Operation-schedule").style.display = 'block'
+    );
 
 
     // Station list
