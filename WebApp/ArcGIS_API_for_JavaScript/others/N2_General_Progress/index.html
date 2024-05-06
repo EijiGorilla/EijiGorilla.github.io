@@ -60,7 +60,7 @@
           </div>
         </div>
         <div id="legendChartDiv"></div>
-        <div class="dateDiv">March 31, 2024</div>
+        <div id="dateDiv"></div>
         <div id="informationDiv"></div>
       </div>
     </calcite-shell>
@@ -160,7 +160,7 @@
       margin: 0.5rem;
     }
 
-    .dateDiv {
+    #dateDiv {
       z-index: 99;
       position: absolute;
       padding-bottom: 10;
@@ -400,6 +400,48 @@
       Search
     ) {
       ////////////////////////////////////////////////////
+
+      // ************ As of Date ****************** //
+      const dateTable = new FeatureLayer({
+        portalItem: {
+          id: "b2a118b088a44fa0a7a84acbe0844cb2",
+          portal: {
+            url: "https://gis.railway-sector.com/portal",
+          },
+        },
+      });
+
+      const monthList = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+
+      var query = dateTable.createQuery();
+      query.where =
+        "project = 'N2'" + " AND " + "category = 'Progress Summary Gauge'";
+      dateTable.queryFeatures(query).then((response) => {
+        const stats = response.features;
+        stats.forEach((result) => {
+          const date = new Date(result.attributes.date);
+          const year = date.getFullYear();
+          const month = monthList[date.getMonth()];
+          const day = date.getDate();
+          const final = year < 1990 ? "" : `${month} ${day}, ${year}`;
+          console.log(date);
+          document.getElementById("dateDiv").innerHTML = final;
+        });
+      });
+
       var basemap = new Basemap({
         baseLayers: [
           new VectorTileLayer({
